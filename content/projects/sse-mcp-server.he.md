@@ -9,6 +9,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/yonatankarp/sse-mcp-server"
+    image:
+        src: "images/projects/sse-mcp-server.png"
+        scale: 0.5
 ---
 
 שרת SSE MCP מבוסס Kotlin לביצוע כלים בסוכני AI (Flowise).

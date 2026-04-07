@@ -8,6 +8,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/yonatankarp/ff4k"
+    image:
+        src: "images/projects/ff4k.png"
+        scale: 0.5
 ---
 
 Kotlin Multiplatform feature flags library with DSL configuration, multiple storage backends (JDBC, R2DBC, SQLite), and coroutine-safe context propagation. Built from scratch as a modern alternative to ff4j.

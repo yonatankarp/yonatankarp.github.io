@@ -9,6 +9,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/yonatankarp/TaleKeeper"
+    image:
+        src: "images/projects/talekeeper.png"
+        scale: 0.5
 ---
 
 מקליט סשנים TTRPG מבוסס AI עם תמלול חי, זיהוי דוברים וסיכומי סשנים. Python/FastAPI + Svelte 5.

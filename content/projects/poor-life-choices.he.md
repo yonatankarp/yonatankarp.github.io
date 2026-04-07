@@ -9,6 +9,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "לאתר"
         URL: "https://poor-life-choices.vercel.app"
+    image:
+        src: "images/projects/poor-life-choices.png"
+        scale: 0.5
 ---
 
 אפליקציית שיתוף מיד לחברים. JavaScript/React, פעיל ב-Vercel.

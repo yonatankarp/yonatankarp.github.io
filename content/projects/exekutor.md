@@ -8,6 +8,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/yonatankarp/exekutor"
+    image:
+        src: "images/projects/exekutor.png"
+        scale: 0.5
 ---
 
 Plugin architecture demo in Kotlin. Demonstrates extensible application design patterns.

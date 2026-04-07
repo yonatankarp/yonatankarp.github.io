@@ -8,6 +8,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "Live Site"
         URL: "https://poor-life-choices.vercel.app"
+    image:
+        src: "images/projects/poor-life-choices.png"
+        scale: 0.5
 ---
 
 Mead sharing app for friends. JavaScript/React, live on Vercel.

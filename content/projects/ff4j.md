@@ -1,0 +1,13 @@
+---
+date: 2026-03-15T00:00:00+01:00
+title: "ff4j (contributor)"
+draft: false
+link: "https://github.com/ff4j/ff4j/pull/752"
+params:
+    button:
+        icon: "icon-arrow-right"
+        btnText: "PR #752"
+        URL: "https://github.com/ff4j/ff4j/pull/752"
+---
+
+Authored the javax-to-jakarta namespace migration. Merged but never released by maintainers -- the motivation for building ff4k.

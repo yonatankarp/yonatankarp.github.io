@@ -235,7 +235,7 @@ weight = 7
 [[languages.he.menus.header]]
 pre = "search"
 name = "חיפוש"
-URL = "/search"
+URL = "/he/search"
 weight = 8
 
 [[languages.he.menus.footer]]

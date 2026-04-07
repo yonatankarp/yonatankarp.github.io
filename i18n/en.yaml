@@ -1,0 +1,22 @@
+## Overrides for the Adritian theme defaults
+
+- id: "logo_text1"
+  translation: "Yonatan"
+
+- id: "logo_text2"
+  translation: "Karp-Rudin"
+
+- id: "footer_notice"
+  translation: "© Yonatan Karp-Rudin."
+
+- id: "head_title"
+  translation: "Yonatan Karp-Rudin - Staff Software Engineer"
+
+- id: "head_description"
+  translation: "Staff Software Engineer based in Berlin. Building payment and compliance systems at Billie. Open source contributor."
+
+- id: "experience_button_url"
+  translation: "https://linkedin.com/in/yonatankarp"
+
+- id: "experience_button3_url"
+  translation: "/experience"

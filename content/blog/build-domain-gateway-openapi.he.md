@@ -14,7 +14,11 @@ categories:
 translationKey: "build-domain-gateway-openapi"
 ---
 
+<div class="editors-note">
+
 **TL;DR:** המאמר הזה מסביר מה זה domain gateway, איך לבנות אחד ולמה תרצו אותו.
+
+</div>
 
 ## מה זה Domain Gateway?
 

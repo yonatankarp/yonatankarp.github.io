@@ -17,7 +17,7 @@ skill_categories:
       - name: "Python"
         level: 75
         years: "8+"
-        description: "Scripting, automation, data pipelines, FastAPI."
+        description: "Internal tools, automation, data pipelines, FastAPI."
       - name: "TypeScript"
         level: 65
         years: "3+"
@@ -30,10 +30,6 @@ skill_categories:
         level: 55
         years: "3+"
         description: "Desktop applications, game development (Unity)."
-      - name: "MATLAB"
-        level: 40
-        years: "2+"
-        description: "Calibration processes, signal processing."
   - name: "Frameworks"
     skills:
       - name: "Spring Boot"
@@ -74,10 +70,18 @@ skill_categories:
         level: 95
         years: "5+"
         description: "Spec-first design, code generation."
-      - name: "gRPC / Protocol Buffers"
-        level: 65
+      - name: "gRPC"
+        level: 75
         years: "3+"
         description: "Service-to-service communication."
+      - name: "Protocol Buffers"
+        level: 85
+        years: "3+"
+        description: "Schema definition, code generation."
+      - name: "Avro"
+        level: 85
+        years: "3+"
+        description: "Schema registry, event serialization."
   - name: "Data & Messaging"
     skills:
       - name: "Apache Kafka"
@@ -136,6 +140,28 @@ skill_categories:
         level: 75
         years: "3+"
         description: "APM, alerting, dashboards."
+  - name: "Testing"
+    skills:
+      - name: "JUnit 5"
+        level: 90
+        years: "9+"
+        description: "Primary test framework, parameterized tests."
+      - name: "MockK"
+        level: 85
+        years: "4+"
+        description: "Kotlin-native mocking library."
+      - name: "Mockito"
+        level: 75
+        years: "10+"
+        description: "Java mocking, legacy codebases."
+      - name: "Kotest"
+        level: 70
+        years: "2+"
+        description: "Kotlin test framework, property-based testing."
+      - name: "Konsist"
+        level: 60
+        years: "1+"
+        description: "Architectural unit tests for Kotlin."
   - name: "Build Tools"
     skills:
       - name: "Gradle"

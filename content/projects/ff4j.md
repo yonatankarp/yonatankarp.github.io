@@ -8,9 +8,6 @@ params:
         icon: "icon-arrow-right"
         btnText: "PR #752"
         URL: "https://github.com/ff4j/ff4j/pull/752"
-    image:
-        src: "images/projects/ff4j.png"
-        scale: 0.5
 ---
 
 Authored the javax-to-jakarta namespace migration. Merged but never released by maintainers -- the motivation for building ff4k.

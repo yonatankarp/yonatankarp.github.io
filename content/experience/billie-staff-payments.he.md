@@ -1,12 +1,12 @@
 ---
 date: 2025-10-01T00:00:00+01:00
 draft: false
-title: "מהנדס תוכנה בכיר - תשלומים"
-jobTitle: "מהנדס תוכנה בכיר"
+title: "Staff Software Engineer - Payments"
+jobTitle: "Staff Software Engineer"
 company: "Billie"
 location: "ברלין, גרמניה"
-duration: "אוק' 2025 - הווה"
+duration: "אוק' 2025 - היום"
 translationKey: "billie-staff-payments"
 ---
 
-הקמת שירות התאימות כדומיין חדש המכסה ניטור עסקאות, סינון ובדיקות סנקציות -- כתיבת המפרט הטכני, הגדרות ממשקים, והובלת אינטגרציית ComplyAdvantage. בניית כלי לניטור cronjob ב-Backstage המצרף נתונים ממערכות מרובות. חבר בצוות הארכיטקטורה.
+הקמתי את ה-Compliance Service כ-domain חדש -- transaction monitoring, screening ו-sanctions checks. כתבתי את ה-tech spec, הגדרתי APIs והובלתי את האינטגרציה עם ComplyAdvantage. בניתי cronjob monitoring tool ב-Backstage. חבר בצוות הארכיטקטורה.

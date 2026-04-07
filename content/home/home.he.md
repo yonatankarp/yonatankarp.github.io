@@ -6,9 +6,9 @@ draft = false
 
 {{< showcase-section
     title="יונתן קרפ-רודין"
-    subtitle="מהנדס תוכנה בכיר"
+    subtitle="Staff Software Engineer"
     buttonText="אימייל"
-    description="מהנדס תוכנה בכיר בברלין, בונה מערכות תשלומים ותאימות ב-Billie. 12 שנות ניסיון במערכות משובצות, שרתים מבוזרים ופלטפורמות פינטק."
+    description="Staff Software Engineer בברלין, בונה מערכות payments ו-compliance ב-Billie. יותר מ-12 שנות ניסיון ב-embedded, backend מבוזר ופינטק."
     imgSrc="images/showcase/showcase.png"
     imgScale="0.5"
 >}}
@@ -23,8 +23,8 @@ draft = false
 
 {{< about-section
     title="אודות"
-    content="מהנדס תוכנה בכיר בברלין, בונה מערכות תשלומים ותאימות ב-Billie.<br/><br/>יש לי 12 שנות ניסיון לאורך כל הספקטרום -- ממערכות משובצות וכיול שבבים (C++/C#) ועד פלטפורמות שרת מבוזרות (Kotlin/Java/Spring Boot). עבדתי בחומרת ראייה ממוחשבת, מרכזי שירות ארגוניים, תשלומים פינטק והלוואות B2B.<br/><br/>ב-Billie אני אחראי על שירות התאימות המכסה ניטור עסקאות וסינון, חלק מצוות הארכיטקטורה, ומוביל יוזמות כמו עיצוב API-first, שיפור צינורות CI ואימוץ AI. לפני כן, בניתי 4.5 שנים ב-SumUp ספריות פלטפורמה, הגירת נתונים היסטוריים ויצירת תבניות שירות.<br/><br/>אני כותב על Kotlin ופיתוח צד שרת ב-<a href='https://kotlinbackend.com'>kotlinbackend.com</a>, תורם לפרויקטי קוד פתוח כמו openapi-generator, ומתחזק את <a href='https://github.com/yonatankarp/ff4k'>ff4k</a> -- ספריית feature flags ל-Kotlin Multiplatform."
-    button_text="המיומנויות שלי"
+    content="Staff Software Engineer בברלין, בונה מערכות payments ו-compliance ב-Billie.<br/><br/>יש לי 12+ שנות ניסיון על כל הספקטרום -- ממערכות embedded וכיול שבבים (C++/C#) ועד distributed backend platforms (Kotlin/Java/Spring Boot). עבדתי ב-computer vision hardware, מרכזי שירות ארגוניים, fintech payments ו-B2B lending.<br/><br/>ב-Billie אני אחראי על ה-Compliance Service שמכסה transaction monitoring ו-screening, חלק מצוות הארכיטקטורה, ומוביל יוזמות כמו API-first design, שיפור CI pipelines ואימוץ AI. לפני זה הייתי 4.5 שנים ב-SumUp -- בניתי platform libraries, העברתי legacy data ויצרתי service templates.<br/><br/>אני כותב על Kotlin ו-backend engineering ב-<a href='https://kotlinbackend.com'>kotlinbackend.com</a>, תורם לפרויקטי open source כמו openapi-generator, ומתחזק את <a href='https://github.com/yonatankarp/ff4k'>ff4k</a> -- ספריית feature flags ל-Kotlin Multiplatform."
+    button_text="למיומנויות שלי"
     button_url="/he/skills"
     imgSrc="images/about/user-picture.png"
     imgScale="0.5"
@@ -36,9 +36,9 @@ draft = false
     title="השכלה" >}}
 
 {{< experience-section
-    title="ניסיון תעסוקתי"
+    title="ניסיון"
     intro_title="ניסיון מקצועי"
-    intro_description="12 שנות הנדסת תוכנה במערכות משובצות, שרתים מבוזרים ופלטפורמות פינטק."
+    intro_description="12+ שנות הנדסת תוכנה ב-embedded, distributed backends ופינטק."
     button1_url="https://github.com/yonatankarp"
     button1_text="GitHub"
     button1_icon="icon-square-github"

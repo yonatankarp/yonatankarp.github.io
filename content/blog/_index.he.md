@@ -4,4 +4,4 @@ date: 2026-04-07
 draft: false
 ---
 
-כתיבה טכנית על Kotlin, פיתוח צד שרת, וארכיטקטורת תוכנה. פוסטים בתהליך העברה -- ראו [kotlinbackend.com](https://kotlinbackend.com) לתוכן קיים.
+כתיבה טכנית על Kotlin, backend development וארכיטקטורת תוכנה. הפוסטים בתהליך העברה -- בינתיים ראו [kotlinbackend.com](https://kotlinbackend.com).

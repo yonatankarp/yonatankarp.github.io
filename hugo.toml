@@ -229,7 +229,7 @@ URL = "/he/blog"
 weight = 6
 [[languages.he.menus.header]]
 pre = "email"
-name = "צור קשר"
+name = "צרו קשר"
 URL = "/he/#contact"
 weight = 7
 [[languages.he.menus.header]]
@@ -251,7 +251,7 @@ name = "פרויקטים"
 URL = "/he/#client-and-work-section"
 weight = 3
 [[languages.he.menus.footer]]
-name = "צור קשר"
+name = "צרו קשר"
 URL = "/he/#contact"
 weight = 4
 

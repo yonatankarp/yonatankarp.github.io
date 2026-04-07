@@ -9,6 +9,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "Trailer"
         URL: "https://www.youtube.com/watch?v=N9g7VcW2XC0"
+    image:
+        src: "images/projects/emmas-inferno.jpg"
+        scale: 0.5
 ---
 
 פאזל-פלטפורמר אטמוספרי החוקר נושאי מוסר. פרויקט סיום לימודים באוניברסיטה.

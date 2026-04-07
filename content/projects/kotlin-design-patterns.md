@@ -8,6 +8,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/yonatankarp/kotlin-design-patterns"
+    image:
+        src: "images/projects/kotlin-design-patterns.png"
+        scale: 0.5
 ---
 
 Software design patterns implemented in idiomatic Kotlin. Actively maintained with MkDocs documentation site.

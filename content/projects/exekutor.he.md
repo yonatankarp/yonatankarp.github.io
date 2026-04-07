@@ -9,6 +9,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/yonatankarp/exekutor"
+    image:
+        src: "images/projects/exekutor.png"
+        scale: 0.5
 ---
 
 דמו ארכיטקטורת תוסף ב-Kotlin. מדגים תבניות עיצוב יישומים מורחבות.

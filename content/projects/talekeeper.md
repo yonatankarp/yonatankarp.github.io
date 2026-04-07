@@ -8,6 +8,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/yonatankarp/TaleKeeper"
+    image:
+        src: "images/projects/talekeeper.png"
+        scale: 0.5
 ---
 
 AI-powered TTRPG session recorder with live transcription, speaker diarization, and session summaries. Python/FastAPI backend + Svelte 5 frontend. Fully self-hosted.

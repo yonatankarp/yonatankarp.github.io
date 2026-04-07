@@ -8,6 +8,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "Gameplay"
         URL: "https://www.youtube.com/watch?v=rBW3IBsjIRU"
+    image:
+        src: "images/projects/jacobs-choice.jpg"
+        scale: 0.5
 ---
 
 Horror adventure game. Won 3rd place at GameIS Awards 2015.

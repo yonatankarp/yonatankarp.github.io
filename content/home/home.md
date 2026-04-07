@@ -35,16 +35,8 @@ draft = false
 {{< education-list
     title="Education" >}}
 
-{{< experience-section
-    title="Experience"
-    intro_title="Professional Experience"
-    intro_description="12 years of software engineering across embedded systems, distributed backends, and fintech platforms."
-    button1_url="https://github.com/yonatankarp"
-    button1_text="GitHub"
-    button1_icon="icon-square-github"
-    button2_text="LinkedIn"
-    button2_url="https://linkedin.com/in/yonatankarp"
->}}
+{{< experience-list
+    title="Experience" >}}
 
 {{< client-and-work-section
     title="Selected Projects" >}}

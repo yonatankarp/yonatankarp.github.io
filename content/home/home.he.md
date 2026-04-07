@@ -35,16 +35,8 @@ draft = false
 {{< education-list
     title="השכלה" >}}
 
-{{< experience-section
-    title="ניסיון"
-    intro_title="ניסיון מקצועי"
-    intro_description="12+ שנות הנדסת תוכנה ב-embedded, distributed backends ו-fintech."
-    button1_url="https://github.com/yonatankarp"
-    button1_text="GitHub"
-    button1_icon="icon-square-github"
-    button2_text="LinkedIn"
-    button2_url="https://linkedin.com/in/yonatankarp"
->}}
+{{< experience-list
+    title="ניסיון" >}}
 
 {{< client-and-work-section
     title="פרויקטים נבחרים" >}}

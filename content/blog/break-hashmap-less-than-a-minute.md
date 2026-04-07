@@ -12,6 +12,7 @@ tags:
 categories:
   - Backend
   - Java
+translationKey: "break-hashmap-less-than-a-minute"
 ---
 
 > **TL;DR:** Never use mutable objects as keys in your HashMap!

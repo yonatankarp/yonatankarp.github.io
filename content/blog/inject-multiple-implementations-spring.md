@@ -11,6 +11,7 @@ tags:
 categories:
   - Backend
   - Kotlin
+translationKey: "inject-multiple-implementations-spring"
 ---
 
 Recently, I had a discussion with one of my colleagues during a code review. We talked about a hidden gem in Spring (as well as other frameworks like Micronaut) that could simplify our code.

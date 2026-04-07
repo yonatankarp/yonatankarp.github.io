@@ -11,6 +11,7 @@ tags:
 categories:
   - Backend
   - Java
+translationKey: "how-hashmap-works-java"
 ---
 
 As an interviewer, I often ask the question about how HashMap works in Java. It helps me assess a candidate's understanding of data structures, JVM internals, and their problem-solving approach. I've encountered many candidates, including juniors, mid-levels, and seniors, who couldn't answer this question correctly. So, I decided to share the answer with everyone.

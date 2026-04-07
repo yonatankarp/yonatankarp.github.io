@@ -8,9 +8,6 @@ params:
         icon: "icon-arrow-right"
         btnText: "Trailer"
         URL: "https://www.youtube.com/watch?v=N9g7VcW2XC0"
-    image:
-        src: "images/projects/emmas-inferno.png"
-        scale: 0.5
 ---
 
 Atmospheric puzzle-platformer exploring themes of morality. University capstone project.

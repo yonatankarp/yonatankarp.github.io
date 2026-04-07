@@ -9,9 +9,6 @@ params:
         icon: "icon-arrow-right"
         btnText: "Website"
         URL: "https://yonatankarp.github.io/kotlin-design-patterns/"
-    image:
-        src: "images/projects/kotlin-design-patterns.png"
-        scale: 0.5
 ---
 
 תבניות עיצוב תוכנה ממומשות ב-Kotlin אידיומטי. מתוחזק באופן פעיל עם אתר תיעוד MkDocs.

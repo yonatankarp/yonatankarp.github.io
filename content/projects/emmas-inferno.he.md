@@ -10,7 +10,7 @@ params:
         btnText: "Trailer"
         URL: "https://www.youtube.com/watch?v=N9g7VcW2XC0"
     image:
-        src: "images/projects/emmas-inferno.jpg"
+        src: "images/projects/emmas-inferno.png"
         scale: 0.5
 ---
 

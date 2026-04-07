@@ -149,11 +149,11 @@ URL = "/"
 weight = 1
 [[languages.en.menus.header]]
 name = "About"
-URL = "#about"
+URL = "/#about"
 weight = 2
 [[languages.en.menus.header]]
 name = "Experience"
-URL = "#experience"
+URL = "/#experience"
 weight = 3
 [[languages.en.menus.header]]
 name = "Skills"
@@ -161,7 +161,7 @@ URL = "/skills"
 weight = 4
 [[languages.en.menus.header]]
 name = "Projects"
-URL = "#client-and-work-section"
+URL = "/#client-and-work-section"
 weight = 5
 [[languages.en.menus.header]]
 name = "Blog"
@@ -170,7 +170,7 @@ weight = 6
 [[languages.en.menus.header]]
 pre = "email"
 name = "email"
-URL = "#contact"
+URL = "/#contact"
 weight = 7
 [[languages.en.menus.header]]
 pre = "search"
@@ -184,15 +184,15 @@ URL = "/"
 weight = 1
 [[languages.en.menus.footer]]
 name = "About"
-URL = "#about"
+URL = "/#about"
 weight = 2
 [[languages.en.menus.footer]]
 name = "Projects"
-URL = "#client-and-work-section"
+URL = "/#client-and-work-section"
 weight = 3
 [[languages.en.menus.footer]]
 name = "Contact"
-URL = "#contact"
+URL = "/#contact"
 weight = 4
 
 [languages.he]

@@ -17,7 +17,7 @@ skill_categories:
       - name: "Python"
         level: 75
         years: "יותר משמונה שנים"
-        description: "Scripting, automation, FastAPI."
+        description: "Internal tools, automation, FastAPI."
       - name: "TypeScript"
         level: 65
         years: "יותר משלוש שנים"
@@ -30,10 +30,6 @@ skill_categories:
         level: 55
         years: "יותר משלוש שנים"
         description: "Desktop apps, game dev."
-      - name: "MATLAB"
-        level: 40
-        years: "יותר משנתיים"
-        description: "Calibration pipelines, signal processing."
   - name: "פריימוורקים"
     skills:
       - name: "Spring Boot"
@@ -92,6 +88,42 @@ skill_categories:
         level: 55
         years: "יותר משנה"
         description: "Graph database."
+  - name: "סכמות ותקשורת"
+    skills:
+      - name: "gRPC"
+        level: 75
+        years: "יותר משלוש שנים"
+        description: "Service-to-service communication."
+      - name: "Protocol Buffers"
+        level: 85
+        years: "יותר משלוש שנים"
+        description: "Schema definition, code generation."
+      - name: "Avro"
+        level: 85
+        years: "יותר משלוש שנים"
+        description: "Schema registry, event serialization."
+  - name: "טסטים"
+    skills:
+      - name: "JUnit 5"
+        level: 90
+        years: "יותר מתשע שנים"
+        description: "Primary test framework, parameterized tests."
+      - name: "MockK"
+        level: 85
+        years: "יותר מארבע שנים"
+        description: "Kotlin-native mocking library."
+      - name: "Mockito"
+        level: 75
+        years: "יותר מעשר שנים"
+        description: "Java mocking, legacy codebases."
+      - name: "Kotest"
+        level: 70
+        years: "יותר משנתיים"
+        description: "Kotlin test framework, property-based testing."
+      - name: "Konsist"
+        level: 60
+        years: "יותר משנה"
+        description: "Architectural unit tests for Kotlin."
   - name: "תשתיות ו-DevOps"
     skills:
       - name: "Kubernetes"

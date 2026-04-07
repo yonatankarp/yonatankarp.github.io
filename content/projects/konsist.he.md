@@ -9,6 +9,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/LemonAppDev/konsist"
+    image:
+        src: "images/projects/konsist.png"
+        scale: 0.5
 ---
 
 שיפורי צינור CI, אימות קטעי קוד ותיקוני טיפול ב-null עבור מנתח הקוד הסטטי ל-Kotlin. 3 PRs שמוזגו.

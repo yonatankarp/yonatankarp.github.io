@@ -8,6 +8,9 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/LemonAppDev/konsist"
+    image:
+        src: "images/projects/konsist.png"
+        scale: 0.5
 ---
 
 CI pipeline improvements, snippet verification, and null handling fixes for the Kotlin static code analyzer. 3 merged PRs.

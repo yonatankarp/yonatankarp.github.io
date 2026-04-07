@@ -1,0 +1,14 @@
+/* Profile images - larger and rounded */
+#showcase .img-responsive {
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.about__profile-picture .img-responsive {
+    width: 280px;
+    height: 280px;
+    border-radius: 50%;
+    object-fit: cover;
+}

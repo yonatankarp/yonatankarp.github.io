@@ -8,9 +8,6 @@ params:
         icon: "icon-arrow-right"
         btnText: "PR #1970"
         URL: "https://github.com/iluwatar/java-design-patterns/pull/1970"
-    image:
-        src: "images/projects/java-design-patterns.png"
-        scale: 0.5
 ---
 
 Refactored the Prototype pattern implementation.

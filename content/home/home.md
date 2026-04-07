@@ -41,4 +41,7 @@ draft = false
 {{< client-and-work-section
     title="Projects & Contributions" >}}
 
+{{< testimonial-section
+    title="What others say" >}}
+
 {{< spacer size="large" >}}

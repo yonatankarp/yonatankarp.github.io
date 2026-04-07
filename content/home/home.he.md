@@ -41,4 +41,7 @@ draft = false
 {{< client-and-work-section
     title="פרויקטים ותרומות" >}}
 
+{{< testimonial-section
+    title="מה אומרים עליי" >}}
+
 {{< spacer size="large" >}}

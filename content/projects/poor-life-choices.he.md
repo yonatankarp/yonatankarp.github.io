@@ -7,7 +7,7 @@ link: "https://poor-life-choices.vercel.app"
 params:
     button:
         icon: "icon-arrow-right"
-        btnText: "אתר חי"
+        btnText: "לאתר"
         URL: "https://poor-life-choices.vercel.app"
 ---
 

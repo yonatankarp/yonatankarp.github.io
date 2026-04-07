@@ -10,10 +10,10 @@
   translation: "© יונתן קרפ-רודין."
 
 - id: "head_title"
-  translation: "יונתן קרפ-רודין - מהנדס תוכנה בכיר"
+  translation: "יונתן קרפ-רודין - Staff Software Engineer"
 
 - id: "head_description"
-  translation: "מהנדס תוכנה בכיר בברלין. בונה מערכות תשלומים ותאימות ב-Billie. תורם לקוד פתוח."
+  translation: "Staff Software Engineer בברלין. בונה מערכות payments ו-compliance ב-Billie. תורם לקוד פתוח."
 
 - id: "experience_button_url"
   translation: "https://linkedin.com/in/yonatankarp"

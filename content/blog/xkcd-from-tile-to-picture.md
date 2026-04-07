@@ -11,6 +11,7 @@ tags:
 categories:
   - Backend
   - Hacking
+translationKey: "xkcd-from-tile-to-picture"
 ---
 
 Table of Contents

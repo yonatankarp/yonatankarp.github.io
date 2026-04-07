@@ -12,6 +12,7 @@ tags:
 categories:
   - Backend
   - Cloud
+translationKey: "amazon-keyspaces-problematic"
 ---
 
 Around a year ago, my team and I were tasked with building a high-performance system capable of handling a large volume of requests. After careful consideration, we chose Cassandra as our database.

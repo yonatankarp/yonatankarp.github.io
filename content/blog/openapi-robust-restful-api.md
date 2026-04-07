@@ -10,6 +10,7 @@ tags:
   - rest-api
 categories:
   - Backend
+translationKey: "openapi-robust-restful-api"
 ---
 
 **Editor's Note:** This post was originally written by me and published on SumUp's blog. However, a lot has changed since then. I am no longer working for SumUp, OpenAPI has released two major versions, Spring Boot has had a major release, and even Gradle has had multiple major releases. Not only that, but my writing skills have improved dramatically since then, and over time, I have found some small mistakes in the original article. Since the original article is one of my most successful, I decided to rewrite it and publish an updated version.

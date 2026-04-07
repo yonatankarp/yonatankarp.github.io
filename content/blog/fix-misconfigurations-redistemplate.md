@@ -10,6 +10,7 @@ tags:
   - redistemplate
 categories:
   - Backend
+translationKey: "fix-misconfigurations-redistemplate"
 ---
 
 Table of Contents

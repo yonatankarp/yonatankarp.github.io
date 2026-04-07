@@ -10,6 +10,7 @@ tags:
 categories:
   - Backend
   - Kotlin
+translationKey: "custom-spring-boot-banner"
 ---
 
 Today, I'd like to share a fun feature of Spring with you. It's not new or crucial, but it's definitely enjoyable!

@@ -11,6 +11,7 @@ tags:
   - rest-api
 categories:
   - Backend
+translationKey: "build-domain-gateway-openapi"
 ---
 
 **TL;DR:** This article explains what a domain gateway is, how to build one, and why you would want it.

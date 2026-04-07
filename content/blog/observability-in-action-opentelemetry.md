@@ -12,6 +12,7 @@ tags:
 categories:
   - Backend
   - Observability
+translationKey: "observability-in-action-opentelemetry"
 ---
 
 Table of Contents

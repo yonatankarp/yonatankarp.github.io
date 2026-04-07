@@ -8,7 +8,7 @@ draft = false
     title="יונתן קרפ-רודין"
     subtitle="Staff Software Engineer"
     buttonText="אימייל"
-    description="Staff Software Engineer בברלין, בונה מערכות payments ו-compliance ב-Billie. יותר מ-12 שנות ניסיון ב-embedded, backend מבוזר ופינטק."
+    description="Staff Software Engineer בברלין, בונה מערכות payments ו-compliance ב-Billie. יותר מ-12 שנות ניסיון ב-embedded, backend מבוזר ו-fintech."
     imgSrc="images/showcase/showcase.png"
     imgScale="0.5"
 >}}
@@ -38,7 +38,7 @@ draft = false
 {{< experience-section
     title="ניסיון"
     intro_title="ניסיון מקצועי"
-    intro_description="12+ שנות הנדסת תוכנה ב-embedded, distributed backends ופינטק."
+    intro_description="12+ שנות הנדסת תוכנה ב-embedded, distributed backends ו-fintech."
     button1_url="https://github.com/yonatankarp"
     button1_text="GitHub"
     button1_icon="icon-square-github"

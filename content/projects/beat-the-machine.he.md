@@ -9,9 +9,6 @@ params:
         icon: "icon-arrow-right"
         btnText: "GitHub"
         URL: "https://github.com/yonatankarp/beat-the-machine-ddd"
-    image:
-        src: "images/projects/beat-the-machine.png"
-        scale: 0.5
 ---
 
 משחק ניחושים מבוסס AI שבו שחקנים מזהים הנחיות שבהן נעשה שימוש ליצירת תמונות.

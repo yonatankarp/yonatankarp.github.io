@@ -1,9 +1,11 @@
-/* Profile images - larger and rounded */
+/* Profile images - larger, rounded, and centered */
 #showcase .img-responsive {
     width: 280px;
     height: 280px;
     border-radius: 50%;
     object-fit: cover;
+    display: block;
+    margin: 0 auto;
 }
 
 .about__profile-picture .img-responsive {
@@ -11,4 +13,12 @@
     height: 280px;
     border-radius: 50%;
     object-fit: cover;
+    display: block;
+    margin: 0 auto;
+}
+
+.about__profile-picture {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

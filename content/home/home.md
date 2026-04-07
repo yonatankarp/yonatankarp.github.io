@@ -41,4 +41,18 @@ draft = false
 {{< client-and-work-section
     title="Selected Projects" >}}
 
+{{< text-section
+title="Open Source Contributions"
+>}}
+
+**[openapi-generator](https://github.com/OpenAPITools/openapi-generator)** — Added Spring Boot 4 and Jackson 3 support for the Kotlin Spring generator. 10 PRs.
+
+**[ff4j](https://github.com/ff4j/ff4j)** — Authored the javax-to-jakarta namespace migration. Merged but never released — motivation for building ff4k.
+
+**[Konsist](https://github.com/LemonAppDev/konsist)** — CI improvements, snippet verification, and null handling fixes. 3 merged PRs.
+
+**[java-design-patterns](https://github.com/iluwatar/java-design-patterns)** — Refactored the Prototype pattern.
+
+{{< /text-section >}}
+
 {{< spacer size="large" >}}

@@ -41,4 +41,18 @@ draft = false
 {{< client-and-work-section
     title="פרויקטים נבחרים" >}}
 
+{{< text-section
+title="תרומות לקוד פתוח"
+>}}
+
+**[openapi-generator](https://github.com/OpenAPITools/openapi-generator)** — הוספת תמיכה ב-Spring Boot 4 ו-Jackson 3 ל-Kotlin Spring generator. 10 PRs.
+
+**[ff4j](https://github.com/ff4j/ff4j)** — מיגרציה מ-javax ל-jakarta. מוזג אבל לא שוחרר -- הסיבה שבניתי את ff4k.
+
+**[Konsist](https://github.com/LemonAppDev/konsist)** — שיפורי CI, אימות snippets ותיקוני null handling. 3 PRs שמוזגו.
+
+**[java-design-patterns](https://github.com/iluwatar/java-design-patterns)** — Refactor ל-Prototype pattern.
+
+{{< /text-section >}}
+
 {{< spacer size="large" >}}

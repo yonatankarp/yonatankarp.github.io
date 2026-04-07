@@ -9,7 +9,7 @@ params:
         btnText: "Gameplay"
         URL: "https://www.youtube.com/watch?v=rBW3IBsjIRU"
     image:
-        src: "images/projects/jacobs-choice.jpg"
+        src: "images/projects/jacobs-choice.png"
         scale: 0.5
 ---
 

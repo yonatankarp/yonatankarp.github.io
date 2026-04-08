@@ -3,7 +3,7 @@ title: "How to Break Your HashMap in Less Than a Minute"
 date: 2022-12-02T00:00:00+01:00
 draft: false
 type: "blog"
-featured: true
+description: "A cautionary demonstration of how using mutable objects as HashMap keys silently corrupts lookups, and the simple rule that prevents it."
 tags:
   - java
   - kotlin
@@ -19,6 +19,8 @@ images:
 ---
 
 > **TL;DR:** Never use mutable objects as keys in your HashMap!
+
+<!--more-->
 
 After I wrote my article [**How does HashMap work in Java?**](https://yonatankarp.com/how-does-hashmap-work-in-java), a few people suggested more topics related to HashMap. As a result, I decided to create a short series of articles about it.
 

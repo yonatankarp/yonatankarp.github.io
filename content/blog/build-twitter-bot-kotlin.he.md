@@ -12,6 +12,7 @@ categories:
   - Backend
   - Kotlin
 translationKey: "build-twitter-bot-kotlin"
+description: "מדריך ידידותי למתחילים לבניית Twitter bot מאפס באמצעות Kotlin וספריית Twitter4J."
 images:
   featured_image: "/images/blog/covers/build-twitter-bot-kotlin.jpg"
 ---

@@ -4,6 +4,7 @@ date: 2024-06-26T00:00:00+01:00
 draft: false
 type: "blog"
 featured: true
+description: "A step-by-step walkthrough of reconstructing the massive XKCD #1110 Click and Drag comic from its individual tile images using Kotlin."
 tags:
   - kotlin
   - xkcd
@@ -17,29 +18,11 @@ images:
   featured_image: "/images/blog/covers/xkcd-from-tile-to-picture.jpg"
 ---
 
-Table of Contents
-
-[Toggle
-](#)
-
-
-- [Introduction](#Introduction)
-- [Step 1: Trying the Easy Way](#Step_1_Trying_the_Easy_Way)
-- [Step 2: Downloading the Image](#Step_2_Downloading_the_Image)[Finding the Image Size](#Finding_the_Image_Size)
-- [Downloading the Tiles](#Downloading_the_Tiles)
-- [Building the Image from the Tiles](#Building_the_Image_from_the_Tiles)
-- [Slicing the Cake](#Slicing_the_Cake)
-- [The Bug](#The_Bug)
-
-- [Step 3: Share the Results](#Step_3_Share_the_Results)
-- [Conclusion](#Conclusion)
-- [Credits](#Credits)
-
-
-## Introduction
 
 
 If there's one thing I can say about myself, it's that I love challenges related to software programming. They don't need to be meaningful or even useful, but I enjoy the challenge. That's why when I saw this message on my LinkedIn, I had to take on the challenge!
+
+<!--more-->
 
 
 ![](/images/blog/kb-linkedin-message-1024x685.png)

@@ -3,7 +3,7 @@ title: "Real-Life Problem Solving: Lessons from My Engineering Principles"
 date: 2023-03-05T00:00:00+01:00
 draft: false
 type: "blog"
-featured: true
+description: "How software engineering problem-solving principles — usually applied to code — turned out to be surprisingly effective for navigating real-life challenges during a trip to Asia."
 tags:
   - engineering
   - software-engineering
@@ -17,6 +17,8 @@ images:
 ---
 
 My employer announced a few months ago that any employee who works for three years or more is entitled to a sabbatical. This sabbatical is a fully paid one-month vacation of your choice. Since my wife and I had accumulated a significant number of vacation days, we decided to embark on a two-month trip to Asia—a destination we had long desired to visit. In this post, I will describe step by step how I applied methods from my day-to-day work as a software engineer to solve real-life problems.
+
+<!--more-->
 
 ## Principle 1: Eventually, Something Will Break in Production
 

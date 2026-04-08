@@ -3,7 +3,7 @@ title: "How to inject multiple implementations in the Spring Framework"
 date: 2022-02-11T00:00:00+01:00
 draft: false
 type: "blog"
-featured: true
+description: "An exploration of the different strategies Spring Framework offers for injecting multiple implementations of the same interface into a single bean."
 tags:
   - kotlin
   - spring-boot
@@ -18,6 +18,8 @@ images:
 ---
 
 Recently, I had a discussion with one of my colleagues during a code review. We talked about a hidden gem in Spring (as well as other frameworks like Micronaut) that could simplify our code.
+
+<!--more-->
 
 Let's consider a task: developing a good morning greeting system that supports both English and Hebrew languages. The system should greet us in each of these languages.
 

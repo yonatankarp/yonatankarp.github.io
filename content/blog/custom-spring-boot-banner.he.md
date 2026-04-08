@@ -11,6 +11,7 @@ categories:
   - Backend
   - Kotlin
 translationKey: "custom-spring-boot-banner"
+description: "מדריך כיפי להחלפת banner ברירת המחדל של Spring Boot בטקסט מותאם אישית ו-ASCII art."
 images:
   featured_image: "/images/blog/covers/custom-spring-boot-banner.jpg"
 ---

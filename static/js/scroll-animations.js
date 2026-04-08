@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Only run on homepage
+    if (!document.body.classList.contains('home')) return;
+
     var targets = document.querySelectorAll(
         '#about, #education, #testimonial, #contact,' +
         '#client-and-work-section > .client-works-container > h2,' +

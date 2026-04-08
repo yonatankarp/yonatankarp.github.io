@@ -4,6 +4,7 @@ date: 2022-12-04T00:00:00+01:00
 draft: false
 type: "blog"
 featured: true
+description: "How to adopt a spec-first approach with OpenAPI to design and generate a robust, well-typed REST API using Spring Boot, Kotlin, and Gradle."
 tags:
   - kotlin
   - spring-boot
@@ -23,48 +24,12 @@ images:
 </div>
 
 
-Table of Contents
-
-[Toggle
-](#)
-
-
-- [Introduction](#Introduction)[RESTful API – The Ugly Part](#RESTful_API_%E2%80%93_The_Ugly_Part)
-- [Use OpenAPI Spec for Our New API](#Use_OpenAPI_Spec_for_Our_New_API)
-- [OpenAPI Adaptation for Better Integration](#OpenAPI_Adaptation_for_Better_Integration)
-- [The Article's Objectives](#The_Articles_Objectives)
-
-- [Step 1: Use OpenAPI Editor to Design Our API](#Step_1_Use_OpenAPI_Editor_to_Design_Our_API)[API Information](#API_Information)
-- [Servers](#Servers)
-- [Endpoints](#Endpoints)
-- [Models](#Models)
-
-- [Step 2: Use OpenApi Generator to Create the Code](#Step_2_Use_OpenApi_Generator_to_Create_the_Code)[Setting Up OpenAPI Spec to The Project](#Setting_Up_OpenAPI_Spec_to_The_Project)
-- [Setting Up OpenAPI Generator with Gradle Plugin](#Setting_Up_OpenAPI_Generator_with_Gradle_Plugin)
-- [Resolving Code Errors & Adding Dependencies](#Resolving_Code_Errors_Adding_Dependencies)
-- [Customizing OpenAPI Generator with Templates](#Customizing_OpenAPI_Generator_with_Templates)
-- [Ensure Clean Build with Gradle](#Ensure_Clean_Build_with_Gradle)
-- [Include Generated Code into Project Classpath](#Include_Generated_Code_into_Project_Classpath)
-- [Generating Code with Gradle Build](#Generating_Code_with_Gradle_Build)
-
-- [Step 3: Implementation of the API! 🎉](#Step_3_Implementation_of_the_API_%F0%9F%8E%89)[Implementing The Code](#Implementing_The_Code)
-- [Running & Testing the Server](#Running_Testing_the_Server)
-
-- [Step 4: Writing Tests](#Step_4_Writing_Tests)[Introduction to API Testing](#Introduction_to_API_Testing)
-- [Writing the Integration Test Code](#Writing_the_Integration_Test_Code)
-- [Running and Verifying the Tests](#Running_and_Verifying_the_Tests)
-
-- [Conclusion](#Conclusion)
-- [Credits](#Credits)
-
-
-## Introduction
-
-
 ### RESTful API – The Ugly Part
 
 
 As a backend engineer, I have developed numerous REST APIs during my career. One of the most annoying issues I faced repeatedly was the lack of smooth integration between the backend and clients. Typos in URLs, inconsistent casing in JSON (camel case vs. snake case), passing values of the wrong type (e.g., string instead of an integer), and other similar mistakes have happened to me multiple times.
+
+<!--more-->
 
 
 ![](/images/blog/kb-alex-mccarthy-zmDbLyW7VQg-unsplash-1024x683.jpg)

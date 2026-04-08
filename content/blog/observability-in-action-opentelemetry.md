@@ -4,6 +4,7 @@ date: 2023-10-17T00:00:00+01:00
 draft: false
 type: "blog"
 featured: true
+description: "A hands-on guide to adding distributed tracing and observability to a Kotlin/Spring Boot service using OpenTelemetry and HoneyComb."
 tags:
   - kotlin
   - spring-boot
@@ -18,47 +19,11 @@ images:
   featured_image: "/images/blog/covers/observability-in-action-opentelemetry.jpg"
 ---
 
-Table of Contents
-
-[Toggle
-](#)
-
-
-- [Introduction](#Introduction)
-- [Introduction to Service Instrumentation](#Introduction_to_Service_Instrumentation)
-- [Part 1 – Building the Client Library](#Part_1_%E2%80%93_Building_the_Client_Library)[Adding Dependencies](#Adding_Dependencies)
-- [Domain Modeling](#Domain_Modeling)
-- [Constructing the HTTP Client](#Constructing_the_HTTP_Client)
-- [Connecting everything together](#Connecting_everything_together)
-
-- [Part 2 – Building the Service](#Part_2_%E2%80%93_Building_the_Service)[Adding Dependencies](#Adding_Dependencies-2)
-- [Loading the Facts](#Loading_the_Facts)
-- [Storing and Reading Facts](#Storing_and_Reading_Facts)
-- [Dockerizing the Project](#Dockerizing_the_Project)
-- [Setting up docker-compose](#Setting_up_docker-compose)
-- [Running the Service](#Running_the_Service)
-
-- [Part 3 – Setting Up Instrumentation with OpenTelemetry](#Part_3_%E2%80%93_Setting_Up_Instrumentation_with_OpenTelemetry)[HoneyComb.io](#HoneyCombio)[Introduction](#Introduction-2)
-- [Setting up](#Setting_up)
-
-- [Setting Up OpenTelemetry](#Setting_Up_OpenTelemetry)[Prerequisites](#Prerequisites)
-- [Integrating the OpenTelemetry SDK and Agent](#Integrating_the_OpenTelemetry_SDK_and_Agent)[Dependency Integration](#Dependency_Integration)
-- [Constructing the Gradle Task for the OpenTelemetry Agent](#Constructing_the_Gradle_Task_for_the_OpenTelemetry_Agent)
-- [Modifying the bootRun Task](#Modifying_the_bootRun_Task)
-
-- [Local Service Execution](#Local_Service_Execution)[Modifying the Dockerfile](#Modifying_the_Dockerfile)
-- [Modifying the docker-compose.yml File](#Modifying_the_docker-composeyml_File)
-
-
-- [Conclusion](#Conclusion)
-- [Acknowledgments](#Acknowledgments)
-- [Credits](#Credits)
-
-
-## Introduction
 
 
 In this article, we'll dive into the steps for adding observability to your codebase using OpenTelemtry. Initially, we'll develop a library that retrieves data from a remote API. Following that, we'll construct a service using this library to fetch and save this data in a database.
+
+<!--more-->
 
 
 As we progress, we'll infuse OpenTelemtry into our Kotlin backend service, demonstrating their behavior in an environment resembling production. Once the service is equipped with instrumentation, we'll introduce a filter to it that dismisses overly large requests. This filter, too, will be instrumented.

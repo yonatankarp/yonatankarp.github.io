@@ -12,6 +12,7 @@ tags:
 categories:
   - Backend
 translationKey: "build-domain-gateway-openapi"
+description: "הסבר על pattern של domain gateway ומדריך לבניית אחד ב-Kotlin תוך שימוש ב-code generation של OpenAPI."
 images:
   featured_image: "/images/blog/covers/build-domain-gateway-openapi.jpg"
 ---

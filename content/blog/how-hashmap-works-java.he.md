@@ -12,6 +12,7 @@ categories:
   - Backend
   - Java
 translationKey: "how-hashmap-works-java"
+description: "צלילה לעומק למנגנון הפנימי של HashMap ב-Java — חוזה equals/hashCode, פיזור buckets, ואופטימיזציית עץ הבינארי שהוצגה ב-Java 8."
 images:
   featured_image: "/images/blog/covers/how-hashmap-works-java.jpg"
 ---

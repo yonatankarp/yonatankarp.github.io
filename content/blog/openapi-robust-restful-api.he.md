@@ -3,6 +3,7 @@ title: "איך להשתמש ב-OpenApi לבניית RESTful API חזק"
 date: 2022-12-04T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - kotlin
   - spring-boot
@@ -11,6 +12,7 @@ tags:
 categories:
   - Backend
 translationKey: "openapi-robust-restful-api"
+description: "איך לאמץ גישת spec-first עם OpenAPI כדי לעצב ולייצר REST API חזק ומוקלד היטב עם Spring Boot, Kotlin ו-Gradle."
 images:
   featured_image: "/images/blog/covers/openapi-robust-restful-api.jpg"
 ---

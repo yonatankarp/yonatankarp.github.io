@@ -3,7 +3,7 @@ title: "[Interview Questions] Concurrency vs. Parallelism: Decoding the Simultan
 date: 2023-03-11T00:00:00+01:00
 draft: false
 type: "blog"
-featured: true
+description: "A clear explanation of the difference between concurrency and parallelism, illustrated with practical JVM-based examples commonly asked about in technical interviews."
 tags:
   - java
   - kotlin
@@ -20,6 +20,8 @@ images:
 ---
 
 > TL;DR - What are the differences between concurrent and parallel programming?
+
+<!--more-->
 
 One of my most successful posts so far is a detailed explanation of my favorite interview question (see [How does HashMap work in Java?](https://yonatankarp.com/how-does-hashmap-work-in-java) for more details). As a result, I've decided to create a series of posts breaking down more questions. All the questions that will be answered during this series have been used in my current employer's hiring process.
 

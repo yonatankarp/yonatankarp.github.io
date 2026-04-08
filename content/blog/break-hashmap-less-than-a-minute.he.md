@@ -13,6 +13,7 @@ categories:
   - Backend
   - Java
 translationKey: "break-hashmap-less-than-a-minute"
+description: "הדגמה אזהרתית של איך שימוש ב-mutable objects כ-keys ב-HashMap שובר חיפושים בשקט, והכלל הפשוט שמונע זאת."
 images:
   featured_image: "/images/blog/covers/break-hashmap-less-than-a-minute.jpg"
 ---

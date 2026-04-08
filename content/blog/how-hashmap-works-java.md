@@ -3,6 +3,7 @@ title: "How does HashMap work in Java?"
 date: 2022-12-02T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - java
   - kotlin
@@ -13,7 +14,7 @@ categories:
   - Java
 translationKey: "how-hashmap-works-java"
 images:
-  featured_image: "images/blog/covers/how-hashmap-works-java.jpg"
+  featured_image: "/images/blog/covers/how-hashmap-works-java.jpg"
 ---
 
 As an interviewer, I often ask the question about how HashMap works in Java. It helps me assess a candidate's understanding of data structures, JVM internals, and their problem-solving approach. I've encountered many candidates, including juniors, mid-levels, and seniors, who couldn't answer this question correctly. So, I decided to share the answer with everyone.

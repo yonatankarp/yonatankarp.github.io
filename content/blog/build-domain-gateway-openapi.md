@@ -3,6 +3,7 @@ title: "How To Build Your Domain Gateway With OpenApi"
 date: 2022-12-14T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - kotlin
   - spring-boot
@@ -13,7 +14,7 @@ categories:
   - Backend
 translationKey: "build-domain-gateway-openapi"
 images:
-  featured_image: "images/blog/covers/build-domain-gateway-openapi.jpg"
+  featured_image: "/images/blog/covers/build-domain-gateway-openapi.jpg"
 ---
 
 <div class="editors-note">

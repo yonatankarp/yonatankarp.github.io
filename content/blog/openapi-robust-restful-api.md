@@ -3,6 +3,7 @@ title: "How to Use OpenApi to Build a Robust RESTful API"
 date: 2022-12-04T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - kotlin
   - spring-boot
@@ -12,7 +13,7 @@ categories:
   - Backend
 translationKey: "openapi-robust-restful-api"
 images:
-  featured_image: "images/blog/covers/openapi-robust-restful-api.jpg"
+  featured_image: "/images/blog/covers/openapi-robust-restful-api.jpg"
 ---
 
 <div class="editors-note">

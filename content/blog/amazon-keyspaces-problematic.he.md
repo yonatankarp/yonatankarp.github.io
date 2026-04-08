@@ -14,7 +14,7 @@ categories:
   - Cloud
 translationKey: "amazon-keyspaces-problematic"
 images:
-  featured_image: "images/blog/covers/amazon-keyspaces-problematic.jpg"
+  featured_image: "/images/blog/covers/amazon-keyspaces-problematic.jpg"
 ---
 
 לפני בערך שנה, הצוות שלי ואני קיבלנו משימה לבנות מערכת עם ביצועים גבוהים שמסוגלת להתמודד עם נפח בקשות גדול. אחרי שחשבנו על זה טוב, בחרנו ב-Cassandra כמסד הנתונים שלנו.

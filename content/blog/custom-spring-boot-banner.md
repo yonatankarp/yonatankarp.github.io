@@ -3,6 +3,7 @@ title: "Create a Custom Spring Boot App Banner"
 date: 2022-12-02T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - kotlin
   - spring-boot
@@ -12,7 +13,7 @@ categories:
   - Kotlin
 translationKey: "custom-spring-boot-banner"
 images:
-  featured_image: "images/blog/covers/custom-spring-boot-banner.jpg"
+  featured_image: "/images/blog/covers/custom-spring-boot-banner.jpg"
 ---
 
 Today, I'd like to share a fun feature of Spring with you. It's not new or crucial, but it's definitely enjoyable!

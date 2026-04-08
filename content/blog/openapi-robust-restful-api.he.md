@@ -12,7 +12,7 @@ categories:
   - Backend
 translationKey: "openapi-robust-restful-api"
 images:
-  featured_image: "images/blog/covers/openapi-robust-restful-api.jpg"
+  featured_image: "/images/blog/covers/openapi-robust-restful-api.jpg"
 ---
 
 <div class="editors-note">

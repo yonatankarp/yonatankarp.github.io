@@ -12,7 +12,7 @@ categories:
   - Kotlin
 translationKey: "custom-spring-boot-banner"
 images:
-  featured_image: "images/blog/covers/custom-spring-boot-banner.jpg"
+  featured_image: "/images/blog/covers/custom-spring-boot-banner.jpg"
 ---
 
 היום אני רוצה לשתף אתכם בפיצ'ר כיפי של Spring. הוא לא חדש או קריטי, אבל הוא בהחלט מהנה!

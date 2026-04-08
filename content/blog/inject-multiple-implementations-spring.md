@@ -3,6 +3,7 @@ title: "How to inject multiple implementations in the Spring Framework"
 date: 2022-02-11T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - kotlin
   - spring-boot
@@ -13,7 +14,7 @@ categories:
   - Kotlin
 translationKey: "inject-multiple-implementations-spring"
 images:
-  featured_image: "images/blog/covers/inject-multiple-implementations-spring.jpg"
+  featured_image: "/images/blog/covers/inject-multiple-implementations-spring.jpg"
 ---
 
 Recently, I had a discussion with one of my colleagues during a code review. We talked about a hidden gem in Spring (as well as other frameworks like Micronaut) that could simplify our code.

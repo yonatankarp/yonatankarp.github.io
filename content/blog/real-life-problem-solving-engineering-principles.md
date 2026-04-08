@@ -11,7 +11,8 @@ tags:
 categories:
   - Engineering
 translationKey: "real-life-problem-solving-engineering-principles"
-featured_image: "/images/blog/covers/real-life-problem-solving-engineering-principles.jpg"
+images:
+  featured_image: "images/blog/covers/real-life-problem-solving-engineering-principles.jpg"
 ---
 
 My employer announced a few months ago that any employee who works for three years or more is entitled to a sabbatical. This sabbatical is a fully paid one-month vacation of your choice. Since my wife and I had accumulated a significant number of vacation days, we decided to embark on a two-month trip to Asia—a destination we had long desired to visit. In this post, I will describe step by step how I applied methods from my day-to-day work as a software engineer to solve real-life problems.

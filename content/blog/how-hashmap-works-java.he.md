@@ -12,7 +12,8 @@ categories:
   - Backend
   - Java
 translationKey: "how-hashmap-works-java"
-featured_image: "/images/blog/covers/how-hashmap-works-java.jpg"
+images:
+  featured_image: "images/blog/covers/how-hashmap-works-java.jpg"
 ---
 
 בתור מראיין, אני הרבה פעמים שואל על איך HashMap עובד ב-Java. זה עוזר לי להעריך את ההבנה של המועמד במבני נתונים, ב-JVM internals ובגישה שלהם לפתרון בעיות. נתקלתי בהרבה מועמדים — ג'וניורים, מידים וסניורים — שלא הצליחו לענות על השאלה הזו נכון. אז החלטתי לשתף את התשובה עם כולם.

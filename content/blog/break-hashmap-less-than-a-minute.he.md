@@ -13,7 +13,8 @@ categories:
   - Backend
   - Java
 translationKey: "break-hashmap-less-than-a-minute"
-featured_image: "/images/blog/covers/break-hashmap-less-than-a-minute.jpg"
+images:
+  featured_image: "images/blog/covers/break-hashmap-less-than-a-minute.jpg"
 ---
 
 > **TL;DR:** אף פעם אל תשתמשו באובייקטים mutable כמפתחות ב-HashMap!

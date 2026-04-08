@@ -86,6 +86,13 @@ Create `content/experience/name.md` and `content/experience/name.he.md` with job
 - Blog images: `static/images/blog/`
 - All blog images are stored locally — no external CDN dependencies
 
+## Analytics
+
+- **GoatCounter** for privacy-friendly analytics (script in `layouts/partials/head_custom.html`)
+- Dashboard: `https://yonatankarp.goatcounter.com`
+- Localhost/private IPs are automatically excluded
+- To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into `count.js`)
+
 ## Deployment
 
 Push to `main` triggers GitHub Actions workflow (`.github/workflows/deploy.yml`) which builds Hugo and deploys to GitHub Pages.

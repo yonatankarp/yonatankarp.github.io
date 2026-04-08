@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
         '#about, #education, #testimonial, #contact,' +
         '#client-and-work-section > .client-works-container > h2,' +
         '#client-and-work-section .row.row--padded,' +
-        '#experience-list-shortcode > div > div,' +
+        '#experience > div > div,' +
         '.testimonial.container'
     );
 

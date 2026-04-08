@@ -11,7 +11,8 @@ tags:
 categories:
   - Engineering
 translationKey: "real-life-problem-solving-engineering-principles"
-featured_image: "/images/blog/covers/real-life-problem-solving-engineering-principles.jpg"
+images:
+  featured_image: "images/blog/covers/real-life-problem-solving-engineering-principles.jpg"
 ---
 
 המעסיק שלי הודיע לפני כמה חודשים שכל עובד שעובד שלוש שנים ומעלה זכאי ל-sabbatical — חופשה בתשלום מלא למשך חודש לפי בחירתו. מאחר שאשתי ואני צברנו מספר ניכר של ימי חופשה, החלטנו לצאת למסע של חודשיים לאסיה — יעד שתמיד רצינו לבקר בו. בפוסט הזה אתאר צעד אחר צעד איך יישמתי שיטות מעבודת היומיום שלי כמהנדס תוכנה לפתרון בעיות מהחיים.

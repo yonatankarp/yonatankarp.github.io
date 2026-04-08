@@ -11,7 +11,8 @@ tags:
 categories:
   - Backend
 translationKey: "openapi-robust-restful-api"
-featured_image: "/images/blog/covers/openapi-robust-restful-api.jpg"
+images:
+  featured_image: "images/blog/covers/openapi-robust-restful-api.jpg"
 ---
 
 <div class="editors-note">

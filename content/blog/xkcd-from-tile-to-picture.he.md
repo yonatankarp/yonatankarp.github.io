@@ -12,7 +12,8 @@ categories:
   - Backend
   - Hacking
 translationKey: "xkcd-from-tile-to-picture"
-featured_image: "/images/blog/covers/xkcd-from-tile-to-picture.jpg"
+images:
+  featured_image: "images/blog/covers/xkcd-from-tile-to-picture.jpg"
 ---
 
 ## מבוא

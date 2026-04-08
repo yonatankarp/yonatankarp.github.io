@@ -13,7 +13,8 @@ categories:
   - Backend
   - Observability
 translationKey: "observability-in-action-opentelemetry"
-featured_image: "/images/blog/covers/observability-in-action-opentelemetry.jpg"
+images:
+  featured_image: "images/blog/covers/observability-in-action-opentelemetry.jpg"
 ---
 
 Table of Contents

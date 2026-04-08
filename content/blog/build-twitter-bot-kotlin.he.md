@@ -12,7 +12,8 @@ categories:
   - Backend
   - Kotlin
 translationKey: "build-twitter-bot-kotlin"
-featured_image: "/images/blog/covers/build-twitter-bot-kotlin.jpg"
+images:
+  featured_image: "images/blog/covers/build-twitter-bot-kotlin.jpg"
 ---
 
 קראתי מאמר מצוין של [Martin Erlic](https://medium.com/u/f864d52751a7) בשם "[How To Make a Scary Russian Twitter Bot With Java](https://medium.com/@SeloSlav/how-to-make-a-scary-russian-twitter-bot-with-java-b7b62768a3ac)" ורציתי לעדכן אותו עם Kotlin.

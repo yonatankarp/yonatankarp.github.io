@@ -11,6 +11,7 @@ tags:
 categories:
   - Backend
 translationKey: "fix-misconfigurations-redistemplate"
+featured_image: "/images/blog/covers/fix-misconfigurations-redistemplate.jpg"
 ---
 
 Table of Contents

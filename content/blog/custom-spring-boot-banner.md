@@ -11,6 +11,7 @@ categories:
   - Backend
   - Kotlin
 translationKey: "custom-spring-boot-banner"
+featured_image: "/images/blog/covers/custom-spring-boot-banner.jpg"
 ---
 
 Today, I'd like to share a fun feature of Spring with you. It's not new or crucial, but it's definitely enjoyable!

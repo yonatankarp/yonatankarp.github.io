@@ -11,6 +11,7 @@ tags:
 categories:
   - Backend
 translationKey: "fix-misconfigurations-redistemplate"
+description: "מדריך לזיהוי ותיקון בעיות קונפיגורציה נפוצות ב-RedisTemplate של Spring Boot, עם דגש על בעיות serialization."
 images:
   featured_image: "/images/blog/covers/fix-misconfigurations-redistemplate.jpg"
 ---

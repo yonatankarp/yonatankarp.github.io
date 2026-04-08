@@ -14,6 +14,7 @@ categories:
   - Backend
   - Java
 translationKey: "interview-questions-concurrency-parallelism"
+description: "הסבר ברור על ההבדל בין concurrency ל-parallelism, עם דוגמאות מבוססות JVM שנשאלות לעיתים קרובות בראיונות טכניים."
 images:
   featured_image: "/images/blog/covers/interview-questions-concurrency-parallelism.jpg"
 ---

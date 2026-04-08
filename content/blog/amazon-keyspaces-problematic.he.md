@@ -13,6 +13,7 @@ categories:
   - Backend
   - Cloud
 translationKey: "amazon-keyspaces-problematic"
+description: "ארבע בעיות production אמיתיות שנתקלנו בהן עם Amazon Keyspaces (Cassandra מנוהל), ולמה השירות עשוי שלא להתאים לכל workload."
 images:
   featured_image: "/images/blog/covers/amazon-keyspaces-problematic.jpg"
 ---

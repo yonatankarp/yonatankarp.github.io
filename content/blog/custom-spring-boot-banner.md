@@ -3,7 +3,7 @@ title: "Create a Custom Spring Boot App Banner"
 date: 2022-12-02T00:00:00+01:00
 draft: false
 type: "blog"
-featured: true
+description: "A fun walkthrough of how to replace the default Spring Boot startup banner with custom text and ASCII art to give your application a personal touch."
 tags:
   - kotlin
   - spring-boot
@@ -17,6 +17,8 @@ images:
 ---
 
 Today, I'd like to share a fun feature of Spring with you. It's not new or crucial, but it's definitely enjoyable!
+
+<!--more-->
 
 Normally, when you launch your Spring Boot app, you see a standard banner in the logs like this:
 

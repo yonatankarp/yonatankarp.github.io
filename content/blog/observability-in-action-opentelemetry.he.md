@@ -3,6 +3,7 @@ title: "Observability בפעולה: איך להשתמש ב-OpenTelemetry"
 date: 2023-10-17T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - kotlin
   - spring-boot
@@ -13,6 +14,7 @@ categories:
   - Backend
   - Observability
 translationKey: "observability-in-action-opentelemetry"
+description: "מדריך מעשי להוספת distributed tracing ו-observability לשירות Kotlin/Spring Boot באמצעות OpenTelemetry ו-HoneyComb."
 images:
   featured_image: "/images/blog/covers/observability-in-action-opentelemetry.jpg"
 ---

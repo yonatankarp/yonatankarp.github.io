@@ -11,6 +11,7 @@ tags:
 categories:
   - Engineering
 translationKey: "real-life-problem-solving-engineering-principles"
+description: "איך עקרונות פתרון בעיות מהנדסת תוכנה — שמיושמים בדרך כלל על קוד — הוכיחו עצמם יעילים באופן מפתיע לניהול אתגרים אמיתיים במסע לאסיה."
 images:
   featured_image: "/images/blog/covers/real-life-problem-solving-engineering-principles.jpg"
 ---

@@ -12,6 +12,7 @@ categories:
   - Backend
   - Kotlin
 translationKey: "inject-multiple-implementations-spring"
+description: "סקירה של אסטרטגיות ה-injection השונות שמציע Spring Framework להזרקת מספר implementations של אותו interface ל-bean אחד."
 images:
   featured_image: "/images/blog/covers/inject-multiple-implementations-spring.jpg"
 ---

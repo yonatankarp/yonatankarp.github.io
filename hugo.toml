@@ -3,7 +3,7 @@ title = "Yonatan Karp-Rudin"
 languageCode = "en"
 
 [pagination]
-pagerSize = 10
+pagerSize = 5
 
 [outputs]
   page = ["HTML"]

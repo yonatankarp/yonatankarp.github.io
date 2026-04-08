@@ -3,6 +3,7 @@ title: "XKCD: מטאיל לתמונה - לראות את התמונה המלאה"
 date: 2024-06-26T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - kotlin
   - xkcd
@@ -12,6 +13,7 @@ categories:
   - Backend
   - Hacking
 translationKey: "xkcd-from-tile-to-picture"
+description: "מדריך מעשי לשחזור הקומיקס הענק XKCD #1110 \"Click and Drag\" מ-tiles בודדים, תוך שימוש ב-Kotlin."
 images:
   featured_image: "/images/blog/covers/xkcd-from-tile-to-picture.jpg"
 ---

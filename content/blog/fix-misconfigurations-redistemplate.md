@@ -3,7 +3,7 @@ title: "How to Fix Misconfigurations in RedisTemplate"
 date: 2024-06-05T00:00:00+01:00
 draft: false
 type: "blog"
-featured: true
+description: "A practical guide to identifying and fixing common RedisTemplate misconfiguration pitfalls in Spring Boot, with a focus on serialization issues."
 tags:
   - kotlin
   - spring-boot
@@ -16,27 +16,11 @@ images:
   featured_image: "/images/blog/covers/fix-misconfigurations-redistemplate.jpg"
 ---
 
-Table of Contents
-
-[Toggle
-](#)
-
-
-- [Introduction](#Introduction)
-- [Initial Configuration](#Initial_Configuration)
-- [Creating the RedisTemplate Bean](#Creating_the_RedisTemplate_Bean)
-- [Writing Tests](#Writing_Tests)
-- [Identifying The Issue](#Identifying_The_Issue)
-- [Fixing the Issue](#Fixing_the_Issue)
-- [Where to Find the Code](#Where_to_Find_the_Code)
-- [Conclusion](#Conclusion)
-- [Credits](#Credits)
-
-
-## Introduction
 
 
 Our story begins with a colleague and me trying to debug an issue with our project for a few hours. We needed to fetch a value from Redis storage, but whenever the service ran, the fetched value was `null`. Despite our efforts, we couldn't find a solution on the internet, and to make matters worse, our code was actually covered by tests that had all passed!
+
+<!--more-->
 
 
 In this article, we will explore a common issue when using `RedisTemplate` in Spring applications. We'll demonstrate how misconfigurations can lead to your tests passing while failing to fetch the correct data. Additionally, we'll show you how to configure properly `RedisTemplate` to avoid this problem.

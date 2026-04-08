@@ -3,7 +3,7 @@ title: "How To Build Your Domain Gateway With OpenApi"
 date: 2022-12-14T00:00:00+01:00
 draft: false
 type: "blog"
-featured: true
+description: "An introduction to the domain gateway pattern and a practical tutorial for building one in Kotlin using OpenAPI code generation."
 tags:
   - kotlin
   - spring-boot
@@ -22,41 +22,12 @@ images:
 **TL;DR:** This article explains what a domain gateway is, how to build one, and why you would want it.
 
 </div>
-
-
-Table of Contents
-
-[Toggle
-](#)
-
-
-- [What is a Domain Gateway?](#What_is_a_Domain_Gateway)[Domain Gateway Do's](#Domain_Gateway_Dos)
-- [Domain Gateway Don'ts](#Domain_Gateway_Donts)
-
-- [Ok, I'm Convinced…](#Ok_Im_Convinced%E2%80%A6)
-- [How Do I Build a Domain Gateway?](#How_Do_I_Build_a_Domain_Gateway)[Tech Stack](#Tech_Stack)
-- [Domain Gateway Structure](#Domain_Gateway_Structure)
-- [API Specs](#API_Specs)[Hello Service](#Hello_Service)
-- [Goodbye Service](#Goodbye_Service)
-- [Domain Gateway Service](#Domain_Gateway_Service)
-
-- [Generating Multiple Specs](#Generating_Multiple_Specs)
-- [Add Generated Code To Project](#Add_Generated_Code_To_Project)
-
-- [Using The Generated Code](#Using_The_Generated_Code)[Clients Definition](#Clients_Definition)
-- [Domain Gateway Definition](#Domain_Gateway_Definition)
-- [Hello and Goodbye Service Definition](#Hello_and_Goodbye_Service_Definition)
-
-- [Run The Code](#Run_The_Code)
-- [Conclusion](#Conclusion)
-- [More Information](#More_Information)
-- [Credits](#Credits)
-
-
 ## What is a Domain Gateway?
 
 
 A domain gateway is a private case of the API gateway pattern. The website [java-design-patterns](https://java-design-patterns.com/patterns/api-gateway/) defines the gateway pattern as follows:
+
+<!--more-->
 
 
 > With the Microservices pattern, a client may need data from multiple different microservices.

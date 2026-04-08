@@ -3,7 +3,7 @@ title: "How does HashMap work in Java?"
 date: 2022-12-02T00:00:00+01:00
 draft: false
 type: "blog"
-featured: true
+description: "A deep dive into the internal mechanics of Java's HashMap — covering the equals/hashCode contract, bucket distribution, and the binary tree optimization introduced in Java 8."
 tags:
   - java
   - kotlin
@@ -18,6 +18,8 @@ images:
 ---
 
 As an interviewer, I often ask the question about how HashMap works in Java. It helps me assess a candidate's understanding of data structures, JVM internals, and their problem-solving approach. I've encountered many candidates, including juniors, mid-levels, and seniors, who couldn't answer this question correctly. So, I decided to share the answer with everyone.
+
+<!--more-->
 
 In this article, I will explain the HashMap question step by step.
 

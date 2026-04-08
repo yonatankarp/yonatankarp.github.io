@@ -36,7 +36,8 @@ draft = false
     title="Education" >}}
 
 {{< experience-list
-    title="Experience" >}}
+    title="Experience"
+    sectionId="experience" >}}
 
 {{< client-and-work-section
     title="Projects & Contributions" >}}

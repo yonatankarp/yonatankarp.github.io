@@ -36,7 +36,8 @@ draft = false
     title="השכלה" >}}
 
 {{< experience-list
-    title="ניסיון" >}}
+    title="ניסיון"
+    sectionId="experience" >}}
 
 {{< client-and-work-section
     title="פרויקטים ותרומות" >}}

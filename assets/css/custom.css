@@ -91,9 +91,23 @@
     border-left-color: #28a745;
 }
 
-/* Hide education background watermark */
+/* Hide education background watermark and fix grid alignment */
 .education::before {
     display: none !important;
+}
+
+#education .row.pt-2 {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+#education .col-12.col-sm-6 {
+    display: flex;
+    margin-bottom: 1.5rem !important;
+}
+
+#education .education {
+    width: 100%;
 }
 
 /* Blog listing - featured images fill their container */

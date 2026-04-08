@@ -14,6 +14,7 @@ categories:
   - Backend
   - Java
 translationKey: "interview-questions-concurrency-parallelism"
+featured_image: "/images/blog/covers/interview-questions-concurrency-parallelism.jpg"
 ---
 
 > TL;DR - What are the differences between concurrent and parallel programming?

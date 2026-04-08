@@ -14,6 +14,7 @@ categories:
   - Backend
   - Java
 translationKey: "interview-questions-concurrency-parallelism"
+featured_image: "/images/blog/covers/interview-questions-concurrency-parallelism.jpg"
 ---
 
 > TL;DR - מה ההבדלים בין תכנות concurrent לתכנות parallel?

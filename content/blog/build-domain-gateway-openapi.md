@@ -12,6 +12,7 @@ tags:
 categories:
   - Backend
 translationKey: "build-domain-gateway-openapi"
+featured_image: "/images/blog/covers/build-domain-gateway-openapi.jpg"
 ---
 
 <div class="editors-note">

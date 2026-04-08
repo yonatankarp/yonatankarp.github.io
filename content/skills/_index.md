@@ -76,7 +76,7 @@ skill_categories:
         description: "Service-to-service communication."
       - name: "Protocol Buffers"
         level: 85
-        years: "3+"
+        years: "7+"
         description: "Schema definition, code generation."
       - name: "Avro"
         level: 85

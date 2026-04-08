@@ -3,6 +3,7 @@ title: "XKCD: From Tile to Picture - Seeing the Full Image"
 date: 2024-06-26T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - kotlin
   - xkcd
@@ -13,7 +14,7 @@ categories:
   - Hacking
 translationKey: "xkcd-from-tile-to-picture"
 images:
-  featured_image: "images/blog/covers/xkcd-from-tile-to-picture.jpg"
+  featured_image: "/images/blog/covers/xkcd-from-tile-to-picture.jpg"
 ---
 
 Table of Contents

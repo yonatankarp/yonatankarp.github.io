@@ -13,7 +13,7 @@ categories:
   - Kotlin
 translationKey: "inject-multiple-implementations-spring"
 images:
-  featured_image: "images/blog/covers/inject-multiple-implementations-spring.jpg"
+  featured_image: "/images/blog/covers/inject-multiple-implementations-spring.jpg"
 ---
 
 לא מזמן היה לי דיון עם אחד מהעמיתים שלי במהלך code review. דיברנו על גביש נסתר ב-Spring (וגם ב-frameworks אחרים כמו Micronaut) שיכול לפשט את הקוד שלנו.

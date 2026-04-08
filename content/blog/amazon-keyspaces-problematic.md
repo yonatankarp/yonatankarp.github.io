@@ -3,6 +3,7 @@ title: "4 Reasons Why Amazon Keyspaces is Problematic!"
 date: 2021-12-30T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - aws
   - cassandra
@@ -14,7 +15,7 @@ categories:
   - Cloud
 translationKey: "amazon-keyspaces-problematic"
 images:
-  featured_image: "images/blog/covers/amazon-keyspaces-problematic.jpg"
+  featured_image: "/images/blog/covers/amazon-keyspaces-problematic.jpg"
 ---
 
 Around a year ago, my team and I were tasked with building a high-performance system capable of handling a large volume of requests. After careful consideration, we chose Cassandra as our database.

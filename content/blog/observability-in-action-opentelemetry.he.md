@@ -14,7 +14,7 @@ categories:
   - Observability
 translationKey: "observability-in-action-opentelemetry"
 images:
-  featured_image: "images/blog/covers/observability-in-action-opentelemetry.jpg"
+  featured_image: "/images/blog/covers/observability-in-action-opentelemetry.jpg"
 ---
 
 ## מבוא

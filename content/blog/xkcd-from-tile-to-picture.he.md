@@ -13,7 +13,7 @@ categories:
   - Hacking
 translationKey: "xkcd-from-tile-to-picture"
 images:
-  featured_image: "images/blog/covers/xkcd-from-tile-to-picture.jpg"
+  featured_image: "/images/blog/covers/xkcd-from-tile-to-picture.jpg"
 ---
 
 ## מבוא

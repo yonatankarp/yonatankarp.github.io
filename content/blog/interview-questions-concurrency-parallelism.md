@@ -3,6 +3,7 @@ title: "[Interview Questions] Concurrency vs. Parallelism: Decoding the Simultan
 date: 2023-03-11T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - java
   - kotlin
@@ -15,7 +16,7 @@ categories:
   - Java
 translationKey: "interview-questions-concurrency-parallelism"
 images:
-  featured_image: "images/blog/covers/interview-questions-concurrency-parallelism.jpg"
+  featured_image: "/images/blog/covers/interview-questions-concurrency-parallelism.jpg"
 ---
 
 > TL;DR - What are the differences between concurrent and parallel programming?

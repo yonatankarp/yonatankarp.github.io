@@ -3,6 +3,7 @@ title: "Observability in Action: How to Use OpenTelemetry"
 date: 2023-10-17T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - kotlin
   - spring-boot
@@ -14,7 +15,7 @@ categories:
   - Observability
 translationKey: "observability-in-action-opentelemetry"
 images:
-  featured_image: "images/blog/covers/observability-in-action-opentelemetry.jpg"
+  featured_image: "/images/blog/covers/observability-in-action-opentelemetry.jpg"
 ---
 
 Table of Contents

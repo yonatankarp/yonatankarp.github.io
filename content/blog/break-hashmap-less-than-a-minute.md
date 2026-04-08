@@ -3,6 +3,7 @@ title: "How to Break Your HashMap in Less Than a Minute"
 date: 2022-12-02T00:00:00+01:00
 draft: false
 type: "blog"
+featured: true
 tags:
   - java
   - kotlin
@@ -14,7 +15,7 @@ categories:
   - Java
 translationKey: "break-hashmap-less-than-a-minute"
 images:
-  featured_image: "images/blog/covers/break-hashmap-less-than-a-minute.jpg"
+  featured_image: "/images/blog/covers/break-hashmap-less-than-a-minute.jpg"
 ---
 
 > **TL;DR:** Never use mutable objects as keys in your HashMap!

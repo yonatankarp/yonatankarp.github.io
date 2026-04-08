@@ -4,4 +4,4 @@ date: 2026-04-07
 draft: false
 ---
 
-Technical writing about Kotlin, backend engineering, and software architecture. Posts are being migrated -- check [kotlinbackend.com](https://kotlinbackend.com) for existing content.
+Technical writing about Kotlin, backend engineering, and software architecture.

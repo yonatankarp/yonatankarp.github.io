@@ -47,7 +47,9 @@
           <h3>{{ .Params.university }}</h3>
           <span>{{ .Params.year }}</span>
         </div>
-        <p>{{ .Params.degree }}</p>
+        <p class="cv-item__sub">{{ .Params.degree }}</p>
+        {{ if ne .Title .Params.university }}<p>{{ .Title }}</p>{{ end }}
+        {{ with .Params.link }}<p><a class="text-link" href="{{ . }}">{{ if eq $lang "he" }}לצפייה בתעודה{{ else }}View credential{{ end }}</a></p>{{ end }}
       </article>
       {{ end }}
     </div>

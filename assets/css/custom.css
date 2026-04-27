@@ -579,7 +579,11 @@ h4 a,
   align-items: flex-start;
 }
 
-.education-list,
+.education-list {
+  display: grid;
+  gap: 1rem;
+}
+
 .writing-grid {
   display: grid;
   gap: 1rem;
@@ -589,6 +593,43 @@ h4 a,
 .education-item,
 .writing-card {
   padding: 1.4rem;
+}
+
+.education-item {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.24fr) minmax(0, 1fr) auto;
+  gap: 1rem 1.5rem;
+  align-items: start;
+}
+
+.education-item__meta,
+.education-item__body,
+.education-item__action {
+  min-width: 0;
+}
+
+.education-item__meta {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.education-item__meta p,
+.education-item__meta span {
+  margin: 0;
+}
+
+.education-item__body {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.education-item__body p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.education-item__action {
+  align-self: center;
 }
 
 .writing-card h3 a,
@@ -981,6 +1022,7 @@ h4 a,
   .blog-layout,
   .timeline-item,
   .project-row,
+  .education-item,
   .site-footer__inner,
   .post-row,
   .cv-header,

@@ -77,9 +77,17 @@
   <div class="education-list">
     {{ range $education }}
     <article class="education-item reveal">
-      <p>{{ .Params.year }}</p>
-      <h3>{{ .Params.university }}</h3>
-      <span>{{ .Params.degree }}</span>
+      <div class="education-item__meta">
+        <p>{{ .Params.year }}</p>
+        <span>{{ .Params.degree }}</span>
+      </div>
+      <div class="education-item__body">
+        <h3>{{ .Params.university }}</h3>
+        {{ if ne .Title .Params.university }}<p>{{ .Title }}</p>{{ end }}
+      </div>
+      <div class="education-item__action">
+        {{ with .Params.link }}<a class="text-link" href="{{ . }}">{{ if eq $lang "he" }}לצפייה{{ else }}View credential{{ end }}</a>{{ end }}
+      </div>
     </article>
     {{ end }}
   </div>

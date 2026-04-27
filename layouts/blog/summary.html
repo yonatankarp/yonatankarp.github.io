@@ -1,12 +1,19 @@
+{{ $readingTime := div .WordCount 200 }}
+{{ if lt $readingTime 1 }}
+  {{ $readingTime = 1 }}
+{{ end }}
 <article class="post summary col-12">
   <header>
     <h2 class="post-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
     <div class="post-meta">
       <div>
         <div class="post-meta-info">
-          <span class="published-label">{{ i18n "published_on" }}</span> 
-          <time class="date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Mon Jan 2, 2006" }}</time> · 
-          <span class="wordcount">{{ .WordCount }} Words</span>
+          <span class="published-label">{{ i18n "published_on" }}</span>
+          <time class="date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Mon Jan 2, 2006" }}</time>
+          <span class="meta-separator" aria-hidden="true">·</span>
+          <span class="wordcount">{{ .WordCount }} words</span>
+          <span class="meta-separator" aria-hidden="true">·</span>
+          <span class="reading-time">{{ $readingTime }} {{ i18n "min_read" | default "min read" }}</span>
         </div>
         {{ with .GetTerms "topics" }}
         <ul class="topics">
@@ -32,12 +39,10 @@
   {{ end }}
   </div>
 
-  <footer class="">
+  <footer>
     <div class="row">
       <div class="col-12 col-lg-4">
-        <a class="btn btn-outline-secondary btn-sm" href="{{ .RelPermalink }}"
-          >{{ i18n "read_more" }}&nbsp;&raquo;</a
-        >
+        <a class="btn btn-outline-secondary btn-sm" href="{{ .RelPermalink }}">{{ i18n "read_more" }}&nbsp;&raquo;</a>
       </div>
     </div>
   </footer>

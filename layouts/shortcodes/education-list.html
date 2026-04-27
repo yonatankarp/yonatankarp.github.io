@@ -1,0 +1,12 @@
+{{ $items := sort (where .Site.RegularPages "Type" "education") "Date" "desc" }}
+<div class="cv-list shortcode-list">
+  {{ range $items }}
+  <article class="cv-item">
+    <div class="cv-item__top">
+      <h3>{{ .Params.university }}</h3>
+      <span>{{ .Params.year }}</span>
+    </div>
+    <p>{{ .Params.degree }}</p>
+  </article>
+  {{ end }}
+</div>

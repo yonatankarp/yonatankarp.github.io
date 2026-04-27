@@ -1,0 +1,58 @@
+{{ define "main" }}
+{{ $lang := .Site.Language.Lang }}
+{{ $education := sort (where .Site.RegularPages "Type" "education") "Date" "desc" }}
+{{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
+<section class="shell cv-sheet reveal-group">
+  <header class="cv-header reveal">
+    <div>
+      <p class="section-kicker">{{ if eq $lang "he" }}קורות חיים{{ else }}Curriculum vitae{{ end }}</p>
+      <h1>{{ if eq $lang "he" }}יונתן קרפ-רודין{{ else }}Yonatan Karp-Rudin{{ end }}</h1>
+      <p>{{ if eq $lang "he" }}Staff Software Engineer, ברלין{{ else }}Staff Software Engineer, Berlin{{ end }}</p>
+    </div>
+    <div class="cv-contact">
+      <a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>
+      <a href="https://github.com/yonatankarp">github.com/yonatankarp</a>
+      <a href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a>
+      <a href="https://kotlinbackend.com">kotlinbackend.com</a>
+    </div>
+  </header>
+
+  <section class="cv-section reveal">
+    <h2>{{ if eq $lang "he" }}תקציר{{ else }}Summary{{ end }}</h2>
+    <p>{{ if eq $lang "he" }}Staff Software Engineer עם 12 שנות ניסיון ב-embedded systems, distributed backends, payments ו-compliance. משלב ארכיטקטורה, delivery וכתיבה הנדסית. תורם לקוד פתוח וכותב על Kotlin ו-backend engineering.{{ else }}Staff Software Engineer with 12 years across embedded systems, distributed backends, payments, and compliance. Combines architecture, delivery, and technical writing. Open source contributor and author on Kotlin and backend engineering.{{ end }}</p>
+  </section>
+
+  <section class="cv-section reveal">
+    <h2>{{ if eq $lang "he" }}ניסיון{{ else }}Experience{{ end }}</h2>
+    <div class="cv-list">
+      {{ range $experience }}
+      <article class="cv-item">
+        <div class="cv-item__top">
+          <h3>{{ .Title }}</h3>
+          <span>{{ .Params.duration }}</span>
+        </div>
+        <p class="cv-item__sub">{{ .Params.company }}, {{ .Params.location }}</p>
+        <p>{{ .Content | plainify }}</p>
+      </article>
+      {{ end }}
+    </div>
+  </section>
+
+  <section class="cv-section reveal">
+    <h2>{{ if eq $lang "he" }}השכלה{{ else }}Education{{ end }}</h2>
+    <div class="cv-list">
+      {{ range $education }}
+      <article class="cv-item">
+        <div class="cv-item__top">
+          <h3>{{ .Params.university }}</h3>
+          <span>{{ .Params.year }}</span>
+        </div>
+        <p class="cv-item__sub">{{ .Params.degree }}</p>
+        {{ if ne .Title .Params.university }}<p>{{ .Title }}</p>{{ end }}
+        {{ with .Params.link }}<p><a class="text-link" href="{{ . }}">{{ if eq $lang "he" }}לצפייה בתעודה{{ else }}View credential{{ end }}</a></p>{{ end }}
+      </article>
+      {{ end }}
+    </div>
+  </section>
+</section>
+{{ end }}

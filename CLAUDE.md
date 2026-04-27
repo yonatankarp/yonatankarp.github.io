@@ -3,12 +3,11 @@
 ## Stack
 
 - **Hugo** static site generator (v0.160.0+)
-- **Adritian theme** via Hugo Modules — DO NOT modify theme files
-- **Bootstrap 5** (bundled with theme)
+- **Custom Hugo layouts** in `layouts/`
 - **GitHub Actions** for CI/CD to GitHub Pages
-- Custom CSS in `assets/css/custom.css`
-- Custom JS in `static/js/scroll-animations.js`
-- Layout override: `layouts/partials/head_custom.html` (injects custom JS)
+- Site styles in `assets/css/custom.css`
+- Custom JS in `static/js/site.js`
+- Static images and icons in `static/images/`
 
 ## Build & Run
 
@@ -19,7 +18,7 @@ hugo --gc --minify       # production build
 
 ## Content Structure
 
-- `content/home/home.md` / `home.he.md` — homepage (shortcode-based)
+- `content/home/home.md` / `home.he.md` — legacy homepage content, currently not the primary implementation
 - `content/experience/` — job entries (one .md per role, .he.md for Hebrew)
 - `content/education/` — education entries
 - `content/projects/` — project cards shown on homepage grid
@@ -35,7 +34,7 @@ hugo --gc --minify       # production build
 
 Site is bilingual: English (default) + Hebrew (RTL).
 
-Every content file needs a `.he.md` variant for Hebrew. The theme uses `translationKey` in frontmatter to link translations.
+Every content file should have a `.he.md` variant for Hebrew when the page is user-facing in both languages. Hugo uses `translationKey` where needed to link translations.
 
 ## Hebrew Style Rules
 
@@ -48,15 +47,12 @@ Every content file needs a `.he.md` variant for Hebrew. The theme uses `translat
 - אודות (not אודותיי), היום (not הווה), ו-fintech (not ופינטק)
 - Never present Hebrew text in terminal for review — RTL renders backwards
 
-## Theme Rules
+## Layout Rules
 
-- **DO NOT** modify any theme files under `node_modules/` or the Hugo module cache
-- Customizations go in:
-  - `assets/css/custom.css` — CSS overrides
-  - `static/js/` — custom JavaScript
-  - `layouts/partials/head_custom.html` — script injection
-  - `i18n/*.yaml` — UI string overrides
-- Hugo's layout override system: create files in `layouts/` to override theme templates
+- Prefer editing the custom templates in `layouts/` directly instead of introducing third-party theme assumptions
+- Keep the design system centralized in `assets/css/custom.css`
+- Use `static/js/site.js` for the small amount of client-side behavior
+- Keep bilingual and RTL support first-class in every template change
 
 ## Adding Content
 
@@ -74,7 +70,7 @@ translationKey: "post-slug"
 ```
 
 ### New project
-Create `content/projects/name.md` and `content/projects/name.he.md`. Projects render in the homepage grid via `client-and-work-section` shortcode. No images in project cards.
+Create `content/projects/name.md` and `content/projects/name.he.md`. Projects render via the custom homepage project list and can expose their CTA through `params.button`.
 
 ### New experience
 Create `content/experience/name.md` and `content/experience/name.he.md` with jobTitle, company, location, duration fields.
@@ -88,9 +84,9 @@ Create `content/experience/name.md` and `content/experience/name.he.md` with job
 
 ## Analytics
 
-- **GoatCounter** for privacy-friendly analytics (script in `layouts/partials/head_custom.html`)
+- **GoatCounter** for privacy-friendly analytics (script in `layouts/partials/head.html`)
 - Dashboard: `https://yonatankarp.goatcounter.com`
-- Localhost/private IPs are automatically excluded
+- Localhost and private IPs are automatically excluded
 - To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into `count.js`)
 
 ## Deployment

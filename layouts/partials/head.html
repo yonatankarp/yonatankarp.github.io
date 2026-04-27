@@ -1,0 +1,48 @@
+{{ $siteTitle := .Site.Title }}
+{{ $homeTitle := .Site.Params.title }}
+{{ $homeDescription := .Site.Params.description }}
+{{ $title := cond .IsHome $homeTitle (printf "%s | %s" .Title $siteTitle) }}
+{{ $description := .Description | default .Summary | plainify | default $homeDescription }}
+{{ $image := "" }}
+{{ with .Params.images }}{{ with .featured_image }}{{ $image = . | absURL }}{{ end }}{{ end }}
+{{ if not $image }}{{ $image = (printf "%simages/og-default.svg" .Site.BaseURL) }}{{ end }}
+{{ $css := resources.Get "css/custom.css" }}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ $title }}</title>
+<meta name="description" content="{{ $description }}">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4efe6">
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:image" content="{{ $image }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $title }}">
+<meta name="twitter:description" content="{{ $description }}">
+<meta name="twitter:image" content="{{ $image }}">
+<link rel="canonical" href="{{ .Permalink }}">
+<link rel="icon" href="{{ "images/favicon.svg" | relURL }}" type="image/svg+xml">
+{{ if $css }}<link rel="stylesheet" href="{{ $css.RelPermalink }}">{{ end }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{{ $schema := dict "@context" "https://schema.org" "@type" "WebPage" "name" $title "description" $description "url" .Permalink }}
+{{ if .IsHome }}
+  {{ $schema = dict "@context" "https://schema.org" "@type" "Person" "name" "Yonatan Karp-Rudin" "jobTitle" "Staff Software Engineer" "url" .Site.BaseURL "sameAs" (slice "https://github.com/yonatankarp" "https://www.linkedin.com/in/yonatankarp/" "https://kotlinbackend.com") "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" "Berlin" "addressCountry" "DE") }}
+{{ else if and .IsPage (eq .Type "blog") }}
+  {{ $schema = dict "@context" "https://schema.org" "@type" "Article" "headline" .Title "author" (dict "@type" "Person" "name" "Yonatan Karp-Rudin") "publisher" (dict "@type" "Person" "name" "Yonatan Karp-Rudin") "mainEntityOfPage" .Permalink }}
+  {{ if not .Date.IsZero }}{{ $schema = merge $schema (dict "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00")) }}{{ end }}
+  {{ if not .Lastmod.IsZero }}{{ $schema = merge $schema (dict "dateModified" (.Lastmod.Format "2006-01-02T15:04:05Z07:00")) }}{{ end }}
+{{ end }}
+<script type="application/ld+json">{{ $schema | jsonify | safeJS }}</script>
+<script>
+  (() => {
+    const saved = localStorage.getItem('theme');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (systemDark ? 'dark' : 'light');
+    document.documentElement.dataset.theme = theme;
+  })();
+</script>
+<script data-goatcounter="https://yonatankarp.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

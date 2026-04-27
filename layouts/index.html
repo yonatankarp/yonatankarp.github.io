@@ -1,0 +1,200 @@
+{{ define "main" }}
+{{ $lang := .Site.Language.Lang }}
+{{ $projects := first 6 (sort (where .Site.RegularPages "Type" "projects") "Date" "desc") }}
+{{ $posts := first 3 (sort (where .Site.RegularPages "Type" "blog") "Date" "desc") }}
+{{ $testimonials := sort (where .Site.RegularPages "Type" "testimonial") "Date" "desc" }}
+{{ if eq (len $testimonials) 0 }}{{ $testimonials = sort (where (index hugo.Sites 0).RegularPages "Type" "testimonial") "Date" "desc" }}{{ end }}
+{{ $education := sort (where .Site.RegularPages "Type" "education") "Date" "desc" }}
+{{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
+{{ $showcaseImage := resources.Get "images/showcase/showcase.png" }}
+{{ $aboutImage := resources.Get "images/about/user-picture.png" }}
+<section class="hero shell reveal-group">
+  <div class="hero__copy reveal">
+    <p class="eyebrow">{{ if eq $lang "he" }}פורטפוליו, כתיבה והנדסה{{ else }}Portfolio, writing, and engineering{{ end }}</p>
+    <h1>{{ if eq $lang "he" }}יונתן קרפ-רודין, Staff Software Engineer שבונה מערכות שאפשר לסמוך עליהן{{ else }}Yonatan Karp-Rudin, a staff engineer building systems people can trust{{ end }}</h1>
+    <p class="hero__lede">{{ if eq $lang "he" }}מבוסס בברלין. עובד על payments ו-compliance ב-Billie, כותב על Kotlin ו-backend systems, ותורם לקוד פתוח כשיש משהו ששווה לשפר.{{ else }}Based in Berlin. Building payment and compliance systems at Billie, writing about Kotlin and backend systems, and contributing upstream when there is something worth improving.{{ end }}</p>
+    <div class="hero__actions">
+      <a class="button button--primary" href="#contact">{{ if eq $lang "he" }}דברו איתי{{ else }}Get in touch{{ end }}</a>
+      <a class="button button--ghost" href="{{ if eq $lang "he" }}/he/blog/{{ else }}/blog/{{ end }}">{{ if eq $lang "he" }}לקריאה בבלוג{{ else }}Read the blog{{ end }}</a>
+    </div>
+    <ul class="hero__links">
+      <li><a href="https://github.com/yonatankarp">GitHub</a></li>
+      <li><a href="https://www.linkedin.com/in/yonatankarp/">LinkedIn</a></li>
+      <li><a href="https://kotlinbackend.com">kotlinbackend.com</a></li>
+    </ul>
+  </div>
+  <div class="hero__image reveal">
+    {{ with $showcaseImage }}<img src="{{ .RelPermalink }}" alt="{{ if eq $lang "he" }}דיוקן של יונתן קרפ-רודין{{ else }}Portrait of Yonatan Karp-Rudin{{ end }}">{{ end }}
+  </div>
+</section>
+
+<section id="about" class="shell about-grid reveal-group">
+  <div class="about-grid__image reveal">
+    {{ with $aboutImage }}<img src="{{ .RelPermalink }}" alt="{{ if eq $lang "he" }}יונתן קרפ-רודין{{ else }}Yonatan Karp-Rudin{{ end }}">{{ end }}
+  </div>
+  <div class="about-grid__body reveal">
+    <p class="section-kicker">{{ if eq $lang "he" }}אודות{{ else }}About{{ end }}</p>
+    <h2>{{ if eq $lang "he" }}שנים עשר שנים של תשתיות, פלטפורמות, תשלומים וכתיבה הנדסית{{ else }}Twelve years across infrastructure, platforms, payments, and engineering writing{{ end }}</h2>
+    <div class="prose">
+      {{ if eq $lang "he" }}
+      <p>אני עובד היום ב-Billie על מערכות compliance ו-risk, כולל transaction monitoring, screening וארכיטקטורת services סביבן. לפני זה בניתי פלטפורמות backend ב-SumUp, מערכות vision processing ב-Inuitive, וכל מיני כלים ושיפורים שמקצרים עבודה אמיתית לצוותים.</p>
+      <p>החוט שמחבר את הכל הוא לא stack מסוים אלא דרך עבודה, API-first thinking, פירוק בעיות, כתיבה מדויקת, ושיפור מערכות בלי להפוך אותן לתיאטרון. האתר הזה נועד להראות את זה דרך עבודה אמיתית, לא דרך buzzwords.</p>
+      {{ else }}
+      <p>Today I work at Billie on compliance and risk systems, including transaction monitoring, screening, and the service architecture around them. Before that I built backend platforms at SumUp, vision-processing systems at Inuitive, and plenty of tools that made real engineering work simpler for the teams around me.</p>
+      <p>The thread through all of it is not a specific stack but a way of working: API-first thinking, careful problem decomposition, clear writing, and improving systems without turning them into theater. This site is meant to show that through the work itself, not through buzzwords.</p>
+      {{ end }}
+    </div>
+  </div>
+</section>
+
+<section id="experience" class="shell section-stack reveal-group">
+  <div class="section-heading reveal">
+    <p class="section-kicker">{{ if eq $lang "he" }}ניסיון{{ else }}Experience{{ end }}</p>
+    <h2>{{ if eq $lang "he" }}תפקידים שבהם ארכיטקטורה, מוצר וביצוע נפגשים{{ else }}Roles where architecture, product, and execution meet{{ end }}</h2>
+  </div>
+  <div class="timeline">
+    {{ range first 6 $experience }}
+    <article class="timeline-item reveal">
+      <div class="timeline-item__meta">
+        <p>{{ .Params.duration }}</p>
+        <h3>{{ .Params.jobTitle }}</h3>
+        <span>{{ .Params.company }}, {{ .Params.location }}</span>
+      </div>
+      <div class="timeline-item__body">
+        <h4>{{ .Title }}</h4>
+        <p>{{ .Content | plainify }}</p>
+      </div>
+    </article>
+    {{ end }}
+  </div>
+</section>
+
+<section id="education" class="shell section-stack section-stack--compact reveal-group">
+  <div class="section-heading reveal">
+    <p class="section-kicker">{{ if eq $lang "he" }}לימודים{{ else }}Education{{ end }}</p>
+    <h2>{{ if eq $lang "he" }}קורסים, תארים ונושאים שחוזרים שוב ושוב{{ else }}Courses, degrees, and topics that keep showing up in the work{{ end }}</h2>
+  </div>
+  <div class="education-list">
+    {{ range $education }}
+    <article class="education-item reveal">
+      <div class="education-item__meta">
+        <p>{{ .Params.year }}</p>
+        <span>{{ .Params.degree }}</span>
+      </div>
+      <div class="education-item__body">
+        <h3>{{ .Params.university }}</h3>
+        {{ if ne .Title .Params.university }}<p>{{ .Title }}</p>{{ end }}
+      </div>
+      <div class="education-item__action">
+        {{ with .Params.link }}<a class="text-link" href="{{ . }}">{{ if eq $lang "he" }}לצפייה{{ else }}View credential{{ end }}</a>{{ end }}
+      </div>
+    </article>
+    {{ end }}
+  </div>
+</section>
+
+<section id="client-and-work-section" class="shell section-stack reveal-group">
+  <div class="section-heading reveal">
+    <p class="section-kicker">{{ if eq $lang "he" }}פרויקטים ותרומות{{ else }}Projects and contributions{{ end }}</p>
+    <h2>{{ if eq $lang "he" }}עבודה אישית, קוד פתוח, ומוצרים שבאמת נבנו{{ else }}Personal work, open source, and products that actually shipped{{ end }}</h2>
+  </div>
+  <div class="project-list">
+    {{ range $projects }}
+    {{ $link := .Params.link }}
+    {{ $label := cond (in $link "github.com") "GitHub" (cond (in $link "youtube.com") "Video" (cond (in $link "yonatankarp.github.io") "Docs" "Visit")) }}
+    <article class="project-row reveal">
+      <div class="project-row__body">
+        <h3>{{ .Title }}</h3>
+        <p>{{ .Content | plainify }}</p>
+      </div>
+      <div class="project-row__meta">
+        <p>{{ .Date.Format "2006" }}</p>
+        {{ with $link }}<a class="button button--ghost" href="{{ . }}">{{ if eq $lang "he" }}{{ cond (eq $label "Docs") "דוקס" (cond (eq $label "Video") "וידאו" (cond (eq $label "GitHub") "GitHub" "קישור")) }}{{ else }}{{ $label }}{{ end }}</a>{{ end }}
+      </div>
+    </article>
+    {{ end }}
+  </div>
+</section>
+
+<section class="shell section-stack reveal-group">
+  <div class="section-heading reveal">
+    <p class="section-kicker">{{ if eq $lang "he" }}כתיבה{{ else }}Writing{{ end }}</p>
+    <h2>{{ if eq $lang "he" }}מאמרים שמסבירים איך דברים עובדים, ולמה לפעמים הם נשברים{{ else }}Writing that explains how systems work, and why they sometimes break{{ end }}</h2>
+  </div>
+  <div class="writing-grid">
+    {{ range $posts }}
+    <article class="writing-card reveal">
+      <p class="writing-card__date">{{ .Date.Format "Jan 2, 2006" }}</p>
+      <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
+      <p>{{ .Description | default (.Summary | plainify) }}</p>
+      <a class="text-link" href="{{ .RelPermalink }}">{{ if eq $lang "he" }}לקריאה{{ else }}Read article{{ end }}</a>
+    </article>
+    {{ end }}
+  </div>
+</section>
+
+<section id="testimonial" class="shell section-stack reveal-group">
+  <div class="section-heading reveal">
+    <p class="section-kicker">{{ if eq $lang "he" }}המלצות{{ else }}Recommendations{{ end }}</p>
+    <h2>{{ if eq $lang "he" }}דברים שאנשים באמת אמרו אחרי עבודה משותפת{{ else }}Things people actually said after working together{{ end }}</h2>
+  </div>
+  <div class="quote-stack">
+    {{ range $testimonials }}
+    {{ $img := resources.Get (printf "images/testimonials/%s.jpg" .File.BaseFileName) }}
+    <figure class="quote-feature reveal">
+      <div class="quote-feature__person">
+        {{ with $img }}<img src="{{ .RelPermalink }}" alt="{{ $.Title }}">{{ end }}
+        <div>
+          <strong>{{ .Params.name }}</strong>
+          <span>{{ .Params.position }}</span>
+        </div>
+      </div>
+      <blockquote>{{ .Content | plainify }}</blockquote>
+    </figure>
+    {{ end }}
+  </div>
+</section>
+
+<section id="contact" class="shell contact-band reveal-group">
+  <div class="contact-band__frame reveal">
+    <div class="contact-band__intro">
+      <p class="section-kicker">{{ if eq $lang "he" }}יצירת קשר{{ else }}Contact{{ end }}</p>
+      <h2>{{ if eq $lang "he" }}אם יש משהו ששווה לבנות יחד, בואו נדבר{{ else }}If there is something worth building together, let's talk{{ end }}</h2>
+      <p>{{ if eq $lang "he" }}תפקידים, ייעוץ, architecture reviews, שיתופי פעולה, או פשוט שיחה טובה על backend systems.{{ else }}Roles, consulting, architecture reviews, collaboration, or just a good conversation about backend systems.{{ end }}</p>
+      <div class="contact-band__facts">
+        <div>
+          <span>{{ if eq $lang "he" }}מבוסס ב{{ else }}Based in{{ end }}</span>
+          <strong>{{ if eq $lang "he" }}ברלין, גרמניה{{ else }}Berlin, Germany{{ end }}</strong>
+        </div>
+        <div>
+          <span>{{ if eq $lang "he" }}הכי רלוונטי ל{{ else }}Best for{{ end }}</span>
+          <strong>{{ if eq $lang "he" }}Staff, platform, risk, backend{{ else }}Staff, platform, risk, backend{{ end }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-band__rail">
+      <a class="contact-band__email" href="mailto:yonvata@gmail.com">
+        <span>{{ if eq $lang "he" }}אימייל{{ else }}Email{{ end }}</span>
+        <strong>yonvata@gmail.com</strong>
+        <em>{{ if eq $lang "he" }}האופציה הכי ישירה להתחיל שיחה טובה.{{ else }}The most direct way to start a useful conversation.{{ end }}</em>
+      </a>
+
+      <div class="contact-band__links">
+        <a href="https://github.com/yonatankarp">
+          <span>GitHub</span>
+          <strong>github.com/yonatankarp</strong>
+        </a>
+        <a href="https://www.linkedin.com/in/yonatankarp/">
+          <span>LinkedIn</span>
+          <strong>linkedin.com/in/yonatankarp</strong>
+        </a>
+        <a href="https://kotlinbackend.com">
+          <span>{{ if eq $lang "he" }}כתיבה{{ else }}Writing{{ end }}</span>
+          <strong>kotlinbackend.com</strong>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+{{ end }}

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.LanguageDirection | default `ltr` }}">
+  <head>
+    {{ partial "head.html" . }}
+  </head>
+  <body class="page-{{ .Kind }}{{ if .IsHome }} page-home{{ end }}{{ with .Type }} type-{{ . }}{{ end }}">
+    <a class="skip-link" href="#main-content">{{ if eq .Site.Language.Lang "he" }}דילוג לתוכן{{ else }}Skip to content{{ end }}</a>
+    {{ partial "site-header.html" . }}
+    <main id="main-content">
+      {{ block "main" . }}{{ end }}
+    </main>
+    {{ partial "site-footer.html" . }}
+    <script defer src="{{ "js/site.js" | relURL }}"></script>
+  </body>
+</html>

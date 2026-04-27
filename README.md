@@ -1,6 +1,6 @@
 # yonatankarp.github.io
 
-Personal website and blog built with [Hugo](https://gohugo.io/) and the [Adritian](https://github.com/zetxek/adritian-free-hugo-theme) theme. Bilingual: English + Hebrew.
+Personal website and blog built with [Hugo](https://gohugo.io/). Fully custom bilingual implementation in English and Hebrew.
 
 ## Quick Start
 
@@ -11,6 +11,13 @@ make clean   # remove build artifacts
 ```
 
 Requires Hugo v0.160.0+.
+
+## Architecture
+
+- custom Hugo layouts in `layouts/`
+- site styles in `assets/css/custom.css`
+- small progressive enhancements in `static/js/site.js`
+- content remains markdown-first across blog, experience, education, projects, and skills
 
 ## Analytics
 

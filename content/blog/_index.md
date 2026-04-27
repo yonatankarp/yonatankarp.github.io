@@ -4,4 +4,4 @@ date: 2026-04-07
 draft: false
 ---
 
-Technical writing about Kotlin, backend engineering, and software architecture.
+Essays, debugging notes, and engineering write-ups on Kotlin, backend systems, architecture, and the tradeoffs behind reliable software.

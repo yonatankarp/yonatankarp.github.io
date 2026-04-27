@@ -1,0 +1,29 @@
+<header class="site-header">
+  <div class="shell site-header__inner">
+    <a class="brand" href="{{ .Site.Home.RelPermalink }}">
+      <span class="brand__eyebrow">Yonatan</span>
+      <span class="brand__name">Karp-Rudin</span>
+    </a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
+      <span>Menu</span>
+    </button>
+
+    <div class="site-header__controls" id="primary-nav">
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <ul>
+          {{ range .Site.Menus.header }}
+          <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+          {{ end }}
+        </ul>
+      </nav>
+
+      <div class="utility-controls">
+        <button class="theme-toggle" type="button" aria-label="Toggle theme">
+          <span class="theme-toggle__light">☼</span>
+          <span class="theme-toggle__dark">☾</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

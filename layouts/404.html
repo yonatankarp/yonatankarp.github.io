@@ -1,0 +1,13 @@
+{{ define "main" }}
+<section class="shell page-head reveal-group">
+  <div class="page-head__copy reveal">
+    <p class="section-kicker">404</p>
+    <h1>{{ if eq .Site.Language.Lang "he" }}העמוד הזה לא כאן{{ else }}That page is not here{{ end }}</h1>
+    <p>{{ if eq .Site.Language.Lang "he" }}אולי הקישור ישן, אולי המאמר הועבר, ואולי פשוט כתבתם כתובת לא נכונה.{{ else }}Maybe the link is old, maybe the article moved, or maybe the address was typed wrong.{{ end }}</p>
+    <div class="hero__actions">
+      <a class="button button--primary" href="{{ .Site.Home.RelPermalink }}">{{ if eq .Site.Language.Lang "he" }}חזרה לדף הבית{{ else }}Back to the homepage{{ end }}</a>
+      <a class="button button--ghost" href="{{ if eq .Site.Language.Lang "he" }}/he/blog/{{ else }}/blog/{{ end }}">{{ if eq .Site.Language.Lang "he" }}לבלוג{{ else }}To the blog{{ end }}</a>
+    </div>
+  </div>
+</section>
+{{ end }}

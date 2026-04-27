@@ -48,7 +48,7 @@
               {{ if $mainFeaturedPost }}
                 {{ range $mainFeaturedPost }}
                   {{- $post := . -}}
-                  <div class="p-4 p-md-5 mb-4 rounded text-body-emphasis bg-body-secondary">
+                  <div class="featured-post-card p-4 p-md-5 mb-4 rounded text-body-emphasis bg-body-secondary">
                     <div class="row align-items-center">
                       <div class="col-lg-8 px-0">
                         <h2 class="display-4 fst-italic">
@@ -94,7 +94,7 @@
                 {{ range $secondaryFeaturedPosts }}
                   {{- $post := . -}}
                   <div class="col-md-6">
-                    <div class="row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
+                    <div class="secondary-featured-card row g-0 border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
                       <div class="col p-4 d-flex flex-column position-static">
                         {{ with .GetTerms "topics" }}
                           {{ range first 1 . }}

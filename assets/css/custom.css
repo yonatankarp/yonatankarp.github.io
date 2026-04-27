@@ -57,11 +57,24 @@ body {
     radial-gradient(circle at top left, rgba(214, 196, 171, 0.18), transparent 24%),
     var(--bg);
   line-height: 1.7;
+  overflow-x: clip;
 }
 
 img {
   display: block;
   max-width: 100%;
+}
+
+main,
+section,
+article,
+aside,
+nav,
+div,
+li,
+figure,
+figcaption {
+  min-width: 0;
 }
 
 a {
@@ -150,6 +163,11 @@ textarea {
   display: flex;
   align-items: center;
   gap: 1.5rem;
+  min-width: 0;
+}
+
+.primary-nav {
+  min-width: 0;
 }
 
 .primary-nav ul,
@@ -157,6 +175,7 @@ textarea {
   display: flex;
   align-items: center;
   gap: 1.2rem;
+  flex-wrap: wrap;
   list-style: none;
   padding: 0;
   margin: 0;
@@ -357,9 +376,10 @@ h4,
 .brand__name {
   font-family: var(--display-font);
   letter-spacing: -0.045em;
-  line-height: 0.98;
+  line-height: 1.06;
   margin: 0;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
 h1 {
@@ -428,12 +448,15 @@ h4 {
   align-items: center;
   justify-content: center;
   min-height: 2.9rem;
+  max-width: 100%;
   padding: 0.8rem 1.2rem;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface-strong);
   text-decoration: none;
   font-weight: 700;
+  white-space: normal;
+  text-align: center;
 }
 
 .button--primary {
@@ -455,6 +478,23 @@ h4 {
   grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.15fr);
   gap: 2rem;
   align-items: center;
+}
+
+h1 a,
+h2 a,
+h3 a,
+h4 a,
+.prose a,
+.cv-contact a,
+.hero__links a,
+.contact-panel__details a,
+.search-result a,
+.text-link,
+.chip,
+.lang-pill,
+.primary-nav a,
+.footer-links a {
+  overflow-wrap: anywhere;
 }
 
 .section-stack {
@@ -501,6 +541,18 @@ h4 {
   gap: 1rem 1.5rem;
 }
 
+.timeline-item__body,
+.project-row__body,
+.featured-article__body,
+.post-row > div,
+.skill-row > div,
+.cv-item > div,
+.contact-panel__copy,
+.contact-panel__actions,
+.footer-meta {
+  min-width: 0;
+}
+
 .timeline-item__meta p,
 .project-row__meta p,
 .education-item p,
@@ -521,6 +573,10 @@ h4 {
 .contact-panel__details span,
 .contact-panel__details a {
   color: var(--muted);
+}
+
+.contact-panel__details {
+  align-items: flex-start;
 }
 
 .education-list,
@@ -569,6 +625,7 @@ h4 {
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .quote-card img {
@@ -616,10 +673,10 @@ h4 {
 }
 
 .post-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 1rem 1.5rem;
   margin-top: 1rem;
 }
 
@@ -729,6 +786,18 @@ h4 {
   color: oklch(0.95 0.01 85);
 }
 
+.prose code,
+.prose pre code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.prose table {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+
 .editors-note {
   border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
   border-radius: var(--radius-md);
@@ -737,9 +806,9 @@ h4 {
 }
 
 .article__footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
   margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 1px solid var(--border);
@@ -792,8 +861,8 @@ h4 {
 }
 
 .cv-header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
@@ -818,9 +887,9 @@ h4 {
 }
 
 .cv-item__top {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem 1.5rem;
 }
 
 .search-input {
@@ -861,6 +930,7 @@ h4 {
   gap: 1.5rem;
   padding-top: 2rem;
   border-top: 1px solid var(--border);
+  align-items: start;
 }
 
 .site-footer__title {
@@ -911,12 +981,17 @@ h4 {
   .blog-layout,
   .timeline-item,
   .project-row,
-  .site-footer__inner {
+  .site-footer__inner,
+  .post-row,
+  .cv-header,
+  .cv-item__top,
+  .article__footer {
     grid-template-columns: 1fr;
   }
 
   .site-footer__inner,
-  .footer-meta {
+  .footer-meta,
+  .article__footer {
     text-align: start;
   }
 }
@@ -975,10 +1050,12 @@ h4 {
     min-height: 260px;
   }
 
-  .post-row,
-  .article__footer,
-  .cv-item__top {
-    flex-direction: column;
+  .button,
+  .lang-pill,
+  .theme-toggle,
+  .chip {
+    width: 100%;
+    justify-content: center;
   }
 
   .skill-row {

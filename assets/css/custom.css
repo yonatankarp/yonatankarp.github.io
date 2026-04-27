@@ -262,10 +262,16 @@ main {
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.95fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
   gap: 2rem;
   min-height: min(88vh, 900px);
   align-items: center;
+}
+
+.hero__copy,
+.hero__image {
+  display: grid;
+  gap: 1.25rem;
 }
 
 .hero__copy,
@@ -340,6 +346,10 @@ main {
   padding: 1rem;
 }
 
+.hero__image {
+  align-content: start;
+}
+
 .hero__image img,
 .about-grid__image img {
   width: 100%;
@@ -347,6 +357,36 @@ main {
   min-height: 420px;
   object-fit: cover;
   border-radius: calc(var(--radius-xl) - 0.35rem);
+}
+
+.hero__signal {
+  display: grid;
+  gap: 0.65rem;
+  padding-top: 1rem;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 20%, var(--border));
+}
+
+.hero__signal-label,
+.hero__note span {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hero__signal-title {
+  font-family: var(--display-font);
+  font-size: clamp(1.35rem, 2.2vw, 1.8rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  text-decoration: none;
+}
+
+.hero__signal p:last-child {
+  margin: 0;
+  color: var(--muted);
 }
 
 .eyebrow,
@@ -428,13 +468,32 @@ h4 {
 }
 
 .hero__actions {
-  margin-top: 2rem;
+  margin-top: 1.25rem;
+}
+
+.hero__notes {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.hero__note {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.9rem 1rem;
+  border-inline-start: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+}
+
+.hero__note strong {
+  font-size: 1rem;
+  line-height: 1.45;
+  font-weight: 700;
 }
 
 .hero__links {
   list-style: none;
   padding: 0;
-  margin: 1.5rem 0 0;
+  margin: 0.4rem 0 0;
 }
 
 .button,
@@ -478,6 +537,32 @@ h4 {
   grid-template-columns: minmax(260px, 0.85fr) minmax(0, 1.15fr);
   gap: 2rem;
   align-items: center;
+}
+
+.about-grid__facts {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.5rem;
+}
+
+.about-grid__facts div {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.9rem 0 0;
+  border-top: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+}
+
+.about-grid__facts span {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.about-grid__facts strong {
+  font-size: 1rem;
+  line-height: 1.45;
 }
 
 h1 a,
@@ -534,11 +619,23 @@ h4 a,
   padding: 1.5rem;
 }
 
-.timeline-item,
-.project-row {
+.timeline-item {
   display: grid;
   grid-template-columns: minmax(220px, 0.48fr) minmax(0, 1fr);
   gap: 1rem 1.5rem;
+}
+
+.project-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1rem 1.5rem;
+}
+
+.project-row__index {
+  font-family: var(--display-font);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  line-height: 1;
+  color: color-mix(in srgb, var(--accent) 72%, var(--muted));
 }
 
 .timeline-item__body,
@@ -606,15 +703,33 @@ h4 a,
   gap: 1rem;
 }
 
-.writing-grid {
+.writing-showcase {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 1rem;
+}
+
+.writing-stack {
   display: grid;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .education-item,
-.writing-card {
+.writing-card,
+.writing-lead {
   padding: 1.4rem;
+}
+
+.writing-lead {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  min-height: 100%;
+}
+
+.writing-lead h3 a {
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  line-height: 1.06;
 }
 
 .education-item {
@@ -1218,7 +1333,8 @@ h4 a,
   .article__footer,
   .quote-feature,
   .contact-band__frame,
-  .contact-band__links a {
+  .contact-band__links a,
+  .writing-showcase {
     grid-template-columns: 1fr;
   }
 

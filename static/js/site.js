@@ -1,3 +1,5 @@
+document.documentElement.classList.add('js-enabled');
+
 document.addEventListener('DOMContentLoaded', () => {
   const root = document.documentElement;
   const menuToggle = document.querySelector('.menu-toggle');

@@ -1372,7 +1372,8 @@ h4 a,
   .quote-feature,
   .contact-band__frame,
   .contact-band__links a,
-  .writing-showcase {
+  .writing-showcase,
+  .skill-columns {
     grid-template-columns: 1fr;
   }
 

@@ -7,8 +7,8 @@ practice_areas:
   - name: "Backend architecture"
     summary: "Designing services, contracts, and boundaries that stay understandable as systems grow."
     tools: ["Kotlin", "Java", "Spring Boot", "OpenAPI", "gRPC", "Protocol Buffers"]
-  - name: "Risk and compliance systems"
-    summary: "Building transaction monitoring, screening, fraud decisioning, and the platform logic around them."
+  - name: "Distributed systems and data flows"
+    summary: "Building event-driven services, real-time processing, and the infrastructure that keeps backend systems coherent under load."
     tools: ["Kafka", "Flink", "Neo4j", "MySQL", "PostgreSQL"]
   - name: "Platform and developer experience"
     summary: "Improving the day-to-day engineering loop through templates, CI, internal tools, and shared libraries."
@@ -43,4 +43,4 @@ familiar_with:
   - "Jenkins"
 ---
 
-A practical view of where Yonatan tends to have the most leverage: architecture, backend systems, risk and compliance domains, platform work, and clear technical writing.
+A practical view of where Yonatan tends to have the most leverage: architecture, backend systems, distributed systems, platform work, and clear technical writing.

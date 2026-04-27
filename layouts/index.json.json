@@ -1,0 +1,12 @@
+{{- $pages := where site.RegularPages "Lang" site.Language.Lang -}}
+[
+{{- range $index, $page := $pages -}}
+  {{- if $index }},{{ end }}
+  {
+    "title": {{ $page.Title | jsonify }},
+    "permalink": {{ $page.RelPermalink | jsonify }},
+    "summary": {{ ($page.Description | default ($page.Summary | plainify)) | jsonify }},
+    "content": {{ ($page.Plain | truncate 400) | jsonify }}
+  }
+{{- end -}}
+]

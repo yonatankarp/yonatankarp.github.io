@@ -1,0 +1,14 @@
+{{ define "main" }}
+<section class="shell article-shell reveal-group">
+  <article class="article reveal">
+    <header class="article__header">
+      <p class="section-kicker">{{ .Type }}</p>
+      <h1>{{ .Title }}</h1>
+      {{ with .Description }}<p class="article__summary">{{ . }}</p>{{ end }}
+    </header>
+    <div class="article__content prose">
+      {{ .Content }}
+    </div>
+  </article>
+</section>
+{{ end }}

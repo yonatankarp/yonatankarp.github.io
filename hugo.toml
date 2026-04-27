@@ -11,7 +11,6 @@ pagerSize = 5
   section = ["HTML", "RSS"]
   taxonomy = ["HTML", "RSS"]
   term = ["HTML", "RSS"]
-  footer = []
 
 [taxonomies]
   tag = "tags"
@@ -20,9 +19,6 @@ pagerSize = 5
 disableKinds = ["footerSection"]
 
 [module]
-[[module.imports]]
-path = "github.com/zetxek/adritian-free-hugo-theme"
-
 [[module.mounts]]
 source = "archetypes"
 target = "archetypes"
@@ -42,22 +38,6 @@ target = "layouts"
 [[module.mounts]]
 source = "static"
 target = "static"
-
-[[module.mounts]]
-source = "node_modules/bootstrap/scss"
-target = "assets/scss/bootstrap"
-
-[[module.mounts]]
-source = "node_modules/bootstrap/dist/js"
-target = "assets/js/bootstrap"
-
-[[module.mounts]]
-source = "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
-target = "assets/js/vendor/bootstrap.bundle.min.js"
-
-[[module.mounts]]
-source = "node_modules/bootstrap-print-css/css/bootstrap-print.css"
-target = "assets/css/bootstrap-print.css"
 
 [params]
 title = "Yonatan Karp-Rudin - Staff Software Engineer"
@@ -90,47 +70,8 @@ sections = [
 
 homepageExperienceCount = 6
 
-[params.colorTheme.selector.disable]
-footer = false
-header = false
-mobileHeader = false
-
-[params.languages.selector.disable]
-footer = false
-header = false
-mobileHeader = false
-
-[params.plugins]
-
-[[params.plugins.css]]
-URL = "css/custom.css"
-[[params.plugins.css]]
-URL = "css/adritian-icons.css"
-[[params.plugins.css]]
-URL = "css/bootstrap-print.css"
-
-[[params.plugins.js]]
-URL = "js/rad-animations.js"
-[[params.plugins.js]]
-URL = "js/sticky-header.js"
-[[params.plugins.js]]
-URL = "js/library/fontfaceobserver.js"
-
-[[params.plugins.scss]]
-URL = "scss/adritian.scss"
-
 [params.blog]
-layout = "sidebar-right"
-sidebarWidth = "25"
-narrowContent = true
-showCategories = true
-showRecentPosts = true
 recentPostCount = 5
-listStyle = "summary"
-listLayout = "default"
-
-[params.experience]
-showJobCard = true
 
 # --- Languages ---
 

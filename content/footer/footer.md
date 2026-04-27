@@ -2,16 +2,11 @@
 title = "Footer"
 type = "footer"
 draft = false
+
+[build]
+render = "never"
+list = "never"
+publishResources = false
 +++
 
-{{< contact-section
-    title="Get in touch"
-    contact_form_name="Your name"
-    contact_form_email="you@example.com"
-    contact_form_message="Hi Yonatan — I'd love to talk about..."
-    contact_button="Send message"
-    contact_email_title="Email"
-    contact_email_email="<a href='mailto:yonvata@gmail.com'>yonvata@gmail.com</a>"
-    contact_address_title="Location"
-    contact_address_address="Berlin, Germany"
->}}
+Contact details are rendered directly by the custom footer and homepage contact panel.

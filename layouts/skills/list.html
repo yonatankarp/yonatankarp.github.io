@@ -1,0 +1,33 @@
+{{ define "main" }}
+{{ $lang := .Site.Language.Lang }}
+<section class="shell page-head reveal-group">
+  <div class="page-head__copy reveal">
+    <p class="section-kicker">{{ if eq $lang "he" }}מיומנויות{{ else }}Skills{{ end }}</p>
+    <h1>{{ .Title }}</h1>
+    <p>{{ .Description | default (.Content | plainify) }}</p>
+  </div>
+</section>
+<section class="shell skill-layout reveal-group">
+  {{ range .Params.skill_categories }}
+  <section class="skill-section reveal">
+    <div class="skill-section__header">
+      <h2>{{ .name }}</h2>
+    </div>
+    <div class="skill-table">
+      {{ range .skills }}
+      <article class="skill-row">
+        <div>
+          <h3>{{ .name }}</h3>
+          <p>{{ .description }}</p>
+        </div>
+        <div class="skill-row__meta">
+          <span>{{ .years }}</span>
+          <strong>{{ .level }}%</strong>
+        </div>
+      </article>
+      {{ end }}
+    </div>
+  </section>
+  {{ end }}
+</section>
+{{ end }}

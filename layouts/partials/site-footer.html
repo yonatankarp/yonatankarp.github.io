@@ -1,0 +1,19 @@
+<footer class="site-footer">
+  <div class="shell site-footer__inner">
+    <div>
+      <p class="site-footer__title">{{ if eq .Site.Language.Lang "he" }}יונתן קרפ-רודין{{ else }}Yonatan Karp-Rudin{{ end }}</p>
+      <p class="site-footer__copy">{{ if eq .Site.Language.Lang "he" }}Staff Software Engineer בברלין, כותב, בונה, ומשפר מערכות שאנשים סומכים עליהן.{{ else }}Staff Software Engineer in Berlin, writing, building, and improving systems people rely on.{{ end }}</p>
+    </div>
+    <nav aria-label="{{ if eq .Site.Language.Lang "he" }}ניווט תחתון{{ else }}Footer navigation{{ end }}">
+      <ul class="footer-links">
+        {{ range .Site.Menus.footer }}
+        <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+        {{ end }}
+      </ul>
+    </nav>
+    <div class="footer-meta">
+      <a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>
+      <span>Berlin, Germany</span>
+    </div>
+  </div>
+</footer>

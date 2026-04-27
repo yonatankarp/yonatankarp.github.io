@@ -1,0 +1,80 @@
+{{ $siteTitle := cond (eq .Site.Language.Lang "he") "יונתן קרפ-רודין" .Site.Title }}
+{{ $homeTitle := cond (eq .Site.Language.Lang "he") "יונתן קרפ-רודין - Staff Software Engineer" .Site.Params.title }}
+{{ $homeDescription := cond (eq .Site.Language.Lang "he") "Staff Software Engineer בברלין. בונה מערכות payments ו-compliance ב-Billie. תורם לקוד פתוח." .Site.Params.description }}
+{{ $title := cond .IsHome $homeTitle (printf "%s | %s" .Title $siteTitle) }}
+{{ $description := .Description | default .Summary | plainify | default $homeDescription }}
+{{ $image := "" }}
+{{ with .Params.images }}{{ with .featured_image }}{{ $image = . | absURL }}{{ end }}{{ end }}
+{{ if not $image }}{{ $image = (printf "%simages/og-default.svg" .Site.BaseURL) }}{{ end }}
+{{ $css := resources.Get "css/custom.css" }}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ $title }}</title>
+<meta name="description" content="{{ $description }}">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f4efe6">
+<meta property="og:title" content="{{ $title }}">
+<meta property="og:description" content="{{ $description }}">
+<meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta property="og:image" content="{{ $image }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ $title }}">
+<meta name="twitter:description" content="{{ $description }}">
+<meta name="twitter:image" content="{{ $image }}">
+<link rel="canonical" href="{{ .Permalink }}">
+<link rel="icon" href="{{ "images/favicon.svg" | relURL }}" type="image/svg+xml">
+{{ range .AllTranslations }}
+<link rel="alternate" hreflang="{{ .Site.Language.Lang }}" href="{{ .Permalink }}">
+{{ end }}
+{{ if $css }}<link rel="stylesheet" href="{{ $css.RelPermalink }}">{{ end }}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "{{ if .IsPage }}Article{{ else }}Person{{ end }}",
+  {{ if .IsPage }}
+  "headline": {{ .Title | jsonify }},
+  "datePublished": {{ .Date.Format "2006-01-02T15:04:05Z07:00" | jsonify }},
+  "dateModified": {{ .Lastmod.Format "2006-01-02T15:04:05Z07:00" | jsonify }},
+  "author": {
+    "@type": "Person",
+    "name": "Yonatan Karp-Rudin"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Yonatan Karp-Rudin"
+  },
+  "mainEntityOfPage": {{ .Permalink | jsonify }}
+  {{ else }}
+  "name": "Yonatan Karp-Rudin",
+  "jobTitle": "Staff Software Engineer",
+  "url": "{{ .Site.BaseURL }}",
+  "sameAs": [
+    "https://github.com/yonatankarp",
+    "https://www.linkedin.com/in/yonatankarp/",
+    "https://kotlinbackend.com"
+  ],
+  "worksFor": {
+    "@type": "Organization",
+    "name": "Billie"
+  },
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Berlin",
+    "addressCountry": "DE"
+  }
+  {{ end }}
+}
+</script>
+<script>
+  (() => {
+    const saved = localStorage.getItem('theme');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = saved || (systemDark ? 'dark' : 'light');
+    document.documentElement.dataset.theme = theme;
+  })();
+</script>
+<script data-goatcounter="https://yonatankarp.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>

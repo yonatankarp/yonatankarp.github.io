@@ -1,8 +1,8 @@
 {{ define "main" }}
 {{ $lang := .Site.Language.Lang }}
 {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
-<section class="shell article-shell reveal-group">
-  <article class="article reveal">
+<section class="shell article-shell">
+  <article class="article">
     <header class="article__header">
       <p class="section-kicker">{{ if eq $lang "he" }}מאמר{{ else }}Article{{ end }}</p>
       <h1>{{ .Title }}</h1>

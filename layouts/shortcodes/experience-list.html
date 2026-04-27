@@ -1,0 +1,13 @@
+{{ $items := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
+<div class="cv-list shortcode-list">
+  {{ range $items }}
+  <article class="cv-item">
+    <div class="cv-item__top">
+      <h3>{{ .Title }}</h3>
+      <span>{{ .Params.duration }}</span>
+    </div>
+    <p class="cv-item__sub">{{ .Params.company }}, {{ .Params.location }}</p>
+    <p>{{ .Content | plainify }}</p>
+  </article>
+  {{ end }}
+</div>

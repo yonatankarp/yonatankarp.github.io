@@ -1,6 +1,7 @@
 ---
 title: "חיפוש"
 layout: "search"
-summary: "search"
-placeholder: "חיפוש..."
+summary: "חיפוש במאמרים, בפרויקטים ובתוכן באתר."
+description: "חיפוש במאמרים, בפרויקטים ובתוכן באתר."
+placeholder: "חפשו באתר..."
 ---

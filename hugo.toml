@@ -110,7 +110,7 @@ URL = "/blog"
 weight = 6
 [[languages.en.menus.header]]
 pre = "email"
-name = "email"
+name = "Contact"
 URL = "/#contact"
 weight = 7
 [[languages.en.menus.header]]

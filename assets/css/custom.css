@@ -720,6 +720,36 @@ h4 a,
   padding: 1.4rem;
 }
 
+.timeline-item,
+.education-item,
+.project-row,
+.writing-card,
+.writing-lead,
+.practice-card,
+.hero__note {
+  transition: transform var(--transition), border-color var(--transition), background-color var(--transition), box-shadow var(--transition);
+}
+
+.timeline-item:hover,
+.timeline-item:focus-within,
+.education-item:hover,
+.education-item:focus-within,
+.project-row:hover,
+.project-row:focus-within,
+.writing-card:hover,
+.writing-card:focus-within,
+.writing-lead:hover,
+.writing-lead:focus-within,
+.practice-card:hover,
+.practice-card:focus-within,
+.hero__note:hover,
+.hero__note:focus-within {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--accent) 26%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, var(--surface));
+  box-shadow: var(--shadow-soft);
+}
+
 .writing-lead {
   display: grid;
   align-content: start;

@@ -1158,33 +1158,71 @@ h4 a,
   gap: 1rem;
 }
 
+.skill-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .skill-section {
   padding: 1.5rem;
+}
+
+.skill-section--lead {
+  padding: clamp(1.5rem, 4vw, 2.2rem);
 }
 
 .skill-section__header {
   margin-bottom: 1rem;
 }
 
-.skill-row {
+.skill-section__header p {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+}
+
+.practice-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   gap: 1rem;
-  align-items: start;
-  padding: 1rem 0;
-  border-top: 1px solid var(--border);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
-.skill-row:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.skill-row__meta {
+.practice-card {
   display: grid;
-  justify-items: end;
-  gap: 0.3rem;
-  text-align: end;
+  gap: 0.8rem;
+  padding: 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
+}
+
+.practice-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.skill-pill-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.skill-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0.65rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-strong);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.skill-pill--strong {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-strong));
 }
 
 .cv-sheet {
@@ -1334,7 +1372,8 @@ h4 a,
   .quote-feature,
   .contact-band__frame,
   .contact-band__links a,
-  .writing-showcase {
+  .writing-showcase,
+  .skill-columns {
     grid-template-columns: 1fr;
   }
 

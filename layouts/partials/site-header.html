@@ -1,16 +1,16 @@
 <header class="site-header">
   <div class="shell site-header__inner">
     <a class="brand" href="{{ .Site.Home.RelPermalink }}">
-      <span class="brand__eyebrow">{{ if eq .Site.Language.Lang "he" }}יונתן{{ else }}Yonatan{{ end }}</span>
-      <span class="brand__name">{{ if eq .Site.Language.Lang "he" }}קרפ-רודין{{ else }}Karp-Rudin{{ end }}</span>
+      <span class="brand__eyebrow">Yonatan</span>
+      <span class="brand__name">Karp-Rudin</span>
     </a>
 
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="primary-nav">
-      <span>{{ if eq .Site.Language.Lang "he" }}תפריט{{ else }}Menu{{ end }}</span>
+      <span>Menu</span>
     </button>
 
     <div class="site-header__controls" id="primary-nav">
-      <nav class="primary-nav" aria-label="{{ if eq .Site.Language.Lang "he" }}ניווט ראשי{{ else }}Primary navigation{{ end }}">
+      <nav class="primary-nav" aria-label="Primary navigation">
         <ul>
           {{ range .Site.Menus.header }}
           <li><a href="{{ .URL }}">{{ .Name }}</a></li>
@@ -19,23 +19,7 @@
       </nav>
 
       <div class="utility-controls">
-        <div class="lang-switch" aria-label="{{ if eq .Site.Language.Lang "he" }}שפה{{ else }}Language{{ end }}">
-          {{ $page := . }}
-          {{ range hugo.Sites }}
-            {{ $lang := .Language.Lang }}
-            {{ $label := .Language.LanguageName }}
-            {{ $url := cond (eq $lang "en") "/" (printf "/%s/" $lang) }}
-            {{ if eq $page.Site.Language.Lang $lang }}
-              <span class="lang-pill is-active">{{ $label }}</span>
-            {{ else }}
-              {{ range $page.AllTranslations }}
-                {{ if eq .Site.Language.Lang $lang }}{{ $url = .RelPermalink }}{{ end }}
-              {{ end }}
-              <a class="lang-pill" href="{{ $url | relURL }}">{{ $label }}</a>
-            {{ end }}
-          {{ end }}
-        </div>
-        <button class="theme-toggle" type="button" aria-label="{{ if eq .Site.Language.Lang "he" }}החלפת ערכת נושא{{ else }}Toggle theme{{ end }}">
+        <button class="theme-toggle" type="button" aria-label="Toggle theme">
           <span class="theme-toggle__light">☼</span>
           <span class="theme-toggle__dark">☾</span>
         </button>

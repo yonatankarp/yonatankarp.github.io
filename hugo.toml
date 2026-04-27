@@ -17,6 +17,7 @@ pagerSize = 5
   category = "categories"
 
 disableKinds = ["footerSection"]
+ignoreFiles = ["\\.he\\.md$"]
 
 [module]
 [[module.mounts]]
@@ -83,117 +84,66 @@ languageDirection = "ltr"
 languageName = "English"
 weight = 1
 
-[languages.en.menus]
-[[languages.en.menus.header]]
-name = "Home"
-URL = "/"
-weight = 1
-[[languages.en.menus.header]]
-name = "About"
-URL = "/#about"
-weight = 2
-[[languages.en.menus.header]]
-name = "Experience"
-URL = "/#experience"
-weight = 3
-[[languages.en.menus.header]]
-name = "Skills"
-URL = "/skills"
-weight = 4
-[[languages.en.menus.header]]
-name = "Projects"
-URL = "/#client-and-work-section"
-weight = 5
-[[languages.en.menus.header]]
-name = "Blog"
-URL = "/blog"
-weight = 6
-[[languages.en.menus.header]]
-pre = "email"
-name = "Contact"
-URL = "/#contact"
-weight = 7
-[[languages.en.menus.header]]
-pre = "search"
-name = "Search"
-URL = "/search"
-weight = 8
-
-[[languages.en.menus.footer]]
-name = "Home"
-URL = "/"
-weight = 1
-[[languages.en.menus.footer]]
-name = "About"
-URL = "/#about"
-weight = 2
-[[languages.en.menus.footer]]
-name = "Projects"
-URL = "/#client-and-work-section"
-weight = 3
-[[languages.en.menus.footer]]
-name = "Contact"
-URL = "/#contact"
-weight = 4
-
 [languages.he]
-disabled = false
+disabled = true
 languageCode = "he"
 languageDirection = "rtl"
 languageName = "עברית"
 weight = 2
 
-[languages.he.menus]
-[[languages.he.menus.header]]
-name = "בית"
-URL = "/he/"
+# --- Menus ---
+
+[menus]
+[[menus.header]]
+name = "Home"
+URL = "/"
 weight = 1
-[[languages.he.menus.header]]
-name = "אודות"
-URL = "/he/#about"
+[[menus.header]]
+name = "About"
+URL = "/#about"
 weight = 2
-[[languages.he.menus.header]]
-name = "ניסיון"
-URL = "/he/#experience"
+[[menus.header]]
+name = "Experience"
+URL = "/#experience"
 weight = 3
-[[languages.he.menus.header]]
-name = "מיומנויות"
-URL = "/he/skills"
+[[menus.header]]
+name = "Skills"
+URL = "/skills"
 weight = 4
-[[languages.he.menus.header]]
-name = "פרויקטים"
-URL = "/he/#client-and-work-section"
+[[menus.header]]
+name = "Projects"
+URL = "/#client-and-work-section"
 weight = 5
-[[languages.he.menus.header]]
-name = "בלוג"
-URL = "/he/blog"
+[[menus.header]]
+name = "Blog"
+URL = "/blog"
 weight = 6
-[[languages.he.menus.header]]
+[[menus.header]]
 pre = "email"
-name = "צרו קשר"
-URL = "/he/#contact"
+name = "Contact"
+URL = "/#contact"
 weight = 7
-[[languages.he.menus.header]]
+[[menus.header]]
 pre = "search"
-name = "חיפוש"
-URL = "/he/search"
+name = "Search"
+URL = "/search"
 weight = 8
 
-[[languages.he.menus.footer]]
-name = "בית"
-URL = "/he/"
+[[menus.footer]]
+name = "Home"
+URL = "/"
 weight = 1
-[[languages.he.menus.footer]]
-name = "אודות"
-URL = "/he/#about"
+[[menus.footer]]
+name = "About"
+URL = "/#about"
 weight = 2
-[[languages.he.menus.footer]]
-name = "פרויקטים"
-URL = "/he/#client-and-work-section"
+[[menus.footer]]
+name = "Projects"
+URL = "/#client-and-work-section"
 weight = 3
-[[languages.he.menus.footer]]
-name = "צרו קשר"
-URL = "/he/#contact"
+[[menus.footer]]
+name = "Contact"
+URL = "/#contact"
 weight = 4
 
 # --- Markup & Performance ---

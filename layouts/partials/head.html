@@ -1,6 +1,6 @@
-{{ $siteTitle := cond (eq .Site.Language.Lang "he") "יונתן קרפ-רודין" .Site.Title }}
-{{ $homeTitle := cond (eq .Site.Language.Lang "he") "יונתן קרפ-רודין - Staff Software Engineer" .Site.Params.title }}
-{{ $homeDescription := cond (eq .Site.Language.Lang "he") "Staff Software Engineer בברלין. בונה מערכות payments ו-compliance ב-Billie. תורם לקוד פתוח." .Site.Params.description }}
+{{ $siteTitle := .Site.Title }}
+{{ $homeTitle := .Site.Params.title }}
+{{ $homeDescription := .Site.Params.description }}
 {{ $title := cond .IsHome $homeTitle (printf "%s | %s" .Title $siteTitle) }}
 {{ $description := .Description | default .Summary | plainify | default $homeDescription }}
 {{ $image := "" }}
@@ -24,9 +24,6 @@
 <meta name="twitter:image" content="{{ $image }}">
 <link rel="canonical" href="{{ .Permalink }}">
 <link rel="icon" href="{{ "images/favicon.svg" | relURL }}" type="image/svg+xml">
-{{ range .AllTranslations }}
-<link rel="alternate" hreflang="{{ .Site.Language.Lang }}" href="{{ .Permalink }}">
-{{ end }}
 {{ if $css }}<link rel="stylesheet" href="{{ $css.RelPermalink }}">{{ end }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

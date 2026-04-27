@@ -38,13 +38,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('site-search');
   const searchResults = document.getElementById('search-results');
   if (searchInput && searchResults) {
-    const indexPath = document.documentElement.lang === 'he' ? '/he/index.json' : '/index.json';
+    const indexPath = '/index.json';
     fetch(indexPath)
       .then((response) => response.json())
       .then((pages) => {
         const render = (items) => {
           if (!items.length) {
-            searchResults.innerHTML = '<p>No results yet.</p>';
+            searchResults.innerHTML = '<p>No results found.</p>';
             return;
           }
           searchResults.innerHTML = items.map((item) => `\n            <article class="search-result">\n              <a href="${item.permalink}">${item.title}</a>\n              <p>${item.summary || ''}</p>\n            </article>\n          `).join('');

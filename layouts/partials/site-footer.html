@@ -1,10 +1,10 @@
 <footer class="site-footer">
   <div class="shell site-footer__inner">
     <div>
-      <p class="site-footer__title">{{ if eq .Site.Language.Lang "he" }}יונתן קרפ-רודין{{ else }}Yonatan Karp-Rudin{{ end }}</p>
-      <p class="site-footer__copy">{{ if eq .Site.Language.Lang "he" }}Staff Software Engineer בברלין, כותב, בונה, ומשפר מערכות שאנשים סומכים עליהן.{{ else }}Staff Software Engineer in Berlin, writing, building, and improving systems people rely on.{{ end }}</p>
+      <p class="site-footer__title">Yonatan Karp-Rudin</p>
+      <p class="site-footer__copy">Staff Software Engineer in Berlin, writing, building, and improving systems people rely on.</p>
     </div>
-    <nav aria-label="{{ if eq .Site.Language.Lang "he" }}ניווט תחתון{{ else }}Footer navigation{{ end }}">
+    <nav aria-label="Footer navigation">
       <ul class="footer-links">
         {{ range .Site.Menus.footer }}
         <li><a href="{{ .URL }}">{{ .Name }}</a></li>

@@ -944,6 +944,19 @@ h4 a,
 
 .article__content {
   font-size: 1.05rem;
+  color: var(--text);
+}
+
+.article__content > * {
+  max-width: 68ch;
+}
+
+.article__content > img,
+.article__content > figure,
+.article__content > pre,
+.article__content > table,
+.article__content > .highlight {
+  max-width: 100%;
 }
 
 .prose p,
@@ -952,7 +965,9 @@ h4 a,
 .prose blockquote,
 .prose pre,
 .prose table,
-.prose figure {
+.prose figure,
+.prose li {
+  color: var(--text);
   margin-top: 0;
   margin-bottom: 1.3rem;
 }
@@ -960,6 +975,7 @@ h4 a,
 .prose h2,
 .prose h3,
 .prose h4 {
+  color: var(--text);
   margin-top: 2.4rem;
   margin-bottom: 0.8rem;
 }
@@ -972,6 +988,13 @@ h4 a,
 .prose img {
   width: 100%;
   border-radius: var(--radius-lg);
+}
+
+.prose strong,
+.prose em,
+.prose a,
+.prose code {
+  color: inherit;
 }
 
 .prose pre,

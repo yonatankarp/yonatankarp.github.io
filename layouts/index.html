@@ -158,15 +158,29 @@
 <section id="contact" class="shell contact-panel reveal-group">
   <div class="contact-panel__copy reveal">
     <p class="section-kicker">{{ if eq $lang "he" }}יצירת קשר{{ else }}Contact{{ end }}</p>
-    <h2>{{ if eq $lang "he" }}אם משהו כאן רלוונטי לעבודה שלכם, אשמח לשמוע{{ else }}If something here feels relevant to your work, I'd be glad to hear from you{{ end }}</h2>
-    <p>{{ if eq $lang "he" }}אפשר לפנות לגבי תפקידים, ייעוץ, שיתופי פעולה, פידבק על מאמרים, או סתם שיחה טובה על backend systems.{{ else }}Reach out for roles, consulting, collaboration, feedback on writing, or just a good conversation about backend systems.{{ end }}</p>
+    <h2>{{ if eq $lang "he" }}אם יש התאמה, בואו נדבר{{ else }}If there is a fit, let's talk{{ end }}</h2>
+    <p>{{ if eq $lang "he" }}אפשר לפנות לגבי תפקידים, ייעוץ, שיתופי פעולה, או שיחה טובה על systems, architecture ו-backend engineering.{{ else }}Reach out for roles, consulting, collaboration, or a sharp conversation about systems, architecture, and backend engineering.{{ end }}</p>
+    <div class="contact-panel__notes">
+      <div class="contact-note">
+        <span>{{ if eq $lang "he" }}בסיס{{ else }}Based in{{ end }}</span>
+        <strong>{{ if eq $lang "he" }}ברלין, גרמניה{{ else }}Berlin, Germany{{ end }}</strong>
+      </div>
+      <div class="contact-note">
+        <span>{{ if eq $lang "he" }}תחומים{{ else }}Best for{{ end }}</span>
+        <strong>{{ if eq $lang "he" }}Staff / platform / risk / backend{{ else }}Staff, platform, risk, backend{{ end }}</strong>
+      </div>
+    </div>
   </div>
   <div class="contact-panel__actions reveal">
-    <a class="button button--primary" href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>
+    <div class="contact-card">
+      <p class="contact-card__label">{{ if eq $lang "he" }}אימייל{{ else }}Email{{ end }}</p>
+      <a class="contact-card__email" href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>
+      <p class="contact-card__text">{{ if eq $lang "he" }}האופציה הכי פשוטה והכי טובה להתחיל בה.{{ else }}The simplest and best way to start a conversation.{{ end }}</p>
+    </div>
     <div class="contact-panel__details">
-      <span>Berlin, Germany</span>
       <a href="https://github.com/yonatankarp">GitHub</a>
       <a href="https://www.linkedin.com/in/yonatankarp/">LinkedIn</a>
+      <a href="https://kotlinbackend.com">kotlinbackend.com</a>
     </div>
   </div>
 </section>

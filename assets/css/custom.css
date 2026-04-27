@@ -576,7 +576,29 @@ h4 a,
 }
 
 .contact-panel__details {
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-items: stretch;
+}
+
+.contact-panel__details a {
+  display: grid;
+  align-content: end;
+  min-height: 6.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: var(--shadow-soft);
+}
+
+.contact-panel__details a:hover,
+.contact-panel__details a:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
 }
 
 .education-list {
@@ -678,9 +700,69 @@ h4 a,
 
 .contact-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
   gap: 1.5rem;
   padding: clamp(1.5rem, 4vw, 3rem);
+  align-items: stretch;
+}
+
+.contact-panel__copy,
+.contact-panel__actions {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.contact-panel__notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.contact-note,
+.contact-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
+}
+
+.contact-note {
+  display: grid;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+}
+
+.contact-note span,
+.contact-card__label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.contact-note strong {
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.contact-card {
+  padding: 1.25rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.contact-card__email {
+  display: inline-block;
+  margin-top: 0.25rem;
+  font-family: var(--display-font);
+  font-size: clamp(1.5rem, 4vw, 2.4rem);
+  line-height: 1.1;
+  text-decoration: none;
+}
+
+.contact-card__text {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
 }
 
 .page-head__copy {
@@ -1027,7 +1109,9 @@ h4 a,
   .post-row,
   .cv-header,
   .cv-item__top,
-  .article__footer {
+  .article__footer,
+  .contact-panel__notes,
+  .contact-panel__details {
     grid-template-columns: 1fr;
   }
 
@@ -1098,6 +1182,10 @@ h4 a,
   .chip {
     width: 100%;
     justify-content: center;
+  }
+
+  .contact-card__email {
+    font-size: clamp(1.3rem, 8vw, 1.9rem);
   }
 
   .skill-row {

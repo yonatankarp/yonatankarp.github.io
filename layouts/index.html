@@ -156,29 +156,44 @@
 </section>
 
 <section id="contact" class="shell contact-band reveal-group">
-  <div class="contact-band__intro reveal">
-    <p class="section-kicker">{{ if eq $lang "he" }}יצירת קשר{{ else }}Contact{{ end }}</p>
-    <h2>{{ if eq $lang "he" }}אם יש משהו ששווה לבנות יחד, בואו נדבר{{ else }}If there is something worth building together, let's talk{{ end }}</h2>
-    <p>{{ if eq $lang "he" }}תפקידים, ייעוץ, architecture reviews, שיתופי פעולה, או פשוט שיחה טובה על backend systems.{{ else }}Roles, consulting, architecture reviews, collaboration, or just a good conversation about backend systems.{{ end }}</p>
-  </div>
-  <div class="contact-band__main reveal">
-    <a class="contact-band__email" href="mailto:yonvata@gmail.com">
-      <span>{{ if eq $lang "he" }}האימייל הכי טוב להגיע אליו{{ else }}Best place to reach me{{ end }}</span>
-      <strong>yonvata@gmail.com</strong>
-    </a>
-    <div class="contact-band__links">
-      <a href="https://github.com/yonatankarp">
-        <span>GitHub</span>
-        <strong>github.com/yonatankarp</strong>
+  <div class="contact-band__frame reveal">
+    <div class="contact-band__intro">
+      <p class="section-kicker">{{ if eq $lang "he" }}יצירת קשר{{ else }}Contact{{ end }}</p>
+      <h2>{{ if eq $lang "he" }}אם יש משהו ששווה לבנות יחד, בואו נדבר{{ else }}If there is something worth building together, let's talk{{ end }}</h2>
+      <p>{{ if eq $lang "he" }}תפקידים, ייעוץ, architecture reviews, שיתופי פעולה, או פשוט שיחה טובה על backend systems.{{ else }}Roles, consulting, architecture reviews, collaboration, or just a good conversation about backend systems.{{ end }}</p>
+      <div class="contact-band__facts">
+        <div>
+          <span>{{ if eq $lang "he" }}מבוסס ב{{ else }}Based in{{ end }}</span>
+          <strong>{{ if eq $lang "he" }}ברלין, גרמניה{{ else }}Berlin, Germany{{ end }}</strong>
+        </div>
+        <div>
+          <span>{{ if eq $lang "he" }}הכי רלוונטי ל{{ else }}Best for{{ end }}</span>
+          <strong>{{ if eq $lang "he" }}Staff, platform, risk, backend{{ else }}Staff, platform, risk, backend{{ end }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-band__rail">
+      <a class="contact-band__email" href="mailto:yonvata@gmail.com">
+        <span>{{ if eq $lang "he" }}אימייל{{ else }}Email{{ end }}</span>
+        <strong>yonvata@gmail.com</strong>
+        <em>{{ if eq $lang "he" }}האופציה הכי ישירה להתחיל שיחה טובה.{{ else }}The most direct way to start a useful conversation.{{ end }}</em>
       </a>
-      <a href="https://www.linkedin.com/in/yonatankarp/">
-        <span>LinkedIn</span>
-        <strong>linkedin.com/in/yonatankarp</strong>
-      </a>
-      <a href="https://kotlinbackend.com">
-        <span>Writing</span>
-        <strong>kotlinbackend.com</strong>
-      </a>
+
+      <div class="contact-band__links">
+        <a href="https://github.com/yonatankarp">
+          <span>GitHub</span>
+          <strong>github.com/yonatankarp</strong>
+        </a>
+        <a href="https://www.linkedin.com/in/yonatankarp/">
+          <span>LinkedIn</span>
+          <strong>linkedin.com/in/yonatankarp</strong>
+        </a>
+        <a href="https://kotlinbackend.com">
+          <span>{{ if eq $lang "he" }}כתיבה{{ else }}Writing{{ end }}</span>
+          <strong>kotlinbackend.com</strong>
+        </a>
+      </div>
     </div>
   </div>
 </section>

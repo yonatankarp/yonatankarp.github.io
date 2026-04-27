@@ -515,10 +515,10 @@ h4 a,
 
 .timeline,
 .project-list,
-.quote-list,
 .skill-table,
 .cv-list,
-.search-results {
+.search-results,
+.quote-stack {
   display: grid;
   gap: 1rem;
 }
@@ -671,69 +671,77 @@ h4 a,
   justify-items: start;
 }
 
-.quote-list {
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-}
-
-.quote-card {
-  padding: 1.5rem;
+.quote-feature {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.34fr) minmax(0, 1fr);
+  gap: 1.5rem 2rem;
+  align-items: start;
+  padding: 1.6rem;
   margin: 0;
 }
 
-.quote-card blockquote {
-  margin: 0 0 1.5rem;
-}
-
-.quote-card figcaption {
-  display: flex;
-  align-items: center;
+.quote-feature__person {
+  display: grid;
   gap: 1rem;
-  flex-wrap: wrap;
+  align-content: start;
 }
 
-.quote-card img {
-  width: 3.75rem;
-  height: 3.75rem;
-  border-radius: 1rem;
+.quote-feature__person img {
+  width: min(100%, 11rem);
+  aspect-ratio: 1;
+  border-radius: 1.25rem;
   object-fit: cover;
 }
 
-.contact-panel {
+.quote-feature__person strong,
+.quote-feature__person span {
+  display: block;
+}
+
+.quote-feature blockquote {
+  margin: 0;
+  font-family: var(--display-font);
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.contact-band {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
   gap: 1.5rem;
+}
+
+.contact-band__intro,
+.contact-band__main {
   padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.contact-band__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(260px, 0.95fr);
+  gap: 1rem;
   align-items: stretch;
 }
 
-.contact-panel__copy,
-.contact-panel__actions {
-  display: grid;
-  gap: 1.25rem;
-}
-
-.contact-panel__notes {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.9rem;
-}
-
-.contact-note,
-.contact-card {
+.contact-band__email,
+.contact-band__links a {
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--surface-strong) 92%, transparent);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  text-decoration: none;
 }
 
-.contact-note {
+.contact-band__email {
   display: grid;
-  gap: 0.3rem;
-  padding: 1rem 1.1rem;
+  align-content: space-between;
+  gap: 1.5rem;
+  min-height: 14rem;
+  padding: 1.5rem;
 }
 
-.contact-note span,
-.contact-card__label {
-  margin: 0;
+.contact-band__email span,
+.contact-band__links span {
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -741,28 +749,40 @@ h4 a,
   color: var(--muted);
 }
 
-.contact-note strong {
-  font-size: 1rem;
-  line-height: 1.4;
-}
-
-.contact-card {
-  padding: 1.25rem;
-  box-shadow: var(--shadow-soft);
-}
-
-.contact-card__email {
-  display: inline-block;
-  margin-top: 0.25rem;
+.contact-band__email strong {
   font-family: var(--display-font);
-  font-size: clamp(1.5rem, 4vw, 2.4rem);
-  line-height: 1.1;
-  text-decoration: none;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
 }
 
-.contact-card__text {
-  margin: 0.75rem 0 0;
-  color: var(--muted);
+.contact-band__links {
+  display: grid;
+  gap: 1rem;
+}
+
+.contact-band__links a {
+  display: grid;
+  gap: 0.45rem;
+  align-content: end;
+  min-height: 4rem;
+  padding: 1.2rem;
+}
+
+.contact-band__links strong {
+  font-size: 1rem;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.contact-band__email:hover,
+.contact-band__email:focus-visible,
+.contact-band__links a:hover,
+.contact-band__links a:focus-visible,
+.quote-feature:hover,
+.quote-feature:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface));
 }
 
 .page-head__copy {
@@ -1121,7 +1141,6 @@ h4 a,
 @media (max-width: 1024px) {
   .hero,
   .about-grid,
-  .contact-panel,
   .featured-article,
   .blog-layout,
   .timeline-item,
@@ -1132,8 +1151,8 @@ h4 a,
   .cv-header,
   .cv-item__top,
   .article__footer,
-  .contact-panel__notes,
-  .contact-panel__details {
+  .quote-feature,
+  .contact-band__main {
     grid-template-columns: 1fr;
   }
 
@@ -1210,8 +1229,9 @@ h4 a,
     justify-content: center;
   }
 
-  .contact-card__email {
-    font-size: clamp(1.3rem, 8vw, 1.9rem);
+  .contact-band__email strong,
+  .quote-feature blockquote {
+    font-size: clamp(1.5rem, 8vw, 2.1rem);
   }
 
   .skill-row {

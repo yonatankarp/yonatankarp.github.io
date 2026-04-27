@@ -136,51 +136,49 @@
 <section id="testimonial" class="shell section-stack reveal-group">
   <div class="section-heading reveal">
     <p class="section-kicker">{{ if eq $lang "he" }}המלצות{{ else }}Recommendations{{ end }}</p>
-    <h2>{{ if eq $lang "he" }}מה אנשים זוכרים אחרי שעובדים ביחד{{ else }}What people remember after working together{{ end }}</h2>
+    <h2>{{ if eq $lang "he" }}דברים שאנשים באמת אמרו אחרי עבודה משותפת{{ else }}Things people actually said after working together{{ end }}</h2>
   </div>
-  <div class="quote-list">
+  <div class="quote-stack">
     {{ range $testimonials }}
     {{ $img := resources.Get (printf "images/testimonials/%s.jpg" .File.BaseFileName) }}
-    <figure class="quote-card reveal">
-      <blockquote>{{ .Content | plainify }}</blockquote>
-      <figcaption>
+    <figure class="quote-feature reveal">
+      <div class="quote-feature__person">
         {{ with $img }}<img src="{{ .RelPermalink }}" alt="{{ $.Title }}">{{ end }}
         <div>
           <strong>{{ .Params.name }}</strong>
           <span>{{ .Params.position }}</span>
         </div>
-      </figcaption>
+      </div>
+      <blockquote>{{ .Content | plainify }}</blockquote>
     </figure>
     {{ end }}
   </div>
 </section>
 
-<section id="contact" class="shell contact-panel reveal-group">
-  <div class="contact-panel__copy reveal">
+<section id="contact" class="shell contact-band reveal-group">
+  <div class="contact-band__intro reveal">
     <p class="section-kicker">{{ if eq $lang "he" }}יצירת קשר{{ else }}Contact{{ end }}</p>
-    <h2>{{ if eq $lang "he" }}אם יש התאמה, בואו נדבר{{ else }}If there is a fit, let's talk{{ end }}</h2>
-    <p>{{ if eq $lang "he" }}אפשר לפנות לגבי תפקידים, ייעוץ, שיתופי פעולה, או שיחה טובה על systems, architecture ו-backend engineering.{{ else }}Reach out for roles, consulting, collaboration, or a sharp conversation about systems, architecture, and backend engineering.{{ end }}</p>
-    <div class="contact-panel__notes">
-      <div class="contact-note">
-        <span>{{ if eq $lang "he" }}בסיס{{ else }}Based in{{ end }}</span>
-        <strong>{{ if eq $lang "he" }}ברלין, גרמניה{{ else }}Berlin, Germany{{ end }}</strong>
-      </div>
-      <div class="contact-note">
-        <span>{{ if eq $lang "he" }}תחומים{{ else }}Best for{{ end }}</span>
-        <strong>{{ if eq $lang "he" }}Staff / platform / risk / backend{{ else }}Staff, platform, risk, backend{{ end }}</strong>
-      </div>
-    </div>
+    <h2>{{ if eq $lang "he" }}אם יש משהו ששווה לבנות יחד, בואו נדבר{{ else }}If there is something worth building together, let's talk{{ end }}</h2>
+    <p>{{ if eq $lang "he" }}תפקידים, ייעוץ, architecture reviews, שיתופי פעולה, או פשוט שיחה טובה על backend systems.{{ else }}Roles, consulting, architecture reviews, collaboration, or just a good conversation about backend systems.{{ end }}</p>
   </div>
-  <div class="contact-panel__actions reveal">
-    <div class="contact-card">
-      <p class="contact-card__label">{{ if eq $lang "he" }}אימייל{{ else }}Email{{ end }}</p>
-      <a class="contact-card__email" href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>
-      <p class="contact-card__text">{{ if eq $lang "he" }}האופציה הכי פשוטה והכי טובה להתחיל בה.{{ else }}The simplest and best way to start a conversation.{{ end }}</p>
-    </div>
-    <div class="contact-panel__details">
-      <a href="https://github.com/yonatankarp">GitHub</a>
-      <a href="https://www.linkedin.com/in/yonatankarp/">LinkedIn</a>
-      <a href="https://kotlinbackend.com">kotlinbackend.com</a>
+  <div class="contact-band__main reveal">
+    <a class="contact-band__email" href="mailto:yonvata@gmail.com">
+      <span>{{ if eq $lang "he" }}האימייל הכי טוב להגיע אליו{{ else }}Best place to reach me{{ end }}</span>
+      <strong>yonvata@gmail.com</strong>
+    </a>
+    <div class="contact-band__links">
+      <a href="https://github.com/yonatankarp">
+        <span>GitHub</span>
+        <strong>github.com/yonatankarp</strong>
+      </a>
+      <a href="https://www.linkedin.com/in/yonatankarp/">
+        <span>LinkedIn</span>
+        <strong>linkedin.com/in/yonatankarp</strong>
+      </a>
+      <a href="https://kotlinbackend.com">
+        <span>Writing</span>
+        <strong>kotlinbackend.com</strong>
+      </a>
     </div>
   </div>
 </section>

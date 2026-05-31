@@ -1,40 +1,36 @@
 /* Global design system */
 :root {
-  --bg: oklch(0.965 0.006 205);
-  --surface: oklch(0.99 0.004 205 / 0.9);
-  --surface-strong: oklch(0.998 0.002 205);
-  --surface-muted: oklch(0.925 0.012 205);
-  --text: oklch(0.18 0.02 222);
-  --muted: oklch(0.43 0.018 222);
-  --accent: oklch(0.63 0.105 166);
-  --accent-strong: oklch(0.41 0.085 166);
-  --border: oklch(0.84 0.014 205);
-  --ink: oklch(0.145 0.026 230);
-  --ink-2: oklch(0.205 0.026 230);
-  --on-ink: oklch(0.965 0.006 205);
-  --on-ink-muted: oklch(0.74 0.018 205);
-  --shadow: 0 34px 110px rgba(11, 25, 31, 0.16);
-  --shadow-soft: 0 18px 48px rgba(11, 25, 31, 0.08);
-  --radius-xl: 1.45rem;
-  --radius-lg: 1rem;
-  --radius-md: 0.7rem;
-  --radius-sm: 0.45rem;
-  --shell: min(1320px, calc(100vw - 2rem));
+  --bg: oklch(0.96 0.01 85);
+  --surface: oklch(0.985 0.005 85 / 0.88);
+  --surface-strong: oklch(0.99 0.004 85);
+  --surface-muted: oklch(0.94 0.008 85);
+  --text: oklch(0.22 0.01 85);
+  --muted: oklch(0.47 0.012 85);
+  --accent: oklch(0.52 0.09 190);
+  --accent-strong: oklch(0.42 0.08 190);
+  --border: oklch(0.88 0.008 85);
+  --shadow: 0 28px 80px rgba(21, 24, 28, 0.08);
+  --shadow-soft: 0 12px 36px rgba(21, 24, 28, 0.05);
+  --radius-xl: 2rem;
+  --radius-lg: 1.5rem;
+  --radius-md: 1rem;
+  --radius-sm: 0.75rem;
+  --shell: min(1240px, calc(100vw - 2rem));
   --body-font: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --display-font: "Literata", Georgia, serif;
   --transition: 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root[data-theme="dark"] {
-  --bg: oklch(0.16 0.018 220);
-  --surface: oklch(0.22 0.018 220 / 0.84);
-  --surface-strong: oklch(0.25 0.018 220);
-  --surface-muted: oklch(0.19 0.018 220);
-  --text: oklch(0.94 0.006 185);
-  --muted: oklch(0.74 0.014 190);
-  --accent: oklch(0.70 0.075 172);
-  --accent-strong: oklch(0.78 0.075 172);
-  --border: oklch(0.31 0.018 220);
+  --bg: oklch(0.17 0.008 240);
+  --surface: oklch(0.23 0.008 240 / 0.82);
+  --surface-strong: oklch(0.26 0.008 240);
+  --surface-muted: oklch(0.20 0.008 240);
+  --text: oklch(0.94 0.005 85);
+  --muted: oklch(0.77 0.01 85);
+  --accent: oklch(0.72 0.08 190);
+  --accent-strong: oklch(0.79 0.08 190);
+  --border: oklch(0.30 0.008 240);
   --shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
   --shadow-soft: 0 12px 36px rgba(0, 0, 0, 0.18);
 }
@@ -56,26 +52,9 @@ body {
   margin: 0;
   font-family: var(--body-font);
   color: var(--text);
-  background:
-    radial-gradient(circle at 78% 4rem, color-mix(in srgb, var(--accent) 14%, transparent), transparent 22rem),
-    linear-gradient(180deg, color-mix(in srgb, var(--bg) 88%, white), var(--bg) 34rem),
-    var(--bg);
+  background: var(--bg);
   line-height: 1.7;
   overflow-x: clip;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.34;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--border) 42%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--border) 42%, transparent) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: linear-gradient(to bottom, black 0%, transparent 72%);
 }
 
 img {
@@ -305,36 +284,9 @@ main {
   border-radius: clamp(1.5rem, 3vw, 2.4rem);
   overflow: hidden;
   isolation: isolate;
-  color: var(--on-ink);
-  background:
-    radial-gradient(circle at 78% 18%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 24rem),
-    radial-gradient(circle at 12% 86%, rgba(255, 255, 255, 0.08), transparent 20rem),
-    linear-gradient(135deg, var(--ink), oklch(0.19 0.032 224) 58%, oklch(0.12 0.024 230));
-  box-shadow: 0 42px 120px rgba(6, 18, 24, 0.34);
-}
-
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  opacity: 0.34;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
-  background-size: 54px 54px;
-  mask-image: radial-gradient(circle at 70% 30%, black, transparent 70%);
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  inset: auto -12% -18% 38%;
-  height: 38%;
-  z-index: -1;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--accent) 28%, transparent);
-  filter: blur(60px);
+  color: var(--bg);
+  background: var(--text);
+  box-shadow: var(--shadow);
 }
 
 .hero__copy {
@@ -347,7 +299,7 @@ main {
 .hero .eyebrow,
 .hero__note span,
 .hero__signal-label {
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
 .hero h1 {
@@ -359,7 +311,7 @@ main {
 
 .hero__lede {
   max-width: 54ch;
-  color: color-mix(in srgb, var(--on-ink) 88%, transparent);
+  color: color-mix(in srgb, var(--bg) 88%, transparent);
   font-size: clamp(1.08rem, 1.55vw, 1.32rem);
 }
 
@@ -474,11 +426,8 @@ main {
   padding: clamp(1rem, 2.5vw, 1.35rem);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: var(--radius-xl);
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 20%, transparent), transparent 45%),
-    linear-gradient(145deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));
+  background: color-mix(in srgb, var(--surface-strong) 14%, transparent);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255,255,255,0.14);
-  backdrop-filter: blur(22px);
 }
 
 .product-card__top {
@@ -497,7 +446,7 @@ main {
 .product-card__top p,
 .product-card__top span {
   margin: 0;
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
 .product-card__top p {
@@ -531,7 +480,7 @@ main {
 }
 
 .product-card__metrics span {
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
   font-size: 0.78rem;
   font-weight: 800;
 }
@@ -555,7 +504,7 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.07);
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -564,7 +513,7 @@ main {
 
 .system-map__node--primary {
   grid-column: span 2;
-  color: var(--on-ink);
+  color: var(--bg);
   background: color-mix(in srgb, var(--accent) 18%, rgba(255,255,255,0.08));
 }
 
@@ -573,7 +522,7 @@ main {
   gap: 0.65rem;
   padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.14);
-  color: var(--on-ink);
+  color: var(--bg);
 }
 
 .hero__signal-label,
@@ -583,7 +532,7 @@ main {
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
 .hero__signal-title {
@@ -596,7 +545,7 @@ main {
 
 .hero__signal p:last-child {
   margin: 0;
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
 .hero .hero__copy {
@@ -658,7 +607,7 @@ main {
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: 0.55rem;
   background: rgba(255,255,255,0.07);
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
   font-size: 0.88rem;
   font-weight: 700;
 }
@@ -699,11 +648,11 @@ main {
 .architecture-panel__header p,
 .architecture-panel__header span,
 .architecture-panel__flow span {
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
 .hero__proof-item strong {
-  color: var(--on-ink);
+  color: var(--bg);
   font-size: 0.95rem;
   line-height: 1.3;
 }
@@ -714,11 +663,8 @@ main {
   padding: clamp(1rem, 2.5vw, 1.35rem);
   border: 1px solid rgba(255,255,255,0.16);
   border-radius: var(--radius-xl);
-  background:
-    radial-gradient(circle at 90% 12%, color-mix(in srgb, var(--accent) 20%, transparent), transparent 44%),
-    linear-gradient(145deg, rgba(255,255,255,0.16), rgba(255,255,255,0.06));
+  background: color-mix(in srgb, var(--surface-strong) 14%, transparent);
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255,255,255,0.14);
-  backdrop-filter: blur(22px);
 }
 
 .architecture-panel__header {
@@ -743,7 +689,7 @@ main {
 .architecture-panel__header strong {
   display: block;
   margin: 0.25rem 0;
-  color: var(--on-ink);
+  color: var(--bg);
   font-family: var(--display-font);
   font-size: clamp(1.55rem, 3vw, 2.25rem);
   line-height: 1.02;
@@ -776,7 +722,7 @@ main {
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: var(--radius-md);
   background: rgba(255,255,255,0.08);
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1.2;
@@ -815,7 +761,7 @@ main {
 }
 
 .architecture-map__node--core {
-  color: var(--on-ink);
+  color: var(--bg);
   font-family: var(--display-font);
   font-size: clamp(1.35rem, 2.7vw, 2rem);
   letter-spacing: -0.035em;
@@ -841,7 +787,7 @@ main {
 }
 
 .architecture-panel__flow strong {
-  color: var(--on-ink);
+  color: var(--bg);
   line-height: 1.2;
 }
 
@@ -902,19 +848,16 @@ main {
 }
 
 .outcome-card:nth-child(1) {
-  background:
-    radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 44%),
-    var(--surface-strong);
+  background: var(--surface-strong);
 }
 
 .outcome-card:nth-child(4) {
-  background:
-    linear-gradient(135deg, var(--ink), var(--ink-2));
-  color: var(--on-ink);
+  background: var(--text);
+  color: var(--bg);
 }
 
 .outcome-card:nth-child(4) p {
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
 .outcome-card span {
@@ -982,9 +925,7 @@ main {
 .proof-card:first-child {
   grid-row: span 2;
   min-height: 22rem;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 16%, transparent), transparent 42%),
-    var(--surface-strong);
+  background: var(--surface-strong);
 }
 
 .proof-card p,
@@ -1014,9 +955,7 @@ main {
   padding: clamp(1.2rem, 3vw, 2rem);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 12%, transparent), transparent 44%),
-    linear-gradient(145deg, color-mix(in srgb, var(--surface-strong) 94%, transparent), var(--surface));
+  background: var(--surface);
   box-shadow: var(--shadow-soft);
   transition: transform var(--transition), border-color var(--transition), background-color var(--transition), box-shadow var(--transition);
 }
@@ -1162,7 +1101,7 @@ h4 {
 }
 
 .hero .hero__lede {
-  color: color-mix(in srgb, var(--on-ink) 92%, transparent);
+  color: color-mix(in srgb, var(--bg) 88%, transparent);
 }
 
 .hero__actions,
@@ -1199,7 +1138,7 @@ h4 {
   font-size: 1rem;
   line-height: 1.45;
   font-weight: 700;
-  color: var(--on-ink);
+  color: var(--bg);
 }
 
 .hero__links {
@@ -1209,7 +1148,7 @@ h4 {
 }
 
 .hero__links a {
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
 .button,
@@ -1240,20 +1179,8 @@ h4 {
   border-color: transparent;
 }
 
-.hero .button--primary {
-  background: var(--on-ink);
-  color: var(--ink);
-  box-shadow: 0 14px 34px rgba(255, 255, 255, 0.12);
-}
-
 .button--ghost {
   color: var(--text);
-}
-
-.hero .button--ghost {
-  color: var(--on-ink);
-  border-color: rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.07);
 }
 
 .button:active {
@@ -1262,17 +1189,9 @@ h4 {
 
 .hero .button {
   border-color: rgba(255,255,255,0.2);
-}
-
-.hero .button--primary {
-  background: var(--on-ink);
-  color: var(--ink);
+  background: var(--surface-strong);
+  color: var(--text);
   box-shadow: 0 14px 34px rgba(255, 255, 255, 0.12);
-}
-
-.hero .button--ghost {
-  color: var(--on-ink);
-  background: rgba(255,255,255,0.08);
 }
 
 .about-grid {
@@ -1630,10 +1549,8 @@ h4 a,
   gap: 2rem;
   padding: clamp(1.5rem, 4vw, 3rem);
   border-radius: clamp(1.4rem, 3vw, 2rem);
-  color: var(--on-ink);
-  background:
-    radial-gradient(circle at 86% 18%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 26rem),
-    linear-gradient(135deg, var(--ink), var(--ink-2));
+  color: var(--bg);
+  background: var(--text);
   box-shadow: 0 34px 100px rgba(6, 18, 24, 0.26);
 }
 
@@ -1667,7 +1584,7 @@ h4 a,
 
 .contact-priority li {
   padding-inline-start: 0.35rem;
-  color: var(--on-ink);
+  color: var(--bg);
   line-height: 1.45;
 }
 
@@ -1696,7 +1613,7 @@ h4 a,
 .contact-band__frame .contact-band__links span,
 .contact-band__frame p,
 .contact-band__frame em {
-  color: var(--on-ink-muted);
+  color: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
 .contact-band__facts strong {
@@ -1755,7 +1672,7 @@ h4 a,
 .contact-band__links strong {
   font-size: 1rem;
   line-height: 1.32;
-  color: var(--on-ink);
+  color: var(--bg);
 }
 
 .contact-band__email:hover,
@@ -2327,9 +2244,7 @@ h4 a,
 .search-result--empty {
   min-height: 9rem;
   align-content: center;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 10%, transparent), transparent 46%),
-    var(--surface);
+  background: var(--surface);
 }
 
 .search-result--empty span,

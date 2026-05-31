@@ -257,6 +257,10 @@ main {
   padding-bottom: 5rem;
 }
 
+section[id] {
+  scroll-margin-top: 6.5rem;
+}
+
 .hero,
 .about-grid,
 .section-stack,
@@ -836,9 +840,9 @@ main {
 
 .proof-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(260px, 0.82fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
-  align-items: stretch;
+  align-items: start;
 }
 
 .proof-card {
@@ -881,20 +885,23 @@ main {
 
 .case-card {
   display: grid;
-  gap: 1rem;
-  align-content: start;
-  min-height: 20rem;
-  padding: clamp(1.2rem, 3vw, 2rem);
+  grid-template-columns: minmax(190px, 0.36fr) minmax(0, 1fr);
+  gap: clamp(1.1rem, 2.6vw, 2rem);
+  align-items: start;
+  min-height: 0;
+  padding: clamp(1.1rem, 2.4vw, 1.65rem);
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  background: var(--surface);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, var(--surface-strong)), var(--surface) 42%);
   box-shadow: var(--shadow-soft);
   transition: transform var(--transition), border-color var(--transition), background-color var(--transition), box-shadow var(--transition);
 }
 
 .case-card:first-child {
-  grid-row: span 2;
-  min-height: 25rem;
+  min-height: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, var(--surface-strong)), var(--surface-strong) 42%);
 }
 
 .case-card:hover,
@@ -909,14 +916,21 @@ main {
   color: var(--accent-strong);
 }
 
+.case-card__header {
+  display: grid;
+  gap: 0.65rem;
+}
+
 .case-card h3 {
   max-width: 18ch;
+  font-size: clamp(1.35rem, 2.2vw, 2rem);
+  line-height: 1.05;
 }
 
 .case-card__details {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: clamp(0.75rem, 1.6vw, 1.1rem);
   margin: 0;
 }
 
@@ -924,18 +938,23 @@ main {
   display: grid;
   gap: 0.35rem;
   min-width: 0;
-  padding-top: 0.75rem;
-  border-top: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  padding-left: 0.9rem;
+  border-left: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
 }
 
 .case-card__details dt {
-  color: var(--muted);
+  color: var(--accent-strong);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .case-card__details dd {
   margin: 0;
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.48;
 }
 
 .proof-quote {
@@ -2389,8 +2408,15 @@ h4 a,
     min-height: auto;
   }
 
+  .case-card {
+    grid-template-columns: 1fr;
+  }
+
   .case-card__details div {
     padding-top: 0.65rem;
+    padding-left: 0;
+    border-top: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+    border-left: 0;
   }
 
   .proof-quote p {

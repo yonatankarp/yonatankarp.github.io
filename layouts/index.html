@@ -121,15 +121,17 @@
   <div class="proof-grid">
     {{ range $home.proof.items }}
     <article class="case-card reveal">
-      <p class="case-card__label">{{ .label }}</p>
-      <h3>{{ .title }}</h3>
+      <div class="case-card__header">
+        <p class="case-card__label">{{ .label }}</p>
+        <h3>{{ .title }}</h3>
+      </div>
       <dl class="case-card__details">
         <div>
-          <dt>Context</dt>
+          <dt>Problem</dt>
           <dd>{{ .context }}</dd>
         </div>
         <div>
-          <dt>Decision</dt>
+          <dt>Leverage</dt>
           <dd>{{ .decision }}</dd>
         </div>
         <div>

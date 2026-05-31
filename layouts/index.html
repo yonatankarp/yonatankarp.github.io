@@ -293,6 +293,11 @@
       <p class="section-kicker">{{ $home.contact.kicker }}</p>
       <h2>{{ $home.contact.title }}</h2>
       <p>{{ $home.contact.text }}</p>
+      {{ with $home.contact.priorities }}
+      <ol class="contact-priority">
+        {{ range . }}<li>{{ . }}</li>{{ end }}
+      </ol>
+      {{ end }}
       <div class="contact-band__facts">
         {{ range $home.contact.facts }}
         <div>

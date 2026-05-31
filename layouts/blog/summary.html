@@ -32,11 +32,7 @@
     </div>
   </header>
   <div class="post-summary post-content">
-  {{ with .Description }}
-    {{ . }}
-  {{ else }}
-    {{ .Summary | safeHTML }}
-  {{ end }}
+    {{ .Description | default (.Summary | plainify) }}
   </div>
 
   <footer>

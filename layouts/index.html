@@ -9,10 +9,30 @@
     {{ $priorityPosts = $priorityPosts | append . }}
   {{ end }}
 {{ end }}
+{{ $curatedPosts := slice }}
+{{ $seenPostKeys := dict }}
+{{ range $priorityPosts }}
+  {{ $postKey := .RelPermalink }}
+  {{ with .File }}{{ $postKey = .BaseFileName }}{{ end }}
+  {{ if not (index $seenPostKeys $postKey) }}
+    {{ $curatedPosts = $curatedPosts | append . }}
+    {{ $seenPostKeys = merge $seenPostKeys (dict $postKey true) }}
+  {{ end }}
+{{ end }}
+{{ range $allPosts }}
+  {{ $postKey := .RelPermalink }}
+  {{ with .File }}{{ $postKey = .BaseFileName }}{{ end }}
+  {{ if not (index $seenPostKeys $postKey) }}
+    {{ $curatedPosts = $curatedPosts | append . }}
+    {{ $seenPostKeys = merge $seenPostKeys (dict $postKey true) }}
+  {{ end }}
+{{ end }}
 {{ $hasPriorityPosts := gt (len $priorityPosts) 0 }}
-{{ $posts := first 3 (default $allPosts $priorityPosts) }}
-{{ $leadPost := index $posts 0 }}
-{{ $secondaryPosts := after 1 $posts }}
+{{ $posts := first 3 $curatedPosts }}
+{{ $leadPost := false }}
+{{ range first 1 $posts }}{{ $leadPost = . }}{{ end }}
+{{ $secondaryPosts := slice }}
+{{ if gt (len $posts) 1 }}{{ $secondaryPosts = after 1 $posts }}{{ end }}
 {{ $testimonials := sort (where .Site.RegularPages "Type" "testimonial") "Date" "desc" }}
 {{ if eq (len $testimonials) 0 }}{{ $testimonials = sort (where (index hugo.Sites 0).RegularPages "Type" "testimonial") "Date" "desc" }}{{ end }}
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
@@ -252,9 +272,10 @@
   <div class="quote-stack">
     {{ range $testimonials }}
     {{ $img := resources.Get (printf "images/testimonials/%s.jpg" .File.BaseFileName) }}
+    {{ $testimonialName := .Params.name | default .Title }}
     <figure class="quote-feature reveal">
       <div class="quote-feature__person">
-        {{ with $img }}<img src="{{ .RelPermalink }}" alt="{{ $.Title }}">{{ end }}
+        {{ with $img }}<img src="{{ .RelPermalink }}" alt="{{ $testimonialName }}">{{ end }}
         <div>
           <strong>{{ .Params.name }}</strong>
           <span>{{ .Params.position }}</span>

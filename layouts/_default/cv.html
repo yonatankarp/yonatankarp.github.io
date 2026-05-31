@@ -25,9 +25,15 @@
   <section class="cv-section cv-section--proof reveal">
     <h2>{{ if eq $lang "he" }}מיקוד{{ else }}Staff+ Focus{{ end }}</h2>
     <ul class="cv-proof-list">
+      {{ if eq $lang "he" }}
+      <li>ארכיטקטורת Backend למערכות payments, risk, compliance ו-platform.</li>
+      <li>תכנון שירותים API-first עם Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI ו-Backstage.</li>
+      <li>בעלות תפעולית דרך runbooks, חשיבה על failure modes, observability ותוכניות migration.</li>
+      {{ else }}
       <li>Backend architecture for payments, risk, compliance, and platform systems.</li>
       <li>API-first service design with Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI, and Backstage.</li>
       <li>Operational ownership through runbooks, failure-mode thinking, observability, and migration plans.</li>
+      {{ end }}
     </ul>
   </section>
 

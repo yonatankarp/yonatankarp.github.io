@@ -48,28 +48,65 @@ document.addEventListener('DOMContentLoaded', () => {
       fetch(indexPath)
         .then((response) => response.json())
         .then((pages) => {
-          const render = (items) => {
-            if (!items.length) {
-              searchResults.innerHTML = '<p>No results found.</p>';
-              return;
-            }
-            searchResults.innerHTML = items.map((item) => `\n              <article class="search-result">\n                <a href="${item.permalink}">${item.title}</a>\n                <p>${item.summary || ''}</p>\n              </article>\n            `).join('');
+          const clearResults = () => {
+            searchResults.replaceChildren();
           };
 
-          searchInput.addEventListener('input', () => {
-            const q = searchInput.value.trim().toLowerCase();
+          const renderMessage = (message) => {
+            clearResults();
+            const node = document.createElement('p');
+            node.textContent = message;
+            searchResults.append(node);
+          };
+
+          const render = (items) => {
+            if (!items.length) {
+              renderMessage('No results found.');
+              return;
+            }
+            clearResults();
+            items.forEach((item) => {
+              const article = document.createElement('article');
+              article.className = 'search-result';
+
+              const link = document.createElement('a');
+              link.href = item.permalink;
+              link.textContent = item.title;
+
+              const summary = document.createElement('p');
+              summary.textContent = item.summary || '';
+
+              article.append(link, summary);
+              searchResults.append(article);
+            });
+          };
+
+          const runSearch = (pages, query) => {
+            const q = query.trim().toLowerCase();
             if (!q) {
-              searchResults.innerHTML = '';
+              clearResults();
               return;
             }
             const filtered = pages.filter((page) => {
               return [page.title, page.summary, page.content].join(' ').toLowerCase().includes(q);
             }).slice(0, 10);
             render(filtered);
+          };
+
+          searchInput.addEventListener('input', () => {
+            runSearch(pages, searchInput.value);
           });
+
+          const initialQuery = new URLSearchParams(window.location.search).get('q') || '';
+          if (initialQuery) {
+            searchInput.value = initialQuery;
+            runSearch(pages, initialQuery);
+          }
         })
         .catch(() => {
-          searchResults.innerHTML = '<p>Search is unavailable right now.</p>';
+          const node = document.createElement('p');
+          node.textContent = 'Search is unavailable right now.';
+          searchResults.replaceChildren(node);
         });
     }
   } catch {

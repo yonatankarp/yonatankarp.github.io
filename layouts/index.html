@@ -1,52 +1,151 @@
 {{ define "main" }}
 {{ $lang := .Site.Language.Lang }}
-{{ $projects := first 6 (sort (where .Site.RegularPages "Type" "projects") "Date" "desc") }}
-{{ $posts := first 3 (sort (where .Site.RegularPages "Type" "blog") "Date" "desc") }}
+{{ $home := index hugo.Data.home $lang | default hugo.Data.home.en }}
+{{ $allPosts := sort (where .Site.RegularPages "Type" "blog") "Date" "desc" }}
+{{ $prioritySlugs := slice "observability-in-action-opentelemetry" "build-domain-gateway-openapi" "fix-misconfigurations-redistemplate" "openapi-robust-restful-api" }}
+{{ $priorityPosts := slice }}
+{{ range $slug := $prioritySlugs }}
+  {{ range first 1 (where $allPosts "File.BaseFileName" $slug) }}
+    {{ $priorityPosts = $priorityPosts | append . }}
+  {{ end }}
+{{ end }}
+{{ $hasPriorityPosts := gt (len $priorityPosts) 0 }}
+{{ $posts := first 3 (default $allPosts $priorityPosts) }}
 {{ $leadPost := index $posts 0 }}
 {{ $secondaryPosts := after 1 $posts }}
 {{ $testimonials := sort (where .Site.RegularPages "Type" "testimonial") "Date" "desc" }}
 {{ if eq (len $testimonials) 0 }}{{ $testimonials = sort (where (index hugo.Sites 0).RegularPages "Type" "testimonial") "Date" "desc" }}{{ end }}
-{{ $education := sort (where .Site.RegularPages "Type" "education") "Date" "desc" }}
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
 {{ $showcaseImage := resources.Get "images/showcase/showcase.png" }}
 {{ $aboutImage := resources.Get "images/about/user-picture.png" }}
-<section class="hero shell reveal-group">
+<section class="hero shell reveal-group" aria-labelledby="home-title">
   <div class="hero__copy reveal">
-    <p class="eyebrow">Portfolio, writing, and engineering</p>
-    <h1>Yonatan Karp-Rudin builds backend systems that survive contact with reality.</h1>
-    <p class="hero__lede">Based in Berlin. Staff engineer at Billie, working across backend architecture, distributed systems, platform engineering, and the operational detail that decides whether a system feels trustworthy in production.</p>
+    <p class="eyebrow">{{ $home.hero.eyebrow }}</p>
+    <h1 id="home-title">{{ $home.hero.title }}</h1>
+    <p class="hero__lede">{{ $home.hero.lede }}</p>
     <div class="hero__actions">
-      <a class="button button--primary" href="#contact">Get in touch</a>
-      <a class="button button--ghost" href="/blog/">Read the blog</a>
+      <a class="button button--primary" href="{{ $home.hero.primaryAction.url }}">{{ $home.hero.primaryAction.label }}</a>
+      <a class="button button--ghost" href="{{ $home.hero.secondaryAction.url }}">{{ $home.hero.secondaryAction.label }}</a>
     </div>
-    <div class="hero__notes">
-      <div class="hero__note">
-        <span>Current focus</span>
-        <strong>Distributed backend systems, API-first architecture, and production-grade platform work</strong>
+    <div class="hero__proof-strip" aria-label="Credibility signals">
+      {{ range $home.hero.proofSignals }}
+      <div class="hero__proof-item">
+        <span>{{ .label }}</span>
+        <strong>{{ .text }}</strong>
       </div>
-      <div class="hero__note">
-        <span>Writes about</span>
-        <strong>Kotlin, debugging, observability, backend design tradeoffs</strong>
-      </div>
-      <div class="hero__note">
-        <span>Open source</span>
-        <strong>ff4k, openapi-generator, Konsist, practical library work</strong>
-      </div>
+      {{ end }}
     </div>
     <ul class="hero__links">
-      <li><a href="https://github.com/yonatankarp">GitHub</a></li>
-      <li><a href="https://www.linkedin.com/in/yonatankarp/">LinkedIn</a></li>
-      <li><a href="https://kotlinbackend.com">kotlinbackend.com</a></li>
+      {{ range $home.hero.links }}
+      <li><a href="{{ .url }}">{{ .label }}</a></li>
+      {{ end }}
     </ul>
+    <div class="hero__capabilities" aria-label="Core capability loop">
+      <span>Domain clarity</span>
+      <span>Contract design</span>
+      <span>Production ownership</span>
+    </div>
   </div>
-  <div class="hero__image reveal">
-    {{ with $showcaseImage }}<img src="{{ .RelPermalink }}" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
+  <div class="hero__visual reveal" aria-label="Backend architecture product panel">
+    <div class="architecture-panel">
+      <div class="architecture-panel__header">
+        {{ with $showcaseImage }}<img src="{{ .RelPermalink }}" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
+        <div>
+          <p>Yonatan Karp-Rudin</p>
+          <strong>Staff Software Engineer</strong>
+          <span>Architecture · Systems · Delivery</span>
+        </div>
+      </div>
+      <div class="architecture-map" aria-hidden="true">
+        <span class="architecture-map__node architecture-map__node--core">domain core</span>
+        <span class="architecture-map__node">contracts</span>
+        <span class="architecture-map__node">events</span>
+        <span class="architecture-map__node">risk</span>
+        <span class="architecture-map__node">payments</span>
+        <span class="architecture-map__node">runbooks</span>
+      </div>
+      <div class="architecture-panel__flow" aria-label="Working model">
+        <div><span>01</span><strong>Clarify</strong></div>
+        <div><span>02</span><strong>Design</strong></div>
+        <div><span>03</span><strong>Operate</strong></div>
+      </div>
+    </div>
+    {{ if $hasPriorityPosts }}
     {{ with $leadPost }}
     <div class="hero__signal">
       <p class="hero__signal-label">Start here</p>
       <a class="hero__signal-title" href="{{ .RelPermalink }}">{{ .Title }}</a>
       <p>{{ .Description | default (.Summary | plainify) }}</p>
     </div>
+    {{ end }}
+    {{ end }}
+  </div>
+</section>
+
+<section class="shell outcome-section reveal-group" aria-labelledby="outcome-title">
+  <div class="section-heading section-heading--split reveal">
+    <div>
+      <p class="section-kicker">{{ $home.outcomes.kicker }}</p>
+      <h2 id="outcome-title">{{ $home.outcomes.title }}</h2>
+    </div>
+    <p>Not a generic backend profile. A productized way of working: clarify the domain, define the contract, build the path, and make the system operable.</p>
+  </div>
+  <div class="outcome-grid">
+    {{ range $index, $item := $home.outcomes.items }}
+    <article class="outcome-card reveal">
+      <span>{{ printf "%02d" (add $index 1) }}</span>
+      <h3>{{ .title }}</h3>
+      <p>{{ .text }}</p>
+    </article>
+    {{ end }}
+  </div>
+</section>
+
+<section id="proof" class="shell proof-section reveal-group" aria-labelledby="proof-title">
+  <div class="section-heading reveal">
+    <p class="section-kicker">{{ $home.proof.kicker }}</p>
+    <h2 id="proof-title">{{ $home.proof.title }}</h2>
+  </div>
+  <div class="proof-grid">
+    {{ range $home.proof.items }}
+    <article class="case-card reveal">
+      <p class="case-card__label">{{ .label }}</p>
+      <h3>{{ .title }}</h3>
+      <dl class="case-card__details">
+        <div>
+          <dt>Context</dt>
+          <dd>{{ .context }}</dd>
+        </div>
+        <div>
+          <dt>Decision</dt>
+          <dd>{{ .decision }}</dd>
+        </div>
+        <div>
+          <dt>Result</dt>
+          <dd>{{ .result }}</dd>
+        </div>
+      </dl>
+    </article>
+    {{ end }}
+  </div>
+  {{ if gt (len $testimonials) 0 }}
+  {{ with index $testimonials 0 }}
+  <aside class="proof-quote reveal">
+    <blockquote>{{ .Content | plainify }}</blockquote>
+    <p>{{ .Params.name }} · {{ .Params.position }}</p>
+  </aside>
+  {{ end }}
+  {{ end }}
+</section>
+
+<section class="shell fit-band reveal-group" aria-labelledby="fit-title">
+  <div class="fit-band__copy reveal">
+    <p class="section-kicker">{{ $home.fit.kicker }}</p>
+    <h2 id="fit-title">{{ $home.fit.title }}</h2>
+  </div>
+  <div class="fit-list">
+    {{ range $home.fit.items }}
+    <p class="reveal">{{ . }}</p>
     {{ end }}
   </div>
 </section>
@@ -56,29 +155,28 @@
     {{ with $aboutImage }}<img src="{{ .RelPermalink }}" alt="Yonatan Karp-Rudin">{{ end }}
   </div>
   <div class="about-grid__body reveal">
-    <p class="section-kicker">About</p>
-    <h2>Twelve years across infrastructure, payments, internal platforms, and engineering writing.</h2>
+    <p class="section-kicker">{{ $home.about.kicker }}</p>
+    <h2>{{ $home.about.title }}</h2>
     <div class="prose">
-      <p>Today Yonatan works at Billie on backend systems and service architecture, building the kind of platform and operational foundations that make complex products easier to evolve. Before that he built backend platforms at SumUp, vision-processing systems at Inuitive, and the kind of internal tools that quietly make engineering teams faster and calmer.</p>
-      <p>The thread through all of it is not a single stack, but a way of operating: API-first thinking, careful decomposition, clear technical writing, and improving systems without turning them into theater.</p>
+      {{ range $home.about.paragraphs }}
+      <p>{{ . }}</p>
+      {{ end }}
     </div>
     <div class="about-grid__facts">
+      {{ range $home.about.facts }}
       <div>
-        <span>Works across</span>
-        <strong>Kotlin, Java, Spring Boot, Flink, Kafka, and service architecture at scale</strong>
+        <span>{{ .label }}</span>
+        <strong>{{ .text }}</strong>
       </div>
-      <div>
-        <span>Bias toward</span>
-        <strong>Clear contracts, production trust, and practical engineering judgment</strong>
-      </div>
+      {{ end }}
     </div>
   </div>
 </section>
 
 <section id="experience" class="shell section-stack reveal-group">
   <div class="section-heading reveal">
-    <p class="section-kicker">{{ if eq $lang "he" }}ניסיון{{ else }}Experience{{ end }}</p>
-    <h2>{{ if eq $lang "he" }}תפקידים שבהם ארכיטקטורה, מוצר וביצוע נפגשים{{ else }}Roles where architecture, product, and execution meet{{ end }}</h2>
+    <p class="section-kicker">{{ $home.experience.kicker }}</p>
+    <h2>{{ $home.experience.title }}</h2>
   </div>
   <div class="timeline">
     {{ range first 6 $experience }}
@@ -97,48 +195,22 @@
   </div>
 </section>
 
-<section id="education" class="shell section-stack section-stack--compact reveal-group">
-  <div class="section-heading reveal">
-    <p class="section-kicker">{{ if eq $lang "he" }}לימודים{{ else }}Education{{ end }}</p>
-    <h2>{{ if eq $lang "he" }}קורסים, תארים ונושאים שחוזרים שוב ושוב{{ else }}Courses, degrees, and topics that keep showing up in the work{{ end }}</h2>
-  </div>
-  <div class="education-list">
-    {{ range $education }}
-    <article class="education-item reveal">
-      <div class="education-item__meta">
-        <p>{{ .Params.year }}</p>
-        <span>{{ .Params.degree }}</span>
-      </div>
-      <div class="education-item__body">
-        <h3>{{ .Params.university }}</h3>
-        {{ if ne .Title .Params.university }}<p>{{ .Title }}</p>{{ end }}
-      </div>
-      <div class="education-item__action">
-        {{ with .Params.link }}<a class="text-link" href="{{ . }}">{{ if eq $lang "he" }}לצפייה{{ else }}View credential{{ end }}</a>{{ end }}
-      </div>
-    </article>
-    {{ end }}
-  </div>
-</section>
-
 <section id="client-and-work-section" class="shell section-stack reveal-group">
   <div class="section-heading reveal">
-    <p class="section-kicker">Projects and contributions</p>
-    <h2>Libraries, experiments, and products that were built to solve real problems.</h2>
+    <p class="section-kicker">{{ $home.projects.kicker }}</p>
+    <h2>{{ $home.projects.title }}</h2>
   </div>
-  <div class="project-list">
-    {{ range $index, $project := $projects }}
-    {{ $link := $project.Params.link }}
-    {{ $label := cond (in $link "github.com") "GitHub" (cond (in $link "youtube.com") "Video" (cond (in $link "yonatankarp.github.io") "Docs" "Visit")) }}
-    <article class="project-row reveal">
-      <div class="project-row__index">{{ printf "%02d" (add $index 1) }}</div>
+  <div class="selected-work">
+    {{ range $index, $project := $home.selectedWork }}
+    <article class="work-item reveal">
+      <div class="work-item__index">{{ printf "%02d" (add $index 1) }}</div>
       <div class="project-row__body">
-        <h3>{{ $project.Title }}</h3>
-        <p>{{ $project.Content | plainify }}</p>
+        <p class="work-item__kind">{{ $project.kind }}</p>
+        <h3>{{ $project.name }}</h3>
+        <p>{{ $project.text }}</p>
       </div>
       <div class="project-row__meta">
-        <p>{{ $project.Date.Format "2006" }}</p>
-        {{ with $link }}<a class="button button--ghost" href="{{ . }}">{{ $label }}</a>{{ end }}
+        <a class="button button--ghost" href="{{ $project.link }}">{{ $project.linkLabel }}</a>
       </div>
     </article>
     {{ end }}
@@ -147,8 +219,8 @@
 
 <section class="shell section-stack reveal-group">
   <div class="section-heading reveal">
-    <p class="section-kicker">Writing</p>
-    <h2>Notes from debugging, design tradeoffs, and the parts of backend work worth explaining properly.</h2>
+    <p class="section-kicker">{{ $home.writing.kicker }}</p>
+    <h2>{{ $home.writing.title }}</h2>
   </div>
   <div class="writing-showcase">
     {{ with $leadPost }}
@@ -174,8 +246,8 @@
 
 <section id="testimonial" class="shell section-stack reveal-group">
   <div class="section-heading reveal">
-    <p class="section-kicker">{{ if eq $lang "he" }}המלצות{{ else }}Recommendations{{ end }}</p>
-    <h2>{{ if eq $lang "he" }}דברים שאנשים באמת אמרו אחרי עבודה משותפת{{ else }}Things people actually said after working together{{ end }}</h2>
+    <p class="section-kicker">{{ $home.testimonials.kicker }}</p>
+    <h2>{{ $home.testimonials.title }}</h2>
   </div>
   <div class="quote-stack">
     {{ range $testimonials }}
@@ -197,37 +269,33 @@
 <section id="contact" class="shell contact-band reveal-group">
   <div class="contact-band__frame reveal">
     <div class="contact-band__intro">
-      <p class="section-kicker">{{ if eq $lang "he" }}יצירת קשר{{ else }}Contact{{ end }}</p>
-      <h2>{{ if eq $lang "he" }}אם יש משהו ששווה לבנות יחד, בואו נדבר{{ else }}If there is something worth building together, let's talk{{ end }}</h2>
-      <p>{{ if eq $lang "he" }}תפקידים, ייעוץ, architecture reviews, שיתופי פעולה, או פשוט שיחה טובה על backend systems.{{ else }}Roles, consulting, architecture reviews, collaboration, or just a good conversation about backend systems.{{ end }}</p>
+      <p class="section-kicker">{{ $home.contact.kicker }}</p>
+      <h2>{{ $home.contact.title }}</h2>
+      <p>{{ $home.contact.text }}</p>
       <div class="contact-band__facts">
+        {{ range $home.contact.facts }}
         <div>
-          <span>{{ if eq $lang "he" }}מבוסס ב{{ else }}Based in{{ end }}</span>
-          <strong>{{ if eq $lang "he" }}ברלין, גרמניה{{ else }}Berlin, Germany{{ end }}</strong>
+          <span>{{ .label }}</span>
+          <strong>{{ .text }}</strong>
         </div>
-        <div>
-          <span>{{ if eq $lang "he" }}מתאים במיוחד ל{{ else }}Best for{{ end }}</span>
-          <strong>{{ if eq $lang "he" }}תפקידי staff backend, עבודת platform, ומערכות מבוזרות{{ else }}Staff-level backend roles, platform work, and distributed systems{{ end }}</strong>
-        </div>
+        {{ end }}
       </div>
     </div>
 
     <div class="contact-band__rail">
-      <a class="contact-band__email" href="mailto:yonvata@gmail.com">
-        <span>{{ if eq $lang "he" }}אימייל{{ else }}Email{{ end }}</span>
-        <strong>yonvata@gmail.com</strong>
-        <em>{{ if eq $lang "he" }}האופציה הכי ישירה להתחיל שיחה טובה.{{ else }}The most direct way to start a useful conversation.{{ end }}</em>
+      <a class="contact-band__email" href="mailto:{{ $home.contact.email.address }}">
+        <span>{{ $home.contact.email.label }}</span>
+        <strong>{{ $home.contact.email.address }}</strong>
+        <em>{{ $home.contact.email.note }}</em>
       </a>
 
       <div class="contact-band__links">
-        <a href="https://github.com/yonatankarp">
-          <span>GitHub</span>
-          <strong>github.com/yonatankarp</strong>
+        {{ range $home.contact.links }}
+        <a href="{{ .url }}">
+          <span>{{ .label }}</span>
+          <strong>{{ .text }}</strong>
         </a>
-        <a href="https://www.linkedin.com/in/yonatankarp/">
-          <span>LinkedIn</span>
-          <strong>linkedin.com/in/yonatankarp</strong>
-        </a>
+        {{ end }}
       </div>
     </div>
   </div>

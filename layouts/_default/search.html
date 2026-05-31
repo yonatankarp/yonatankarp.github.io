@@ -8,8 +8,13 @@
 </section>
 <section class="shell search-view reveal-group">
   <div class="reveal">
-    <input id="site-search" class="search-input search-input--large" type="search" placeholder="{{ .Params.placeholder | default `Search...` }}">
-    <div id="search-results" class="search-results"></div>
+    <input id="site-search" name="q" class="search-input search-input--large" type="search" placeholder="{{ .Params.placeholder | default `Search...` }}">
+    <div id="search-results" class="search-results">
+      <article class="search-result search-result--empty">
+        <span>Try a topic</span>
+        <p>Kotlin, OpenAPI, observability, Kafka, payments, risk, architecture, or Spring Boot.</p>
+      </article>
+    </div>
   </div>
 </section>
 {{ end }}

@@ -76,6 +76,15 @@
         {{ end }}
       </div>
     </section>
+    <section>
+      <h3>{{ if eq $lang "he" }}מסלולי קריאה{{ else }}Reading tracks{{ end }}</h3>
+      <div class="chip-row">
+        <a class="chip" href="/tags/openapi/">API design</a>
+        <a class="chip" href="/tags/observability/">Observability</a>
+        <a class="chip" href="/tags/kotlin/">Kotlin/JVM</a>
+        <a class="chip" href="/tags/spring-boot/">Spring Boot</a>
+      </div>
+    </section>
   </aside>
 </section>
 {{ end }}

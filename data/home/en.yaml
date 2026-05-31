@@ -1,0 +1,158 @@
+hero:
+  eyebrow: "Staff Software Engineer · Berlin"
+  title: "I turn ambiguous backend domains into systems teams can operate."
+  lede: "Staff-level backend work across fintech, payments, risk, compliance, and platform systems: contracts, migrations, failure modes, runbooks, and production ownership."
+  primaryAction:
+    label: "Talk about Staff+ roles"
+    url: "#contact"
+  secondaryAction:
+    label: "View CV"
+    url: "/cv/"
+  proofSignals:
+    - label: "Current"
+      text: "Staff Software Engineer at Billie"
+    - label: "Domains"
+      text: "Payments, risk, compliance, platform systems"
+    - label: "Public proof"
+      text: "OpenAPI Generator, ff4k, Kotlin/backend writing"
+    - label: "Based in"
+      text: "Berlin, Germany"
+  notes:
+    - label: "Best fit"
+      text: "Payments, risk, compliance, platform work, and distributed backend systems"
+    - label: "Value"
+      text: "Architecture that comes with specs, migration paths, failure thinking, and operational ownership"
+    - label: "Tools"
+      text: "Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI, Backstage, Terraform"
+  links:
+    - label: "GitHub"
+      url: "https://github.com/yonatankarp"
+    - label: "LinkedIn"
+      url: "https://www.linkedin.com/in/yonatankarp/"
+    - label: "kotlinbackend.com"
+      url: "https://kotlinbackend.com"
+
+about:
+  kicker: "Positioning"
+  title: "I sit between product ambiguity and production reality."
+  paragraphs:
+    - "The part of engineering I care about most is the part that survives the first release: ownership, contracts, failure modes, migration paths, runbooks, and enough written context that the next engineer can make a good decision without folklore."
+    - "At Billie, that has meant staff-level work across risk, payments, and compliance: risk orchestration, fraud-provider integrations, compliance-service foundations, Kafka operational runbooks, Backstage tooling, and API-first practices across services. Earlier roles covered payment platforms at SumUp, distributed systems at NICE, and embedded vision-processing systems at Inuitive."
+    - "I am not trying to make systems clever. I am trying to make them explicit, operable, and hard to misunderstand."
+  facts:
+    - label: "Works across"
+      text: "Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI, Backstage, and service architecture"
+    - label: "Bias toward"
+      text: "Clear ownership, small contracts, boring reliability, and decisions people can revisit"
+
+experience:
+  kicker: "Track record"
+  title: "A career path through systems where correctness and uptime matter."
+
+education:
+  kicker: "Education"
+  title: "Courses, degrees, and topics that keep showing up in the work."
+
+projects:
+  kicker: "Selected work"
+  title: "Public work across libraries, upstream contributions, and practical tools."
+
+proof:
+  kicker: "Proof"
+  title: "Staff-level judgment across systems that need to keep working."
+  items:
+    - label: "Compliance service foundation"
+      title: "Giving transaction monitoring, screening, and sanction checks explicit boundaries."
+      context: "Compliance workflows needed clearer ownership and interfaces before implementation could scale safely."
+      decision: "Authored the technical spec, service boundaries, interface definitions, and integration plan around operational handoff."
+      result: "Created a foundation teams could build on without burying audit-sensitive logic inside incidental service behavior."
+      text: "Authored the technical spec, service boundaries, interface definitions, and integration plan around operational handoff."
+    - label: "Risk orchestration"
+      title: "Integrating fraud providers without turning the domain into a vendor adapter."
+      context: "Risk assessment needed external provider integration while preserving Billie-owned domain language and release control."
+      decision: "Co-designed service shape, OpenAPI-first contracts, retries, and migration path around the risk workflow."
+      result: "Kept the integration explicit, testable, and operable instead of coupling core risk behavior to a third-party API."
+      text: "Co-designed service shape, OpenAPI-first contracts, retries, and migration path around the risk workflow."
+    - label: "Platform leverage"
+      title: "Reducing repeated setup and operational ambiguity through internal tooling."
+      context: "Teams repeatedly solved the same setup, monitoring, and runbook problems around backend services."
+      decision: "Built Backstage tooling, Kafka DLT runbooks, repository templates, shared libraries, and service feedback loops."
+      result: "Turned individual operational lessons into reusable team leverage."
+      text: "Built Backstage tooling, Kafka DLT runbooks, repository templates, shared libraries, and service feedback loops."
+
+outcomes:
+  kicker: "Product"
+  title: "What I am selling is engineering judgment."
+  items:
+    - title: "Architecture that ships"
+      text: "Specs, interfaces, and migration plans that let teams move without waiting for perfect certainty."
+    - title: "Systems that explain themselves"
+      text: "Domain boundaries, API contracts, event names, runbooks, and docs that reduce folklore."
+    - title: "Production ownership"
+      text: "Observability, alert paths, DLT handling, failure modes, and feedback loops built into the work."
+    - title: "Taste for boring reliability"
+      text: "Choosing the integration shape that will still make sense after the launch pressure is gone."
+
+fit:
+  kicker: "When to call"
+  title: "I am useful when the backend is no longer just implementation."
+  items:
+    - "A product domain is spreading across services and nobody fully trusts the boundaries."
+    - "A payment, risk, compliance, or platform workflow needs a contract before it needs more code."
+    - "An integration with a third party has to survive retries, drift, audits, and operational handoff."
+    - "A team needs a senior engineer who can write the spec, build the path, and stay for the production details."
+
+selectedWork:
+  - name: "OpenAPI Generator"
+    kind: "Upstream contribution"
+    text: "Spring Boot 4 and Jackson 3 support for the Kotlin Spring generator, plus Retrofit and model-generation fixes."
+    link: "https://github.com/OpenAPITools/openapi-generator"
+    linkLabel: "GitHub"
+  - name: "ff4k"
+    kind: "Open source library"
+    text: "Kotlin Multiplatform feature flags library with DSL configuration, storage backends, and coroutine-safe context propagation."
+    link: "https://yonatankarp.github.io/ff4k/"
+    linkLabel: "Docs"
+  - name: "kotlin-design-patterns"
+    kind: "Technical writing / docs"
+    text: "Idiomatic Kotlin implementations of software design patterns with a maintained documentation site."
+    link: "https://yonatankarp.github.io/kotlin-design-patterns/"
+    linkLabel: "Website"
+  - name: "TaleKeeper"
+    kind: "Self-hosted tool"
+    text: "AI-powered TTRPG session recorder with live transcription, speaker diarization, and structured session summaries."
+    link: "https://yonatankarp.github.io/TaleKeeper/"
+    linkLabel: "Docs"
+
+writing:
+  kicker: "Writing"
+  title: "The blog remains intact. The UI should make the writing easier to trust and browse."
+
+testimonials:
+  kicker: "Recommendations"
+  title: "Things people actually said after working together."
+
+contact:
+  kicker: "Contact"
+  title: "Useful conversations start with the shape of the work."
+  text: "Best fit: permanent Staff+ backend roles in systems where product ambiguity, correctness, compliance, or operational ownership matter."
+  priorities:
+    - "Permanent Staff+ backend roles"
+    - "Architecture consulting or focused advisory"
+    - "OSS, writing, and collaboration"
+  facts:
+    - label: "Based in"
+      text: "Berlin, Germany"
+    - label: "Best for"
+      text: "Staff-level backend roles, platform work, payments, risk, compliance, and distributed systems"
+  email:
+    label: "Email"
+    address: "yonvata@gmail.com"
+    note: "The most direct way to start a useful conversation."
+  links:
+    - label: "GitHub"
+      text: "github.com/yonatankarp"
+      url: "https://github.com/yonatankarp"
+    - label: "LinkedIn"
+      text: "linkedin.com/in/yonatankarp"
+      url: "https://www.linkedin.com/in/yonatankarp/"

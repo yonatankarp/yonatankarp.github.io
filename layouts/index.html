@@ -60,45 +60,37 @@
       <li><a href="{{ .url }}">{{ .label }}</a></li>
       {{ end }}
     </ul>
-    <div class="hero__capabilities" aria-label="Core capability loop">
-      <span>Domain clarity</span>
-      <span>Contract design</span>
-      <span>Production ownership</span>
-    </div>
   </div>
-  <div class="hero__visual reveal" aria-label="Backend architecture product panel">
-    <div class="architecture-panel">
-      <div class="architecture-panel__header">
+  <div class="hero__visual reveal" aria-label="How Yonatan multiplies an engineering team">
+    <div class="multiplier-panel">
+      <div class="multiplier-panel__header">
         {{ with $showcaseImage }}<img src="{{ .RelPermalink }}" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
         <div>
           <p>Yonatan Karp-Rudin</p>
           <strong>Staff Software Engineer</strong>
-          <span>Architecture · Systems · Delivery</span>
+          <span>Builder · explainer · team multiplier</span>
         </div>
       </div>
-      <div class="architecture-map" aria-hidden="true">
-        <span class="architecture-map__node architecture-map__node--core">domain core</span>
-        <span class="architecture-map__node">contracts</span>
-        <span class="architecture-map__node">events</span>
-        <span class="architecture-map__node">risk</span>
-        <span class="architecture-map__node">payments</span>
-        <span class="architecture-map__node">runbooks</span>
+      <div class="multiplier-panel__body">
+        <h2>{{ $home.hero.multiplier.title }}</h2>
+        <div class="multiplier-steps">
+          {{ range $index, $step := $home.hero.multiplier.steps }}
+          <article class="multiplier-step">
+            <span>{{ printf "%02d" (add $index 1) }}</span>
+            <div>
+              <h3>{{ $step.title }}</h3>
+              <p>{{ $step.text }}</p>
+            </div>
+          </article>
+          {{ end }}
+        </div>
       </div>
-      <div class="architecture-panel__flow" aria-label="Working model">
-        <div><span>01</span><strong>Clarify</strong></div>
-        <div><span>02</span><strong>Design</strong></div>
-        <div><span>03</span><strong>Operate</strong></div>
+      <div class="multiplier-evidence" aria-label="Proof points">
+        {{ range $home.hero.multiplier.evidence }}
+        <span>{{ . }}</span>
+        {{ end }}
       </div>
     </div>
-    {{ if $hasPriorityPosts }}
-    {{ with $leadPost }}
-    <div class="hero__signal">
-      <p class="hero__signal-label">Start here</p>
-      <a class="hero__signal-title" href="{{ .RelPermalink }}">{{ .Title }}</a>
-      <p>{{ .Description | default (.Summary | plainify) }}</p>
-    </div>
-    {{ end }}
-    {{ end }}
   </div>
 </section>
 
@@ -108,7 +100,7 @@
       <p class="section-kicker">{{ $home.outcomes.kicker }}</p>
       <h2 id="outcome-title">{{ $home.outcomes.title }}</h2>
     </div>
-    <p>Not a generic backend profile. A productized way of working: clarify the domain, define the contract, build the path, and make the system operable.</p>
+    <p>A practical way of working: make the problem understandable, build the path, and leave behind reusable context for the next engineer.</p>
   </div>
   <div class="outcome-grid">
     {{ range $index, $item := $home.outcomes.items }}

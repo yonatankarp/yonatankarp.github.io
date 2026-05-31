@@ -10,13 +10,24 @@ hero:
     url: "/cv/"
   proofSignals:
     - label: "Role"
-      text: "Staff Software Engineer"
+      text: "Staff+ backend engineer"
     - label: "Known for"
-      text: "Making teams faster by making systems clearer"
+      text: "Complex systems made understandable"
     - label: "How"
-      text: "Code, docs, examples, tools, and patient explanation"
-    - label: "Based in"
-      text: "Berlin, Germany"
+      text: "Code, docs, and tools teams reuse"
+  multiplier:
+    title: "How I multiply a team"
+    steps:
+      - title: "Clarify the problem"
+        text: "Turn implicit knowledge into shared language, boundaries, and examples."
+      - title: "Build the path"
+        text: "Create the code, contracts, tools, and tradeoffs that make the direction real."
+      - title: "Leave leverage"
+        text: "Document the decisions, reusable pieces, and handoff details so others can keep moving."
+    evidence:
+      - "Payments / risk / compliance systems"
+      - "Kotlin/JVM, Spring Boot, Kafka, OpenAPI"
+      - "OSS, docs, templates, teaching"
   notes:
     - label: "Best fit"
       text: "Teams facing complex backend work, unclear boundaries, or too much hidden context"

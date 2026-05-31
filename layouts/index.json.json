@@ -5,8 +5,8 @@
   {
     "title": {{ $page.Title | jsonify }},
     "permalink": {{ $page.RelPermalink | jsonify }},
-    "summary": {{ ($page.Description | default ($page.Summary | plainify)) | jsonify }},
-    "content": {{ ($page.Plain | truncate 400) | jsonify }}
+    "summary": {{ replace (replace (($page.Description | default ($page.Summary | plainify)) | htmlUnescape) "&ndash;" "-") "&mdash;" "-" | jsonify }},
+    "content": {{ replace (replace (($page.Plain | truncate 400) | htmlUnescape) "&ndash;" "-") "&mdash;" "-" | jsonify }}
   }
 {{- end -}}
 ]

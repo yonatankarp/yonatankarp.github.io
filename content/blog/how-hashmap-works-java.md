@@ -78,7 +78,25 @@ To answer this question, we must first dig into how exactly HashMap is working i
 
 When we add a new element to our map, the hash code of this key is calculated first. According to its value, a bucket is selected. That bucket will contain the value (in this case, our object). In case of collision (2 or more objects with the same hash code), the key and the value are stored as a pair using some sort of data structure (e.g., a linked list).
 
-![](/images/blog/003-hash-table-distribution.png)
+```mermaid
+flowchart LR
+    k1[key_1] --> HF(("Hash Function"))
+    k2[key_2] --> HF
+    k3[key_3] --> HF
+    subgraph Buckets
+        direction TB
+        b1[1]
+        b2[2]
+        b3[3]
+        b4[4]
+    end
+    HF --> b1
+    HF --> b2
+    HF --> b3
+    b1 --> v3["key_3 | value_3"]
+    b2 --> v2["key_2 | value_2"]
+    b3 --> v1["key_1 | value_1"]
+```
 
 Now, let’s assume that we want to get an element from the map. The following actions will happen:
 
@@ -93,7 +111,23 @@ Note that, in general, the assumption is that the hash function is evenly distri
 
 Yet, in our example, all the keys are going to have the same hash code and, thus, end up in the same bucket. Hence, getting a value from the map will need (in the worst case) scanning the entire linked list. That would take a linear time of `O(n)`.
 
-![](/images/blog/medium-1*8s8sB71hNyVPARiINfjO9A.png)
+```mermaid
+flowchart LR
+    k1[key_1] --> HF(("Hash Function"))
+    k2[key_2] --> HF
+    k3[key_3] --> HF
+    subgraph Buckets
+        direction TB
+        b1[1]
+        b2[2]
+        b3[3]
+        b4[4]
+    end
+    HF --> b1
+    b1 --> v1["key_1 | value_1"]
+    v1 --> v2["key_2 | value_2"]
+    v2 --> v3["key_3 | value_3"]
+```
 
 ### Can we improve the search time?
 
@@ -101,7 +135,23 @@ Our problem now is that the bucket uses a linked list, a data structure that is 
 
 We can replace our bucket implementation with a balanced binary tree. By doing so, we can ensure that each element in the bucket could be found with the worst-case complexity of `O(log(n))`. This is much better than what we had before.
 
-![](/images/blog/medium-1*84NP4Y4RVJgPtYtOfJS93g.png)
+```mermaid
+flowchart LR
+    k1[key_1] --> HF(("Hash Function"))
+    k2[key_2] --> HF
+    k3[key_3] --> HF
+    subgraph Buckets
+        direction TB
+        b1[1]
+        b2[2]
+        b3[3]
+        b4[4]
+    end
+    HF --> b1
+    b1 --> v1["key_1 | value_1"]
+    v1 --> v2["key_2 | value_2"]
+    v1 --> v3["key_3 | value_3"]
+```
 
 In fact, since Java 8, the internal implementation of HashMap was changed exactly like that.
 
@@ -113,7 +163,25 @@ Let’s start with the question, what is a HashSet?
 
 A HashSet is a set (an unordered collection of elements), where the same hash code only exists once.
 
-![](/images/blog/007-hash-set.png)
+```mermaid
+flowchart LR
+    e1[entry_1] --> HF(("Hash Function"))
+    e2[entry_2] --> HF
+    e3[entry_3] --> HF
+    subgraph Buckets
+        direction TB
+        b1[1]
+        b2[2]
+        b3[3]
+        b4[4]
+    end
+    HF --> b1
+    HF --> b2
+    HF --> b3
+    b1 --> x3["entry_3 | null"]
+    b2 --> x2["entry_2 | null"]
+    b3 --> x1["entry_1 | null"]
+```
 
 We can easily implement a `HashSet` using `HashMap`. We will do so by using our value for the set as the key for the map and null as the value. In fact, that’s again exactly the implementation Java chose.
 

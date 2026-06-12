@@ -1,4 +1,5 @@
 {{ define "main" }}
+<div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
 {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
 {{ with .Params.images.featured_image }}
 <div class="article-hero-bg" style="--cover: url('{{ . | relURL }}');" aria-hidden="true"></div>
@@ -18,6 +19,13 @@
         {{ range .GetTerms "tags" }}<a class="chip" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
       </div>
     </header>
+
+    {{ if and (ge .WordCount 600) (strings.Contains .TableOfContents "<li") }}
+    <details class="article-toc">
+      <summary>On this page</summary>
+      {{ .TableOfContents }}
+    </details>
+    {{ end }}
 
     <div class="article__content prose">
       {{ .Content }}

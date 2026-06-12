@@ -155,6 +155,7 @@ textarea {
   font-family: var(--display-font);
   font-size: 1.45rem;
   letter-spacing: -0.04em;
+  padding-inline-start: 12px;
 }
 
 .menu-toggle {

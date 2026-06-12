@@ -24,7 +24,8 @@
 <meta name="twitter:description" content="{{ $description }}">
 <meta name="twitter:image" content="{{ $image }}">
 <link rel="canonical" href="{{ .Permalink }}">
-<link rel="icon" href="{{ "images/favicon.svg" | relURL }}" type="image/svg+xml">
+<link rel="icon" type="image/png" href="{{ "images/favicon.png" | relURL }}">
+<link rel="apple-touch-icon" href="{{ "images/apple-touch-icon.png" | relURL }}">
 {{ if $css }}<link rel="stylesheet" href="{{ $css.RelPermalink }}">{{ end }}
 {{ if $chroma }}<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">{{ end }}
 <link rel="preconnect" href="https://fonts.googleapis.com">

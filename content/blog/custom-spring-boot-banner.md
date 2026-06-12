@@ -49,7 +49,8 @@ To convert images into ASCII art, follow these steps:
 * Add your image to the resources directory. For this article, we'll use the following logo:
     
 
-![Logo](/images/blog/medium-1*nF3paal9R_NCqIpeMEg_lA.png)
+<img src="/images/blog/medium-1*nF3paal9R_NCqIpeMEg_lA.png" alt="Logo" width="220" height="220" style="display:block;width:220px;max-width:100%;height:auto;margin-inline:auto;">
+
 
 * Add the following configuration to your [`application.properties`](http://application.properties) or `application.yml` file to specify the location of your image:
     

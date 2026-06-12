@@ -166,7 +166,7 @@ In the `components` section, we define the API models. In our case, we define a 
 ## Step 2: Use OpenApi Generator to Create the Code
 
 
-![](http://test.depilacjapabianice.pl/wp-content/uploads/2023/12/karsten-wurth-0w-uTa0Xz7w-unsplash-1024x683.jpg)
+![](/images/blog/wind-turbines-sunset.jpg)
 
 
 ### Setting Up OpenAPI Spec to The Project

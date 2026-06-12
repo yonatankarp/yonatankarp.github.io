@@ -113,13 +113,13 @@ Looking closely at the code exposed some interesting insights:
 ```text
 
     
-    ![](http://imgs.xkcd.com/clickdrag/2n1w.png)
-    ![](http://imgs.xkcd.com/clickdrag/1n1w.png)
-    ![](http://imgs.xkcd.com/clickdrag/2n2w.png)
-    ![](http://imgs.xkcd.com/clickdrag/1n2w.png)
-    ![](http://imgs.xkcd.com/clickdrag/2n3w.png)
-    ![](http://imgs.xkcd.com/clickdrag/1n3w.png)
-    ![](http://imgs.xkcd.com/clickdrag/3n3w.png)
+    ![](/images/blog/xkcd-clickdrag-2n1w.png)
+    ![](/images/blog/xkcd-clickdrag-1n1w.png)
+    ![](/images/blog/xkcd-clickdrag-2n2w.png)
+    ![](/images/blog/xkcd-clickdrag-1n2w.png)
+    ![](/images/blog/xkcd-clickdrag-2n3w.png)
+    ![](/images/blog/xkcd-clickdrag-1n3w.png)
+    ![](/images/blog/xkcd-clickdrag-3n3w.png)
     ...
 
 ```

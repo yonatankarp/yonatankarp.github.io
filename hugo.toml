@@ -146,7 +146,8 @@ weight = 4
   [markup.highlight]
     lineNos = false
     noClasses = false
-    style = "github"
+    guessSyntax = true
+    style = "github-dark"
 
 [imaging]
   resampleFilter = "Lanczos"

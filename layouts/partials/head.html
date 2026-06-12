@@ -7,6 +7,7 @@
 {{ with .Params.images }}{{ with .featured_image }}{{ $image = . | absURL }}{{ end }}{{ end }}
 {{ if not $image }}{{ $image = (printf "%simages/og-default.svg" .Site.BaseURL) }}{{ end }}
 {{ $css := resources.Get "css/custom.css" }}
+{{ $chroma := resources.Get "css/chroma.css" }}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $title }}</title>
@@ -25,6 +26,7 @@
 <link rel="canonical" href="{{ .Permalink }}">
 <link rel="icon" href="{{ "images/favicon.svg" | relURL }}" type="image/svg+xml">
 {{ if $css }}<link rel="stylesheet" href="{{ $css.RelPermalink }}">{{ end }}
+{{ if $chroma }}<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">{{ end }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">

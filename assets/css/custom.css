@@ -28,6 +28,9 @@
   /* Shared hero photo used on the home hero and every page header.
      Berlin TV Tower at night (Unsplash). Swap this one URL to change it everywhere. */
   --site-hero: url("/images/hero-berlin.webp");
+  /* Code blocks (matches the github-dark chroma scheme in chroma.css) */
+  --code-bg: #0d1117;
+  --code-text: #e6edf3;
 }
 
 :lang(he) {
@@ -2110,9 +2113,9 @@ h4 a,
   padding: 1.05rem 1.15rem;
   border-radius: var(--radius-md);
   overflow: auto;
-  background: color-mix(in srgb, var(--text) 90%, var(--bg));
-  color: oklch(0.95 0.01 85);
-  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  background: var(--code-bg);
+  color: var(--code-text);
+  border: 1px solid var(--border);
   box-shadow: var(--shadow-soft);
 }
 

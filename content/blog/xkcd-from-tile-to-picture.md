@@ -63,7 +63,7 @@ The first attempt to solve the problem was taking the easy way. I checked the RS
 The result was as follows:
 
 
-```
+```json
 {
   "month": "9",
   "num": 1110,
@@ -110,7 +110,7 @@ While checking the source code, I actually found a very interesting piece of cod
 Looking closely at the code exposed some interesting insights:
 
 
-```
+```text
 
     
     ![](http://imgs.xkcd.com/clickdrag/2n1w.png)
@@ -161,7 +161,7 @@ What can we do? Well, we can leverage the power of parallelism, and in our conte
 Instead of trying to fetch the entire matrix in one thread, I divided it into four equal segments and started to download the tiles of each segment:
 
 
-```
+```kotlin
 launch(Dispatchers.IO) {
     launch { fetcher.repeatInDirection(latitude = "n", longitude = "w") }
     launch { fetcher.repeatInDirection(latitude = "n", longitude = "e") }
@@ -183,7 +183,7 @@ The next part was a bit more challenging: taking the different tiles and combini
 Running the code given by ChatGPT ended with the exact same results I opened this article with, the library I used (`BufferedImage` by awt) throwing the following exception:
 
 
-```
+```text
 Exception in thread "main" java.lang.IllegalArgumentException: Dimensions (width=165888 height=28672) are too large
 	at java.desktop/java.awt.image.SampleModel.(SampleModel.java:131)
 	at java.desktop/java.awt.image.SinglePixelPackedSampleModel.(SinglePixelPackedSampleModel.java:144)
@@ -199,7 +199,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: Dimensions (width
 Looking at the codebase of the library, the issue was clear:
 
 
-```
+```java
 if (size > Integer.MAX_VALUE) {
     throw new IllegalArgumentException("Dimensions (width=" + w + " height=" + h + ") are too large");
 }

@@ -71,7 +71,7 @@ To define our API, we can use the Swagger Editor [[link](https://editor.swagger.
 Let's start by looking at our OpenApi specification, and then we will break it down step by step to understand each of the different parts of it.
 
 
-```
+```yaml
 openapi: 3.0.3
 
 info:
@@ -140,7 +140,7 @@ The `info` section's responsibility is to provide details about the API. The inf
 The `servers` section lists the available environments (e.g. dev, staging, and production) for users to select when referring to the API documentation.
 
 
-```
+```yaml
 servers:
 	 - url: https://dev.env
 	   description: The development environment.
@@ -184,7 +184,7 @@ To generate our code, we will use the OpenAPI Generator, specifically the OpenAP
 Now, let's add the OpenAPI Generator plugin to our project. Open your `build.gradle.kt` file and include the following plugin:
 
 
-```
+```kotlin
 plugins {
    id("org.openapi.generator") version "7.2.0"
 }
@@ -194,7 +194,7 @@ plugins {
 Next, configure the Gradle plugin to work with the settings we defined. We will generate our models into the `build` directory, ensuring that the auto-generated code is not committed to our project repository.
 
 
-```
+```kotlin
 val apiDirectoryPath = "$projectDir/src/main/resources/api"
 val openApiGenerateOutputDir =
     "${layout.buildDirectory.get()}/generated/openapi"
@@ -233,7 +233,7 @@ You can find the available generator flags in the [documentation](https://openap
 After the generation of the code, you might notice that the code currently shows errors due to the missing `jakarta.validation` package (or `javax.validation` for SpringBoot 2 users). To resolve this, add the following dependency to your `build.gradle.kt` file:
 
 
-```
+```kotlin
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
 }
@@ -246,7 +246,7 @@ dependencies {
 Note that you can override the generator's default templates if needed. You can copy the templates from the [generator repository](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator/src/main/resources), modify them, and set them in the plugin using the `templateDir` property.
 
 
-```
+```kotlin
 openApiGenerate {
     templateDir = "$apiDirectoryPath/templates"
 }
@@ -262,7 +262,7 @@ For more information about the plugin's configurations click [here](https://gith
 It's also recommended to add the following code to ensure that running the `clean` command removes the generated code as well. Additionally, make any Kotlin compilation command (e.g. `build` or` assmble`) command depends on the OpenAPI generation task to generate the latest code before the build.
 
 
-```
+```kotlin
 tasks {
     register("cleanGeneratedCodeTask") {
         description = "Removes generated Open API code"
@@ -287,7 +287,7 @@ tasks.withType {
 Now, we need to add our newly generated code to the classpath of our project.
 
 
-```
+```kotlin
 sourceSets.main {
     kotlin {
         srcDir("$openApiGenerateOutputDir/src/main/kotlin")
@@ -317,7 +317,7 @@ Running the `build` command in Gradle should generate the code in your project f
 This step is the easiest so far. We will implement our generated interface, `GreetingApi` in our controller. Let's write the code!
 
 
-```
+```kotlin
 @RestController
 class GreetingApiController : GreetingApi {
 
@@ -353,7 +353,7 @@ Finally, let's add some tests for our API. Since there's no business logic in th
 ### Writing the Integration Test Code
 
 
-```
+```kotlin
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest
 @AutoConfigureMockMvc

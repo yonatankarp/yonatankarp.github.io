@@ -1510,6 +1510,59 @@ h4 a,
   text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
 }
 
+/* "Keep reading" related-posts widget at the end of each blog post. */
+.related-posts {
+  margin-top: clamp(2.5rem, 6vw, 4rem);
+  padding-top: clamp(2rem, 4vw, 3rem);
+  border-top: 1px solid var(--border);
+}
+
+.related-posts__title {
+  margin: 0 0 1.25rem;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.related-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.related-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 12rem;
+  padding: 1.1rem;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+  text-decoration: none;
+  transition: transform var(--transition);
+}
+
+.related-card:hover {
+  transform: translateY(-3px);
+}
+
+.related-card__date {
+  color: var(--hero-soft);
+  font-size: 0.8rem;
+}
+
+.related-card h3 {
+  margin: 0.35rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.25;
+  color: var(--hero-text);
+}
+
+.related-card:hover h3 {
+  color: var(--accent-strong);
+}
+
 .timeline-item,
 .education-item,
 .project-row,

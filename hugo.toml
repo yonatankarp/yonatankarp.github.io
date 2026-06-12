@@ -15,6 +15,18 @@ pagerSize = 5
   tag = "tags"
   category = "categories"
 
+# Related-content engine for the "Keep reading" widget on blog posts.
+[related]
+  threshold = 80
+  includeNewer = true
+  toLower = true
+  [[related.indices]]
+    name = "tags"
+    weight = 100
+  [[related.indices]]
+    name = "date"
+    weight = 10
+
 disableKinds = ["footerSection"]
 
 [module]

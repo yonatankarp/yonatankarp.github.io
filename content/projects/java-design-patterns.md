@@ -5,6 +5,9 @@ group: "contribution"
 draft: false
 link: "https://github.com/iluwatar/java-design-patterns/pull/1970"
 tech: ["Java"]
+build:
+  render: never
+  list: local
 params:
     button:
         icon: "icon-arrow-right"

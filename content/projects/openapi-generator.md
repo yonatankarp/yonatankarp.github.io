@@ -1,8 +1,10 @@
 ---
 date: 2023-08-01T00:00:00+01:00
 title: "openapi-generator (contributor)"
+group: "contribution"
 draft: false
 link: "https://github.com/OpenAPITools/openapi-generator"
+tech: ["Kotlin", "Spring Boot", "OpenAPI"]
 params:
     button:
         icon: "icon-arrow-right"

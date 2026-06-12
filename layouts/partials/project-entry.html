@@ -1,0 +1,32 @@
+{{- $p := .page -}}
+{{- $media := .media -}}
+{{- $img := false -}}
+{{- if $media -}}
+  {{- $base := printf "images/projects/%s" $p.File.BaseFileName -}}
+  {{- $img = or (resources.Get (printf "%s.png" $base)) (resources.Get (printf "%s.jpg" $base)) (resources.Get (printf "%s.webp" $base)) -}}
+{{- end -}}
+{{- $label := $p.Params.button.btnText | default "View" -}}
+{{- $title := $p.Title | replaceRE `\s*\(contributor\)$` "" -}}
+<li class="project-entry reveal{{ if not $img }} project-entry--no-media{{ end }}">
+  <a class="project-entry__link" href="{{ $p.Params.link }}" target="_blank" rel="noopener">
+    {{ with $img }}
+    {{ $thumb := .Fill "640x400" }}
+    <span class="project-entry__media">
+      <img src="{{ $thumb.RelPermalink }}" width="{{ $thumb.Width }}" height="{{ $thumb.Height }}" alt="" loading="lazy" decoding="async">
+    </span>
+    {{ end }}
+    <span class="project-entry__body">
+      <span class="project-entry__date">{{ $p.Params.years | default ($p.Date.Format "2006") }}</span>
+      <span class="project-entry__head">
+        <span class="project-entry__title">{{ $title }}</span>
+        <span class="project-entry__cta">{{ $label }}<span class="project-entry__arrow" aria-hidden="true">&#8594;</span></span>
+      </span>
+      <span class="project-entry__desc">{{ $p.Summary | plainify }}</span>
+      {{ with $p.Params.tech }}
+      <span class="project-entry__tech">
+        {{ range . }}<span class="tech-tag">{{ . }}</span>{{ end }}
+      </span>
+      {{ end }}
+    </span>
+  </a>
+</li>

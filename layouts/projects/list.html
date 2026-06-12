@@ -1,0 +1,32 @@
+{{ define "main" }}
+<section class="shell page-head reveal-group">
+  <div class="page-head__copy reveal">
+    <p class="section-kicker">Projects</p>
+    <h1>{{ .Title }}</h1>
+    {{ with .Content }}<p>{{ . | plainify }}</p>{{ end }}
+  </div>
+</section>
+
+<section class="shell projects-page reveal-group">
+  {{ $mine := where .Pages "Params.group" "!=" "contribution" }}
+  {{ $contributions := where .Pages "Params.group" "contribution" }}
+
+  {{ with $mine }}
+  <h2 class="project-group__title">My projects</h2>
+  <ol class="project-list">
+    {{ range sort . "Date" "desc" }}
+    {{ partial "project-entry.html" (dict "page" . "media" true) }}
+    {{ end }}
+  </ol>
+  {{ end }}
+
+  {{ with $contributions }}
+  <h2 class="project-group__title">Open-source contributions</h2>
+  <ol class="project-list project-list--compact">
+    {{ range sort . "Date" "desc" }}
+    {{ partial "project-entry.html" (dict "page" . "media" false) }}
+    {{ end }}
+  </ol>
+  {{ end }}
+</section>
+{{ end }}

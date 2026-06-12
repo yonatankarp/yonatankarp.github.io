@@ -1,8 +1,11 @@
 ---
 date: 2025-12-01T00:00:00+01:00
 title: "ff4k"
+group: "project"
 draft: false
 link: "https://yonatankarp.github.io/ff4k/"
+tech: ["Kotlin", "Multiplatform", "Coroutines"]
+years: "2025–present"
 params:
     button:
         icon: "icon-arrow-right"

@@ -118,23 +118,6 @@ name = "Search"
 URL = "/search"
 weight = 9
 
-[[menus.footer]]
-name = "Home"
-URL = "/"
-weight = 1
-[[menus.footer]]
-name = "About"
-URL = "/#about"
-weight = 2
-[[menus.footer]]
-name = "Projects"
-URL = "/#client-and-work-section"
-weight = 3
-[[menus.footer]]
-name = "Contact"
-URL = "/#contact"
-weight = 4
-
 # --- Markup & Performance ---
 
 [markup]

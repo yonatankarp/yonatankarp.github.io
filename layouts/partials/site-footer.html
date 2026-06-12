@@ -2,15 +2,8 @@
   <div class="shell site-footer__inner">
     <div>
       <p class="site-footer__title">Yonatan Karp-Rudin</p>
-      <p class="site-footer__copy">Staff Software Engineer in Berlin, writing, building, and improving systems people rely on.</p>
+      <p class="site-footer__copy">Staff Software Engineer · Berlin</p>
     </div>
-    <nav aria-label="Footer navigation">
-      <ul class="footer-links">
-        {{ range .Site.Menus.footer }}
-        <li><a href="{{ .URL }}">{{ .Name }}</a></li>
-        {{ end }}
-      </ul>
-    </nav>
     <div class="footer-meta">
       <div class="footer-social" aria-label="Social links">
         <a class="share-btn" href="https://github.com/yonatankarp" target="_blank" rel="noopener" aria-label="GitHub">
@@ -27,7 +20,6 @@
         </a>
       </div>
       <a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>
-      <span>Berlin, Germany</span>
     </div>
   </div>
 </footer>

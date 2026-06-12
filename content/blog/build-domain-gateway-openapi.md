@@ -37,7 +37,35 @@ A domain gateway is a private case of the API gateway pattern. The website [java
 Like an API gateway, a domain gateway acts as a facade for clients. It allows aggregating calls to the backend into a single call for the clients. Additionally, it enables replacing backend services without impacting the clients. The following illustration shows a possible example of the domain gateway pattern:
 
 
-![](/images/blog/kb-001-flow-diagram-1024x723.png)Domain Flow Diagram
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant AG as API Gateway
+    participant DG1 as Domain Gateway 1
+    participant SA as Service A
+    participant SB as Service B
+    participant DG2 as Domain Gateway 2
+    participant SC as Service C
+    participant SD as Service D
+    C->>AG: ask for A
+    AG->>DG1: ask domain for A response
+    DG1->>SA: call
+    DG1->>SB: call
+    SA-->>DG1: result
+    SB-->>DG1: result
+    DG1-->>AG: A response
+    AG-->>C: A response
+    C->>AG: ask for B
+    AG->>DG2: ask domain for B response
+    DG2->>SC: call
+    DG2->>SD: call
+    SC-->>DG2: result
+    SD-->>DG2: result
+    DG2-->>AG: B response
+    AG-->>C: B response
+```
+
+_Domain flow diagram_
 
 
 Otherwise, if you prefer a class diagram, this illustration might make more sense:

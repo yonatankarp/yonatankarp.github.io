@@ -32,6 +32,42 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Copy-to-clipboard buttons on code blocks
+    document.querySelectorAll('.article__content pre').forEach((pre) => {
+      if (pre.querySelector('.code-copy')) return;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'code-copy';
+      btn.textContent = 'Copy';
+      btn.setAttribute('aria-label', 'Copy code to clipboard');
+      btn.addEventListener('click', async () => {
+        const code = pre.querySelector('code') || pre;
+        try {
+          await navigator.clipboard.writeText(code.innerText.replace(/\n$/, ''));
+          btn.textContent = 'Copied';
+          setTimeout(() => { btn.textContent = 'Copy'; }, 1600);
+        } catch {
+          btn.textContent = 'Error';
+        }
+      });
+      pre.appendChild(btn);
+    });
+
+    // Reading progress bar (article pages)
+    const progress = document.getElementById('reading-progress');
+    const articleBody = document.querySelector('.article__content');
+    if (progress && articleBody && !media.matches) {
+      const update = () => {
+        const start = articleBody.offsetTop;
+        const end = start + articleBody.offsetHeight - window.innerHeight;
+        const pct = end > start ? ((window.scrollY - start) / (end - start)) * 100 : 0;
+        progress.style.width = Math.min(100, Math.max(0, pct)) + '%';
+      };
+      update();
+      window.addEventListener('scroll', update, { passive: true });
+      window.addEventListener('resize', update, { passive: true });
+    }
+
     const searchInput = document.getElementById('site-search');
     const searchResults = document.getElementById('search-results');
     if (searchInput && searchResults) {

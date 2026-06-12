@@ -2162,6 +2162,7 @@ h4 a,
 }
 
 .prose pre {
+  position: relative;
   padding: 1.05rem 1.15rem;
   border-radius: var(--radius-md);
   overflow: auto;
@@ -2169,6 +2170,85 @@ h4 a,
   color: var(--code-text);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-soft);
+}
+
+/* Copy-to-clipboard button on code blocks */
+.code-copy {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  padding: 0.25rem 0.55rem;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--code-text);
+  background: color-mix(in srgb, #ffffff 8%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 16%, transparent);
+  border-radius: 0.4rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition), background-color var(--transition);
+}
+
+.prose pre:hover .code-copy,
+.code-copy:focus-visible {
+  opacity: 1;
+}
+
+.code-copy:hover {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Reading progress bar (top of article pages) */
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  background: var(--accent);
+  z-index: 60;
+  transition: width 80ms linear;
+  pointer-events: none;
+}
+
+/* "On this page" table of contents */
+.article-toc {
+  margin: 0 0 2rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.article-toc > summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.article-toc nav {
+  margin-top: 0.75rem;
+}
+
+.article-toc ul {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+}
+
+.article-toc li {
+  margin: 0.2rem 0;
+}
+
+.article-toc a {
+  color: var(--hero-soft);
+  text-decoration: none;
+}
+
+.article-toc a:hover {
+  color: var(--accent-strong);
 }
 
 .prose :not(pre) > code {

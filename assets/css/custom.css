@@ -2771,7 +2771,7 @@ html[dir="rtl"] .lang-switch {
 .contact-fit li {
   position: relative;
   padding-inline-start: 1.1rem;
-  color: var(--hero-soft);
+  color: color-mix(in srgb, var(--bg) 85%, transparent);
 }
 
 .contact-fit li::before {

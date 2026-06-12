@@ -1,53 +1,38 @@
 /* Global design system */
+/* Dark-only palette: near-black cool background with a coral accent (inspired by darrenonthe.net). */
 :root {
-  --bg: oklch(0.975 0.006 250);
-  --surface: oklch(0.995 0.003 250 / 0.92);
-  --surface-strong: oklch(1 0 0);
-  --surface-muted: oklch(0.94 0.012 245);
-  --text: oklch(0.22 0.025 250);
-  --muted: oklch(0.48 0.025 250);
-  --accent: oklch(0.58 0.12 190);
-  --accent-strong: oklch(0.42 0.11 195);
-  --accent-warm: oklch(0.72 0.14 65);
-  --hero-bg: oklch(0.18 0.03 250);
-  --hero-text: oklch(0.975 0.006 250);
-  --hero-soft: oklch(0.88 0.012 250);
-  --hero-muted: oklch(0.73 0.018 250);
-  --border: oklch(0.88 0.012 250);
-  --shadow: 0 28px 80px rgba(15, 23, 42, 0.09);
-  --shadow-soft: 0 12px 36px rgba(15, 23, 42, 0.055);
+  --bg: oklch(0.145 0.012 280);
+  --surface: oklch(0.2 0.012 280 / 0.86);
+  --surface-strong: oklch(0.225 0.012 280);
+  --surface-muted: oklch(0.175 0.012 280);
+  --text: oklch(0.95 0.005 280);
+  --muted: oklch(0.74 0.014 280);
+  --accent: oklch(0.7 0.18 30);
+  --accent-strong: oklch(0.78 0.16 33);
+  --accent-warm: oklch(0.8 0.13 65);
+  --hero-bg: oklch(0.11 0.014 280);
+  --hero-text: oklch(0.97 0.005 280);
+  --hero-soft: oklch(0.86 0.01 280);
+  --hero-muted: oklch(0.72 0.016 280);
+  --border: oklch(0.3 0.012 280);
+  --shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+  --shadow-soft: 0 12px 36px rgba(0, 0, 0, 0.3);
   --radius-xl: 2rem;
   --radius-lg: 1.5rem;
   --radius-md: 1rem;
   --radius-sm: 0.75rem;
-  --shell: min(1240px, calc(100vw - 2rem));
-  --body-font: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --display-font: "Literata", Georgia, serif;
+  --shell: min(1240px, calc(100vw - 5rem));
+  --body-font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --display-font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --transition: 220ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-:root[data-theme="dark"] {
-  --bg: oklch(0.16 0.014 250);
-  --surface: oklch(0.22 0.014 250 / 0.84);
-  --surface-strong: oklch(0.255 0.014 250);
-  --surface-muted: oklch(0.19 0.014 250);
-  --text: oklch(0.94 0.006 250);
-  --muted: oklch(0.76 0.018 250);
-  --accent: oklch(0.72 0.095 190);
-  --accent-strong: oklch(0.8 0.09 190);
-  --accent-warm: oklch(0.78 0.13 70);
-  --hero-bg: oklch(0.13 0.018 250);
-  --hero-text: oklch(0.97 0.006 250);
-  --hero-soft: oklch(0.86 0.012 250);
-  --hero-muted: oklch(0.72 0.018 250);
-  --border: oklch(0.31 0.014 250);
-  --shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
-  --shadow-soft: 0 12px 36px rgba(0, 0, 0, 0.18);
+  /* Shared hero photo used on the home hero and every page header.
+     Berlin TV Tower at night (Unsplash). Swap this one URL to change it everywhere. */
+  --site-hero: url("/images/hero-berlin.webp");
 }
 
 :lang(he) {
   --body-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Hebrew", sans-serif;
-  --display-font: Georgia, "Times New Roman", serif;
+  --display-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Hebrew", sans-serif;
 }
 
 * {
@@ -93,6 +78,13 @@ a {
 a:hover,
 a:focus-visible {
   color: var(--accent-strong);
+}
+
+/* Visible keyboard focus across the whole site. */
+:where(a, button, input, textarea, select, summary, .button, .lang-pill, .chip, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 button,
@@ -193,6 +185,11 @@ textarea {
   margin: 0;
 }
 
+/* Fewer menu items now, so let them breathe. */
+.primary-nav ul {
+  gap: clamp(1.5rem, 2.4vw, 2.6rem);
+}
+
 .primary-nav a,
 .footer-links a {
   text-decoration: none;
@@ -221,8 +218,7 @@ textarea {
   flex-wrap: wrap;
 }
 
-.lang-pill,
-.theme-toggle {
+.lang-pill {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--muted);
@@ -237,25 +233,8 @@ textarea {
   background: var(--surface-strong);
 }
 
-.theme-toggle {
-  display: inline-flex;
-  gap: 0.45rem;
-  align-items: center;
-  cursor: pointer;
-}
-
-.theme-toggle__mark {
-  width: 0.8rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: inset -0.22rem -0.16rem 0 color-mix(in srgb, var(--text) 28%, transparent);
-}
-
 .lang-pill:hover,
 .lang-pill:focus-visible,
-.theme-toggle:hover,
-.theme-toggle:focus-visible,
 .button:hover,
 .button:focus-visible,
 .text-link:hover,
@@ -291,7 +270,7 @@ section[id] {
   gap: clamp(1.5rem, 4vw, 4rem);
   min-height: min(76dvh, 780px);
   align-items: center;
-  width: min(1460px, calc(100vw - 2rem));
+  width: min(1460px, calc(100vw - 5rem));
   margin-top: clamp(1rem, 2vw, 1.8rem);
   padding: clamp(1.5rem, 4vw, 3.8rem);
   border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
@@ -301,6 +280,86 @@ section[id] {
   color: var(--hero-text);
   background: var(--hero-bg);
   box-shadow: var(--shadow);
+}
+
+/* Full-bleed hero photo spanning the top of the page, fading into the dark
+   (like darrenonthe.net). Swap the image URL for whatever hero photo you prefer. */
+.page-home {
+  position: relative;
+}
+
+.page-home::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: min(880px, 92vh);
+  z-index: -1;
+  background-image:
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--bg) 42%, transparent) 0%,
+      color-mix(in srgb, var(--bg) 70%, transparent) 52%,
+      var(--bg) 100%),
+    var(--site-hero);
+  background-size: cover;
+  background-position: center top;
+  pointer-events: none;
+}
+
+/* Inner pages use a quiet typographic header on the flat background.
+   The hero photo is reserved for the homepage hero only. */
+
+/* On the home page the hero sits directly on the photo (no card chrome). */
+.page-home .hero {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Blog post: cover photo as a full-bleed hero behind the title, fading to dark. */
+.type-blog {
+  position: relative;
+}
+
+.article-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  height: min(820px, 86vh);
+  z-index: -1;
+  background-image:
+    linear-gradient(to bottom,
+      color-mix(in srgb, var(--bg) 8% , transparent) 0%,
+      color-mix(in srgb, var(--bg) 26% , transparent) 50%,
+      color-mix(in srgb, var(--bg) 58% , transparent) 80%,
+      var(--bg) 100%),
+    var(--cover);
+  background-size: cover;
+  background-position: center;
+  pointer-events: none;
+}
+
+/* With a hero photo, the title block sits low on the faded photo and the
+   article body drops its card chrome so it reads on the dark page. */
+.article-shell.has-hero-bg {
+  padding-top: clamp(9rem, 24vh, 17rem);
+}
+
+.type-blog .article {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Keep the title legible now that more of the photo shows through. */
+.article-shell.has-hero-bg .article__header h1,
+.article-shell.has-hero-bg .article__meta,
+.article-shell.has-hero-bg .article__summary {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
 }
 
 .hero__copy {
@@ -358,9 +417,19 @@ section[id] {
 .cv-section,
 .search-results,
 .search-result {
+  background: transparent;
+}
+
+/* Quiet, flat surfaces only where a block genuinely needs separation
+   (floating panels and card grids). No borders, no shadows. */
+.hero__visual,
+.quote-card,
+.blog-sidebar,
+.featured-article,
+.work-item,
+.writing-card,
+.search-result {
   background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-soft);
 }
 
 .hero__copy,
@@ -1363,6 +1432,87 @@ h4 a,
 .writing-card,
 .writing-lead {
   padding: 1.4rem;
+}
+
+/* Homepage post tiles: the post's own cover photo as the card background,
+   faint (~40%) at rest, clarifying on hover/focus to invite the click. */
+.writing-lead.has-cover,
+.writing-card.has-cover {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+  isolation: isolate;
+  border: 0;
+  background: var(--surface-muted);
+}
+
+/* The cover image layer — dimmed at rest, clear on hover. */
+.has-cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--cover);
+  background-size: cover;
+  background-position: center;
+  opacity: 0.62;
+  transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.has-cover:hover::before,
+.has-cover:focus-within::before {
+  opacity: 1;
+  transform: scale(1.03);
+}
+
+/* Readability scrim: keeps the text legible at the bottom in either state. */
+.has-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to top,
+    color-mix(in srgb, var(--bg) 88%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 45%, transparent) 52%,
+    transparent 100%);
+}
+
+.has-cover > * {
+  position: relative;
+  z-index: 2;
+}
+
+.writing-lead.has-cover {
+  min-height: 24rem;
+}
+
+.writing-card.has-cover {
+  min-height: 13rem;
+}
+
+.has-cover .writing-card__date {
+  color: var(--hero-soft);
+}
+
+.has-cover h3 a {
+  color: var(--hero-text);
+}
+
+.has-cover h3 a:hover,
+.has-cover h3 a:focus-visible {
+  color: var(--accent-strong);
+}
+
+.has-cover p {
+  color: var(--hero-soft);
+}
+
+.has-cover h3,
+.has-cover > p {
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
 }
 
 .timeline-item,
@@ -2548,8 +2698,7 @@ h4 a,
   }
 
   .button,
-  .lang-pill,
-  .theme-toggle {
+  .lang-pill {
     width: 100%;
     justify-content: center;
   }
@@ -2599,4 +2748,93 @@ html[dir="rtl"] .contact-panel__details,
 html[dir="rtl"] .footer-links,
 html[dir="rtl"] .lang-switch {
   justify-content: flex-start;
+}
+
+/* "Best fit when" list, folded into the contact band from the old Fit section. */
+.contact-fit {
+  margin-top: 1.5rem;
+}
+
+.contact-fit__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.6rem;
+}
+
+.contact-fit ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.contact-fit li {
+  position: relative;
+  padding-inline-start: 1.1rem;
+  color: var(--hero-soft);
+}
+
+.contact-fit li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.62em;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Printable CV: force light, ink-friendly output and drop screen-only chrome. */
+@media print {
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-strong: #ffffff;
+    --surface-muted: #ffffff;
+    --text: #111111;
+    --muted: #444444;
+    --hero-text: #111111;
+    --hero-soft: #222222;
+    --hero-muted: #444444;
+    --border: #cccccc;
+    --shadow: none;
+    --shadow-soft: none;
+  }
+
+  .site-header,
+  .site-footer,
+  .cv-header::before,
+  .page-head::before {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #111;
+  }
+
+  .cv-header h1,
+  .page-head h1,
+  h1, h2, h3, h4 {
+    text-shadow: none !important;
+    color: #111 !important;
+  }
+
+  .cv-sheet,
+  .cv-section,
+  .cv-header {
+    background: #fff !important;
+    box-shadow: none !important;
+    border-color: #ddd !important;
+  }
+
+  a {
+    color: #111 !important;
+    text-decoration: none;
+  }
 }

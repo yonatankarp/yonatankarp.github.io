@@ -103,14 +103,6 @@ name = "About"
 URL = "/#about"
 weight = 2
 [[menus.header]]
-name = "Experience"
-URL = "/#experience"
-weight = 3
-[[menus.header]]
-name = "Skills"
-URL = "/skills"
-weight = 4
-[[menus.header]]
 name = "Projects"
 URL = "/#client-and-work-section"
 weight = 5
@@ -122,11 +114,6 @@ weight = 6
 name = "CV"
 URL = "/cv/"
 weight = 7
-[[menus.header]]
-pre = "email"
-name = "Contact"
-URL = "/#contact"
-weight = 8
 [[menus.header]]
 pre = "search"
 name = "Search"

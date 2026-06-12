@@ -94,25 +94,6 @@
   </div>
 </section>
 
-<section class="shell outcome-section reveal-group" aria-labelledby="outcome-title">
-  <div class="section-heading section-heading--split reveal">
-    <div>
-      <p class="section-kicker">{{ $home.outcomes.kicker }}</p>
-      <h2 id="outcome-title">{{ $home.outcomes.title }}</h2>
-    </div>
-    <p>A practical way of working: make the problem understandable, build the path, and leave behind reusable context for the next engineer.</p>
-  </div>
-  <div class="outcome-grid">
-    {{ range $index, $item := $home.outcomes.items }}
-    <article class="outcome-card reveal">
-      <span>{{ printf "%02d" (add $index 1) }}</span>
-      <h3>{{ .title }}</h3>
-      <p>{{ .text }}</p>
-    </article>
-    {{ end }}
-  </div>
-</section>
-
 <section id="proof" class="shell proof-section reveal-group" aria-labelledby="proof-title">
   <div class="section-heading reveal">
     <p class="section-kicker">{{ $home.proof.kicker }}</p>
@@ -152,18 +133,6 @@
   {{ end }}
 </section>
 
-<section class="shell fit-band reveal-group" aria-labelledby="fit-title">
-  <div class="fit-band__copy reveal">
-    <p class="section-kicker">{{ $home.fit.kicker }}</p>
-    <h2 id="fit-title">{{ $home.fit.title }}</h2>
-  </div>
-  <div class="fit-list">
-    {{ range $home.fit.items }}
-    <p class="reveal">{{ . }}</p>
-    {{ end }}
-  </div>
-</section>
-
 <section id="about" class="shell about-grid reveal-group">
   <div class="about-grid__image reveal">
     {{ with $aboutImage }}<img src="{{ .RelPermalink }}" alt="Yonatan Karp-Rudin">{{ end }}
@@ -193,7 +162,7 @@
     <h2>{{ $home.experience.title }}</h2>
   </div>
   <div class="timeline">
-    {{ range first 6 $experience }}
+    {{ range first 2 $experience }}
     <article class="timeline-item reveal">
       <div class="timeline-item__meta">
         <p>{{ .Params.duration }}</p>
@@ -206,6 +175,7 @@
       </div>
     </article>
     {{ end }}
+    <p class="timeline-more reveal"><a class="text-link" href="/cv/">See the full history on the CV →</a></p>
   </div>
 </section>
 
@@ -238,7 +208,7 @@
   </div>
   <div class="writing-showcase">
     {{ with $leadPost }}
-    <article class="writing-lead reveal">
+    <article class="writing-lead reveal{{ with .Params.images.featured_image }} has-cover{{ end }}"{{ with .Params.images.featured_image }} style="--cover: url('{{ . | relURL }}');"{{ end }}>
       <p class="writing-card__date">{{ .Date.Format "Jan 2, 2006" }}</p>
       <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
       <p>{{ .Description | default (.Summary | plainify) }}</p>
@@ -247,7 +217,7 @@
     {{ end }}
     <div class="writing-stack">
       {{ range $secondaryPosts }}
-      <article class="writing-card reveal">
+      <article class="writing-card reveal{{ with .Params.images.featured_image }} has-cover{{ end }}"{{ with .Params.images.featured_image }} style="--cover: url('{{ . | relURL }}');"{{ end }}>
         <p class="writing-card__date">{{ .Date.Format "Jan 2, 2006" }}</p>
         <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
         <p>{{ .Description | default (.Summary | plainify) }}</p>
@@ -291,6 +261,12 @@
       <ol class="contact-priority">
         {{ range . }}<li>{{ . }}</li>{{ end }}
       </ol>
+      {{ end }}
+      {{ with $home.fit.items }}
+      <div class="contact-fit">
+        <p class="contact-fit__label">{{ $home.fit.title }}</p>
+        <ul>{{ range . }}<li>{{ . }}</li>{{ end }}</ul>
+      </div>
       {{ end }}
       <div class="contact-band__facts">
         {{ range $home.contact.facts }}

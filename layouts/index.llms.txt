@@ -1,6 +1,6 @@
 # {{ site.Title }}
 
-> {{ site.Params.siteDescription | default site.Params.description }}
+> {{ site.Params.description }}
 
 ## Key pages
 - [Projects]({{ "/projects/" | absURL }}): Libraries, tools, open-source contributions, and a few games.

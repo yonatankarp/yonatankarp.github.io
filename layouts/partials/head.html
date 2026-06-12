@@ -6,8 +6,8 @@
 {{ $image := "" }}
 {{ with .Params.images }}{{ with .featured_image }}{{ $image = . | absURL }}{{ end }}{{ end }}
 {{ if not $image }}{{ $image = (printf "%simages/og-default.svg" .Site.BaseURL) }}{{ end }}
-{{ $css := resources.Get "css/custom.css" }}
-{{ $chroma := resources.Get "css/chroma.css" }}
+{{ $css := resources.Get "css/custom.css" | minify | fingerprint }}
+{{ $chroma := resources.Get "css/chroma.css" | minify | fingerprint }}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $title }}</title>

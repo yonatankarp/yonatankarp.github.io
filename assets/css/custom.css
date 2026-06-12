@@ -1345,10 +1345,6 @@ h4 a,
 .cv-item > div,
 .contact-panel__copy,
 .contact-panel__actions,
-.footer-meta {
-  min-width: 0;
-}
-
 .timeline-item__meta p,
 .project-row__meta p,
 .education-item p,
@@ -2582,23 +2578,15 @@ h4 a,
   font-weight: 800;
 }
 
-.site-footer__copy,
-.footer-meta {
+.site-footer__copy {
   margin: 0;
   color: var(--muted);
-}
-
-.footer-meta {
-  display: grid;
-  gap: 0.35rem;
-  text-align: end;
 }
 
 .footer-social {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  margin-bottom: 0.4rem;
 }
 
 .reveal {
@@ -2818,9 +2806,12 @@ h4 a,
   }
 
   .site-footer__inner,
-  .footer-meta,
   .article__footer {
     text-align: start;
+  }
+
+  .footer-social {
+    justify-content: flex-start;
   }
 
 

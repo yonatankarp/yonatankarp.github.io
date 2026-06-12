@@ -54,7 +54,7 @@ More specifically, we will use OpenTelemetry [[Link](https://opentelemetry.io/)]
 > That means that OpenTelemetry is a framework that allows you to easily add instrumentation to your codebase and collect the data in a vendor-agnostic way. It supports multiple programming languages and provides a unified API for collecting and exporting telemetry data to various backends.OpenTelemetry also provides a set of libraries and integrations that make it easy to instrument popular frameworks, libraries, and services. With OpenTelemetry, developers can easily add telemetry to their services and gain visibility into their systems' performance and behavior.For more information about observability, check out a great article ["How Observability Changed My (Developer) Life"](https://kotlinbackend.com/how-observability-changed-my-developer-life/) written by a colleague of mine, [Mariusz Sołtysiak](https://kotlinbackend.com/author/mariuszsoltysiak/).
 
 
-## Part 1 – Building the Client Library
+## Part 1: Building the Client Library
 
 
 We'll kick off by developing our client library named `cat-fact-client`. This library will fetch cat facts from the [Cat Facts API](https://catfact.ninja/fact).
@@ -66,16 +66,16 @@ At its core, our library is straightforward. It endeavors to fetch a specified n
 Our library will utilize:
 
 
-- [Kotlin](https://kotlinlang.org/) – The crux of our library, it will be scripted in Kotlin using coroutines.
+- [Kotlin](https://kotlinlang.org/): The crux of our library, it will be scripted in Kotlin using coroutines.
 
 
-- [Gradle](https://gradle.org/) – Our trusted build system and dependency manager.
+- [Gradle](https://gradle.org/): Our trusted build system and dependency manager.
 
 
-- [Retrofit](https://square.github.io/retrofit/) – Our choice for an HTTP client.
+- [Retrofit](https://square.github.io/retrofit/): Our choice for an HTTP client.
 
 
-- [Jackson](https://github.com/FasterXML/jackson) – Essential for serialization, particularly as we’ll be integrating with [Spring Boot](https://spring.io/projects/spring-boot) which defaults to Jackson.
+- [Jackson](https://github.com/FasterXML/jackson): Essential for serialization, particularly as we’ll be integrating with [Spring Boot](https://spring.io/projects/spring-boot) which defaults to Jackson.
 
 
 Let’s get coding!
@@ -210,7 +210,7 @@ This piece isn’t tailored to guide library publishing. However, if you’re in
 Our library's artifact, version `0.1.0`, is available on GitHub packages and awaits your exploration. An updated version (`0.2.0`) offers mock implementations, bypassing internet prerequisites with a few breaking changes. Nevertheless, the core remains unaltered
 
 
-## Part 2 – Building the Service
+## Part 2: Building the Service
 
 
 All code examples related to this service are available [here](https://github.com/yonatankarp/cat-fact-service/tree/business-logic-implementation) on the branch `business-logic-implementation`.
@@ -609,7 +609,7 @@ networks:
 ```
 
 
-## Part 3 – Setting Up Instrumentation with OpenTelemetry
+## Part 3: Setting Up Instrumentation with OpenTelemetry
 
 
 Code examples related to this service can be found [here](https://github.com/yonatankarp/cat-fact-service/tree/add-instumentation) on the branch `add-instumentation`.
@@ -675,10 +675,10 @@ This section will detail how to equip our service with OpenTelemetry, which is t
 To achieve this, we will add the following to our project:
 
 
-- OpenTelemetry Agent – for automatic tracing
+- OpenTelemetry Agent: for automatic tracing
 
 
-- OpenTelemetry SDK – for manual tracing
+- OpenTelemetry SDK: for manual tracing
 
 
 - A Gradle task to fetch the OpenTelemetry Java agent before every build
@@ -915,7 +915,7 @@ In this article we've followed the steps of building our business logic in a lib
 ## Acknowledgments
 
 
-[Mariusz Sołtysiak](https://medium.com/@mariuszsoltysiak) – for moral support, review, and suggestions while writing this article.
+[Mariusz Sołtysiak](https://medium.com/@mariuszsoltysiak): for moral support, review, and suggestions while writing this article.
 
 
 ## Credits

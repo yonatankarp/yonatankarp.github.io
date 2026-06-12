@@ -83,11 +83,35 @@ What would be printed here? If your answer was `Sorry, nobody is home :(`, you'r
 
 The problem lies in using a mutable class as the key in a HashMap and then modifying it afterward. As I mentioned in my previous article, when you add a new key/value pair to a HashMap, the key's hash is calculated, and the pair is stored in the relevant bucket:
 
-![](/images/blog/001-hashmap-insert-object.png)
+```mermaid
+flowchart LR
+    k["1 | I am a nice int value!"] --> HF(("Hash Function"))
+    subgraph Buckets
+        direction TB
+        b1[1]
+        b2[2]
+        b3[3]
+        b4[4]
+    end
+    HF --> b1
+    b1 --> v["1 | I am a nice int value!"]
+```
 
 However, in our case, we changed the value of the class. So when we calculate the hash code of the updated object, it will likely end up in a different bucket. Consequently, when HashMap checks the bucket, it won't find the required object!
 
-![](/images/blog/medium-1*-ehInn6beG7s3ry6JnqOBQ.png)
+```mermaid
+flowchart LR
+    k["2 | I am a nice int value!"] --> HF(("Hash Function"))
+    subgraph Buckets
+        direction TB
+        b1[1]
+        b2[2]
+        b3[3]
+        b4[4]
+    end
+    HF -->|new hash| b3
+    b1 -->|stored here| v["2 | I am a nice int value!"]
+```
 
 ## Can we avoid this problem?
 
@@ -173,6 +197,18 @@ If you are using an older version of Java, you can still achieve this functional
 
 # Conclusion
 
-![](/images/blog/002-hashmap-object-mutation.png)
+```mermaid
+flowchart LR
+    k["2 | I am a nice int value!"] --> HF(("Hash Function"))
+    subgraph Buckets
+        direction TB
+        b1[1]
+        b2[2]
+        b3[3]
+        b4[4]
+    end
+    HF -->|new hash| b3
+    b1 -->|stored here| v["2 | I am a nice int value!"]
+```
 
 Whenever you use a HashMap (in Java or any other language), make sure you use immutable objects as keys. Otherwise, it might lead to unexpected behavior in your code during its execution.

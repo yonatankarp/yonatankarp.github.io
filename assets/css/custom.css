@@ -975,31 +975,23 @@ section[id] {
   gap: clamp(1.1rem, 2.6vw, 2rem);
   align-items: start;
   min-height: 0;
-  padding: clamp(1.1rem, 2.4vw, 1.65rem);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 8%, var(--surface-strong)), var(--surface) 42%);
-  box-shadow: var(--shadow-soft);
-  transition: transform var(--transition), border-color var(--transition), background-color var(--transition), box-shadow var(--transition);
+  padding: clamp(1.4rem, 2.6vw, 2rem) 0;
+  border-top: 1px solid var(--border);
+  transition: background-color var(--transition);
 }
 
 .case-card:first-child {
-  min-height: 0;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--accent) 12%, var(--surface-strong)), var(--surface-strong) 42%);
+  border-top: 0;
 }
 
 .case-card:hover,
 .case-card:focus-within {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
-  box-shadow: var(--shadow);
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
 }
 
 .case-card__label {
   margin: 0;
-  color: var(--accent-strong);
+  color: var(--muted);
 }
 
 .case-card__header {
@@ -1025,16 +1017,13 @@ section[id] {
   gap: 0.35rem;
   min-width: 0;
   padding-left: 0.9rem;
-  border-left: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  border-left: 1px solid var(--border);
 }
 
 .case-card__details dt {
-  color: var(--accent-strong);
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .case-card__details dd {
@@ -1048,11 +1037,8 @@ section[id] {
   grid-template-columns: minmax(0, 1fr) minmax(160px, auto);
   gap: 1rem 1.5rem;
   align-items: end;
-  padding: clamp(1.2rem, 3vw, 2rem);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  background: color-mix(in srgb, var(--accent) 7%, var(--surface-strong));
-  box-shadow: var(--shadow-soft);
+  padding: clamp(1.4rem, 3vw, 2rem) 0 0;
+  border-top: 1px solid var(--border);
 }
 
 .proof-quote blockquote {
@@ -1914,13 +1900,20 @@ h4 a,
   display: inline-flex;
   gap: 0.35rem;
   align-items: center;
-  padding: 0.38rem 0.7rem;
-  border: 1px solid var(--border);
+  padding: 0.28rem 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
   border-radius: 999px;
-  background: var(--surface-strong);
+  background: transparent;
   text-decoration: none;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 0.84rem;
+  transition: color var(--transition), border-color var(--transition);
+}
+
+.chip:hover,
+.chip:focus-visible {
+  color: var(--text);
+  border-color: var(--accent);
 }
 
 .pagination {

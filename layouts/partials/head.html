@@ -2,6 +2,7 @@
 {{ $homeTitle := .Site.Params.title }}
 {{ $homeDescription := .Site.Params.description }}
 {{ $title := cond .IsHome $homeTitle (printf "%s | %s" .Title $siteTitle) }}
+{{ if .Params.bareTitle }}{{ $title = $siteTitle }}{{ end }}
 {{ $description := .Description | default .Summary | plainify | default $homeDescription }}
 {{ $image := "" }}
 {{ with .Params.images }}{{ with .featured_image }}{{ $image = . | absURL }}{{ end }}{{ end }}

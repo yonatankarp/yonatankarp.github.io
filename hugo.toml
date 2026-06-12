@@ -1,6 +1,5 @@
 baseURL = "https://yonatankarp.github.io/"
 title = "Yonatan Karp-Rudin"
-languageCode = "en"
 
 [pagination]
 pagerSize = 5
@@ -17,7 +16,6 @@ pagerSize = 5
   category = "categories"
 
 disableKinds = ["footerSection"]
-ignoreFiles = ["\\.he\\.md$"]
 
 [module]
 [[module.mounts]]
@@ -78,18 +76,10 @@ recentPostCount = 5
 
 [languages]
 [languages.en]
-disabled = false
-languageCode = "en"
-languageDirection = "ltr"
-languageName = "English"
+locale = "en"
+direction = "ltr"
+label = "English"
 weight = 1
-
-[languages.he]
-disabled = true
-languageCode = "he"
-languageDirection = "rtl"
-languageName = "עברית"
-weight = 2
 
 # --- Menus ---
 

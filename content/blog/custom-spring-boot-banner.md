@@ -11,7 +11,6 @@ tags:
 categories:
   - Backend
   - Kotlin
-translationKey: "custom-spring-boot-banner"
 images:
   featured_image: "/images/blog/covers/custom-spring-boot-banner.jpg"
 ---

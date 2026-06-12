@@ -5,6 +5,9 @@ group: "project"
 draft: false
 link: "https://github.com/yonatankarp/beat-the-machine-ddd"
 tech: ["Kotlin", "Spring Boot", "DDD"]
+build:
+  render: never
+  list: local
 params:
     button:
         icon: "icon-arrow-right"

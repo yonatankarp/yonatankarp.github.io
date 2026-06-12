@@ -5,6 +5,9 @@ group: "project"
 draft: false
 link: "https://github.com/yonatankarp/sse-mcp-server"
 tech: ["Kotlin", "MCP", "SSE"]
+build:
+  render: never
+  list: local
 params:
     button:
         icon: "icon-arrow-right"

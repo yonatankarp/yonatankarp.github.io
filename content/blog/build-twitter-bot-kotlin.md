@@ -12,7 +12,6 @@ tags:
 categories:
   - Backend
   - Kotlin
-translationKey: "build-twitter-bot-kotlin"
 images:
   featured_image: "/images/blog/covers/build-twitter-bot-kotlin.jpg"
 ---

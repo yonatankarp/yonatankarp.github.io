@@ -13,7 +13,6 @@ tags:
 categories:
   - Backend
   - Java
-translationKey: "break-hashmap-less-than-a-minute"
 images:
   featured_image: "/images/blog/covers/break-hashmap-less-than-a-minute.jpg"
 ---

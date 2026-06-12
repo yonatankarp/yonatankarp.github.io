@@ -25,7 +25,7 @@ In this article, I will explain the HashMap question step by step.
 
 ### What is the contract between the equals() and hashCode() functions in Java?
 
-![](/images/blog/medium-1*o-EXRh62Vv1wF6hGc8enkg.jpeg)
+![](/images/blog/desk-macbook-code.jpeg)
 
 In Java, all objects inherit the `equals()` and `hashCode()` functions from the `Object` class. According to the documentation of `equals()`, it's necessary to override the `hashCode()` method as well. This ensures that equal objects have equal hash codes.
 
@@ -39,7 +39,7 @@ It means that if we have two objects considered equal, they must have the same h
 
 ### What is the complexity of retrieving an element from a HashMap?
 
-![](/images/blog/medium-1*OigNoAIlGNKT7ZfyQ5L7UQ.jpeg)
+![](/images/blog/modular-synth-patch-cables.jpeg)
 
 Retrieving an element from a HashMap has a constant time complexity of `O(1)`.
 
@@ -157,7 +157,7 @@ In fact, since Java 8, the internal implementation of HashMap was changed exactl
 
 ### Bonus: Implementing HashSet using HashMap
 
-![](/images/blog/medium-1*QCIL57ECXC7CSnWzuNqeTg.jpeg)
+![](/images/blog/dollar-bill-and-coins.jpeg)
 
 Let’s start with the question, what is a HashSet?
 

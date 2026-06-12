@@ -549,19 +549,19 @@ Once Spring notifies you that the service is operational, access it via your bro
 If executed correctly, the response should resemble:
 
 
-![](/images/blog/kb-image-1.png)
+![](/images/blog/catfacts-api-response.png)
 
 
 To retrieve a custom number of facts, use the `max` query parameter. For ten facts, navigate to [http://localhost:8080/api/v1/cat/facts?max=10](http://localhost:8080/api/v1/cat/facts?max=10).
 
 
-![](/images/blog/kb-image-2.png)
+![](/images/blog/catfacts-api-response-max10.png)
 
 
 Inspecting the database will confirm the successful storage of facts.
 
 
-![facts stored inside Postgres database](/images/blog/kb-image-1024x571.png)
+![facts stored inside Postgres database](/images/blog/catfacts-postgres-rows.png)
 
 
 Our service logic is ready!
@@ -639,25 +639,25 @@ For this article, we will use the default `test` environment, but you can create
 After setting up, you should land on a page that looks like this:
 
 
-![](/images/blog/kb-image-3-1024x571.png)
+![](/images/blog/honeycomb-send-data.png)
 
 
 Next, we'll create a new API key for our service to send data to HoneyComb. To do this, click on `Account` ➡️ `Team settings`. On the following page
 
 
-![](/images/blog/kb-image-4.png)
+![](/images/blog/honeycomb-account-menu.png)
 
 
 Under the `Environments and API Keys` section, click the `Manage` button.
 
 
-![](/images/blog/kb-image-5-1024x571.png)
+![](/images/blog/honeycomb-team-settings.png)
 
 
 On the next page, click the `Create API Key` button and name it. For this tutorial, let's call it `local` (indicating local execution). We want to limit our key's scope to the minimum required, so the key should have only the `Send events` and `Create datasets` permissions.
 
 
-![](/images/blog/kb-image-6.png)
+![](/images/blog/honeycomb-create-api-key.png)
 
 
 Once you've made these selections, click the `Save` button. You should now see the key displayed on your screen. We'll use this key later when configuring our service.
@@ -816,19 +816,19 @@ $ curl http://localhost:8080/api/v1/cat/facts
 Go to the HoneyComb UI and click on the `Query` button. You can click the `Run Query` button to see the data being sent to HoneyComb. You can see for example our `github.repository` attribute being sent:
 
 
-![](/images/blog/kb-image-9-1024x400.png)
+![](/images/blog/honeycomb-query-raw-data.png)
 
 
 We can also create a graph to visualize the data by selecting anything under `VISUALIZE` box. For example:
 
 
-![](/images/blog/kb-image-10-1024x643.png)
+![](/images/blog/honeycomb-count-over-time.png)
 
 
 Lastly, we can drill down into a specific trace by clicking on the traces, and see the execution path of the request:
 
 
-![](/images/blog/kb-image-11-1024x553.png)
+![](/images/blog/honeycomb-trace-waterfall.png)
 
 
 ##### Modifying the Dockerfile

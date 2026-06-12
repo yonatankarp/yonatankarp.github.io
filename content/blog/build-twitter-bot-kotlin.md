@@ -31,18 +31,18 @@ The first step is to create a [Twitter Application](https://apps.twitter.com/) u
 
 1. Go to the dashboard and click on "Create App". Choose a unique name for your bot.
     
-    ![name your app](/images/blog/hashnode-e4DDWaddA.png)
+    ![name your app](/images/blog/twitter-name-your-app.png)
     
 
-![get account keys](/images/blog/hashnode-iotlNGKrr.png)
+![get account keys](/images/blog/twitter-keys-and-tokens.png)
 
 2\. Change the token access from `Read only` to `Read and Write` in the dashboard.
 
-![change access to read & write](/images/blog/hashnode-DJ_XtxBF4.png)
+![change access to read & write](/images/blog/twitter-app-permissions.png)
 
 3\. Create the access token and access secret.
 
-![create access keys](/images/blog/hashnode-JeHY2mZsT.png)
+![create access keys](/images/blog/twitter-keys-and-tokens-tab.png)
 
 4\. Remember to store all the keys as we'll need them in Step 4!
 
@@ -70,7 +70,7 @@ With the authentication set, we can move on to the code!
 
 Create a new Kotlin file called `TwitterBot.kt` in the `src/main/kotlin` directory. Replace the existing code with the following:
 
-![](/images/blog/hashnode-USq7hjFK9.png)
+![](/images/blog/intellij-new-kotlin-file.png)
 
 ```kotlin
 package com.example
@@ -150,7 +150,7 @@ You can run the program from the command line in the project directory using the
 
 If everything is successful, you should see the following output in your debug terminal:
 
-![bot output](/images/blog/hashnode-_IXLpBWjd.png)
+![bot output](/images/blog/bot-console-output.png)
 
 Congratulations! Your bot is now functional!
 

@@ -115,7 +115,7 @@ Now that we understand what a domain gateway looks like, here are a few do's and
 ## Ok, I'm Convinced…
 
 
-I hope I have convinced you that a domain gateway is useful. If you have already read our article [How to Use OpenApi to Build a Robust RESTful API](http://test.depilacjapabianice.pl/how-to-use-openapi-to-build-a-robust-restful-api/), you probably know that I'm a fan of using OpenAPI specs for your service. The problem introduced in my previous article is: how can I generate many specs at once?
+I hope I have convinced you that a domain gateway is useful. If you have already read our article [How to Use OpenApi to Build a Robust RESTful API](/blog/openapi-robust-restful-api/), you probably know that I'm a fan of using OpenAPI specs for your service. The problem introduced in my previous article is: how can I generate many specs at once?
 
 
 ## How Do I Build a Domain Gateway?
@@ -408,7 +408,7 @@ We will locate all the above specs in our `/resource/api` directory with the fol
 - `gateway-api.yaml`
 
 
-We will reuse the same setup we used in the previous article. However, we would like to amend it so that we can generate an unlimited number of specs. If you need an explanation of how to configure the OpenAPI Gradle plugin, please refer to our [previous article](http://test.depilacjapabianice.pl/how-to-use-openapi-to-build-a-robust-restful-api/).
+We will reuse the same setup we used in the previous article. However, we would like to amend it so that we can generate an unlimited number of specs. If you need an explanation of how to configure the OpenAPI Gradle plugin, please refer to our [previous article](/blog/openapi-robust-restful-api/).
 
 
 The first step is to introduce a new class into our Gradle build script. This class will hold all the required information about the spec.
@@ -599,7 +599,6 @@ tasks {
 As you can see, now all of our tasks are available for use in Gradle:
 
 
-![](http://test.depilacjapabianice.pl/wp-content/uploads/2024/01/openapi-gradle-tasks.gif)OpenApi Gradle Tasks
 
 
 The last thing we need to do is add some dependencies to our `build.gradle.kts` to ensure that our code can be compiled.
@@ -754,7 +753,7 @@ class DomainGatewayController(
 ### Hello and Goodbye Service Definition
 
 
-The services in this article will implement the exact same structure as shown in the article [How to Use OpenApi to Build a Robust RESTful API](http://test.depilacjapabianice.pl/how-to-use-openapi-to-build-a-robust-restful-api/), hence, we will skip the implementation itself. Follow the article for more details. Alternatively, visit the GitHub repository for the [Hello Service](https://github.com/yonatankarp/domain-gateway-demo/tree/main/hello-service) and the [Goodbye Service](https://github.com/yonatankarp/domain-gateway-demo/tree/main/goodbye-service) implementation.
+The services in this article will implement the exact same structure as shown in the article [How to Use OpenApi to Build a Robust RESTful API](/blog/openapi-robust-restful-api/), hence, we will skip the implementation itself. Follow the article for more details. Alternatively, visit the GitHub repository for the [Hello Service](https://github.com/yonatankarp/domain-gateway-demo/tree/main/hello-service) and the [Goodbye Service](https://github.com/yonatankarp/domain-gateway-demo/tree/main/goodbye-service) implementation.
 
 
 For the sake of completeness, we will show the implementation of the `HelloController` that implements the generated code of OpenApi:

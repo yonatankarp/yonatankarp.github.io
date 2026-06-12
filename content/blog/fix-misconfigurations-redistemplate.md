@@ -221,10 +221,10 @@ All the code presented in this article is available on the GitHub Repository [Re
 The following branches are available:
 
 
-- [main](https://github.com/yonatankarp/redis-template-key-demo) – contains the code that presents the issue described in the article
+- [main](https://github.com/yonatankarp/redis-template-key-demo): contains the code that presents the issue described in the article
 
 
-- [value-fetching-fix](https://github.com/yonatankarp/redis-template-key-demo/tree/value-fetching-fix) – contains the fix to the serializer, allowing all tests to pass
+- [value-fetching-fix](https://github.com/yonatankarp/redis-template-key-demo/tree/value-fetching-fix): contains the fix to the serializer, allowing all tests to pass
 
 
 ## Conclusion

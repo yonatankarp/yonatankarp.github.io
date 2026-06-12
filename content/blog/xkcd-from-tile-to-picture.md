@@ -131,7 +131,7 @@ This part of the code was updated whenever I moved on the map and reached the en
 So, for example, the image `1n2w.png` is located in the central row of the image, two tiles to the left. That was a great discovery! Now, I can try to see the limits of the image by calling the server and checking the results.
 
 
-After some experimentation, I found out that the maximum available tile to the right is 48 ([http://imgs.xkcd.com/clickdrag/1n48e.png](http://imgs.xkcd.com/clickdrag/1n48e.png)), and the maximum available tile to the left is 33 ([http://imgs.xkcd.com/clickdrag/1n33w.png](http://imgs.xkcd.com/clickdrag/1n33w.png)) — wow, that's a big image!
+After some experimentation, I found out that the maximum available tile to the right is 48 ([http://imgs.xkcd.com/clickdrag/1n48e.png](http://imgs.xkcd.com/clickdrag/1n48e.png)), and the maximum available tile to the left is 33 ([http://imgs.xkcd.com/clickdrag/1n33w.png](http://imgs.xkcd.com/clickdrag/1n33w.png)). Wow, that's a big image!
 
 
 As for the height of the image, this was a much greater challenge. Apparently, tiles that do not contain any image are not stored on the server and are rendered as a color in the browser. This means that some columns might have 5 tiles, while others have 20. Moreover, in theory, it could contain "islands" of tiles that are not connected to anything but themselves. See the image below as an example:

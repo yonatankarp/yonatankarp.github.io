@@ -130,16 +130,16 @@ I hope I have convinced you that a domain gateway is useful. If you have already
 We will use the following tech stack:
 
 
-- [Kotlin](https://kotlinlang.org/)  – After all, this is a blog about Kotlin…
+- [Kotlin](https://kotlinlang.org/): After all, this is a blog about Kotlin…
 
 
-- [Spring Boot](https://spring.io/projects/spring-boot) – We will use Spring Boot 3, with indications of the required steps for Spring Boot 2
+- [Spring Boot](https://spring.io/projects/spring-boot): We will use Spring Boot 3, with indications of the required steps for Spring Boot 2
 
 
-- [Gradle Kotlin DSL](https://docs.gradle.org/current/userguide/kotlin_dsl.html) – We will use the [Gradle multi-module](https://docs.gradle.org/current/userguide/multi_project_builds.html) solution in our example where each service would be a different module.
+- [Gradle Kotlin DSL](https://docs.gradle.org/current/userguide/kotlin_dsl.html): We will use the [Gradle multi-module](https://docs.gradle.org/current/userguide/multi_project_builds.html) solution in our example where each service would be a different module.
 
 
-- [Retrofit](https://square.github.io/retrofit/) – While the OpenApi generator [supports multiple REST clients](https://openapi-generator.tech/docs/generators/kotlin), I decided to go with my personal favorite.
+- [Retrofit](https://square.github.io/retrofit/): While the OpenApi generator [supports multiple REST clients](https://openapi-generator.tech/docs/generators/kotlin), I decided to go with my personal favorite.
 
 
 - [OpenAPI](https://www.openapis.org/)

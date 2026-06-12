@@ -3,7 +3,7 @@ title: "Real-Life Problem Solving: Lessons from My Engineering Principles"
 date: 2023-03-05T00:00:00+01:00
 draft: false
 type: "blog"
-description: "How software engineering problem-solving principles — usually applied to code — turned out to be surprisingly effective for navigating real-life challenges during a trip to Asia."
+description: "How software engineering problem-solving principles, usually applied to code, turned out to be surprisingly effective for navigating real-life challenges during a trip to Asia."
 tags:
   - engineering
   - software-engineering
@@ -16,7 +16,7 @@ images:
   featured_image: "/images/blog/covers/real-life-problem-solving-engineering-principles.jpg"
 ---
 
-My employer announced a few months ago that any employee who works for three years or more is entitled to a sabbatical. This sabbatical is a fully paid one-month vacation of your choice. Since my wife and I had accumulated a significant number of vacation days, we decided to embark on a two-month trip to Asia—a destination we had long desired to visit. In this post, I will describe step by step how I applied methods from my day-to-day work as a software engineer to solve real-life problems.
+My employer announced a few months ago that any employee who works for three years or more is entitled to a sabbatical. This sabbatical is a fully paid one-month vacation of your choice. Since my wife and I had accumulated a significant number of vacation days, we decided to embark on a two-month trip to Asia, a destination we had long desired to visit. In this post, I will describe step by step how I applied methods from my day-to-day work as a software engineer to solve real-life problems.
 
 <!--more-->
 
@@ -24,7 +24,7 @@ My employer announced a few months ago that any employee who works for three yea
 
 ![Eventually, something will break](/images/blog/car-breakdown-open-hood.jpeg)
 
-As the old saying goes, eventually, a production incident will occur. In our case, it happened sooner rather than later. Just a couple of hours after we landed in Thailand, we discovered a huge issue—both my wife's credit card and mine had expired on the day we arrived. This came as a big surprise to us since back home, credit card providers typically replace your card at least six months before its expiration date. However, living in Germany for almost four years taught us something new. Here, you need to request a new card from your bank if you want a replacement (lesson learned!). Fortunately, we had brought some cash with us for the vacation, so we were able to rely on that.
+As the old saying goes, eventually, a production incident will occur. In our case, it happened sooner rather than later. Just a couple of hours after we landed in Thailand, we discovered a huge issue: both my wife's credit card and mine had expired on the day we arrived. This came as a big surprise to us since back home, credit card providers typically replace your card at least six months before its expiration date. However, living in Germany for almost four years taught us something new. Here, you need to request a new card from your bank if you want a replacement (lesson learned!). Fortunately, we had brought some cash with us for the vacation, so we were able to rely on that.
 
 So, what did we do? We began by estimating the magnitude of the problem, determining the impact, exploring potential solutions, and assessing how quickly we needed to implement them. This discussion proved to be very useful. We concluded that by using Airbnb for bookings, we could save the cash we had with us. Additionally, we realized that we had enough cash to sustain us for a while, allowing us to proceed with our vacation.
 
@@ -53,9 +53,9 @@ This 10-15 minute discussion during the first week of our trip proved invaluable
 
 ![person using laptop](/images/blog/person-using-laptop.jpg)
 
-At one point during our trip, we needed to book an internal flight. I found a suitable flight, although it wasn't on the ideal date—it was the closest option based on our location at the time. We made the booking, waited in our location for three days, and embarked on a six-hour boat ride. To our dismay, we discovered upon arrival that I had made a mistake and booked the flight for a month later.
+At one point during our trip, we needed to book an internal flight. I found a suitable flight, although it wasn't on the ideal date (it was the closest option based on our location at the time). We made the booking, waited in our location for three days, and embarked on a six-hour boat ride. To our dismay, we discovered upon arrival that I had made a mistake and booked the flight for a month later.
 
-While there were reasons behind the error, the outcome was the same—we found ourselves at the airport with no flight and no local currency (our second mistake).
+While there were reasons behind the error, the outcome was the same: we found ourselves at the airport with no flight and no local currency (our second mistake).
 
 So, what did we learn? Similar to code development, where seeking a review before merging is essential, we implemented the same approach for bookings of any kind (hotels, flights, buses, etc.). The other person would validate that all details were correct. We were surprised by the number of small issues we caught in each other's bookings throughout the trip.
 

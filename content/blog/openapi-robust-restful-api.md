@@ -24,7 +24,7 @@ images:
 </div>
 
 
-### RESTful API – The Ugly Part
+### RESTful API: The Ugly Part
 
 
 As a backend engineer, I have developed numerous REST APIs during my career. One of the most annoying issues I faced repeatedly was the lack of smooth integration between the backend and clients. Typos in URLs, inconsistent casing in JSON (camel case vs. snake case), passing values of the wrong type (e.g., string instead of an integer), and other similar mistakes have happened to me multiple times.

@@ -25,7 +25,7 @@ Unlike the original article, I will use Kotlin, a newer and more modern JVM-base
 
 To build the bot, follow these simple steps:
 
-### Step 1 — Create a Twitter Application
+### Step 1: Create a Twitter Application
 
 The first step is to create a [Twitter Application](https://apps.twitter.com/) using the user account you want to perform the API requests with. By creating the Twitter application, you will obtain the API key and API secret, which we'll later use to authenticate our bot with Twitter.
 
@@ -46,11 +46,11 @@ The first step is to create a [Twitter Application](https://apps.twitter.com/) u
 
 4\. Remember to store all the keys as we'll need them in Step 4!
 
-### Step 2 — Clone the Project Starter from GitHub
+### Step 2: Clone the Project Starter from GitHub
 
 To save you time setting up the project, I've created a starter version on GitHub that contains all the necessary setups. You can clone it from [https://github.com/yonatankarp/twitter-bot](https://github.com/yonatankarp/twitter-bot). You can use IntelliJ Community Edition or other tools like Visual Studio Code.
 
-### Step 3 — Prepare Tweets and Configure Twitter4J
+### Step 3: Prepare Tweets and Configure Twitter4J
 
 In the **resources** directory, open the **tweets.txt** file. This file will contain the tweets that our bot will publish. Each tweet should be on a separate line. Aim for at least 100 unique tweets to reduce the chances of content detection. Remember the 280 character limit imposed by Twitter.
 
@@ -66,7 +66,7 @@ oauth.accessTokenSecret=
 
 With the authentication set, we can move on to the code!
 
-### Step 4 — The Code
+### Step 4: The Code
 
 Create a new Kotlin file called `TwitterBot.kt` in the `src/main/kotlin` directory. Replace the existing code with the following:
 
@@ -140,7 +140,7 @@ The code above is relatively simple and well-documented to ensure ease of unders
 
 As mentioned in the original article, make sure to familiarize yourself with the [Twitter API Limits](https://help.twitter.com/en/rules-and-policies/twitter-limits) to understand the frequency of tweeting without encountering issues.
 
-### Step 5 — Running the Application
+### Step 5: Running the Application
 
 You can run the program from the command line in the project directory using the following command:
 

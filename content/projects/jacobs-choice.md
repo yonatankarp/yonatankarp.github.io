@@ -4,7 +4,7 @@ title: "Jacob's Choice"
 group: "project"
 draft: false
 link: "https://www.youtube.com/watch?v=rBW3IBsjIRU"
-tech: ["Unity", "C#"]
+tech: ["GameMaker", "GML"]
 params:
     button:
         icon: "icon-arrow-right"

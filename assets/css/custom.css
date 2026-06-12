@@ -2186,7 +2186,7 @@ h4 a,
   border: 1px solid color-mix(in srgb, #ffffff 16%, transparent);
   border-radius: 0.4rem;
   cursor: pointer;
-  opacity: 0;
+  opacity: 0.55;
   transition: opacity var(--transition), background-color var(--transition);
 }
 

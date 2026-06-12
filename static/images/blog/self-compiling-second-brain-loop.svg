@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" font-family="Manrope, -apple-system, Segoe UI, Roboto, system-ui, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1F8A86"/>
+    </marker>
+  </defs>
+
+  <rect x="6" y="6" width="988" height="588" rx="20" fill="#FCFAF6" stroke="#D8D3C9" stroke-width="2"/>
+  <text x="44" y="54" fill="#736C62" font-size="16" font-weight="700" letter-spacing="3">THE MEMORY LOOP</text>
+
+  <!-- clockwise cycle: Recall -> Capture -> Ingest -> Recall -->
+  <path d="M 655 150 C 885 205 905 360 802 420" fill="none" stroke="#1F8A86" stroke-width="3" marker-end="url(#ah)"/>
+  <path d="M 638 502 C 520 560 480 560 362 502" fill="none" stroke="#1F8A86" stroke-width="3" marker-end="url(#ah)"/>
+  <path d="M 198 420 C 95 360 115 205 345 150" fill="none" stroke="#1F8A86" stroke-width="3" marker-end="url(#ah)"/>
+
+  <!-- thin connectors to the central wiki -->
+  <line x1="500" y1="240" x2="500" y2="156" stroke="#B8B1A6" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="512" y="206" fill="#736C62" font-size="13" font-style="italic">reads</text>
+  <line x1="610" y1="334" x2="702" y2="428" stroke="#B8B1A6" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="650" y="395" fill="#736C62" font-size="13" font-style="italic">writes</text>
+  <line x1="390" y1="334" x2="298" y2="428" stroke="#B8B1A6" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <text x="300" y="395" fill="#736C62" font-size="13" font-style="italic" text-anchor="end">compiles</text>
+
+  <!-- central wiki -->
+  <rect x="380" y="240" width="240" height="120" rx="14" fill="#FFFFFF" stroke="#1F8A86" stroke-width="2.5"/>
+  <text x="500" y="296" text-anchor="middle" fill="#2A2620" font-family="Literata, Georgia, serif" font-size="24" font-weight="700">claude-wiki</text>
+  <text x="500" y="326" text-anchor="middle" fill="#736C62" font-size="15">raw/  &#8594;  wiki/</text>
+
+  <!-- Recall (top) -->
+  <rect x="350" y="67" width="300" height="86" rx="12" fill="#FFFFFF" stroke="#D8D3C9" stroke-width="1.5"/>
+  <circle cx="386" cy="110" r="17" fill="#1F8A86"/>
+  <text x="386" y="116" text-anchor="middle" fill="#FFFFFF" font-size="18" font-weight="700">1</text>
+  <text x="416" y="104" fill="#2A2620" font-size="18" font-weight="700">Recall &#183; SessionStart</text>
+  <text x="416" y="128" fill="#736C62" font-size="14">inject recent digests into the session</text>
+
+  <!-- Capture (bottom-right) -->
+  <rect x="640" y="427" width="300" height="86" rx="12" fill="#FFFFFF" stroke="#D8D3C9" stroke-width="1.5"/>
+  <circle cx="676" cy="470" r="17" fill="#1F8A86"/>
+  <text x="676" y="476" text-anchor="middle" fill="#FFFFFF" font-size="18" font-weight="700">2</text>
+  <text x="706" y="464" fill="#2A2620" font-size="18" font-weight="700">Capture &#183; Stop</text>
+  <text x="706" y="488" fill="#736C62" font-size="14">write a session digest to raw/</text>
+
+  <!-- Ingest (bottom-left) -->
+  <rect x="60" y="427" width="300" height="86" rx="12" fill="#FFFFFF" stroke="#D8D3C9" stroke-width="1.5"/>
+  <circle cx="96" cy="470" r="17" fill="#1F8A86"/>
+  <text x="96" y="476" text-anchor="middle" fill="#FFFFFF" font-size="18" font-weight="700">3</text>
+  <text x="126" y="464" fill="#2A2620" font-size="18" font-weight="700">Ingest &#183; SessionEnd</text>
+  <text x="126" y="488" fill="#736C62" font-size="14">compile raw/ into wiki/ pages</text>
+</svg>

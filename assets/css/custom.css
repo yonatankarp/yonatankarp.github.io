@@ -1912,6 +1912,12 @@ h4 a,
   margin-top: 1rem;
 }
 
+/* List titles are smaller than section headings, so long words fit without
+   breaking mid-character. The featured post keeps the larger heading. */
+.post-row h2 {
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+}
+
 .post-row__aside {
   display: grid;
   gap: 0.9rem;
@@ -1977,6 +1983,7 @@ h4 a,
 
 .article-shell {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .article-shell--with-toc {
@@ -1987,7 +1994,8 @@ h4 a,
 
 .article {
   padding: clamp(1.5rem, 4vw, 3rem);
-  max-width: 1080px;
+  max-width: min(1080px, 100%);
+  min-width: 0;
   margin-inline: auto;
 }
 
@@ -3012,9 +3020,12 @@ h4 a,
     justify-content: center;
   }
 
-  .contact-band__email strong,
   .quote-feature blockquote {
     font-size: clamp(1.5rem, 8vw, 2.1rem);
+  }
+
+  .contact-band__email strong {
+    font-size: clamp(1.4rem, 6vw, 2rem);
   }
 
   .contact-band__frame {
@@ -3029,34 +3040,6 @@ h4 a,
     justify-items: start;
     text-align: start;
   }
-}
-
-html[dir="rtl"] body {
-  text-align: right;
-}
-
-html[dir="rtl"] .brand,
-html[dir="rtl"] .hero__copy,
-html[dir="rtl"] .about-grid__body,
-html[dir="rtl"] .timeline-item,
-html[dir="rtl"] .project-row,
-html[dir="rtl"] .post-row,
-html[dir="rtl"] .article,
-html[dir="rtl"] .skill-row,
-html[dir="rtl"] .cv-header,
-html[dir="rtl"] .cv-item__top,
-html[dir="rtl"] .site-footer__inner {
-  direction: rtl;
-}
-
-html[dir="rtl"] .hero__actions,
-html[dir="rtl"] .hero__links,
-html[dir="rtl"] .chip-row,
-html[dir="rtl"] .article__meta,
-html[dir="rtl"] .contact-panel__details,
-html[dir="rtl"] .footer-links,
-html[dir="rtl"] .lang-switch {
-  justify-content: flex-start;
 }
 
 /* "Best fit when" list, folded into the contact band from the old Fit section. */

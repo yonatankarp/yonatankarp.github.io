@@ -16,7 +16,6 @@ tags:
 categories:
   - AI
   - Engineering
-translationKey: "self-compiling-second-brain"
 images:
   featured_image: "/images/blog/covers/self-compiling-second-brain.jpg"
 ---

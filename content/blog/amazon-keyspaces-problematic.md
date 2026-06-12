@@ -13,7 +13,6 @@ tags:
 categories:
   - Backend
   - Cloud
-translationKey: "amazon-keyspaces-problematic"
 images:
   featured_image: "/images/blog/covers/amazon-keyspaces-problematic.jpg"
 ---

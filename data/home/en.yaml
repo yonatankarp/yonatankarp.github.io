@@ -110,28 +110,6 @@ fit:
     - "A repeated engineering problem deserves a reusable tool, template, library, or explanation."
     - "A team needs a senior engineer who can clarify the work, build the path, and help others own it."
 
-selectedWork:
-  - name: "OpenAPI Generator"
-    kind: "Upstream contribution"
-    text: "Upstream Kotlin/Spring generator work that helps teams generate safer service contracts instead of hand-rolling the same integration code."
-    link: "https://github.com/OpenAPITools/openapi-generator"
-    linkLabel: "GitHub"
-  - name: "ff4k"
-    kind: "Open source library"
-    text: "A Kotlin Multiplatform feature flags library built from a repeated need: simple, explicit flag evaluation with examples people can actually follow."
-    link: "https://yonatankarp.github.io/ff4k/"
-    linkLabel: "Docs"
-  - name: "kotlin-design-patterns"
-    kind: "Technical writing / docs"
-    text: "Design-pattern examples written for Kotlin developers who want the idea, the tradeoff, and the code without ceremony."
-    link: "https://yonatankarp.github.io/kotlin-design-patterns/"
-    linkLabel: "Website"
-  - name: "TaleKeeper"
-    kind: "Self-hosted tool"
-    text: "A personal tool for turning messy live conversation into structured memory, because useful context should not disappear after the session ends."
-    link: "https://yonatankarp.github.io/TaleKeeper/"
-    linkLabel: "Docs"
-
 writing:
   kicker: "Writing"
   title: "Writing is how I turn hard-won context into something other people can reuse."

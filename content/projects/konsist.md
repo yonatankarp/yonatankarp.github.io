@@ -5,6 +5,9 @@ group: "contribution"
 draft: false
 link: "https://github.com/LemonAppDev/konsist"
 tech: ["Kotlin", "CI"]
+build:
+  render: never
+  list: local
 params:
     button:
         icon: "icon-arrow-right"

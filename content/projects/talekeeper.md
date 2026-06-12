@@ -1,11 +1,16 @@
 ---
 date: 2026-03-01T00:00:00+01:00
 title: "TaleKeeper"
+featured: true
+projectKind: "Self-hosted tool"
 group: "project"
 draft: false
 link: "https://yonatankarp.github.io/TaleKeeper/"
 tech: ["Python", "FastAPI", "Svelte"]
 years: "2026–present"
+build:
+  render: never
+  list: local
 params:
     button:
         icon: "icon-arrow-right"

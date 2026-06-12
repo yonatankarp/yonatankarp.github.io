@@ -6,5 +6,4 @@ university: "Design Patterns"
 year: "2022"
 degree: "Coursera"
 link: "https://www.coursera.org/account/accomplishments/certificate/P47SZ2TTXHMQ"
-translationKey: "design-patterns"
 ---

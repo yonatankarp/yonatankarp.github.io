@@ -5,6 +5,9 @@ group: "contribution"
 draft: false
 link: "https://github.com/ff4j/ff4j/pull/752"
 tech: ["Java", "Jakarta"]
+build:
+  render: never
+  list: local
 params:
     button:
         icon: "icon-arrow-right"

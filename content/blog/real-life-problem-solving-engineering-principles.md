@@ -11,7 +11,6 @@ tags:
   - problem-solving
 categories:
   - Engineering
-translationKey: "real-life-problem-solving-engineering-principles"
 images:
   featured_image: "/images/blog/covers/real-life-problem-solving-engineering-principles.jpg"
 ---

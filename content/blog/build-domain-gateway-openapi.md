@@ -12,7 +12,6 @@ tags:
   - rest-api
 categories:
   - Backend
-translationKey: "build-domain-gateway-openapi"
 images:
   featured_image: "/images/blog/covers/build-domain-gateway-openapi.jpg"
 ---

@@ -1,0 +1,13 @@
+# {{ site.Title }}
+
+> {{ site.Params.description }}
+
+## Key pages
+- [Projects]({{ "/projects/" | absURL }}): Libraries, tools, open-source contributions, and a few games.
+- [Blog]({{ "/blog/" | absURL }}): Articles on Kotlin, Spring Boot, backend systems, APIs, and engineering practice.
+- [CV]({{ "/cv/" | absURL }}): Background, experience, and skills.
+
+## Blog posts
+{{ range (sort (where site.RegularPages "Section" "blog") "Date" "desc") -}}
+- [{{ .Title }}]({{ .Permalink }}): {{ with .Description }}{{ . | plainify }}{{ else }}{{ .Summary | plainify | truncate 160 }}{{ end }}
+{{ end -}}

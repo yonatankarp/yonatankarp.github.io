@@ -12,7 +12,6 @@ tags:
 categories:
   - Backend
   - Kotlin
-translationKey: "inject-multiple-implementations-spring"
 images:
   featured_image: "/images/blog/covers/inject-multiple-implementations-spring.jpg"
 ---

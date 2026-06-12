@@ -5,6 +5,9 @@ group: "project"
 draft: false
 link: "https://poor-life-choices.vercel.app"
 tech: ["React", "JavaScript", "Vercel"]
+build:
+  render: never
+  list: local
 params:
     button:
         icon: "icon-arrow-right"

@@ -12,7 +12,6 @@ tags:
 categories:
   - Backend
   - Java
-translationKey: "how-hashmap-works-java"
 images:
   featured_image: "/images/blog/covers/how-hashmap-works-java.jpg"
 ---

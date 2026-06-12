@@ -1,7 +1,10 @@
 {{ define "main" }}
 {{ $lang := .Site.Language.Lang }}
 {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
-<section class="shell article-shell">
+{{ with .Params.images.featured_image }}
+<div class="article-hero-bg" style="--cover: url('{{ . | relURL }}');" aria-hidden="true"></div>
+{{ end }}
+<section class="shell article-shell{{ with .Params.images.featured_image }} has-hero-bg{{ end }}">
   <article class="article">
     <header class="article__header">
       <p class="section-kicker">{{ if eq $lang "he" }}מאמר{{ else }}Article{{ end }}</p>
@@ -16,12 +19,6 @@
         {{ range .GetTerms "tags" }}<a class="chip" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
       </div>
     </header>
-
-    {{ with .Params.images.featured_image }}
-    <figure class="article__cover">
-      <img src="{{ . | relURL }}" alt="{{ $.Title }}">
-    </figure>
-    {{ end }}
 
     <div class="article__content prose">
       {{ .Content }}

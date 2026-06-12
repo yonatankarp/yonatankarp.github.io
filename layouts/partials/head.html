@@ -11,8 +11,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $title }}</title>
 <meta name="description" content="{{ $description }}">
-<meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f4efe6">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0c0b12">
 <meta property="og:title" content="{{ $title }}">
 <meta property="og:description" content="{{ $description }}">
 <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
@@ -27,7 +27,7 @@
 {{ if $css }}<link rel="stylesheet" href="{{ $css.RelPermalink }}">{{ end }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,500;7..72,600;7..72,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 {{ $schema := dict "@context" "https://schema.org" "@type" "WebPage" "name" $title "description" $description "url" .Permalink }}
 {{ if .IsHome }}
   {{ $schema = dict "@context" "https://schema.org" "@type" "Person" "name" "Yonatan Karp-Rudin" "jobTitle" "Staff Software Engineer" "url" .Site.BaseURL "sameAs" (slice "https://github.com/yonatankarp" "https://www.linkedin.com/in/yonatankarp/" "https://kotlinbackend.com") "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" "Berlin" "addressCountry" "DE") }}
@@ -37,12 +37,4 @@
   {{ if not .Lastmod.IsZero }}{{ $schema = merge $schema (dict "dateModified" (.Lastmod.Format "2006-01-02T15:04:05Z07:00")) }}{{ end }}
 {{ end }}
 <script type="application/ld+json">{{ $schema | jsonify | safeJS }}</script>
-<script>
-  (() => {
-    const saved = localStorage.getItem('theme');
-    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const theme = saved || (systemDark ? 'dark' : 'light');
-    document.documentElement.dataset.theme = theme;
-  })();
-</script>
 <script data-goatcounter="https://yonatankarp.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>

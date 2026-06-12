@@ -4,21 +4,12 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const menuToggle = document.querySelector('.menu-toggle');
     const nav = document.getElementById('primary-nav');
-    const themeToggle = document.querySelector('.theme-toggle');
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     if (menuToggle && nav) {
       menuToggle.addEventListener('click', () => {
         const open = nav.classList.toggle('is-open');
         menuToggle.setAttribute('aria-expanded', String(open));
-      });
-    }
-
-    if (themeToggle) {
-      themeToggle.addEventListener('click', () => {
-        const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-        root.dataset.theme = next;
-        localStorage.setItem('theme', next);
       });
     }
 

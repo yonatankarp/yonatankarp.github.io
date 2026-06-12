@@ -71,9 +71,10 @@
     <section>
       <h3>{{ if eq $lang "he" }}תגיות{{ else }}Tags{{ end }}</h3>
       <div class="chip-row">
-        {{ range .Site.Taxonomies.tags.ByCount }}
+        {{ range first 8 .Site.Taxonomies.tags.ByCount }}
         <a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>{{ .Count }}</span></a>
         {{ end }}
+        <a class="text-link" href="/tags/">{{ if eq $lang "he" }}כל התגיות{{ else }}All tags{{ end }}</a>
       </div>
     </section>
     <section>

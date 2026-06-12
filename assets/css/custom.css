@@ -2288,6 +2288,13 @@ h4 a,
   border-bottom: 1px solid var(--border);
 }
 
+/* A CV is a dense document, not a hero — keep the name modest so the first
+   screen shows real content (Summary + sections) and it's clear there's more. */
+.cv-header h1 {
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  line-height: 1.05;
+}
+
 .cv-contact a {
   text-decoration: none;
 }

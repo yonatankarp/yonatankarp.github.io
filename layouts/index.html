@@ -1,6 +1,5 @@
 {{ define "main" }}
-{{ $lang := .Site.Language.Lang }}
-{{ $home := index hugo.Data.home $lang | default hugo.Data.home.en }}
+{{ $home := hugo.Data.home.en }}
 {{ $allPosts := sort (where .Site.RegularPages "Type" "blog") "Date" "desc" }}
 {{ $prioritySlugs := slice "observability-in-action-opentelemetry" "build-domain-gateway-openapi" "fix-misconfigurations-redistemplate" "openapi-robust-restful-api" }}
 {{ $priorityPosts := slice }}

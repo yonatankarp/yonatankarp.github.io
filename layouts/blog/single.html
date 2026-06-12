@@ -1,5 +1,4 @@
 {{ define "main" }}
-{{ $lang := .Site.Language.Lang }}
 {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
 {{ with .Params.images.featured_image }}
 <div class="article-hero-bg" style="--cover: url('{{ . | relURL }}');" aria-hidden="true"></div>
@@ -7,12 +6,12 @@
 <section class="shell article-shell{{ with .Params.images.featured_image }} has-hero-bg{{ end }}">
   <article class="article">
     <header class="article__header">
-      <p class="section-kicker">{{ if eq $lang "he" }}מאמר{{ else }}Article{{ end }}</p>
+      <p class="section-kicker">Article</p>
       <h1>{{ .Title }}</h1>
       <div class="article__meta">
         <span>{{ .Date.Format "Jan 2, 2006" }}</span>
-        <span>{{ $readingTime }} {{ if eq $lang "he" }}דק' קריאה{{ else }}min read{{ end }}</span>
-        <span>{{ .WordCount }} {{ if eq $lang "he" }}מילים{{ else }}words{{ end }}</span>
+        <span>{{ $readingTime }} min read</span>
+        <span>{{ .WordCount }} words</span>
       </div>
       {{ with .Description }}<p class="article__summary">{{ . }}</p>{{ end }}
       <div class="chip-row">

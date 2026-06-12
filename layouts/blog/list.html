@@ -1,11 +1,10 @@
 {{ define "main" }}
-{{ $lang := .Site.Language.Lang }}
 {{ $featured := first 1 (sort (where .RegularPages ".Params.featured" true) "Date" "desc") }}
 {{ $others := where .RegularPages ".Params.featured" "!=" true }}
 {{ $paginator := .Paginate $others }}
 <section class="shell page-head reveal-group">
   <div class="page-head__copy reveal">
-    <p class="section-kicker">{{ if eq $lang "he" }}בלוג{{ else }}Blog{{ end }}</p>
+    <p class="section-kicker">Blog</p>
     <h1>{{ .Title }}</h1>
     <p>{{ .Content | plainify }}</p>
   </div>
@@ -17,10 +16,10 @@
     {{ $post := . }}
     <article class="featured-article reveal">
       <div class="featured-article__body">
-        <p class="eyebrow">{{ if eq $lang "he" }}מומלץ להתחיל כאן{{ else }}Start here{{ end }}</p>
+        <p class="eyebrow">Start here</p>
         <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
         <p>{{ .Description | default (.Summary | plainify) }}</p>
-        <a class="button button--primary" href="{{ .RelPermalink }}">{{ if eq $lang "he" }}לקריאה{{ else }}Read article{{ end }}</a>
+        <a class="button button--primary" href="{{ .RelPermalink }}">Read article</a>
       </div>
       {{ with .Params.images.featured_image }}
       <img src="{{ . | relURL }}" alt="{{ $post.Title }}">
@@ -33,7 +32,7 @@
       {{ $post := . }}
       <article class="post-row reveal">
         <div class="post-row__body">
-          <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ .WordCount }} {{ if eq $lang "he" }}מילים{{ else }}words{{ end }}</p>
+          <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ .WordCount }} words</p>
           <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
           <p>{{ .Description | default (.Summary | plainify) }}</p>
           <div class="chip-row">
@@ -46,7 +45,7 @@
             <img src="{{ . | relURL }}" alt="{{ $post.Title }}">
           </a>
           {{ end }}
-          <a class="text-link" href="{{ .RelPermalink }}">{{ if eq $lang "he" }}למאמר{{ else }}Open article{{ end }}</a>
+          <a class="text-link" href="{{ .RelPermalink }}">Open article</a>
         </div>
       </article>
       {{ end }}
@@ -54,31 +53,31 @@
 
     {{ if gt $paginator.TotalPages 1 }}
     <nav class="pagination" aria-label="Pagination">
-      {{ with $paginator.Prev }}<a class="button button--ghost" href="{{ .URL }}">{{ if eq $lang "he" }}קודם{{ else }}Previous{{ end }}</a>{{ end }}
+      {{ with $paginator.Prev }}<a class="button button--ghost" href="{{ .URL }}">Previous</a>{{ end }}
       <span>{{ $paginator.PageNumber }} / {{ $paginator.TotalPages }}</span>
-      {{ with $paginator.Next }}<a class="button button--ghost" href="{{ .URL }}">{{ if eq $lang "he" }}הבא{{ else }}Next{{ end }}</a>{{ end }}
+      {{ with $paginator.Next }}<a class="button button--ghost" href="{{ .URL }}">Next</a>{{ end }}
     </nav>
     {{ end }}
   </div>
 
   <aside class="blog-sidebar reveal">
     <section>
-      <h3>{{ if eq $lang "he" }}חיפוש{{ else }}Search{{ end }}</h3>
-      <form action="{{ if eq $lang "he" }}/he/search/{{ else }}/search/{{ end }}" method="get">
-        <input class="search-input" type="search" name="q" placeholder="{{ if eq $lang "he" }}חיפוש במאמרים{{ else }}Search articles{{ end }}">
+      <h3>Search</h3>
+      <form action="/search/" method="get">
+        <input class="search-input" type="search" name="q" placeholder="Search articles">
       </form>
     </section>
     <section>
-      <h3>{{ if eq $lang "he" }}תגיות{{ else }}Tags{{ end }}</h3>
+      <h3>Tags</h3>
       <div class="chip-row">
         {{ range first 8 .Site.Taxonomies.tags.ByCount }}
         <a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>{{ .Count }}</span></a>
         {{ end }}
-        <a class="text-link" href="/tags/">{{ if eq $lang "he" }}כל התגיות{{ else }}All tags{{ end }}</a>
+        <a class="text-link" href="/tags/">All tags</a>
       </div>
     </section>
     <section>
-      <h3>{{ if eq $lang "he" }}מסלולי קריאה{{ else }}Reading tracks{{ end }}</h3>
+      <h3>Reading tracks</h3>
       <div class="chip-row">
         <a class="chip" href="/tags/openapi/">API design</a>
         <a class="chip" href="/tags/observability/">Observability</a>

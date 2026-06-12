@@ -102,7 +102,7 @@ URL = "/#about"
 weight = 2
 [[menus.header]]
 name = "Projects"
-URL = "/#client-and-work-section"
+URL = "/projects/"
 weight = 5
 [[menus.header]]
 name = "Blog"

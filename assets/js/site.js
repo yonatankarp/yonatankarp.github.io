@@ -53,6 +53,20 @@ document.addEventListener('DOMContentLoaded', () => {
       pre.appendChild(btn);
     });
 
+    // Copy-link button in the article share row
+    document.querySelectorAll('.share-btn--copy').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const url = btn.getAttribute('data-share-url') || window.location.href;
+        try {
+          await navigator.clipboard.writeText(url);
+          btn.classList.add('is-copied');
+          setTimeout(() => btn.classList.remove('is-copied'), 1600);
+        } catch {
+          /* clipboard unavailable; the social links still work */
+        }
+      });
+    });
+
     // Reading progress bar (article pages)
     const progress = document.getElementById('reading-progress');
     const articleBody = document.querySelector('.article__content');

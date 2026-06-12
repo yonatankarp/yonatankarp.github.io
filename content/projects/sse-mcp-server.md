@@ -1,8 +1,10 @@
 ---
 date: 2026-01-01T00:00:00+01:00
 title: "sse-mcp-server"
+group: "project"
 draft: false
 link: "https://github.com/yonatankarp/sse-mcp-server"
+tech: ["Kotlin", "MCP", "SSE"]
 params:
     button:
         icon: "icon-arrow-right"

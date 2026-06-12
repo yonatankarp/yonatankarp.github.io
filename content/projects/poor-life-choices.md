@@ -1,8 +1,10 @@
 ---
 date: 2024-01-01T00:00:00+01:00
 title: "poor-life-choices"
+group: "project"
 draft: false
 link: "https://poor-life-choices.vercel.app"
+tech: ["React", "JavaScript", "Vercel"]
 params:
     button:
         icon: "icon-arrow-right"

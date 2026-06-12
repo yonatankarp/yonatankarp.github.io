@@ -1,8 +1,10 @@
 ---
 date: 2026-03-15T00:00:00+01:00
 title: "ff4j (contributor)"
+group: "contribution"
 draft: false
 link: "https://github.com/ff4j/ff4j/pull/752"
+tech: ["Java", "Jakarta"]
 params:
     button:
         icon: "icon-arrow-right"

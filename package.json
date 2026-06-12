@@ -6,8 +6,5 @@
     "check:blog-assets": "node scripts/check-blog-assets.js",
     "serve": "hugo server",
     "serve:local": ".tools/hugo/hugo server"
-  },
-  "workspaces": [
-    "packages/hugoautogen"
-  ]
+  }
 }

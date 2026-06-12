@@ -28,9 +28,9 @@
   /* Shared hero photo used on the home hero and every page header.
      Berlin TV Tower at night (Unsplash). Swap this one URL to change it everywhere. */
   --site-hero: url("/images/hero-berlin.webp");
-  /* Code blocks (matches the github-dark chroma scheme in chroma.css) */
-  --code-bg: #0d1117;
-  --code-text: #e6edf3;
+  /* Code blocks (matches the IntelliJ Darcula chroma scheme in chroma.css) */
+  --code-bg: #2b2b2b;
+  --code-text: #a9b7c6;
 }
 
 :lang(he) {
@@ -2099,7 +2099,7 @@ h4 a,
 
 .prose pre,
 .prose code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .prose pre {

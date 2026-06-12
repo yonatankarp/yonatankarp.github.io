@@ -1977,6 +1977,7 @@ h4 a,
 
 .article-shell {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .article-shell--with-toc {
@@ -1987,7 +1988,8 @@ h4 a,
 
 .article {
   padding: clamp(1.5rem, 4vw, 3rem);
-  max-width: 1080px;
+  max-width: min(1080px, 100%);
+  min-width: 0;
   margin-inline: auto;
 }
 
@@ -3012,9 +3014,12 @@ h4 a,
     justify-content: center;
   }
 
-  .contact-band__email strong,
   .quote-feature blockquote {
     font-size: clamp(1.5rem, 8vw, 2.1rem);
+  }
+
+  .contact-band__email strong {
+    font-size: clamp(1.4rem, 6vw, 2rem);
   }
 
   .contact-band__frame {

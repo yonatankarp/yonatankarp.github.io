@@ -29,7 +29,7 @@
 {{ if $chroma }}<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">{{ end }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 {{ $schema := dict "@context" "https://schema.org" "@type" "WebPage" "name" $title "description" $description "url" .Permalink }}
 {{ if .IsHome }}
   {{ $schema = dict "@context" "https://schema.org" "@type" "Person" "name" "Yonatan Karp-Rudin" "jobTitle" "Staff Software Engineer" "url" .Site.BaseURL "sameAs" (slice "https://github.com/yonatankarp" "https://www.linkedin.com/in/yonatankarp/" "https://kotlinbackend.com") "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" "Berlin" "addressCountry" "DE") }}

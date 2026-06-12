@@ -43,7 +43,18 @@ Like an API gateway, a domain gateway acts as a facade for clients. It allows ag
 Otherwise, if you prefer a class diagram, this illustration might make more sense:
 
 
-![](/images/blog/kb-002-class-diagram.png)Domain Component Diagram
+```mermaid
+flowchart LR
+    Client([Client]) --> CG[Company Gateway]
+    CG --> DGA[Domain Gateway A]
+    CG --> DGB[Domain Gateway B]
+    DGA --> SA[Service A]
+    DGA --> SB[Service B]
+    DGB --> SC[Service C]
+    DGB --> SD[Service D]
+```
+
+_Domain component diagram_
 
 
 Note that a domain gateway doesn't have to facade calls for the clients; it can proxy them if the API is simple enough.
@@ -112,13 +123,42 @@ We will use the following tech stack:
 For simplicity, let's assume that we have only two services in our domain. Each service serves a single endpoint that is unrelated to the other. The illustration below shows an example of how our client will integrate with our domain:
 
 
-![](/images/blog/kb-003-domain-gateway-flow-diagram-example.png)Greetings Api Flow Diagram
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant AG as API Gateway
+    participant GG as Greeting Gateway
+    participant HS as Hello Service
+    participant GS as Goodbyte Service
+    C->>AG: Hello Yonatan
+    AG->>GG: ask for Hello response
+    GG->>HS: get hello
+    HS-->>GG: hello response
+    GG-->>AG: response
+    AG-->>C: Hello Yonatan
+    C->>AG: Goodbyte Yonatan
+    AG->>GG: ask for Goodbyte response
+    GG->>GS: get goodbye
+    GS-->>GG: goodbye response
+    GG-->>AG: response
+    AG-->>C: Goodbyte Yonatan
+```
+
+_Greetings API flow diagram_
 
 
 If we look at the service structure of our domain, it would look something like this:
 
 
-![](/images/blog/kb-004-domain-gateway-class-diagram-example.png)Greetings Api Component Diagram
+```mermaid
+flowchart LR
+    Client([Client]) --> CG[Company Gateway]
+    CG --> DG[Domain Gateway]
+    DG --> SA[Service A]
+    DG --> SB[Service B]
+```
+
+_Greetings API component diagram_
 
 
 ### API Specs

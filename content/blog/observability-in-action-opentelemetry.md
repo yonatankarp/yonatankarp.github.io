@@ -87,7 +87,7 @@ Let’s get coding!
 Kick-off by adding the essential dependencies to the `build.gradle.kts` file:
 
 
-```
+```kotlin
 dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
@@ -109,7 +109,7 @@ dependencies {
 When you ping the [Cat Facts API](https://catfact.ninja/fact), expect a response similar to:
 
 
-```
+```json
 {"fact":"Cats have \"nine lives\" thanks to a flexible spine and powerful leg and back muscles","length":83}
 ```
 
@@ -117,7 +117,7 @@ When you ping the [Cat Facts API](https://catfact.ninja/fact), expect a response
 Our primary concern is the `fact` field. To determine the fact length, we simply utilize `fact.length`. This gives rise to our model:
 
 
-```
+```kotlin
 data class Fact(val value: String)
 ```
 
@@ -128,7 +128,7 @@ By leveraging Kotlin's [value class](https://kotlinlang.org/docs/inline-classes.
 Thus, we revised our code to:
 
 
-```
+```kotlin
 @JvmInline
 value class Fact(val value: String)
 ```
@@ -143,7 +143,7 @@ Having established our domain model, it's time to construct an HTTP client for A
 This would be our client's blueprint:
 
 
-```
+```kotlin
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import retrofit2.http.GET
 
@@ -171,7 +171,7 @@ With foundational pieces in place, let's merge them to manifest our core library
 Commence by configuring an instance of the HTTP client:
 
 
-```
+```kotlin
 private const val API_BASE_URL = "https://catfact.ninja/"
 
 private var client = Retrofit.Builder()
@@ -186,7 +186,7 @@ private var client = Retrofit.Builder()
 Now, our business logic:
 
 
-```
+```kotlin
 override suspend fun get(numberOfFacts: Int): Set =
     coroutineScope {
         (1..numberOfFacts).map {
@@ -240,7 +240,7 @@ Various methods can deliver this functionality. Here, we will utilize Spring's `
 To integrate our library, append the following dependency to the project:
 
 
-```
+```kotlin
 repositories {
     maven {
         url = uri("https://maven.pkg.github.com/yonatankarp/cat-fact-client")
@@ -259,7 +259,7 @@ Ensure you have a PAT (Personal Access Token) with the `read:packages` privilege
 Subsequently, insert the dependency into the project:
 
 
-```
+```kotlin
 dependencies {
     implementation("com.yonatankarp:cat-fact-client:0.2.0")
 }
@@ -275,7 +275,7 @@ After refreshing your Gradle project, if configured appropriately, the library s
 We begin by defining the `RequestContext` interface, which will load facts for each request. Spring will use its implementation, `RequestContextImpl`, to inject facts into the controller.
 
 
-```
+```kotlin
 /**
  * Provides facts about cats into the request context.
  *
@@ -299,7 +299,7 @@ open class RequestContextImpl(
 We will now configure our context to be included with each request arriving at the service. Note that we're using Jackson's `ObjectMapper` for the `cat-fact-client` library, as this is the default serialization library for Spring. Moreover, the `@Scope` annotation requires a none-suspended function, and therefore we have to use the `runBlocking{}` to bridge between the library and our service.
 
 
-```
+```kotlin
 @Configuration
 class ApplicationConfiguration {
     /**
@@ -357,7 +357,7 @@ class ApplicationConfiguration {
 With the facts now in the request context, they can be utilized in our controller.
 
 
-```
+```kotlin
 @RestController
 class CatFactController(
     // Would be automatically injected by Spring
@@ -381,7 +381,7 @@ data class FactsResponse(val facts: Set)
 Our relatively straightforward service merely iterates over the available facts, storing each in turn.
 
 
-```
+```kotlin
 @Service
 class CatFactService(private val repository: CatFactRepository) {
     suspend fun storeFacts(facts: Set) =
@@ -396,7 +396,7 @@ The remaining step is saving our facts to the database. We'll use [Flyway](https
 Add the following SQL script to the `src/main/resources/db/migration/V1.0.0__init_db.sql` folder:
 
 
-```
+```sql
 CREATE TABLE cat_facts (
     hash INT PRIMARY KEY,
     fact TEXT NOT NULL
@@ -410,7 +410,7 @@ The facts lack unique identifiers, so we'll use the fact's hash to check if it's
 Lastly, we'll develop a repository to save the facts in the database. This straightforward repository will add facts and skip those already present.
 
 
-```
+```kotlin
 @Repository
 class CatFactRepository(private val jooq: DSLContext) {
     suspend fun storeFacts(fact: Fact) =
@@ -431,7 +431,7 @@ class CatFactRepository(private val jooq: DSLContext) {
 To replicate our services' production behavior, we'll use Docker to create an image, subsequently testing our service.
 
 
-```
+```dockerfile
 FROM --platform=linux/x86_64 eclipse-temurin:17-jre-alpine
 
 ENV APP_BASE="/home" \
@@ -454,7 +454,7 @@ CMD java -jar ${APP_BASE}/${APP_NAME}.jar
 To verify your project's functionality, execute:
 
 
-```
+```bash
 $ ./gradlew assemble
 $ docker build -t cat-fact-service .
 ```
@@ -463,7 +463,7 @@ $ docker build -t cat-fact-service .
 Your output should be similar to the following:
 
 
-```
+```text
 [+] Building 2.3s (10/10) FINISHED                                                                                                     docker:desktop-linux
  => [internal] load build definition from Dockerfile                                                                                                   0.0s
  => => transferring dockerfile: 453B                                                                                                                   0.0s
@@ -493,7 +493,7 @@ While the service is operational, the database setup remains. Docker-compose wil
 At your project's root, create a new file named `docker-compose.yml` with the following content:
 
 
-```
+```yaml
 version: '3'
 
 services:
@@ -538,7 +538,7 @@ networks:
 You can now launch and assess the service by executing:
 
 
-```
+```bash
 $ docker-compose up
 ```
 
@@ -570,7 +570,7 @@ Our service logic is ready!
 Alternatively, you can pull the docker image that I have created from [GHCR](https://docs.github.com/de/packages/working-with-a-github-packages-registry/working-with-the-container-registry) by changing your docker-compose file as follows:
 
 
-```
+```yaml
 version: '3'
 
 services:
@@ -708,7 +708,7 @@ First, we'll add the OpenTelemetry SDK and agent dependencies to our project. Ho
 We will start by adding our dependencies within `build.gradle.kts`:
 
 
-```
+```kotlin
 dependencies {
   implementation("io.honeycomb:honeycomb-opentelemetry-sdk:1.7.0")
   // We're using compileOnly as we need this dependency only to set the
@@ -724,7 +724,7 @@ dependencies {
 Once we're done, we will create a new Gradle task (called `copyOpenTelemetryAgent`) that will copy the OpenTelemetry agent to the `build/output/libs` directory before each build by making the `build` task depends on it.
 
 
-```
+```kotlin
 tasks {
   build {
     dependsOn("copyOpenTelemetryAgent")
@@ -767,7 +767,7 @@ Next, we'll update the `bootRun` task to include the OpenTelemetry agent. By doi
 Add the following to the `bootRun` task in your `build.gradle.kts` file:
 
 
-```
+```kotlin
 tasks {
     bootRun {
         environment = mapOf(
@@ -800,7 +800,7 @@ We can now run the service, and observe the data being sent to HoneyComb.
 To run our service, execute the following command (ensure that the database is running):
 
 
-```
+```bash
 $ ./gradlew bootRun
 ```
 
@@ -808,7 +808,7 @@ $ ./gradlew bootRun
 Generate some data by accessing the endpoint a few times:
 
 
-```
+```bash
 $ curl http://localhost:8080/api/v1/cat/facts
 ```
 
@@ -843,7 +843,7 @@ The changes required to run the service in a container are minimal. We need to a
 We will also add our static attributes to the agent, so we can easily filter the data in HoneyComb. We can have multiple attributes separated by a comma. For example:
 
 
-```
+```properties
 github.repository=https://github.com/yonatankarp/cat-fact-service,slack.channel=#cat-facts
 ```
 
@@ -851,7 +851,7 @@ github.repository=https://github.com/yonatankarp/cat-fact-service,slack.channel=
 Our updated `Dockerfile` will look like this:
 
 
-```
+```dockerfile
 FROM --platform=linux/x86_64 eclipse-temurin:17-jre-alpine
 
  ENV APP_BASE="/home" \
@@ -883,7 +883,7 @@ FROM --platform=linux/x86_64 eclipse-temurin:17-jre-alpine
 Lastly, the `docker-compose.yml` will need updating to add the required environment variables:
 
 
-```
+```diff
 @@ -16,6 +16,10 @@ services:
        - DB_NAME=facts
        - DB_USER=postgres
@@ -901,7 +901,7 @@ Lastly, the `docker-compose.yml` will need updating to add the required environm
 Activate the entire configuration using `docker-compose`:
 
 
-```
+```bash
 $ docker compose up
 ```
 

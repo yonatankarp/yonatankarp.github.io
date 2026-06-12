@@ -32,7 +32,7 @@ In this article, we will explore a common issue when using `RedisTemplate` in Sp
 To configure our application to connect to Redis, we will add the following configurations to your `application.yml` file:
 
 
-```
+```yaml
 spring:
   data:
     redis:
@@ -50,7 +50,7 @@ This configuration sets up the Redis host and port, defaulting to `localhost` an
 We will now create our `RedisTemplate` bean to be used as a Redis client in our codebase.
 
 
-```
+```kotlin
 @Configuration
 class RedisConfiguration {
     @Bean
@@ -71,7 +71,7 @@ In this code, we define a `RedisTemplate` with a `String` key type and an `Int` 
 In the next step, we will create a test that uses a Redis test container:
 
 
-```
+```kotlin
 @SpringBootTest
 @TestConstructor(autowireMode = ALL)
 class RedisContainerTest(private val redisTemplate: RedisTemplate) {
@@ -96,7 +96,7 @@ class RedisContainerTest(private val redisTemplate: RedisTemplate) {
 We will set our Redis host and port to the values of our test container next:
 
 
-```
+```kotlin
 @DynamicPropertySource
 @JvmStatic
 @Suppress("unused")
@@ -110,7 +110,7 @@ fun registerDynamicProperties(registry: DynamicPropertyRegistry) {
 Next, we will ensure that our Redis cache is truncated between tests, and insert a predefined key and value into Redis using the `redis-cli` tool.
 
 
-```
+```kotlin
 @BeforeEach
 fun setup() {
    redisTemplate.delete(redisTemplate.keys("*"))
@@ -130,7 +130,7 @@ fun setup() {
 By running the following test with a breakpoint and checking the container running the command, we can see that the key is indeed stored in our container.
 
 
-```
+```bash
 $ docker exec -it  redis-cli
 127.0.0.1:6379> keys *
 1) "key"
@@ -140,7 +140,7 @@ $ docker exec -it  redis-cli
 Now, we will write two tests. The first will try to fetch the value from the container directly using our `RedisTemplate` bean.
 
 
-```
+```kotlin
 @Test
 fun `should fail to fetch value`() {
    // Given predefined int key in Redis
@@ -157,7 +157,7 @@ fun `should fail to fetch value`() {
 The second will update the value of the key using the `RedisTemplate` and fetch the key again using the template.
 
 
-```
+```kotlin
 @Test
 fun `should successfully fetch the value`() {
    // Given a value stored via RedisTemplate
@@ -181,7 +181,7 @@ As you can see, the first test fails to find the key in Redis and hence returns 
 To resolve the issue, we need to add serializers to our `RedisTemplate` definition. This ensures that the keys and values are correctly serialized and deserialized when interacting with Redis.
 
 
-```
+```kotlin
 @Configuration
 class RedisConfiguration {
    @Bean
@@ -198,7 +198,7 @@ class RedisConfiguration {
 You can now see that by running the following test, our code will manage to fetch the key successfully:
 
 
-```
+```kotlin
 @Test
 fun `should successfully fetch value`() {
    // Given predefined int key in Redis

@@ -130,7 +130,7 @@ If we look at the service structure of our domain, it would look something like 
 Our **Hello API** will expose a single endpoint: `/hello/{name}`. This endpoint will respond to the client with "`Hello `" (e.g. "`Hello Yonatan`").
 
 
-```
+```yaml
 openapi: 3.0.3
 info:
   title: Hello API
@@ -185,7 +185,7 @@ components:
 Our **Goodbye API** is exactly like the **Hello API**. It contains a single endpoint: `/goodbye/{name}`. This endpoint, just like the **Hello API**, responds to the client with `Goodbye ` (e.g. `Goodbye Yonatan`).
 
 
-```
+```yaml
 openapi: 3.0.3
 info:
   title: Goodbye API
@@ -246,7 +246,7 @@ The **greeting API** acts as a facade for the two services above. It includes tw
 - `/goodbye/{name}`
 
 
-```
+```yaml
 openapi: 3.0.3
 info:
   title: Gateway API
@@ -346,7 +346,7 @@ We will reuse the same setup we used in the previous article. However, we would 
 The first step is to introduce a new class into our Gradle build script. This class will hold all the required information about the spec.
 
 
-```
+```kotlin
 /**
  * A class represents a specific spec to generate.
  */
@@ -368,7 +368,7 @@ data class ApiSpec(
 Now, we will create a list of all the specs we want to generate in our `build.gradle.kts`:
 
 
-```
+```kotlin
 /**
  * List of all api specs to generate
  */
@@ -470,7 +470,7 @@ The next step is defining some generic functions that will:
 We will start by creating the tasks for each of our specs under the `openapi tools` group:
 
 
-```
+```kotlin
 // Iterate over the API list and register them as generator tasks
 supportedApis.forEach { api ->
     tasks.create(api.taskName, GenerateOpenApiTask::class) {
@@ -492,7 +492,7 @@ supportedApis.forEach { api ->
 The next step is adding our generated code from the previous tasks to our `sourceSet`. We are using the first element in the list since all of our files are generated into the same output directory.
 
 
-```
+```kotlin
 supportedApis.first().let {
     sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].java {
         srcDir("${it.outputDir}/src/main/kotlin")
@@ -504,7 +504,7 @@ supportedApis.first().let {
 The last step is to ensure that the `clean` task and `compileKotlin` work well with the new tasks. We will create a new task called `cleanGeneratedCodeTask` that will delete all generated code whenever the `clean` task is run. Additionally, we want to ensure that all code generation tasks have been executed before building our code.
 
 
-```
+```kotlin
 tasks {
     register("cleanGeneratedCodeTask") {
         description = "Removes generated Open API code"
@@ -537,7 +537,7 @@ As you can see, now all of our tasks are available for use in Gradle:
 The last thing we need to do is add some dependencies to our `build.gradle.kts` to ensure that our code can be compiled.
 
 
-```
+```kotlin
 dependencies {
     api("com.squareup.retrofit2:retrofit:$retrofitVersion")
     api("com.squareup.retrofit2:converter-jackson:$retrofitVersion")
@@ -555,7 +555,7 @@ dependencies {
 We will start by defining our `OkHttp` client. Note that I am setting the logger interceptor level to `BODY`. This is great for debugging, but **NEVER** use it in production as it will log all request and response bodies. This may expose sensitive information in your logs. If you still want to log your request/response body, you need to build a custom interceptor.
 
 
-```
+```kotlin
 private fun okHttpClient() =
     OkHttpClient
         .Builder()
@@ -567,7 +567,7 @@ private fun okHttpClient() =
 Next, we will define beans for our two API clients. To make sure that the Jackson object mapper comes from the generated code is configured correctly, we will also inject the list of converter factories to the beans:
 
 
-```
+```kotlin
 @Bean
 fun helloApiClient(
     converterFactories: List,
@@ -596,7 +596,7 @@ fun helloApiClient(
 So, our final configuration class would look like this:
 
 
-```
+```kotlin
 @Configuration
 class DomainGatewayConfig(
     @Value("\${hello-service.base-url}")
@@ -638,7 +638,7 @@ class DomainGatewayConfig(
 Now, we can call our endpoints using the clients as follows:
 
 
-```
+```kotlin
 helloApi.hello(name)
 goodbyeApi.goodbye(name)
 ```
@@ -650,7 +650,7 @@ goodbyeApi.goodbye(name)
 We will now define a mapper from the OpenAPI (network network) object layer, to the service (domain) object layer:
 
 
-```
+```kotlin
 object HelloMapper {
     fun Response.toResponse(): ResponseEntity =
         HelloResponse(value = this.body()?.value ?: "Unknown")
@@ -668,7 +668,7 @@ object GoodbyeMapper {
 Lastly, we will define our REST controller. The domain gateway controller implementation is very simple. It is a Spring `@RestController` that implements a given interface. Our code would look like this:
 
 
-```
+```kotlin
 @RestController
 class DomainGatewayController(
     private val helloApi: HelloApi,
@@ -692,7 +692,7 @@ The services in this article will implement the exact same structure as shown in
 For the sake of completeness, we will show the implementation of the `HelloController` that implements the generated code of OpenApi:
 
 
-```
+```kotlin
 @RestController
 class HelloController : HelloApi {
     override suspend fun hello(name: String): ResponseEntity =

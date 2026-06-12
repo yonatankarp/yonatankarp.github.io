@@ -1,13 +1,12 @@
 {{ define "main" }}
-{{ $lang := .Site.Language.Lang }}
 {{ $education := sort (where .Site.RegularPages "Type" "education") "Date" "desc" }}
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
 <section class="shell cv-sheet reveal-group">
   <header class="cv-header reveal">
     <div>
-      <p class="section-kicker">{{ if eq $lang "he" }}קורות חיים{{ else }}Curriculum vitae{{ end }}</p>
-      <h1>{{ if eq $lang "he" }}יונתן קרפ-רודין{{ else }}Yonatan Karp-Rudin{{ end }}</h1>
-      <p>{{ if eq $lang "he" }}Staff Software Engineer, ברלין{{ else }}Staff Software Engineer, Berlin{{ end }}</p>
+      <p class="section-kicker">Curriculum vitae</p>
+      <h1>Yonatan Karp-Rudin</h1>
+      <p>Staff Software Engineer, Berlin</p>
     </div>
     <div class="cv-contact">
       <a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>
@@ -18,27 +17,23 @@
   </header>
 
   <section class="cv-section reveal">
-    <h2>{{ if eq $lang "he" }}תקציר{{ else }}Summary{{ end }}</h2>
-    <p>{{ if eq $lang "he" }}Staff Software Engineer עם 12 שנות ניסיון ב-embedded systems, distributed backends, payments ו-compliance. משלב ארכיטקטורה, delivery וכתיבה הנדסית. תורם לקוד פתוח וכותב על Kotlin ו-backend engineering.{{ else }}Staff Software Engineer with 12 years across embedded systems, distributed backends, payments, and compliance. Combines architecture, delivery, and technical writing. Open source contributor and author on Kotlin and backend engineering.{{ end }}</p>
+    <h2>Summary</h2>
+    <p>Staff Software Engineer with 12 years across embedded systems, distributed backends, payments, and compliance. Combines architecture, delivery, and technical writing. Open source contributor and author on Kotlin and backend engineering.</p>
   </section>
 
   <section class="cv-section cv-section--proof reveal">
-    <h2>{{ if eq $lang "he" }}מיקוד{{ else }}Staff+ Focus{{ end }}</h2>
+    <h2>Staff+ Focus</h2>
     <ul class="cv-proof-list">
-      {{ if eq $lang "he" }}
-      <li>ארכיטקטורת Backend למערכות payments, risk, compliance ו-platform.</li>
-      <li>תכנון שירותים API-first עם Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI ו-Backstage.</li>
-      <li>בעלות תפעולית דרך runbooks, חשיבה על failure modes, observability ותוכניות migration.</li>
-      {{ else }}
+      
       <li>Backend architecture for payments, risk, compliance, and platform systems.</li>
       <li>API-first service design with Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI, and Backstage.</li>
       <li>Operational ownership through runbooks, failure-mode thinking, observability, and migration plans.</li>
-      {{ end }}
+      
     </ul>
   </section>
 
   <section class="cv-section reveal">
-    <h2>{{ if eq $lang "he" }}ניסיון{{ else }}Experience{{ end }}</h2>
+    <h2>Experience</h2>
     <div class="cv-list">
       {{ range $experience }}
       <article class="cv-item">
@@ -54,7 +49,7 @@
   </section>
 
   <section class="cv-section reveal">
-    <h2>{{ if eq $lang "he" }}השכלה{{ else }}Education{{ end }}</h2>
+    <h2>Education</h2>
     <div class="cv-list">
       {{ range $education }}
       <article class="cv-item">
@@ -64,7 +59,7 @@
         </div>
         <p class="cv-item__sub">{{ .Params.degree }}</p>
         {{ if ne .Title .Params.university }}<p>{{ .Title }}</p>{{ end }}
-        {{ with .Params.link }}<p><a class="text-link" href="{{ . }}">{{ if eq $lang "he" }}לצפייה בתעודה{{ else }}View credential{{ end }}</a></p>{{ end }}
+        {{ with .Params.link }}<p><a class="text-link" href="{{ . }}">View credential</a></p>{{ end }}
       </article>
       {{ end }}
     </div>

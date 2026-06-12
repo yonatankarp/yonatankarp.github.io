@@ -3031,34 +3031,6 @@ h4 a,
   }
 }
 
-html[dir="rtl"] body {
-  text-align: right;
-}
-
-html[dir="rtl"] .brand,
-html[dir="rtl"] .hero__copy,
-html[dir="rtl"] .about-grid__body,
-html[dir="rtl"] .timeline-item,
-html[dir="rtl"] .project-row,
-html[dir="rtl"] .post-row,
-html[dir="rtl"] .article,
-html[dir="rtl"] .skill-row,
-html[dir="rtl"] .cv-header,
-html[dir="rtl"] .cv-item__top,
-html[dir="rtl"] .site-footer__inner {
-  direction: rtl;
-}
-
-html[dir="rtl"] .hero__actions,
-html[dir="rtl"] .hero__links,
-html[dir="rtl"] .chip-row,
-html[dir="rtl"] .article__meta,
-html[dir="rtl"] .contact-panel__details,
-html[dir="rtl"] .footer-links,
-html[dir="rtl"] .lang-switch {
-  justify-content: flex-start;
-}
-
 /* "Best fit when" list, folded into the contact band from the old Fit section. */
 .contact-fit {
   margin-top: 1.5rem;

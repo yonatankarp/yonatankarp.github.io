@@ -14,7 +14,6 @@ tags:
 categories:
   - Backend
   - Java
-translationKey: "interview-questions-concurrency-parallelism"
 images:
   featured_image: "/images/blog/covers/interview-questions-concurrency-parallelism.jpg"
 ---

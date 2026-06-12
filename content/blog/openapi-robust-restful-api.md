@@ -12,7 +12,6 @@ tags:
   - rest-api
 categories:
   - Backend
-translationKey: "openapi-robust-restful-api"
 images:
   featured_image: "/images/blog/covers/openapi-robust-restful-api.jpg"
 ---

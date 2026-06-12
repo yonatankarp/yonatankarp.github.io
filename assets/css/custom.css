@@ -2597,6 +2597,13 @@ h4 a,
   text-align: end;
 }
 
+.footer-social {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
 .reveal {
   opacity: 1;
   transform: none;

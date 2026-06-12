@@ -33,4 +33,21 @@
     </footer>
   </article>
 </section>
+
+{{/* Keep reading: tag-related posts first, topped up with recent ones. */}}
+{{ $blog := where site.RegularPages "Type" "blog" }}
+{{ $recs := first 3 (where (union ($blog.Related .) (first 4 (sort $blog "Date" "desc"))) "Permalink" "!=" .Permalink) }}
+{{ with $recs }}
+<section class="shell related-posts reveal-group" aria-labelledby="keep-reading">
+  <h2 id="keep-reading" class="related-posts__title">Keep reading</h2>
+  <div class="related-grid">
+    {{ range . }}
+    <a class="related-card reveal{{ with .Params.images.featured_image }} has-cover{{ end }}" href="{{ .RelPermalink }}"{{ with .Params.images.featured_image }} style="--cover: url('{{ . | relURL }}');"{{ end }}>
+      <span class="related-card__date">{{ .Date.Format "Jan 2, 2006" }}</span>
+      <h3>{{ .Title }}</h3>
+    </a>
+    {{ end }}
+  </div>
+</section>
+{{ end }}
 {{ end }}

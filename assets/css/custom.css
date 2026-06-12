@@ -477,6 +477,12 @@ section[id] {
   padding: clamp(1.5rem, 4vw, 3rem);
 }
 
+/* Search page: the input follows the header directly — drop the extra
+   section top-padding that left a large empty band under the title. */
+.search-view {
+  padding-top: 1.25rem;
+}
+
 .hero__copy {
   padding: 0;
 }

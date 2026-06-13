@@ -3,5 +3,6 @@ resources/
 .hugo_build.lock
 node_modules/
 hugo_stats.json
+.tools/
 .superpowers/
 .DS_Store

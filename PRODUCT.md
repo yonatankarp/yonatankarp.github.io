@@ -23,7 +23,7 @@ Do not look like a generic SaaS template, a bootcamp portfolio, or a dark-mode h
 2. Let structure do the persuasion, visitors should discover credibility through substance.
 3. Keep the interface warm and literate, but still technically sharp.
 4. Treat writing, projects, and experience as one coherent body of work.
-5. Bilingual support is a first-class part of the product, not a bolt-on translation mode.
+5. Keep the publishing model English-only unless there is a deliberate future translation plan.
 
 ## Accessibility & Inclusion
-Target WCAG 2.2 AA contrast and keyboard accessibility. Respect reduced motion preferences. Preserve comfortable reading widths and strong focus states. Ensure Hebrew layouts feel native in RTL, not mirrored after the fact.
+Target WCAG 2.2 AA contrast and keyboard accessibility. Respect reduced motion preferences. Preserve comfortable reading widths and strong focus states.

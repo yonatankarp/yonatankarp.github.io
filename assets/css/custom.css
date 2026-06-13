@@ -1089,7 +1089,7 @@ h4,
   line-height: 1.06;
   margin: 0;
   text-wrap: balance;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 h1 {
@@ -1890,6 +1890,10 @@ h4 a,
   grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
   gap: 1.5rem;
   margin-bottom: 1rem;
+}
+
+.featured-article h2 {
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
 }
 
 .featured-article img {
@@ -2928,7 +2932,7 @@ h4 a,
   .featured-article,
   .cv-header,
   .cv-section {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
   }
 
   .blog-sidebar {
@@ -2951,6 +2955,27 @@ h4 a,
 
   h1 {
     font-size: clamp(2.5rem, 12vw, 4rem);
+  }
+
+  .page-head,
+  .blog-layout {
+    padding-top: clamp(2rem, 9vw, 3.25rem);
+  }
+
+  .type-blog .page-head__copy {
+    grid-template-columns: 1fr;
+    gap: 0.8rem;
+  }
+
+  .type-blog .page-head__copy .section-kicker,
+  .type-blog .page-head__copy h1,
+  .type-blog .page-head__copy p {
+    grid-column: 1;
+  }
+
+  .type-blog .page-head__copy h1 {
+    font-size: clamp(3.25rem, 20vw, 4.75rem);
+    line-height: 0.9;
   }
 
   .hero {
@@ -2999,6 +3024,31 @@ h4 a,
   .about-grid__image img,
   .featured-article img {
     min-height: 260px;
+  }
+
+  .featured-article {
+    gap: 1.1rem;
+    padding: 1.15rem;
+    border-radius: 1.25rem;
+  }
+
+  .featured-article h2 {
+    font-size: clamp(1.85rem, 10.5vw, 2.65rem);
+    line-height: 0.98;
+    text-wrap: pretty;
+  }
+
+  .featured-article p {
+    font-size: 0.98rem;
+  }
+
+  .featured-article .button {
+    width: auto;
+    justify-self: start;
+  }
+
+  .blog-sidebar {
+    padding-inline: 0;
   }
 
   .product-card__top,

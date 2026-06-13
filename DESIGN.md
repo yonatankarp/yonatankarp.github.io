@@ -18,7 +18,6 @@ A restrained editorial-technical portfolio. Warm off-white surfaces in light mod
 ## Typography
 - Display: `Literata`, then Georgia and serif fallbacks
 - Body/UI: `Manrope`, then system sans fallbacks
-- Hebrew fallback stack should prefer system fonts with native RTL support
 - Tight display tracking, generous body leading, readable line lengths capped near 70ch
 
 ## Layout
@@ -29,7 +28,7 @@ A restrained editorial-technical portfolio. Warm off-white surfaces in light mod
 - Blog index split into a featured story, recent articles, and tag navigation
 
 ## Components
-- Sticky top navigation with theme and language controls
+- Sticky top navigation with theme controls
 - Pill buttons with subtle lift on hover
 - Timeline-like experience blocks
 - Project rows with metadata and outbound CTA

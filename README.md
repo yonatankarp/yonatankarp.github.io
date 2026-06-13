@@ -1,6 +1,6 @@
 # yonatankarp.github.io
 
-Personal website and blog built with [Hugo](https://gohugo.io/). Fully custom bilingual implementation in English and Hebrew.
+Personal website and blog built with [Hugo](https://gohugo.io/). Fully custom English-only implementation.
 
 ## Quick Start
 

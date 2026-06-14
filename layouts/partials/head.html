@@ -34,7 +34,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 {{ $schema := dict "@context" "https://schema.org" "@type" "WebPage" "name" $title "description" $description "url" .Permalink }}
 {{ if .IsHome }}
-  {{ $schema = dict "@context" "https://schema.org" "@type" "Person" "name" "Yonatan Karp-Rudin" "jobTitle" "Staff Software Engineer" "url" .Site.BaseURL "sameAs" (slice "https://github.com/yonatankarp" "https://www.linkedin.com/in/yonatankarp/" "https://kotlinbackend.com") "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" "Berlin" "addressCountry" "DE") }}
+  {{ $schema = dict "@context" "https://schema.org" "@type" "Person" "name" "Yonatan Karp-Rudin" "jobTitle" "Staff Software Engineer" "url" .Site.BaseURL "sameAs" (slice "https://github.com/yonatankarp" "https://www.linkedin.com/in/yonatankarp/") "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" "Berlin" "addressCountry" "DE") }}
 {{ else if and .IsPage (eq .Type "blog") }}
   {{ $schema = dict "@context" "https://schema.org" "@type" "Article" "headline" .Title "author" (dict "@type" "Person" "name" "Yonatan Karp-Rudin") "publisher" (dict "@type" "Person" "name" "Yonatan Karp-Rudin") "mainEntityOfPage" .Permalink }}
   {{ if not .Date.IsZero }}{{ $schema = merge $schema (dict "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00")) }}{{ end }}

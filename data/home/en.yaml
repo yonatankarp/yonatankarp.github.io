@@ -40,8 +40,6 @@ hero:
       url: "https://github.com/yonatankarp"
     - label: "LinkedIn"
       url: "https://www.linkedin.com/in/yonatankarp/"
-    - label: "kotlinbackend.com"
-      url: "https://kotlinbackend.com"
 
 about:
   kicker: "How I work"

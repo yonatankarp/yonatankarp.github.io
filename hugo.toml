@@ -71,7 +71,6 @@ url = "https://yonatankarp.github.io"
 sameAs = [
   "https://github.com/yonatankarp",
   "https://linkedin.com/in/yonatankarp",
-  "https://kotlinbackend.com",
 ]
 sections = [
   "showcase",

@@ -194,15 +194,47 @@ textarea {
 }
 
 .primary-nav a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
   text-decoration: none;
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--muted);
+  transition: color var(--transition), text-shadow var(--transition);
 }
 
 .primary-nav a:hover,
 .primary-nav a:focus-visible {
   color: var(--text);
+}
+
+.primary-nav a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.1rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  opacity: 0;
+  transform: scaleX(0.45);
+  transform-origin: center;
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.primary-nav a:hover::after,
+.primary-nav a:focus-visible::after,
+.primary-nav a.is-active::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.primary-nav a.is-active {
+  color: var(--text);
+  text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
 .utility-controls {

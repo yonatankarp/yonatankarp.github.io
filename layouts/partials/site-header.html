@@ -13,7 +13,13 @@
       <nav class="primary-nav" aria-label="Primary navigation">
         <ul>
           {{ range .Site.Menus.header }}
-          <li><a href="{{ .URL }}">{{ .Name }}</a></li>
+          {{ $menuURL := .URL }}
+          {{ $normalizedURL := $menuURL }}
+          {{ if and (not (in $menuURL "#")) (not (hasSuffix $menuURL "/")) }}{{ $normalizedURL = printf "%s/" $menuURL }}{{ end }}
+          {{ $sectionURL := "" }}
+          {{ with $.Section }}{{ $sectionURL = printf "/%s/" . }}{{ end }}
+          {{ $isActive := or (and $.IsHome (eq $menuURL "/")) (and (not (in $menuURL "#")) (or (eq $.RelPermalink $normalizedURL) (and $sectionURL (eq $sectionURL $normalizedURL)))) }}
+          <li><a href="{{ $menuURL }}"{{ if $isActive }} class="is-active" aria-current="page"{{ end }}>{{ .Name }}</a></li>
           {{ end }}
         </ul>
       </nav>

@@ -792,7 +792,7 @@ All code examples in this article are available in my GitHub repository: [https:
 ## More Information
 
 
-- [API Versioning with Kotlin and Spring Boot](https://kotlinbackend.com/api-versioning-with-kotlin-and-spring-boot/) by Mariusz Sołtysiak: An article by a colleague of mine about API versioning used in their domain gateway.
+- [How to Use OpenApi to Build a Robust RESTful API](/blog/openapi-robust-restful-api/) covers the OpenAPI setup this domain gateway builds on.
 
 
 ## Credits

@@ -53,7 +53,7 @@
     {{ if gt $paginator.TotalPages 1 }}
     <nav class="pagination" aria-label="Pagination">
       {{ with $paginator.Prev }}<a class="button button--ghost" href="{{ .URL }}">Previous</a>{{ end }}
-      <span>{{ $paginator.PageNumber }} / {{ $paginator.TotalPages }}</span>
+      <span class="pagination__count">{{ $paginator.PageNumber }} / {{ $paginator.TotalPages }}</span>
       {{ with $paginator.Next }}<a class="button button--ghost" href="{{ .URL }}">Next</a>{{ end }}
     </nav>
     {{ end }}

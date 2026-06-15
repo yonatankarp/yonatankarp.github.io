@@ -160,11 +160,52 @@ textarea {
 
 .menu-toggle {
   display: none;
+  place-items: center;
+  width: 2.85rem;
+  height: 2.85rem;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
   border-radius: 999px;
-  padding: 0.65rem 1rem;
+  padding: 0;
+  transition: transform var(--transition), border-color var(--transition), background-color var(--transition);
+}
+
+.menu-toggle:hover,
+.menu-toggle:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.menu-toggle:active {
+  transform: scale(0.96);
+}
+
+.menu-toggle__icon {
+  position: relative;
+  display: grid;
+  gap: 0.32rem;
+  width: 1rem;
+}
+
+.menu-toggle__icon span {
+  display: block;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  transition: transform var(--transition), opacity var(--transition);
+}
+
+.menu-toggle[aria-expanded="true"] .menu-toggle__icon {
+  gap: 0;
+}
+
+.menu-toggle[aria-expanded="true"] .menu-toggle__icon span:first-child {
+  transform: translateY(1px) rotate(45deg);
+}
+
+.menu-toggle[aria-expanded="true"] .menu-toggle__icon span:last-child {
+  transform: translateY(-1px) rotate(-45deg);
 }
 
 .site-header__controls {
@@ -2887,7 +2928,7 @@ h4 a,
 
 @media (max-width: 820px) {
   .menu-toggle {
-    display: inline-flex;
+    display: inline-grid;
   }
 
   .site-header__controls {

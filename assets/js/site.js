@@ -7,9 +7,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     if (menuToggle && nav) {
-      menuToggle.addEventListener('click', () => {
-        const open = nav.classList.toggle('is-open');
+      const setMenuOpen = (open) => {
+        nav.classList.toggle('is-open', open);
         menuToggle.setAttribute('aria-expanded', String(open));
+        menuToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+      };
+
+      menuToggle.addEventListener('click', () => {
+        setMenuOpen(!nav.classList.contains('is-open'));
+      });
+
+      nav.querySelectorAll('a').forEach((link) => {
+        link.addEventListener('click', () => setMenuOpen(false));
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && nav.classList.contains('is-open')) {
+          setMenuOpen(false);
+          menuToggle.focus();
+        }
       });
     }
 

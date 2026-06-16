@@ -341,11 +341,11 @@ section[id] {
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(340px, 0.88fr);
   gap: clamp(1.5rem, 4vw, 4rem);
-  min-height: min(76dvh, 780px);
+  min-height: min(66dvh, 680px);
   align-items: center;
   width: min(1460px, calc(100vw - 5rem));
-  margin-top: clamp(1rem, 2vw, 1.8rem);
-  padding: clamp(1.5rem, 4vw, 3.8rem);
+  margin-top: clamp(0.5rem, 1.4vw, 1.2rem);
+  padding: clamp(1.3rem, 2.7vw, 2.8rem);
   border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
   border-radius: clamp(1.5rem, 3vw, 2.4rem);
   overflow: hidden;
@@ -449,7 +449,7 @@ section[id] {
 
 .hero h1 {
   max-width: 13.5ch;
-  font-size: clamp(3.2rem, 6.2vw, 5.9rem);
+  font-size: clamp(3.2rem, 5.35vw, 5.05rem);
   line-height: 0.94;
   letter-spacing: -0.055em;
 }
@@ -457,7 +457,7 @@ section[id] {
 .hero__lede {
   max-width: 54ch;
   color: var(--hero-soft);
-  font-size: clamp(1.08rem, 1.55vw, 1.32rem);
+  font-size: clamp(1.04rem, 1.42vw, 1.2rem);
 }
 
 .hero__copy,
@@ -741,7 +741,7 @@ section[id] {
 .hero__proof-item {
   display: grid;
   gap: 0.25rem;
-  min-height: 5.8rem;
+  min-height: 4.7rem;
   align-content: end;
   padding: 0.85rem;
   border: 1px solid rgba(255,255,255,0.14);
@@ -3071,18 +3071,37 @@ h4 a,
   .hero {
     width: min(100vw - 0.75rem, 1460px);
     min-height: auto;
-    padding: 1.2rem;
+    padding: 1rem 1rem 1.25rem;
     border-radius: 1.1rem;
   }
 
   .hero h1 {
-    max-width: 11.5ch;
-    font-size: clamp(2.35rem, 11.5vw, 3.25rem);
+    max-width: 12ch;
+    font-size: clamp(2.25rem, 10.5vw, 3.05rem);
     line-height: 0.98;
   }
 
   .hero__lede {
     font-size: 1rem;
+  }
+
+  .hero__actions {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .hero__proof-strip {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .hero__proof-item {
+    min-height: auto;
+    padding: 0.68rem 0.78rem;
+  }
+
+  .hero__visual {
+    display: none;
   }
 
   .hero__notes {

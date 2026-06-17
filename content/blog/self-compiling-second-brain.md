@@ -2,9 +2,6 @@
 title: "I Stopped Being My AI Agent's Memory: Building a Self-Compiling Second Brain"
 date: 2026-06-11T00:00:00+01:00
 draft: false
-build:
-  list: never
-  render: always
 type: "blog"
 description: "How I gave my AI coding agent a real long-term memory using Claude Code hooks: a self-compiling wiki it writes to itself, with capture, ingest, and recall wired into the session lifecycle."
 tags:

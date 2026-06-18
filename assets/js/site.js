@@ -31,6 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const revealNodes = document.querySelectorAll('.reveal');
     if (revealNodes.length) {
+      const revealAll = () => {
+        revealNodes.forEach((el) => el.classList.add('is-visible'));
+        root.classList.remove('js-enabled');
+      };
+
       if (!media.matches && 'IntersectionObserver' in window) {
         root.classList.add('js-enabled');
         const observer = new IntersectionObserver((entries) => {
@@ -43,8 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { threshold: 0, rootMargin: '0px 0px 10% 0px' });
 
         revealNodes.forEach((el) => observer.observe(el));
+        window.addEventListener('beforeprint', revealAll, { once: true });
       } else {
-        revealNodes.forEach((el) => el.classList.add('is-visible'));
+        revealAll();
       }
     }
 

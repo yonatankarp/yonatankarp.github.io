@@ -12,7 +12,7 @@
     {{ with $img }}
     {{ $thumb := .Fill "640x400" }}
     <span class="project-entry__media">
-      <img src="{{ $thumb.RelPermalink }}" width="{{ $thumb.Width }}" height="{{ $thumb.Height }}" alt="" loading="lazy" decoding="async">
+      <img src="{{ $thumb.RelPermalink }}" width="{{ $thumb.Width }}" height="{{ $thumb.Height }}" alt="{{ $title }} project preview" loading="lazy" decoding="async">
     </span>
     {{ end }}
     <span class="project-entry__body">

@@ -4,6 +4,7 @@
     "build:local": ".tools/hugo/hugo --gc --minify",
     "check": "npm run check:blog-assets && (npm run build || npm run build:local)",
     "check:blog-assets": "node scripts/check-blog-assets.js",
+    "visual:capture": "node scripts/capture-screenshots.js",
     "serve": "hugo server",
     "serve:local": ".tools/hugo/hugo server"
   }

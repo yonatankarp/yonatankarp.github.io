@@ -12,6 +12,27 @@ make clean   # remove build artifacts
 
 Requires Hugo v0.160.0+.
 
+## Visual QA
+
+Use the local screenshot helper when checking homepage layout changes:
+
+```bash
+npm run visual:capture
+```
+
+By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures to `screenshots/`. To capture an already-running server, set `SITE_URL`:
+
+```bash
+SITE_URL=http://127.0.0.1:1313/ npm run visual:capture
+```
+
+The helper expects Playwright and a Chromium browser to be available locally:
+
+```bash
+npm install --save-dev playwright
+npx playwright install chromium
+```
+
 ## Architecture
 
 - custom Hugo layouts in `layouts/`

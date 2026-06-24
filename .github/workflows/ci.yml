@@ -69,7 +69,7 @@ jobs:
 
   dependabot_auto_merge:
     needs: build
-    if: ${{ github.actor == 'dependabot[bot]' }}
+    if: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
     permissions:
       contents: write
       pull-requests: write

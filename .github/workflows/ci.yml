@@ -49,6 +49,9 @@ jobs:
             npm ci
           fi
 
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
       - name: Check blog assets
         run: npm run check:blog-assets
 
@@ -66,6 +69,20 @@ jobs:
           hugo \
             --gc \
             --minify
+
+      - name: Capture visual smoke screenshots
+        env:
+          TZ: Europe/Berlin
+        run: npm run visual:capture
+
+      - name: Upload visual smoke screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-smoke-screenshots
+          path: screenshots/*.png
+          if-no-files-found: ignore
+          retention-days: 14
 
   dependabot_auto_merge:
     needs: build

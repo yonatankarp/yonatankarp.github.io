@@ -1,33 +1,7 @@
 {{ define "main" }}
 {{ $home := hugo.Data.home.en }}
 {{ $allPosts := sort (where .Site.RegularPages "Type" "blog") "Date" "desc" }}
-{{ $prioritySlugs := slice "observability-in-action-opentelemetry" "build-domain-gateway-openapi" "fix-misconfigurations-redistemplate" "openapi-robust-restful-api" }}
-{{ $priorityPosts := slice }}
-{{ range $slug := $prioritySlugs }}
-  {{ range first 1 (where $allPosts "File.BaseFileName" $slug) }}
-    {{ $priorityPosts = $priorityPosts | append . }}
-  {{ end }}
-{{ end }}
-{{ $curatedPosts := slice }}
-{{ $seenPostKeys := dict }}
-{{ range $priorityPosts }}
-  {{ $postKey := .RelPermalink }}
-  {{ with .File }}{{ $postKey = .BaseFileName }}{{ end }}
-  {{ if not (index $seenPostKeys $postKey) }}
-    {{ $curatedPosts = $curatedPosts | append . }}
-    {{ $seenPostKeys = merge $seenPostKeys (dict $postKey true) }}
-  {{ end }}
-{{ end }}
-{{ range $allPosts }}
-  {{ $postKey := .RelPermalink }}
-  {{ with .File }}{{ $postKey = .BaseFileName }}{{ end }}
-  {{ if not (index $seenPostKeys $postKey) }}
-    {{ $curatedPosts = $curatedPosts | append . }}
-    {{ $seenPostKeys = merge $seenPostKeys (dict $postKey true) }}
-  {{ end }}
-{{ end }}
-{{ $hasPriorityPosts := gt (len $priorityPosts) 0 }}
-{{ $posts := first 3 $curatedPosts }}
+{{ $posts := first 3 $allPosts }}
 {{ $leadPost := false }}
 {{ range first 1 $posts }}{{ $leadPost = . }}{{ end }}
 {{ $secondaryPosts := slice }}

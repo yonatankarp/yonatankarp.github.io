@@ -1,6 +1,7 @@
 {{ define "main" }}
-{{ $featured := first 1 (sort (where .RegularPages ".Params.featured" true) "Date" "desc") }}
-{{ $others := where .RegularPages ".Params.featured" "!=" true }}
+{{ $posts := sort .RegularPages "Date" "desc" }}
+{{ $featured := first 1 $posts }}
+{{ $others := after 1 $posts }}
 {{ $paginator := .Paginate $others }}
 <section class="shell page-head reveal-group">
   <div class="page-head__copy reveal">
@@ -15,7 +16,7 @@
     {{ $post := . }}
     <article class="featured-article reveal">
       <div class="featured-article__body">
-        <p class="eyebrow">Start here</p>
+        <p class="eyebrow">Latest article</p>
         <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
         <p>{{ .Description | default (.Summary | plainify) }}</p>
         <a class="button button--primary" href="{{ .RelPermalink }}">Read article</a>

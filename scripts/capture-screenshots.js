@@ -12,8 +12,16 @@ const baseUrl = process.env.SITE_URL || "http://127.0.0.1:1313/";
 const shouldStartServer = !process.env.SITE_URL;
 
 const viewports = [
-  { name: "home-desktop", width: 1440, height: 1100 },
-  { name: "home-mobile", width: 390, height: 1200 },
+  { name: "desktop", width: 1440, height: 1100 },
+  { name: "mobile", width: 390, height: 1200 },
+];
+
+const routes = [
+  { name: "home", path: "/" },
+  { name: "projects", path: "/projects/" },
+  { name: "blog", path: "/blog/" },
+  { name: "cv", path: "/cv/" },
+  { name: "post-self-compiling-second-brain", path: "/blog/self-compiling-second-brain/" },
 ];
 
 function fail(message) {
@@ -44,6 +52,10 @@ function requestUrl(url) {
       resolve(false);
     });
   });
+}
+
+function routeUrl(routePath) {
+  return new URL(routePath, baseUrl).toString();
 }
 
 async function waitForUrl(url, timeoutMs) {
@@ -113,18 +125,26 @@ async function main() {
   const browser = await chromium.launch();
 
   try {
-    for (const viewport of viewports) {
-      const page = await browser.newPage({
-        viewport: { width: viewport.width, height: viewport.height },
-        deviceScaleFactor: 1,
-      });
+    for (const route of routes) {
+      for (const viewport of viewports) {
+        const page = await browser.newPage({
+          viewport: { width: viewport.width, height: viewport.height },
+          deviceScaleFactor: 1,
+        });
 
-      await page.goto(baseUrl, { waitUntil: "networkidle" });
-      await page.screenshot({
-        path: path.join(screenshotDir, `${viewport.name}-${dateStamp}.png`),
-        fullPage: true,
-      });
-      await page.close();
+        const response = await page.goto(routeUrl(route.path), { waitUntil: "networkidle" });
+
+        if (!response || !response.ok()) {
+          const status = response ? response.status() : "no response";
+          fail(`Failed to load ${route.path}: ${status}`);
+        }
+
+        await page.screenshot({
+          path: path.join(screenshotDir, `${route.name}-${viewport.name}-${dateStamp}.png`),
+          fullPage: true,
+        });
+        await page.close();
+      }
     }
   } finally {
     await browser.close();
@@ -134,7 +154,7 @@ async function main() {
     }
   }
 
-  console.log(`Captured ${viewports.length} screenshots in ${path.relative(rootDir, screenshotDir)}/`);
+  console.log(`Captured ${routes.length * viewports.length} screenshots in ${path.relative(rootDir, screenshotDir)}/`);
 }
 
 main().catch((error) => {

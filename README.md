@@ -14,13 +14,13 @@ Requires Hugo v0.160.0+.
 
 ## Visual QA
 
-Use the local screenshot helper when checking homepage layout changes:
+Use the local screenshot helper when checking layout changes:
 
 ```bash
 npm run visual:capture
 ```
 
-By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures to `screenshots/`. To capture an already-running server, set `SITE_URL`:
+By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures for `/`, `/projects/`, `/blog/`, `/cv/`, and a representative blog post to `screenshots/`. To capture an already-running server, set `SITE_URL`:
 
 ```bash
 SITE_URL=http://127.0.0.1:1313/ npm run visual:capture

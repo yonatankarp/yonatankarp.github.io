@@ -86,6 +86,31 @@ async function loadPlaywright() {
   }
 }
 
+async function scrollThroughPage(page) {
+  await page.evaluate(async () => {
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const originalScrollBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = "auto";
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    const step = Math.max(300, Math.floor(viewportHeight * 0.75));
+    const maxScroll = () => Math.max(0, document.documentElement.scrollHeight - viewportHeight);
+
+    for (let y = 0; y < maxScroll(); y += step) {
+      window.scrollTo(0, y);
+      await delay(120);
+    }
+
+    window.scrollTo(0, maxScroll());
+    await delay(250);
+    window.scrollTo(0, 0);
+    while (window.scrollY !== 0) {
+      await delay(50);
+    }
+    document.documentElement.style.scrollBehavior = originalScrollBehavior;
+    await delay(250);
+  });
+}
+
 async function main() {
   const { chromium } = await loadPlaywright();
   let server = null;
@@ -138,6 +163,8 @@ async function main() {
           const status = response ? response.status() : "no response";
           fail(`Failed to load ${route.path}: ${status}`);
         }
+
+        await scrollThroughPage(page);
 
         await page.screenshot({
           path: path.join(screenshotDir, `${route.name}-${viewport.name}-${dateStamp}.png`),

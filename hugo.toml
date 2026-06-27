@@ -1,4 +1,4 @@
-baseURL = "https://yonatankarp.github.io/"
+baseURL = "https://yonatankarp.com/"
 title = "Yonatan Karp-Rudin"
 
 [pagination]
@@ -67,7 +67,7 @@ twitter = "yonvata"
 
 [params.seo.person]
 name = "Yonatan Karp-Rudin"
-url = "https://yonatankarp.github.io"
+url = "https://yonatankarp.com"
 sameAs = [
   "https://github.com/yonatankarp",
   "https://linkedin.com/in/yonatankarp",

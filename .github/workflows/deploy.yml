@@ -73,6 +73,9 @@ jobs:
             --gc \
             --minify
 
+      - name: Check generated site metadata
+        run: npm run check:site-metadata
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
         with:

@@ -70,6 +70,9 @@ jobs:
             --gc \
             --minify
 
+      - name: Check generated site metadata
+        run: npm run check:site-metadata
+
       - name: Capture visual smoke screenshots
         env:
           TZ: Europe/Berlin

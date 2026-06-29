@@ -6,10 +6,11 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const rootDir = path.resolve(__dirname, "..");
-const screenshotDir = path.join(rootDir, "screenshots");
 const dateStamp = new Date().toISOString().slice(0, 10);
-const baseUrl = process.env.SITE_URL || "http://127.0.0.1:1313/";
-const shouldStartServer = !process.env.SITE_URL;
+const options = parseArgs(process.argv.slice(2));
+const screenshotDir = path.resolve(rootDir, options.out || "screenshots");
+const baseUrl = options.base || process.env.SITE_URL || "http://127.0.0.1:1313/";
+const shouldStartServer = !options.base && !process.env.SITE_URL;
 
 const viewports = [
   { name: "desktop", width: 1440, height: 1100 },
@@ -23,6 +24,25 @@ const routes = [
   { name: "cv", path: "/cv/" },
   { name: "post-self-compiling-second-brain", path: "/blog/self-compiling-second-brain/" },
 ];
+
+function parseArgs(args) {
+  const parsed = {};
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    const [flag, inlineValue] = arg.split("=", 2);
+
+    if (flag === "--base" || flag === "--out") {
+      parsed[flag.slice(2)] = inlineValue || args[index + 1];
+
+      if (!inlineValue) {
+        index += 1;
+      }
+    }
+  }
+
+  return parsed;
+}
 
 function fail(message) {
   console.error(message);

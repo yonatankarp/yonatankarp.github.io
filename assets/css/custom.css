@@ -1410,16 +1410,9 @@ h4 a,
   color: color-mix(in srgb, var(--accent) 72%, var(--muted));
 }
 
-.timeline-item__body,
-.project-row__body,
-.featured-article__body,
-.post-row > div,
-.skill-row > div,
-.cv-item > div,
-.contact-panel__copy,
-.contact-panel__actions,
 .timeline-item__meta p,
 .project-row__meta p,
+.post-row__meta,
 .education-item p,
 .writing-card__date {
   margin: 0 0 0.6rem;

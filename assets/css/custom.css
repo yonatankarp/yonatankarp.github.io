@@ -2964,6 +2964,24 @@ h4 a,
 }
 
 @media (max-width: 820px) {
+  .site-header {
+    top: 0.5rem;
+  }
+
+  .site-header__inner {
+    min-height: 3.8rem;
+    padding-inline: 0.8rem;
+  }
+
+  .brand__eyebrow {
+    display: none;
+  }
+
+  .brand__name {
+    font-size: 1.18rem;
+    padding-inline-start: 0;
+  }
+
   .menu-toggle {
     display: inline-grid;
   }
@@ -3081,7 +3099,7 @@ h4 a,
 
 @media (max-width: 680px) {
   :root {
-    --shell: min(100vw - 1rem, 1240px);
+    --shell: min(100vw - 1.25rem, 1240px);
   }
 
   .projects-page {
@@ -3114,20 +3132,22 @@ h4 a,
   }
 
   .hero {
-    width: min(100vw - 0.75rem, 1460px);
+    width: min(100vw - 1rem, 1460px);
     min-height: auto;
-    padding: 1rem 1rem 1.25rem;
+    padding: 0.9rem 0.85rem 1.15rem;
     border-radius: 1.1rem;
   }
 
   .hero h1 {
-    max-width: 12ch;
-    font-size: clamp(2.25rem, 10.5vw, 3.05rem);
-    line-height: 0.98;
+    max-width: 14ch;
+    font-size: clamp(2.15rem, 9.6vw, 2.85rem);
+    line-height: 1;
   }
 
   .hero__lede {
-    font-size: 1rem;
+    max-width: 42ch;
+    font-size: 0.96rem;
+    line-height: 1.58;
   }
 
   .hero__actions {
@@ -3136,13 +3156,29 @@ h4 a,
   }
 
   .hero__proof-strip {
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
   }
 
   .hero__proof-item {
     min-height: auto;
-    padding: 0.68rem 0.78rem;
+    align-content: center;
+    padding: 0.58rem 0.68rem;
+  }
+
+  .hero__proof-item:nth-child(2) {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .hero__proof-item span {
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+  }
+
+  .hero__proof-item strong {
+    font-size: 0.86rem;
+    line-height: 1.25;
   }
 
   .hero__visual {
@@ -3233,7 +3269,7 @@ h4 a,
 
   .multiplier-panel__body {
     gap: 0.65rem;
-    padding: 0.75rem;
+    padding: 0.7rem;
     border-radius: 0.85rem;
   }
 
@@ -3245,7 +3281,7 @@ h4 a,
   .multiplier-step {
     grid-template-columns: 2rem minmax(0, 1fr);
     gap: 0.6rem;
-    padding: 0.7rem;
+    padding: 0.65rem;
   }
 
   .multiplier-step p {

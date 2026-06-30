@@ -68,10 +68,17 @@ jobs:
         run: |
           hugo \
             --gc \
-            --minify
+            --minify \
+            --cleanDestinationDir
 
       - name: Check generated site metadata
         run: npm run check:site-metadata
+
+      - name: Check generated HTML
+        run: npm run check:generated-html
+
+      - name: Check internal links
+        run: npm run check:links
 
       - name: Capture visual smoke screenshots
         env:

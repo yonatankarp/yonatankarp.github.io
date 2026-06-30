@@ -21,7 +21,7 @@ images:
 
 <!--more-->
 
-After I wrote my article [**How does HashMap work in Java?**](https://yonatankarp.com/how-does-hashmap-work-in-java), a few people suggested more topics related to HashMap. As a result, I decided to create a short series of articles about it.
+After I wrote my article [**How does HashMap work in Java?**](/blog/how-hashmap-works-java/), a few people suggested more topics related to HashMap. As a result, I decided to create a short series of articles about it.
 
 In today's article, we will discuss JVM HashMaps and how they can be easily broken if not used carefully. It's important to note that while we'll be focusing on the JVM world, the same principles apply to most modern programming languages.
 

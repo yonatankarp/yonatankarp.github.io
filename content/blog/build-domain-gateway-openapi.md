@@ -24,7 +24,7 @@ images:
 ## What is a Domain Gateway?
 
 
-A domain gateway is a private case of the API gateway pattern. The website [java-design-patterns](https://java-design-patterns.com/patterns/api-gateway/) defines the gateway pattern as follows:
+A domain gateway is a private case of the API gateway pattern. The website [java-design-patterns](https://java-design-patterns.com/patterns/microservices-api-gateway/) defines the gateway pattern as follows:
 
 <!--more-->
 

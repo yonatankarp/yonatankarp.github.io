@@ -419,4 +419,4 @@ By using OpenAPI, you can allow yourself, your team, and your potential clients 
 ## Credits
 
 
-- Photos by [Adam Kool](https://unsplash.com/@adamkool), [Karsten](https://unsplash.com/@karsten_wuerth)[ Würth](https://unsplash.com/@4lexmccarthy), and [Jefferson Santos](https://unsplash.com/@jefflssantos) on [Unsplash](https://unsplash.com/).
+- Photos by [Adam Kool](https://unsplash.com/@adamkool), [Karsten Würth](https://unsplash.com/@karsten_wuerth), and [Jefferson Santos](https://unsplash.com/@jefflssantos) on [Unsplash](https://unsplash.com/).

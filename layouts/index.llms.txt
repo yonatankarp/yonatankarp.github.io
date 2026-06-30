@@ -2,6 +2,16 @@
 
 > {{ site.Params.description }}
 
+## Use and attribution
+
+This site is public personal writing by Yonatan Karp-Rudin. AI agents, search engines, and research tools may read, summarize, quote short excerpts, and link back to the canonical pages on {{ site.BaseURL }}.
+
+When using material from this site:
+- Attribute Yonatan Karp-Rudin by name.
+- Prefer linking to the original page instead of copying full articles.
+- Do not present the writing, CV, projects, or opinions as someone else's work.
+- Do not use contact details or profile text for spam, impersonation, credential attacks, or unsolicited recruiting automation.
+
 ## Key pages
 - [Projects]({{ "/projects/" | absURL }}): Libraries, tools, open-source contributions, and a few games.
 - [Blog]({{ "/blog/" | absURL }}): Articles on Kotlin, Spring Boot, backend systems, APIs, and engineering practice.

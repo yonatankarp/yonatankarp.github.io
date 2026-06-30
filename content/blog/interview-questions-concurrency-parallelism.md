@@ -22,7 +22,7 @@ images:
 
 <!--more-->
 
-One of my most successful posts so far is a detailed explanation of my favorite interview question (see [How does HashMap work in Java?](https://yonatankarp.com/how-does-hashmap-work-in-java) for more details). As a result, I've decided to create a series of posts breaking down more questions. All the questions that will be answered during this series have been used in my current employer's hiring process.
+One of my most successful posts so far is a detailed explanation of my favorite interview question (see [How does HashMap work in Java?](/blog/how-hashmap-works-java/) for more details). As a result, I've decided to create a series of posts breaking down more questions. All the questions that will be answered during this series have been used in my current employer's hiring process.
 
 In today's post, we will focus on concurrent and parallel programming. So without further ado, let's start!
 

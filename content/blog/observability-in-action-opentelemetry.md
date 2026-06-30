@@ -914,7 +914,7 @@ In this article we've followed the steps of building our business logic in a lib
 ## Acknowledgments
 
 
-[Mariusz Sołtysiak](https://medium.com/@mariuszsoltysiak): for moral support, review, and suggestions while writing this article.
+Mariusz Sołtysiak: for moral support, review, and suggestions while writing this article.
 
 
 ## Credits

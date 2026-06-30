@@ -16,7 +16,7 @@ images:
   featured_image: "/images/blog/covers/build-twitter-bot-kotlin.jpg"
 ---
 
-I read an excellent article by [Martin Erlic](https://medium.com/u/f864d52751a7) called "[How To Make a Scary Russian Twitter Bot With Java](https://medium.com/@SeloSlav/how-to-make-a-scary-russian-twitter-bot-with-java-b7b62768a3ac)" and I wanted to update it using Kotlin.
+I read an excellent article by [Martin Erlic](https://medium.com/u/f864d52751a7) called "How To Make a Scary Russian Twitter Bot With Java" and I wanted to update it using Kotlin.
 
 <!--more-->
 
@@ -53,7 +53,7 @@ To save you time setting up the project, I've created a starter version on GitHu
 
 In the **resources** directory, open the **tweets.txt** file. This file will contain the tweets that our bot will publish. Each tweet should be on a separate line. Aim for at least 100 unique tweets to reduce the chances of content detection. Remember the 280 character limit imposed by Twitter.
 
-Open the [**twitter4j.properties**](http://twitter4j.properties) file in the same resources directory. Fill in the following information from **Step 1**:
+Open the **twitter4j.properties** file in the same resources directory. Fill in the following information from **Step 1**:
 
 ```text
 debug=true  
@@ -137,7 +137,7 @@ object TwitterBot {
 
 The code above is relatively simple and well-documented to ensure ease of understanding.
 
-As mentioned in the original article, make sure to familiarize yourself with the [Twitter API Limits](https://help.twitter.com/en/rules-and-policies/twitter-limits) to understand the frequency of tweeting without encountering issues.
+As mentioned in the original article, make sure to familiarize yourself with the [X API rate limits](https://docs.x.com/x-api/fundamentals/rate-limits) to understand the frequency of tweeting without encountering issues.
 
 ### Step 5: Running the Application
 

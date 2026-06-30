@@ -16,6 +16,12 @@ images:
   featured_image: "/images/blog/covers/inject-multiple-implementations-spring.jpg"
 ---
 
+<div class="editors-note">
+
+**Editor's Note:** This post was updated to add a section on controlling the order in which Spring injects beans into a `List`, using the `@Order` annotation and the `Ordered` interface.
+
+</div>
+
 Recently, I had a discussion with one of my colleagues during a code review. We talked about a hidden gem in Spring (as well as other frameworks like Micronaut) that could simplify our code.
 
 <!--more-->
@@ -98,4 +104,41 @@ class GreeterService(private val greeters: List<Greeter>) {
 Our code is now much simpler, but that's not the only benefit. If we introduce a new greeter in the future, it will be automatically added to the system without requiring any modifications to the code!
 
 Another option instead of using `List<Greeter>` would be to use a `Map<String, Greeter>`. In this case, Spring would inject a map where the keys are the full class names and the values are the corresponding beans. For example, `com.example.greeter.EnglishGreeter`.
+
+As a side note, the order in which Spring injects the beans into the `List` is not guaranteed by default. When the order matters, you can control it in two ways. In both, a lower value means higher precedence, so the bean appears earlier in the list.
+
+The `@Order` annotation gives you static ordering, with the position fixed by the annotation value:
+
+```Kotlin
+@Component
+@Order(1)
+class EnglishGreeter : Greeter {
+    override fun sayGoodMorning() {
+        println("Good morning")
+    }
+}
+
+@Component
+@Order(2)
+class GermanGreeter : Greeter {
+    override fun sayGoodMorning() {
+        println("Guten Morgen")
+    }
+}
+```
+
+The `Ordered` interface gives you dynamic ordering, where `getOrder()` can derive the position from the bean's own configuration or state rather than a hardcoded annotation value:
+
+```Kotlin
+@Component
+class HebrewGreeter(
+    @Value("\${greeter.hebrew.order:3}") private val order: Int
+) : Greeter, Ordered {
+    override fun sayGoodMorning() {
+        println("בוקר טוב")
+    }
+
+    override fun getOrder(): Int = order
+}
+```
 

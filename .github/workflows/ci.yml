@@ -83,7 +83,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: visual-smoke-screenshots
-          path: screenshots/*.png
+          path: artifacts/visual-smoke/**/*.png
           if-no-files-found: ignore
           retention-days: 14
 

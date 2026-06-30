@@ -2,8 +2,9 @@
   "scripts": {
     "build": "hugo --gc --minify || .tools/hugo/hugo --gc --minify",
     "build:local": ".tools/hugo/hugo --gc --minify",
-    "check": "npm run check:blog-assets && (npm run build || npm run build:local) && npm run check:site-metadata",
+    "check": "npm run check:blog-assets && (npm run build || npm run build:local) && npm run check:site-metadata && npm run check:generated-html",
     "check:blog-assets": "node scripts/check-blog-assets.js",
+    "check:generated-html": "node scripts/check-generated-html.js",
     "check:site-metadata": "node scripts/check-site-metadata.js",
     "visual:capture": "node scripts/capture-screenshots.js",
     "serve": "hugo server",

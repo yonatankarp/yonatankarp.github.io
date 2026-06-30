@@ -69,7 +69,7 @@ With the authentication set, we can move on to the code!
 
 Create a new Kotlin file called `TwitterBot.kt` in the `src/main/kotlin` directory. Replace the existing code with the following:
 
-![](/images/blog/intellij-new-kotlin-file.png)
+![Creating a new Kotlin file in IntelliJ IDEA](/images/blog/intellij-new-kotlin-file.png)
 
 ```kotlin
 package com.example

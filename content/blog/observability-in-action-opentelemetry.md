@@ -548,13 +548,13 @@ Once Spring notifies you that the service is operational, access it via your bro
 If executed correctly, the response should resemble:
 
 
-![](/images/blog/catfacts-api-response.png)
+![Cat Facts API response in the browser](/images/blog/catfacts-api-response.png)
 
 
 To retrieve a custom number of facts, use the `max` query parameter. For ten facts, navigate to [http://localhost:8080/api/v1/cat/facts?max=10](http://localhost:8080/api/v1/cat/facts?max=10).
 
 
-![](/images/blog/catfacts-api-response-max10.png)
+![Cat Facts API response using the max query parameter](/images/blog/catfacts-api-response-max10.png)
 
 
 Inspecting the database will confirm the successful storage of facts.
@@ -638,25 +638,25 @@ For this article, we will use the default `test` environment, but you can create
 After setting up, you should land on a page that looks like this:
 
 
-![](/images/blog/honeycomb-send-data.png)
+![Honeycomb send data setup screen](/images/blog/honeycomb-send-data.png)
 
 
 Next, we'll create a new API key for our service to send data to HoneyComb. To do this, click on `Account` ➡️ `Team settings`. On the following page
 
 
-![](/images/blog/honeycomb-account-menu.png)
+![Honeycomb account menu with team settings](/images/blog/honeycomb-account-menu.png)
 
 
 Under the `Environments and API Keys` section, click the `Manage` button.
 
 
-![](/images/blog/honeycomb-team-settings.png)
+![Honeycomb team settings page with API key management](/images/blog/honeycomb-team-settings.png)
 
 
 On the next page, click the `Create API Key` button and name it. For this tutorial, let's call it `local` (indicating local execution). We want to limit our key's scope to the minimum required, so the key should have only the `Send events` and `Create datasets` permissions.
 
 
-![](/images/blog/honeycomb-create-api-key.png)
+![Honeycomb create API key form](/images/blog/honeycomb-create-api-key.png)
 
 
 Once you've made these selections, click the `Save` button. You should now see the key displayed on your screen. We'll use this key later when configuring our service.
@@ -748,13 +748,13 @@ tasks {
 You can refresh Gradle and see that the new task appears:
 
 
-![](/images/blog/kb-open-telemetry-agent-task.gif)
+![Gradle task list showing the OpenTelemetry agent task](/images/blog/kb-open-telemetry-agent-task.gif)
 
 
 We can run the `build` task and see that the OpenTelemetry agent is copied to the `build/output/libs` directory:
 
 
-![](/images/blog/kb-otel-jar-location.gif)
+![OpenTelemetry agent JAR copied into the build output directory](/images/blog/kb-otel-jar-location.gif)
 
 
 ##### Modifying the bootRun Task
@@ -815,19 +815,19 @@ $ curl http://localhost:8080/api/v1/cat/facts
 Go to the HoneyComb UI and click on the `Query` button. You can click the `Run Query` button to see the data being sent to HoneyComb. You can see for example our `github.repository` attribute being sent:
 
 
-![](/images/blog/honeycomb-query-raw-data.png)
+![Honeycomb query showing raw telemetry attributes](/images/blog/honeycomb-query-raw-data.png)
 
 
 We can also create a graph to visualize the data by selecting anything under `VISUALIZE` box. For example:
 
 
-![](/images/blog/honeycomb-count-over-time.png)
+![Honeycomb count-over-time visualization](/images/blog/honeycomb-count-over-time.png)
 
 
 Lastly, we can drill down into a specific trace by clicking on the traces, and see the execution path of the request:
 
 
-![](/images/blog/honeycomb-trace-waterfall.png)
+![Honeycomb trace waterfall view](/images/blog/honeycomb-trace-waterfall.png)
 
 
 ##### Modifying the Dockerfile

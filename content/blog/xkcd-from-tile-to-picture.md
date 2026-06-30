@@ -24,7 +24,7 @@ If there's one thing I can say about myself, it's that I love challenges related
 <!--more-->
 
 
-![](/images/blog/kb-linkedin-message-1024x685.png)
+![LinkedIn message challenging Yonatan to reconstruct XKCD Click and Drag](/images/blog/kb-linkedin-message-1024x685.png)
 
 
 If you're unaware of what XKCD is, here's what Wikipedia has to say about it:
@@ -41,13 +41,13 @@ If you're unaware of what XKCD is, here's what Wikipedia has to say about it:
 I had never seen this specific comic before (see [https://xkcd.com/1110](https://xkcd.com/1110)), but I was up for the challenge. I opened the link and discovered a simple 4-frame comic:
 
 
-![](/images/blog/kb-xkcd-1110-1024x947.png)
+![The first four panels of XKCD 1110 Click and Drag](/images/blog/kb-xkcd-1110-1024x947.png)
 
 
 The catch is, the last frame is actually interactive and allows the reader to move inside it:
 
 
-![](/images/blog/kb-xkcd-110-animated.gif)
+![Animated view of dragging through the XKCD comic](/images/blog/kb-xkcd-110-animated.gif)
 
 
 With that knowledge in hand, the task was clear: to download the entire image within the last frame of the comic!
@@ -88,7 +88,7 @@ The result was as follows:
 However, checking the image URL ended in very disappointing results:
 
 
-![](/images/blog/xkcd-click_and_drag.png)
+![Direct image URL returning only the small visible XKCD frame](/images/blog/xkcd-click_and_drag.png)
 
 
 ## Step 2: Downloading the Image
@@ -103,7 +103,7 @@ To try and understand how to download the image, the first thing I did was to ch
 While checking the source code, I actually found a very interesting piece of code:
 
 
-![](/images/blog/kb-tiles-change-1024x327.gif)
+![Browser source showing XKCD tile coordinates changing](/images/blog/kb-tiles-change-1024x327.gif)
 
 
 Looking closely at the code exposed some interesting insights:
@@ -112,13 +112,13 @@ Looking closely at the code exposed some interesting insights:
 ```text
 
     
-    ![](/images/blog/xkcd-clickdrag-2n1w.png)
-    ![](/images/blog/xkcd-clickdrag-1n1w.png)
-    ![](/images/blog/xkcd-clickdrag-2n2w.png)
-    ![](/images/blog/xkcd-clickdrag-1n2w.png)
-    ![](/images/blog/xkcd-clickdrag-2n3w.png)
-    ![](/images/blog/xkcd-clickdrag-1n3w.png)
-    ![](/images/blog/xkcd-clickdrag-3n3w.png)
+    ![XKCD tile 2 north 1 west](/images/blog/xkcd-clickdrag-2n1w.png)
+    ![XKCD tile 1 north 1 west](/images/blog/xkcd-clickdrag-1n1w.png)
+    ![XKCD tile 2 north 2 west](/images/blog/xkcd-clickdrag-2n2w.png)
+    ![XKCD tile 1 north 2 west](/images/blog/xkcd-clickdrag-1n2w.png)
+    ![XKCD tile 2 north 3 west](/images/blog/xkcd-clickdrag-2n3w.png)
+    ![XKCD tile 1 north 3 west](/images/blog/xkcd-clickdrag-1n3w.png)
+    ![XKCD tile 3 north 3 west](/images/blog/xkcd-clickdrag-3n3w.png)
     ...
 
 ```
@@ -136,7 +136,7 @@ After some experimentation, I found out that the maximum available tile to the r
 As for the height of the image, this was a much greater challenge. Apparently, tiles that do not contain any image are not stored on the server and are rendered as a color in the browser. This means that some columns might have 5 tiles, while others have 20. Moreover, in theory, it could contain "islands" of tiles that are not connected to anything but themselves. See the image below as an example:
 
 
-![](/images/blog/kb-islands-1024x177.png)
+![Sparse island tiles in the reconstructed XKCD image grid](/images/blog/kb-islands-1024x177.png)
 
 
 Ok, so what do we do?
@@ -208,13 +208,13 @@ if (size > Integer.MAX_VALUE) {
 Indeed, the image had too many pixels in it. The first thing I did to fix the issue was to scale down the end image. Instead of using the original tile size (`2048x2048`), I scaled it down by 4 to the size of `512x512`, which resulted in this file:
 
 
-![](/images/blog/kb-512x512-white-1024x177.png)
+![First scaled-down XKCD reconstruction with incorrect white background](/images/blog/kb-512x512-white-1024x177.png)
 
 
 Now, I could immediately notice a bug: tiles that are below the center of the image should have been colored black, while tiles that are above the center should have been white, resulting in a weird image. After a quick fix, I finally received this image (not before inverting the colors, of course):
 
 
-![](/images/blog/kb-512x512-fixed-1-1024x177.png)
+![Fixed scaled-down XKCD reconstruction with corrected colors](/images/blog/kb-512x512-fixed-1-1024x177.png)
 
 
 Hurray! However, zooming into the image resulted in pixelated and unreadable results. The mission was not achieved just yet.
@@ -241,7 +241,7 @@ I finished my day happy and went to bed. 💪
 The next morning, I decided to look at the output image and finally read the entire image. It didn't take more than 30 seconds for me to find a bug in the results. Between tiles `1n1e` and `1n1w`, there was a one-tile space that should not have been there:
 
 
-![](/images/blog/kb-bug.png)
+![One-tile gap bug in the reconstructed XKCD output](/images/blog/kb-bug.png)
 
 
 The fix was very simple, but I didn't want to spend yet another 30 minutes combining 14 slices of images. To minimize the pain, all I had to do was calculate the maximum number of rows that I could fit within the size of `MAX_INT` pixels. A quick calculation showed that the number of rows I can fit is 3 (167,936 x 2048 * 3), which resulted in only 5 pieces to fit together.

@@ -114,7 +114,7 @@ flowchart LR
 
 ## Can we avoid this problem?
 
-![](/images/blog/004-avoid-at-all-cost.jpeg)
+![Warning sign: avoid using mutable objects as HashMap keys](/images/blog/004-avoid-at-all-cost.jpeg)
 
 Yes, we can! To avoid this issue, we should use an immutable class instead of a mutable one. This means that once the class creates its state, it cannot be changed.
 

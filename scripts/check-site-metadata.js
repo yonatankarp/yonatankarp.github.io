@@ -6,13 +6,20 @@ const path = require("path");
 const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
 const expectedOrigin = "https://yonatankarp.com";
-const staleOrigin = "http://yonatankarp.com";
+const forbiddenOrigins = [
+  "http://yonatankarp.com",
+  "http://localhost",
+  "https://localhost",
+  "http://127.0.0.1",
+  "https://127.0.0.1",
+];
 const routeFiles = [
   "index.html",
   "blog/index.html",
   "projects/index.html",
   "cv/index.html",
   "llms.txt",
+  "sitemap.xml",
 ];
 
 function fail(message, details = []) {
@@ -68,8 +75,10 @@ const requiredHtmlMetadata = [
 for (const relativePath of routeFiles) {
   const content = readPublicFile(relativePath);
 
-  if (content.includes(staleOrigin)) {
-    failures.push(`${relativePath}: contains stale ${staleOrigin} URL`);
+  for (const forbiddenOrigin of forbiddenOrigins) {
+    if (content.includes(forbiddenOrigin)) {
+      failures.push(`${relativePath}: contains forbidden generated origin ${forbiddenOrigin}`);
+    }
   }
 
   if (relativePath.endsWith(".html")) {
@@ -88,11 +97,11 @@ for (const relativePath of routeFiles) {
       }
     }
   } else {
-    const absoluteUrlPattern = /https?:\/\/yonatankarp\.com[^\s"'<>)]*/g;
+    const absoluteUrlPattern = /https?:\/\/[^\s"'<>)]*/g;
     for (const match of content.matchAll(absoluteUrlPattern)) {
       const value = match[0];
 
-      if (!value.startsWith(expectedOrigin)) {
+      if (value.includes("yonatankarp.com") && !value.startsWith(expectedOrigin)) {
         failures.push(`${relativePath}: expected production metadata URL, got ${value}`);
       }
     }

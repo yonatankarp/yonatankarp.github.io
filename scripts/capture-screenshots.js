@@ -8,7 +8,7 @@ const { spawn } = require("child_process");
 const rootDir = path.resolve(__dirname, "..");
 const dateStamp = new Date().toISOString().slice(0, 10);
 const options = parseArgs(process.argv.slice(2));
-const screenshotDir = path.resolve(rootDir, options.out || "screenshots");
+const screenshotDir = path.resolve(rootDir, options.out || path.join("artifacts", "visual-smoke", dateStamp));
 const baseUrl = options.base || process.env.SITE_URL || "http://127.0.0.1:1313/";
 const shouldStartServer = !options.base && !process.env.SITE_URL;
 
@@ -131,6 +131,60 @@ async function scrollThroughPage(page) {
   });
 }
 
+async function assertPageBasics(page, route, viewport) {
+  const checks = await page.evaluate(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const h1 = document.querySelector("h1");
+    const navToggle = document.querySelector(".nav-toggle");
+    const visibleImages = Array.from(document.images).filter((image) => {
+      const rect = image.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    });
+
+    return {
+      h1Text: h1 ? h1.textContent.trim() : "",
+      horizontalOverflow: Math.ceil(html.scrollWidth) > Math.ceil(window.innerWidth) + 1,
+      bodyTextLength: body ? body.innerText.trim().length : 0,
+      brokenVisibleImages: visibleImages
+        .filter((image) => !image.complete || image.naturalWidth === 0 || image.naturalHeight === 0)
+        .map((image) => image.currentSrc || image.src),
+      navToggleWidth: navToggle ? Math.round(navToggle.getBoundingClientRect().width) : null,
+      homeHero: Boolean(document.querySelector(".hero")),
+      homeProof: Boolean(document.querySelector(".proof-grid")),
+      blogCards: document.querySelectorAll(".post-row, .featured-article").length,
+    };
+  });
+
+  if (!checks.h1Text) {
+    fail(`${route.path} (${viewport.name}) has no visible h1`);
+  }
+
+  if (checks.bodyTextLength < 200) {
+    fail(`${route.path} (${viewport.name}) rendered too little text`);
+  }
+
+  if (viewport.name === "mobile" && checks.horizontalOverflow) {
+    fail(`${route.path} (${viewport.name}) has horizontal overflow`);
+  }
+
+  if (checks.brokenVisibleImages.length > 0) {
+    fail(`${route.path} (${viewport.name}) has broken visible images: ${checks.brokenVisibleImages.join(", ")}`);
+  }
+
+  if (viewport.name === "mobile" && checks.navToggleWidth !== null && checks.navToggleWidth < 36) {
+    fail(`${route.path} (${viewport.name}) has an undersized mobile menu button`);
+  }
+
+  if (route.name === "home" && (!checks.homeHero || !checks.homeProof)) {
+    fail(`${route.path} (${viewport.name}) is missing the hero or proof section`);
+  }
+
+  if (route.name === "blog" && checks.blogCards < 2) {
+    fail(`${route.path} (${viewport.name}) has too few blog cards`);
+  }
+}
+
 async function main() {
   const { chromium } = await loadPlaywright();
   let server = null;
@@ -185,6 +239,7 @@ async function main() {
         }
 
         await scrollThroughPage(page);
+        await assertPageBasics(page, route, viewport);
 
         await page.screenshot({
           path: path.join(screenshotDir, `${route.name}-${viewport.name}-${dateStamp}.png`),

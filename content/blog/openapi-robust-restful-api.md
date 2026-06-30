@@ -1,5 +1,5 @@
 ---
-title: "How to Use OpenApi to Build a Robust RESTful API"
+title: "How to Use OpenAPI to Build a Robust RESTful API"
 date: 2022-12-04T00:00:00+01:00
 draft: false
 type: "blog"
@@ -31,13 +31,13 @@ As a backend engineer, I have developed numerous REST APIs during my career. One
 <!--more-->
 
 
-![](/images/blog/kb-alex-mccarthy-zmDbLyW7VQg-unsplash-1024x683.jpg)
+![Close-up of API planning notes on a desk](/images/blog/kb-alex-mccarthy-zmDbLyW7VQg-unsplash-1024x683.jpg)
 
 
 ### Use OpenAPI Spec for Our New API
 
 
-In 2019, my team at the time had to design a new API that would integrate with multiple clients: mobile (Android & iPhone), web, and other backend services. We aimed to make the integration process as seamless as possible while ensuring the robustness of the API definition. During our brainstorming sessions, we decided to use OpenAPI [[link](http://openapis.org)] (formerly known as Swagger) from the beginning. Although I was already familiar with Swagger as a documentation tool, this time we chose to build the API in reverse. As a result, we started by defining the API specification with all the endpoints, requests, and responses first. Each team responsible for integration (backend, mobile, and web) then used the OpenApi generator [[link](https://openapi-generator.tech/)] to auto-generate the code they needed, including models, network layers, or controllers. Because of the usage of these generated code components in our codebase, we eliminated room for errors.
+In 2019, my team at the time had to design a new API that would integrate with multiple clients: mobile (Android & iPhone), web, and other backend services. We aimed to make the integration process as seamless as possible while ensuring the robustness of the API definition. During our brainstorming sessions, we decided to use OpenAPI [[link](http://openapis.org)] (formerly known as Swagger) from the beginning. Although I was already familiar with Swagger as a documentation tool, this time we chose to build the API in reverse. As a result, we started by defining the API specification with all the endpoints, requests, and responses first. Each team responsible for integration (backend, mobile, and web) then used the OpenAPI generator [[link](https://openapi-generator.tech/)] to auto-generate the code they needed, including models, network layers, or controllers. Because of the usage of these generated code components in our codebase, we eliminated room for errors.
 
 
 ### OpenAPI Adaptation for Better Integration
@@ -52,13 +52,13 @@ This design approach proved to be a great success. In fact, we replicated the sa
 ### The Article's Objectives
 
 
-In this article, I will demonstrate an example of a short and simple API and walk you through the process we followed to create a working REST API. For this demonstration, we will use the following technology stack: Spring Boot, Kotlin, and Gradle's Kotlin DSL alongside (of course) OpenApi generator. However, OpenAPI supports various other languages, and I chose this stack for the sake of this example. You can find the full list of supported languages [here](https://openapi-generator.tech/docs/generators).
+In this article, I will demonstrate an example of a short and simple API and walk you through the process we followed to create a working REST API. For this demonstration, we will use the following technology stack: Spring Boot, Kotlin, and Gradle's Kotlin DSL alongside (of course) OpenAPI generator. However, OpenAPI supports various other languages, and I chose this stack for the sake of this example. You can find the full list of supported languages [here](https://openapi-generator.tech/docs/generators).
 
 
 ## Step 1: Use OpenAPI Editor to Design Our API
 
 
-![](/images/blog/kb-002-swagger-editor-1024x452.png)OpenApi (Swagger) editor
+![Swagger editor showing an OpenAPI specification](/images/blog/kb-002-swagger-editor-1024x452.png)OpenAPI (Swagger) editor
 
 
 We will begin with designing the API. Our API will have a single endpoint: `/greet`. This endpoint would accept a name as a query parameter (for example: `/greet?name=Yonatan`). It will respond with a greeting **"Hello"** followed by the provided name.
@@ -67,7 +67,7 @@ We will begin with designing the API. Our API will have a single endpoint: `/gre
 To define our API, we can use the Swagger Editor [[link](https://editor.swagger.io/)] to detect any syntax errors in advance. If you are using IntelliJ IDEA, you can also utilize the OpenAPI Editor plugin [[link](https://plugins.jetbrains.com/plugin/14837-openapi-swagger-editor)].
 
 
-Let's start by looking at our OpenApi specification, and then we will break it down step by step to understand each of the different parts of it.
+Let's start by looking at our OpenAPI specification, and then we will break it down step by step to understand each of the different parts of it.
 
 
 ```yaml
@@ -162,10 +162,10 @@ The `paths` section defines the different endpoints of our API, including their 
 In the `components` section, we define the API models. In our case, we define a response model for an endpoint with a single field. Note that this field is marked as required and therefore it will be generated as a not-nullable type in Kotlin using the OpenAPI generator. The `components` section can include additional information, such as security schemas (authentication method, required headers, etc).
 
 
-## Step 2: Use OpenApi Generator to Create the Code
+## Step 2: Use OpenAPI Generator to Create the Code
 
 
-![](/images/blog/wind-turbines-sunset.jpg)
+![Wind turbines at sunset](/images/blog/wind-turbines-sunset.jpg)
 
 
 ### Setting Up OpenAPI Spec to The Project
@@ -174,7 +174,7 @@ In the `components` section, we define the API models. In our case, we define a 
 To generate our code, we will use the OpenAPI Generator, specifically the OpenAPI Generator Gradle plugin [[link](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin)]. First, we will create an API specification for our project. We will start by creating a `api` directory at the project root and save the specification in a `spec.yml` file. Your project structure should resemble this:
 
 
-![](/images/blog/kb-add-spec.gif)OpenApi spec location in the project tree
+![Adding an OpenAPI spec file to the project tree](/images/blog/kb-add-spec.gif)OpenAPI spec location in the project tree
 
 
 ### Setting Up OpenAPI Generator with Gradle Plugin
@@ -301,13 +301,13 @@ sourceSets.main {
 Running the `build` command in Gradle should generate the code in your project files, similar to the following:
 
 
-![](/images/blog/kb-generated-code.gif)Generated code location in the project tree
+![Generated API code location in the project tree](/images/blog/kb-generated-code.gif)Generated code location in the project tree
 
 
 ## Step 3: Implementation of the API! 🎉
 
 
-![](/images/blog/kb-jefferson-santos-9SoCnyQmkzI-unsplash-1024x683.jpg)
+![Laptop on a desk before API implementation work](/images/blog/kb-jefferson-santos-9SoCnyQmkzI-unsplash-1024x683.jpg)
 
 
 ### Implementing The Code
@@ -337,7 +337,7 @@ class GreetingApiController : GreetingApi {
 We can now run our server and test it by requesting the browser:
 
 
-![](/images/blog/kb-call-endpoint.gif)Calling the endpoint and getting the correct response
+![Calling the API endpoint and receiving the expected response](/images/blog/kb-call-endpoint.gif)Calling the endpoint and getting the correct response
 
 
 ## Step 4: Writing Tests
@@ -404,7 +404,7 @@ class GreetingApiControllerTest(context: WebApplicationContext) {
 If you have followed the instructions correctly, running the test should result in two passing tests! 🎉
 
 
-![](/images/blog/kb-passing-tests.gif)All tests are passing
+![Gradle test run showing all tests passing](/images/blog/kb-passing-tests.gif)All tests are passing
 
 
 You can find the complete code for this project on my GitHub repository. Feel free to explore it [here](https://github.com/yonatankarp/openapi-usage-example).
@@ -413,7 +413,7 @@ You can find the complete code for this project on my GitHub repository. Feel fr
 ## Conclusion
 
 
-By using OpenApi, you can allow yourself, your team, and your potential clients a smoother, more robust, and efficient integration process. You can always use this approach when designing a new API (by applying the [API first principle](https://apidog.com/articles/what-is-api-first/)), considering it for existing API to ensure the robustness of your system and future integrators with it.
+By using OpenAPI, you can allow yourself, your team, and your potential clients a smoother, more robust, and efficient integration process. You can always use this approach when designing a new API (by applying the [API first principle](https://apidog.com/articles/what-is-api-first/)), considering it for existing API to ensure the robustness of your system and future integrators with it.
 
 
 ## Credits

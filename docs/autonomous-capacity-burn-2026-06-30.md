@@ -6,6 +6,10 @@ Timezone: Europe/Berlin
 
 Full scan for what is still missing on `projects/yonatankarp.github.io` after the recent redesign, visual QA, CI, metadata, and blog-polish passes.
 
+## Resolution
+
+Follow-up implementation on 2026-06-30 addressed this scan: article image alt text, generated HTML checks, sitemap/local-origin metadata checks, visual smoke assertions, screenshot artifact policy, Staff Engineer - Payments positioning, and OpenAPI title/copy normalization.
+
 ## Current Health
 
 - Local repo started clean and aligned with `origin/main` at `a3b1b73`.

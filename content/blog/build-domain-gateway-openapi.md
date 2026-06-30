@@ -1,5 +1,5 @@
 ---
-title: "How To Build Your Domain Gateway With OpenApi"
+title: "How To Build Your Domain Gateway With OpenAPI"
 date: 2022-12-14T00:00:00+01:00
 draft: false
 type: "blog"
@@ -114,13 +114,13 @@ Now that we understand what a domain gateway looks like, here are a few do's and
 ## Ok, I'm Convinced…
 
 
-I hope I have convinced you that a domain gateway is useful. If you have already read our article [How to Use OpenApi to Build a Robust RESTful API](/blog/openapi-robust-restful-api/), you probably know that I'm a fan of using OpenAPI specs for your service. The problem introduced in my previous article is: how can I generate many specs at once?
+I hope I have convinced you that a domain gateway is useful. If you have already read our article [How to Use OpenAPI to Build a Robust RESTful API](/blog/openapi-robust-restful-api/), you probably know that I'm a fan of using OpenAPI specs for your service. The problem introduced in my previous article is: how can I generate many specs at once?
 
 
 ## How Do I Build a Domain Gateway?
 
 
-![](/images/blog/kb-lachlan-donald-YVT5aF2QM7M-unsplash-1024x640.jpg)Tools on the wall
+![Tools hanging on a workshop wall](/images/blog/kb-lachlan-donald-YVT5aF2QM7M-unsplash-1024x640.jpg)Tools on the wall
 
 
 ### Tech Stack
@@ -138,7 +138,7 @@ We will use the following tech stack:
 - [Gradle Kotlin DSL](https://docs.gradle.org/current/userguide/kotlin_dsl.html): We will use the [Gradle multi-module](https://docs.gradle.org/current/userguide/multi_project_builds.html) solution in our example where each service would be a different module.
 
 
-- [Retrofit](https://square.github.io/retrofit/): While the OpenApi generator [supports multiple REST clients](https://openapi-generator.tech/docs/generators/kotlin), I decided to go with my personal favorite.
+- [Retrofit](https://square.github.io/retrofit/): While the OpenAPI generator [supports multiple REST clients](https://openapi-generator.tech/docs/generators/kotlin), I decided to go with my personal favorite.
 
 
 - [OpenAPI](https://www.openapis.org/)
@@ -243,7 +243,7 @@ components:
 ```
 
 
-![](/images/blog/kb-005-hello-openapi-spec-1024x287.png)Hello Api Swagger Display
+![Hello API Swagger display](/images/blog/kb-005-hello-openapi-spec-1024x287.png)Hello API Swagger Display
 
 
 #### Goodbye Service
@@ -298,7 +298,7 @@ components:
 ```
 
 
-![](/images/blog/kb-006-goodbye-openapi-spec-1024x286.png)Goodbye Api Swagger Display
+![Goodbye API Swagger display](/images/blog/kb-006-goodbye-openapi-spec-1024x286.png)Goodbye API Swagger Display
 
 
 #### Domain Gateway Service
@@ -389,7 +389,7 @@ components:
 ```
 
 
-![](/images/blog/kb-007-domain-gateway-openapi-spec-1024x390.png)Greetings Api Swagger Display
+![Greeting API Swagger display for the domain gateway](/images/blog/kb-007-domain-gateway-openapi-spec-1024x390.png)Greetings API Swagger Display
 
 
 ### Generating Multiple Specs
@@ -513,7 +513,7 @@ val supportedApis = listOf(
 You might notice that all of our specs are generated into the same output directory. This is because OpenAPI generates some infrastructure classes that are used by the generated code. If we do not generate them in the same directory, the `sourceDir` will include duplications of classes in the same packages, and the code will not compile. You can see that we are still separating our APIs by package name in the generated code:
 
 
-![](/images/blog/kb-008-domain-gateway-generated-code.png)OpenApi Generated Code Structure
+![Generated OpenAPI code structure in the project tree](/images/blog/kb-008-domain-gateway-generated-code.png)OpenAPI Generated Code Structure
 
 
 ### Add Generated Code To Project
@@ -752,10 +752,10 @@ class DomainGatewayController(
 ### Hello and Goodbye Service Definition
 
 
-The services in this article will implement the exact same structure as shown in the article [How to Use OpenApi to Build a Robust RESTful API](/blog/openapi-robust-restful-api/), hence, we will skip the implementation itself. Follow the article for more details. Alternatively, visit the GitHub repository for the [Hello Service](https://github.com/yonatankarp/domain-gateway-demo/tree/main/hello-service) and the [Goodbye Service](https://github.com/yonatankarp/domain-gateway-demo/tree/main/goodbye-service) implementation.
+The services in this article will implement the exact same structure as shown in the article [How to Use OpenAPI to Build a Robust RESTful API](/blog/openapi-robust-restful-api/), hence, we will skip the implementation itself. Follow the article for more details. Alternatively, visit the GitHub repository for the [Hello Service](https://github.com/yonatankarp/domain-gateway-demo/tree/main/hello-service) and the [Goodbye Service](https://github.com/yonatankarp/domain-gateway-demo/tree/main/goodbye-service) implementation.
 
 
-For the sake of completeness, we will show the implementation of the `HelloController` that implements the generated code of OpenApi:
+For the sake of completeness, we will show the implementation of the `HelloController` that implements the generated code of OpenAPI:
 
 
 ```kotlin
@@ -774,7 +774,7 @@ class HelloController : HelloApi {
 Once we have all 3 services implemented, we can call each of the services individually,  or call the combined API via our domain gateway. As you can see in the illustration below:
 
 
-![](/images/blog/kb-call-endpoints.gif)Calling all endpoints
+![Calling all three service endpoints from a terminal](/images/blog/kb-call-endpoints.gif)Calling all endpoints
 
 
 Alternatively, you can use `springdoc` library to publish an HTML version of your spec that is interactable from your service, but that's a story for another article.
@@ -792,7 +792,7 @@ All code examples in this article are available in my GitHub repository: [https:
 ## More Information
 
 
-- [How to Use OpenApi to Build a Robust RESTful API](/blog/openapi-robust-restful-api/) covers the OpenAPI setup this domain gateway builds on.
+- [How to Use OpenAPI to Build a Robust RESTful API](/blog/openapi-robust-restful-api/) covers the OpenAPI setup this domain gateway builds on.
 
 
 ## Credits

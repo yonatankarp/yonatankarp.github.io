@@ -136,7 +136,7 @@ async function assertPageBasics(page, route, viewport) {
     const html = document.documentElement;
     const body = document.body;
     const h1 = document.querySelector("h1");
-    const navToggle = document.querySelector(".nav-toggle");
+    const navToggle = document.querySelector(".menu-toggle");
     const visibleImages = Array.from(document.images).filter((image) => {
       const rect = image.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0;
@@ -149,7 +149,16 @@ async function assertPageBasics(page, route, viewport) {
       brokenVisibleImages: visibleImages
         .filter((image) => !image.complete || image.naturalWidth === 0 || image.naturalHeight === 0)
         .map((image) => image.currentSrc || image.src),
-      navToggleWidth: navToggle ? Math.round(navToggle.getBoundingClientRect().width) : null,
+      navToggle: navToggle
+        ? {
+            width: Math.round(navToggle.getBoundingClientRect().width),
+            height: Math.round(navToggle.getBoundingClientRect().height),
+            visible: getComputedStyle(navToggle).display !== "none",
+            ariaControls: navToggle.getAttribute("aria-controls") || "",
+            ariaExpanded: navToggle.getAttribute("aria-expanded") || "",
+            label: navToggle.getAttribute("aria-label") || "",
+          }
+        : null,
       homeHero: Boolean(document.querySelector(".hero")),
       homeProof: Boolean(document.querySelector(".proof-grid")),
       blogCards: document.querySelectorAll(".post-row, .featured-article").length,
@@ -172,8 +181,22 @@ async function assertPageBasics(page, route, viewport) {
     fail(`${route.path} (${viewport.name}) has broken visible images: ${checks.brokenVisibleImages.join(", ")}`);
   }
 
-  if (viewport.name === "mobile" && checks.navToggleWidth !== null && checks.navToggleWidth < 36) {
-    fail(`${route.path} (${viewport.name}) has an undersized mobile menu button`);
+  if (viewport.name === "mobile") {
+    if (!checks.navToggle) {
+      fail(`${route.path} (${viewport.name}) is missing the mobile menu button`);
+    }
+
+    if (!checks.navToggle.visible) {
+      fail(`${route.path} (${viewport.name}) has a hidden mobile menu button`);
+    }
+
+    if (checks.navToggle.width < 36 || checks.navToggle.height < 36) {
+      fail(`${route.path} (${viewport.name}) has an undersized mobile menu button`);
+    }
+
+    if (checks.navToggle.ariaControls !== "primary-nav" || !checks.navToggle.label || checks.navToggle.ariaExpanded !== "false") {
+      fail(`${route.path} (${viewport.name}) has incomplete mobile menu accessibility attributes`);
+    }
   }
 
   if (route.name === "home" && (!checks.homeHero || !checks.homeProof)) {
@@ -201,6 +224,7 @@ async function main() {
         "--port",
         "1313",
         "--disableFastRender",
+        "--renderToMemory",
       ],
       {
         cwd: rootDir,

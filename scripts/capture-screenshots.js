@@ -78,7 +78,7 @@ function routeUrl(routePath) {
   return new URL(routePath, baseUrl).toString();
 }
 
-async function waitForUrl(url, timeoutMs) {
+async function waitForUrl(url, timeoutMs, timeoutMessage) {
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {
@@ -89,7 +89,7 @@ async function waitForUrl(url, timeoutMs) {
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
 
-  fail(`Timed out waiting for ${url}`);
+  fail(timeoutMessage || `Timed out waiting for ${url}`);
 }
 
 async function loadPlaywright() {
@@ -238,9 +238,16 @@ async function main() {
       }
     });
 
-    await waitForUrl(baseUrl, 15000);
+    await waitForUrl(baseUrl, 15000, `Timed out waiting for local Hugo server at ${baseUrl}`);
   } else {
-    await waitForUrl(baseUrl, 5000);
+    await waitForUrl(
+      baseUrl,
+      5000,
+      [
+        `Timed out waiting for existing server at ${baseUrl}`,
+        "Start Hugo separately before using --base or SITE_URL, or omit them so this helper starts the bundled server.",
+      ].join("\n")
+    );
   }
 
   fs.mkdirSync(screenshotDir, { recursive: true });

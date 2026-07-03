@@ -45,7 +45,7 @@
             <img src="{{ . | relURL }}" alt="{{ $post.Title }}" loading="lazy" decoding="async">
           </a>
           {{ end }}
-          <a class="text-link" href="{{ .RelPermalink }}">Open article</a>
+          <a class="post-row__cta" href="{{ .RelPermalink }}" aria-label="Read {{ .Title }}">Read article <span aria-hidden="true">&rarr;</span></a>
         </div>
       </article>
       {{ end }}

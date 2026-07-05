@@ -203,8 +203,31 @@
     }
     .leg b { display: block; }
     .leg span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
+    .leg p { margin: 0; }
     .leg .cost { color: var(--accent); font-weight: 900; text-align: right; }
     .leg .time { color: var(--ink); font-weight: 800; text-align: right; }
+    .track-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .track-links a {
+      border: 1px solid color-mix(in srgb, var(--accent), transparent 55%);
+      border-radius: 999px;
+      background: #f3fbf7;
+      padding: 4px 8px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 900;
+      text-decoration: none;
+      transition: transform .16s ease, border-color .16s ease, background .16s ease;
+    }
+    .track-links a:hover {
+      transform: translateY(-1px);
+      border-color: var(--accent);
+      background: #e9f7f1;
+    }
     .side-note {
       border: 1px solid #ddd4c6;
       border-radius: 7px;
@@ -362,7 +385,7 @@
           <div class="day-body">
             <div>
               <div class="legs">
-                <div class="leg"><div><b>FNC to Funchal</b><span>Aerobus 500 / 500R</span></div><p>Use if the schedule aligns with landing and luggage.</p><div><div class="time">30-50 min</div><div class="cost">EUR 5.55 prepaid / EUR 6.70 cash guidance</div></div></div>
+                <div class="leg"><div><b>FNC to Funchal</b><span>Aerobus 500 / 500R</span></div><div><p>Use if the schedule aligns with landing and luggage.</p><div class="track-links"><a href="https://www.madeiraairport.pt/en/fnc/access-parking/getting-to-and-from-the-airport/public-transportation">Airport bus info</a><a href="https://siga.madeira.gov.pt/aerobus">SIGA Aerobus</a><a href="https://madeirabus.com/airport-to-funchal/">Route + fare guide</a></div></div><div><div class="time">30-50 min</div><div class="cost">EUR 5.55 prepaid / EUR 6.70 cash guidance</div></div></div>
                 <div class="leg"><div><b>Fallback</b><span>Taxi / Bolt</span></div><p>Use if bus timing is poor or you are tired.</p><div><div class="time">20-30 min</div><div class="cost">estimate EUR 30-45 total</div></div></div>
               </div>
             </div>
@@ -386,9 +409,9 @@
           </div>
           <div class="day-body">
             <div class="legs">
-              <div class="leg"><div><b>Funchal to Monte</b><span>Cable car</span></div><p>Scenic route straight to Monte Palace area.</p><div><div class="time">15-20 min ride</div><div class="cost">EUR 16 one-way / EUR 22 return</div></div></div>
-              <div class="leg"><div><b>Budget route</b><span>Buses 20 / 21 / 22 / 48</span></div><p>Cheaper, less memorable.</p><div><div class="time">about 20 min</div><div class="cost">EUR 1.45 prepaid / EUR 2.05 onboard</div></div></div>
-              <div class="leg"><div><b>Optional descent</b><span>Carreiros do Monte</span></div><p>Basket sled ends at Livramento, not central Funchal.</p><div><div class="time">about 10 min</div><div class="cost">EUR 40 for two</div></div></div>
+              <div class="leg"><div><b>Funchal to Monte</b><span>Cable car</span></div><div><p>Scenic route straight to Monte Palace area.</p><div class="track-links"><a href="https://madeiracablecar.com/en/price-and-schedule/">Cable car prices + hours</a><a href="https://montepalacemadeira.com/en/visit/">Monte Palace tickets</a></div></div><div><div class="time">15-20 min ride</div><div class="cost">EUR 16 one-way / EUR 22 return</div></div></div>
+              <div class="leg"><div><b>Budget route</b><span>Buses 20 / 21 / 22 / 48</span></div><div><p>Cheaper, less memorable.</p><div class="track-links"><a href="https://www.horariosdofunchal.pt/carreiras/20.pdf">Route 20 PDF</a><a href="https://madeirabus.com/routes/021/">Route 21 guide</a><a href="https://siga.madeira.gov.pt/tiim">SIGA fares</a></div></div><div><div class="time">about 20 min</div><div class="cost">EUR 1.45 prepaid / EUR 2.05 onboard</div></div></div>
+              <div class="leg"><div><b>Optional descent</b><span>Carreiros do Monte</span></div><div><p>Basket sled ends at Livramento, not central Funchal.</p><div class="track-links"><a href="https://www.carreirosdomonte.com/">Sled prices + schedule</a><a href="https://www.carreirosdomonte.com/v3/pt/prices.php">Sled price page</a></div></div><div><div class="time">about 10 min</div><div class="cost">EUR 40 for two</div></div></div>
             </div>
             <aside class="side-note"><span class="label">Budget</span><p>Core day for two: about EUR 68 with one-way cable car plus Monte Palace. Add EUR 40 for the sled.</p></aside>
           </div>
@@ -411,8 +434,9 @@
           </div>
           <div class="day-body">
             <div class="legs">
-              <div class="leg"><div><b>Funchal to trailhead</b><span>SIGA route 702</span></div><p>Check final timetable the night before.</p><div><div class="time">70-90 min each way</div><div class="cost">EUR 2.00 prepaid / EUR 2.65 onboard</div></div></div>
-              <div class="leg"><div><b>Trail access</b><span>SIMplifica / IFCN</span></div><p>Visitor fee and access conditions can change with closures or capacity.</p><div><div class="time">book before trail</div><div class="cost">EUR 4.50</div></div></div>
+              <div class="leg"><div><b>Funchal to trailhead</b><span>SIGA route 702</span></div><div><p>Check final timetable the night before.</p><div class="track-links"><a href="https://siga.madeira.gov.pt/horarios/4007">Official 702 timetable</a><a href="https://madeirabus.com/routes/702/">702 route + fare guide</a><a href="https://siga.madeira.gov.pt/tiim">SIGA fares</a></div></div><div><div class="time">70-90 min each way</div><div class="cost">EUR 2.00 prepaid / EUR 2.65 onboard</div></div></div>
+              <div class="leg"><div><b>Trail access</b><span>SIMplifica / IFCN</span></div><div><p>Visitor fee and access conditions can change with closures or capacity.</p><div class="track-links"><a href="https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-8-vereda-da-ponta-de-sao-lourenco/">PR8 trail page</a><a href="https://ifcn.madeira.gov.pt/en/atividades-de-natureza/percursos-pedestres-recomendados/faq-s-taxas-percursos-pedestres-classificados/frequently-asked-questions-fees-classified-walking-routes.html">IFCN fees + rules</a></div></div><div><div class="time">book before trail</div><div class="cost">EUR 4.50</div></div></div>
+              <div class="leg"><div><b>Mountain swap logistics</b><span>Pico do Arieiro / Pico Ruivo</span></div><div><p>Use only if official access and one-way transfer logistics are clean. Public transport alone is not enough for the full traverse.</p><div class="track-links"><a href="https://www.horariosdofunchal.pt/index.php/en/travel/pico-do-areeiro">Pico do Areeiro bus</a><a href="https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-1-vereda-do-areeiro/">PR1 trail page</a><a href="https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-12-vereda-do-pico-ruivo/">PR1.2 trail page</a><a href="https://ifcn.madeira.gov.pt/en/atividades-de-natureza/percursos-pedestres-recomendados/faq-s-taxas-percursos-pedestres-classificados/frequently-asked-questions-fees-classified-walking-routes.html">IFCN fees + rules</a></div></div><div><div class="time">full day</div><div class="cost">EUR 10.50 PR1 fee + transfer</div></div></div>
             </div>
             <aside class="side-note"><span class="label">Weather posture</span><p>Exposure is the issue: no trees, wind, high UV. Move to Fri/Sat if conditions are rough.</p></aside>
           </div>
@@ -433,7 +457,7 @@
           </div>
           <div class="day-body">
             <div class="legs">
-              <div class="leg"><div><b>Funchal to Curral</b><span>SIGA route 181</span></div><p>Use this as the PR8 swap day if Tuesday weather is poor.</p><div><div class="time">35-45 min each way</div><div class="cost">EUR 2.00 prepaid / EUR 2.65 onboard</div></div></div>
+              <div class="leg"><div><b>Funchal to Curral</b><span>SIGA route 181</span></div><div><p>Use this as the PR8 swap day if Tuesday weather is poor.</p><div class="track-links"><a href="https://siga.madeira.gov.pt/horarios/90">Official 181 timetable</a><a href="https://madeirabus.com/destinations/curral-das-freiras/">Curral bus guide</a><a href="https://siga.madeira.gov.pt/tiim">SIGA fares</a></div></div><div><div class="time">35-45 min each way</div><div class="cost">EUR 2.00 prepaid / EUR 2.65 onboard</div></div></div>
               <div class="leg"><div><b>Viewpoint add-on</b><span>Bus timing or taxi</span></div><p>Do not force the viewpoint if it creates a long wait.</p><div><div class="time">variable</div><div class="cost">taxi app/rank if needed</div></div></div>
             </div>
             <aside class="side-note"><span class="label">Budget</span><p>About EUR 8-11 for two by bus, plus lunch and any taxi add-on.</p></aside>
@@ -458,8 +482,8 @@
           </div>
           <div class="day-body">
             <div class="legs">
-              <div class="leg"><div><b>Full circuit</b><span>Booked 4WD tour</span></div><p>Check exact pickup time in the GetYourGuide app.</p><div><div class="time">about 8h</div><div class="cost">already selected</div></div></div>
-              <div class="leg"><div><b>Extra fees</b><span>On-site entries</span></div><p>Lunch and drinks usually separate.</p><div><div class="time">during tour</div><div class="cost">Cabo Girao EUR 5, pools about EUR 3</div></div></div>
+              <div class="leg"><div><b>Full circuit</b><span>Booked 4WD tour</span></div><div><p>Check exact pickup time in the GetYourGuide app.</p><div class="track-links"><a href="https://www.getyourguide.com/madeira-l67/madeira-skywalk-porto-moniz-seixal-and-fanal-4wd-tour-t225105/">Tour reference page</a></div></div><div><div class="time">about 8h</div><div class="cost">already selected</div></div></div>
+              <div class="leg"><div><b>Extra fees</b><span>On-site entries</span></div><div><p>Lunch and drinks usually separate.</p><div class="track-links"><a href="https://visitmadeira.com/en/where-to-go/madeira/south-coast/camara-de-lobos/cabo-girao/">Cabo Girao info</a><a href="https://www.portomoniz.pt/en/visit/points-interest/beaches">Porto Moniz pools</a></div></div><div><div class="time">during tour</div><div class="cost">Cabo Girao EUR 5, pools about EUR 3</div></div></div>
             </div>
             <aside class="side-note"><span class="label">Weather posture</span><p>Mixed day is acceptable. Fanal can be good in mist; pools/coast are less fragile than summit viewpoints.</p></aside>
           </div>
@@ -481,8 +505,8 @@
           </div>
           <div class="day-body">
             <div class="legs">
-              <div class="leg"><div><b>Funchal to Garajau</b><span>SIGA/local bus or taxi app</span></div><p>Use bus if energy is good; taxi if you want frictionless.</p><div><div class="time">20-35 min by bus</div><div class="cost">EUR 2.00-2.65 each way</div></div></div>
-              <div class="leg"><div><b>Boat option</b><span>Funchal marina</span></div><p>Book only after checking sea and wind 24-48h before.</p><div><div class="time">2.5-3h</div><div class="cost">usually EUR 35-45</div></div></div>
+              <div class="leg"><div><b>Funchal to Garajau</b><span>SIGA/local bus or taxi app</span></div><div><p>Use bus if energy is good; taxi if you want frictionless.</p><div class="track-links"><a href="https://madeirabus.com/destinations/garajau/">Garajau bus guide</a><a href="https://siga.madeira.gov.pt/horarios">SIGA timetables</a><a href="https://siga.madeira.gov.pt/tiim">SIGA fares</a></div></div><div><div class="time">20-35 min by bus</div><div class="cost">EUR 2.00-2.65 each way</div></div></div>
+              <div class="leg"><div><b>Boat option</b><span>Funchal marina</span></div><div><p>Book only after checking sea and wind 24-48h before.</p><div class="track-links"><a href="https://visitmadeira.com/en/what-to-do/sea-lovers/activities/dolphin-whale-watching/">Whale watching info</a><a href="https://www.windfinder.com/forecast/funchal_madeira">Wind + sea check</a></div></div><div><div class="time">2.5-3h</div><div class="cost">usually EUR 35-45</div></div></div>
             </div>
             <aside class="side-note"><span class="label">Budget</span><p>Bus day under EUR 12 for two; boat day likely EUR 70-90 for two.</p></aside>
           </div>
@@ -504,8 +528,8 @@
           </div>
           <div class="day-body">
             <div class="legs">
-              <div class="leg"><div><b>Funchal to Cabo Girao area</b><span>SIGA route 253 area</span></div><p>Only do this if you still want more west-side time after the tour.</p><div><div class="time">about 30 min</div><div class="cost">EUR 2.00 prepaid / EUR 2.65 onboard</div></div></div>
-              <div class="leg"><div><b>Cabo Girao Skywalk</b><span>SIMplifica / on-site access</span></div><p>Skip if already done and weather is hazy.</p><div><div class="time">30-45 min</div><div class="cost">EUR 5</div></div></div>
+              <div class="leg"><div><b>Funchal to Cabo Girao area</b><span>SIGA route 253 area</span></div><div><p>Only do this if you still want more west-side time after the tour.</p><div class="track-links"><a href="https://siga.madeira.gov.pt/horarios/2022">Official 253 timetable</a><a href="https://madeirabus.com/routes/253/">253 route + fare guide</a><a href="https://siga.madeira.gov.pt/tiim">SIGA fares</a></div></div><div><div class="time">about 30 min</div><div class="cost">EUR 2.00 prepaid / EUR 2.65 onboard</div></div></div>
+              <div class="leg"><div><b>Cabo Girao Skywalk</b><span>SIMplifica / on-site access</span></div><div><p>Skip if already done and weather is hazy.</p><div class="track-links"><a href="https://visitmadeira.com/en/where-to-go/madeira/south-coast/camara-de-lobos/cabo-girao/">Cabo Girao info</a><a href="https://simplifica.madeira.gov.pt/services/78-82-259">Skywalk ticket portal</a></div></div><div><div class="time">30-45 min</div><div class="cost">EUR 5</div></div></div>
             </div>
             <aside class="side-note"><span class="label">Weather posture</span><p>Final movable slot. Use it to absorb anything missed earlier.</p></aside>
           </div>
@@ -526,7 +550,7 @@
           </div>
           <div class="day-body">
             <div class="legs">
-              <div class="leg"><div><b>Funchal to FNC</b><span>Aerobus if schedule aligns</span></div><p>Only use if the bus timing is obviously safe.</p><div><div class="time">30-50 min</div><div class="cost">EUR 5.55 prepaid / EUR 6.70 cash guidance</div></div></div>
+              <div class="leg"><div><b>Funchal to FNC</b><span>Aerobus if schedule aligns</span></div><div><p>Only use if the bus timing is obviously safe.</p><div class="track-links"><a href="https://www.madeiraairport.pt/en/fnc/access-parking/getting-to-and-from-the-airport/public-transportation">Airport bus info</a><a href="https://siga.madeira.gov.pt/aerobus">SIGA Aerobus</a><a href="https://madeirabus.com/airport-to-funchal/">Route + fare guide</a></div></div><div><div class="time">30-50 min</div><div class="cost">EUR 5.55 prepaid / EUR 6.70 cash guidance</div></div></div>
               <div class="leg"><div><b>Safer fallback</b><span>Taxi / Bolt</span></div><p>Recommended for lower-stress departure with luggage.</p><div><div class="time">20-30 min</div><div class="cost">estimate EUR 30-45 total</div></div></div>
             </div>
             <aside class="side-note"><span class="label">Flight</span><p>Gate closes 11:05. Departure 11:35.</p></aside>

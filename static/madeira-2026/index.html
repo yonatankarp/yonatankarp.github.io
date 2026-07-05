@@ -231,6 +231,10 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 12px;
     }
+    .day-photos {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 14px;
+    }
     .photo-card {
       overflow: hidden;
       border: 1px solid var(--line);
@@ -284,6 +288,7 @@
       .topbar { align-items: flex-start; }
       .hero, .day-body, .grid-3, .sources { grid-template-columns: 1fr; }
       .photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .day-photos { grid-template-columns: 1fr; }
       .photo-card img { height: 126px; }
       .photo-card figcaption { display: block; min-height: 0; }
       .photo-card a { display: inline-block; margin-top: 8px; }
@@ -325,36 +330,10 @@
     </section>
 
     <nav class="nav" aria-label="Page sections">
-      <a href="#photo-key">Photo key</a>
       <a href="#timeline">Timeline</a>
       <a href="#rules">Fare rules</a>
       <a href="#sources">Sources</a>
     </nav>
-
-    <section id="photo-key">
-      <div class="section-title">
-        <div>
-          <div class="eyebrow">Visual key</div>
-          <h2>What the places look like</h2>
-        </div>
-        <p>Use this as the name-to-place lookup when deciding what to keep or cut.</p>
-      </div>
-      <div class="photo-grid">
-        <figure class="photo-card"><img src="assets/madeira-airport.jpg" alt="Madeira Airport runway and terminal by the sea" loading="lazy"><figcaption><div><strong>Madeira Airport</strong><span>Arrival and departure anchor.</span></div><a href="https://commons.wikimedia.org/wiki/File:Madeira_Airport_in_2018.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/funchal-marina.jpg" alt="Funchal marina with boats and hills behind the city" loading="lazy"><figcaption><div><strong>Funchal marina</strong><span>Soft landing, boat options, city base.</span></div><a href="https://commons.wikimedia.org/wiki/File:Madeira_-_Funchal_-_Marina_(11826946506).jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/monte-palace.jpg" alt="Footbridge and greenery inside Monte Palace Tropical Garden" loading="lazy"><figcaption><div><strong>Monte Palace</strong><span>Cable car / garden day.</span></div><a href="https://commons.wikimedia.org/wiki/File:Monte_Palace_Tropical_Garden_-_Oriental_Gardens_10.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/pico-arieiro.jpg" alt="Mountain view from Pico do Arieiro" loading="lazy"><figcaption><div><strong>Pico do Arieiro</strong><span>Viewpoint or PR1 start.</span></div><a href="https://commons.wikimedia.org/wiki/File:View_from_Miradouro_do_Pico_do_Arieiro_-_Madeira_03.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/pico-ruivo.jpg" alt="Pico Ruivo mountain landscape" loading="lazy"><figcaption><div><strong>Pico Ruivo</strong><span>Highest peak; PR1/PR1.2 target.</span></div><a href="https://commons.wikimedia.org/wiki/File:Pico_Ruivo,_Madeira.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/ponta-sao-lourenco.jpg" alt="Dry red cliffs and coastline at Ponta de Sao Lourenco" loading="lazy"><figcaption><div><strong>Ponta de Sao Lourenco</strong><span>PR8 exposed coastal hike.</span></div><a href="https://commons.wikimedia.org/wiki/File:Ponta_de_S%C3%A3o_Louren%C3%A7o_north_north_east.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/curral-das-freiras.jpg" alt="Curral das Freiras valley surrounded by steep mountains" loading="lazy"><figcaption><div><strong>Curral das Freiras</strong><span>Inland valley fallback day.</span></div><a href="https://commons.wikimedia.org/wiki/File:Vista_de_Curral_das_Freiras,_Madeira,_Portugal,_2019-05-30,_DD_82.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/cabo-girao.jpg" alt="Cabo Girao cliff above terraced land and the Atlantic" loading="lazy"><figcaption><div><strong>Cabo Girao</strong><span>Skywalk / west-side viewpoint.</span></div><a href="https://commons.wikimedia.org/wiki/File:Cabo_Girao_in_Madeira_land_sea.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/seixal-veu-da-noiva.jpg" alt="Veu da Noiva waterfall and north-coast cliffs near Seixal" loading="lazy"><figcaption><div><strong>Seixal / Veu da Noiva</strong><span>North-coast tour stop.</span></div><a href="https://commons.wikimedia.org/wiki/File:Mirador_del_Velo_de_Novia,_Seixal,_Madeira,_Portugal,_2019-05-30,_DD_67.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/porto-moniz.jpg" alt="Natural lava-rock swimming pools at Porto Moniz" loading="lazy"><figcaption><div><strong>Porto Moniz</strong><span>Natural pools on the west tour.</span></div><a href="https://commons.wikimedia.org/wiki/File:Natural_swimming_pool,_Porto_Moniz,_Madeira.JPG">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/fanal.jpg" alt="Laurisilva trees in the Fanal forest on Madeira" loading="lazy"><figcaption><div><strong>Fanal forest</strong><span>Good even in mist.</span></div><a href="https://commons.wikimedia.org/wiki/File:O_Fanal,_Ilha_da_Madeira,_Portugal.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/garajau-cristo-rei.jpg" alt="Atlantic view from the Cristo Rei viewpoint in Garajau" loading="lazy"><figcaption><div><strong>Garajau / Cristo Rei</strong><span>Light recovery-day option.</span></div><a href="https://commons.wikimedia.org/wiki/File:View_from_Cristo_Rei_Madeira.jpg">Source</a></figcaption></figure>
-        <figure class="photo-card"><img src="assets/camara-de-lobos.jpg" alt="Camara de Lobos bay and harbor" loading="lazy"><figcaption><div><strong>Camara de Lobos</strong><span>Final flex coastal option.</span></div><a href="https://commons.wikimedia.org/wiki/File:Bah%C3%ADa_de_C%C3%A1mara_de_Lobos,_Madeira,_Portugal,_2019-05-29,_DD_50.jpg">Source</a></figcaption></figure>
-      </div>
-    </section>
 
     <section id="timeline">
       <div class="section-title">
@@ -373,6 +352,10 @@
               <h3>Arrival and Funchal soft landing</h3>
               <p class="summary">Keep the first day light after Lisbon to Madeira. No remote logistics, no hike.</p>
               <div class="chips"><span class="chip">FNC airport</span><span class="chip">Funchal</span><span class="chip">Old Town dinner</span></div>
+              <div class="photo-grid day-photos">
+                <figure class="photo-card"><img src="assets/madeira-airport.jpg" alt="Madeira Airport runway and terminal by the sea" loading="lazy"><figcaption><div><strong>Madeira Airport</strong><span>Arrival anchor.</span></div><a href="https://commons.wikimedia.org/wiki/File:Madeira_Airport_in_2018.jpg">Source</a></figcaption></figure>
+                <figure class="photo-card"><img src="assets/funchal-marina.jpg" alt="Funchal marina with boats and hills behind the city" loading="lazy"><figcaption><div><strong>Funchal marina</strong><span>Soft landing city base.</span></div><a href="https://commons.wikimedia.org/wiki/File:Madeira_-_Funchal_-_Marina_(11826946506).jpg">Source</a></figcaption></figure>
+              </div>
             </div>
             <span class="status">fixed</span>
           </div>
@@ -394,6 +377,10 @@
               <h3>Funchal, cable car, Monte Palace</h3>
               <p class="summary">The best first full day: scenic, easy, and recoverable if the weather shifts.</p>
               <div class="chips"><span class="chip">Mercado</span><span class="chip">Cable car</span><span class="chip">Monte Palace</span><span class="chip">optional sled</span></div>
+              <div class="photo-grid day-photos">
+                <figure class="photo-card"><img src="assets/funchal-marina.jpg" alt="Funchal marina with boats and hills behind the city" loading="lazy"><figcaption><div><strong>Funchal</strong><span>Morning city walk.</span></div><a href="https://commons.wikimedia.org/wiki/File:Madeira_-_Funchal_-_Marina_(11826946506).jpg">Source</a></figcaption></figure>
+                <figure class="photo-card"><img src="assets/monte-palace.jpg" alt="Footbridge and greenery inside Monte Palace Tropical Garden" loading="lazy"><figcaption><div><strong>Monte Palace</strong><span>Cable car / garden day.</span></div><a href="https://commons.wikimedia.org/wiki/File:Monte_Palace_Tropical_Garden_-_Oriental_Gardens_10.jpg">Source</a></figcaption></figure>
+              </div>
             </div>
             <span class="status">planned</span>
           </div>
@@ -412,8 +399,13 @@
             <div class="date">Tue 14 Jul</div>
             <div>
               <h3>PR8 Ponta de Sao Lourenco</h3>
-              <p class="summary">Main self-guided hike day. Do it only if wind and heat look reasonable.</p>
+              <p class="summary">Main self-guided hike day. Swap this with the Pico do Arieiro / Pico Ruivo mountain option only if weather, trail status, and transfer logistics all line up.</p>
               <div class="chips"><span class="chip">Baia d’Abra</span><span class="chip">PR8</span><span class="chip">Casa do Sardinha</span></div>
+              <div class="photo-grid day-photos">
+                <figure class="photo-card"><img src="assets/ponta-sao-lourenco.jpg" alt="Dry red cliffs and coastline at Ponta de Sao Lourenco" loading="lazy"><figcaption><div><strong>Ponta de Sao Lourenco</strong><span>Default 14 Jul hike.</span></div><a href="https://commons.wikimedia.org/wiki/File:Ponta_de_S%C3%A3o_Louren%C3%A7o_north_north_east.jpg">Source</a></figcaption></figure>
+                <figure class="photo-card"><img src="assets/pico-arieiro.jpg" alt="Mountain view from Pico do Arieiro" loading="lazy"><figcaption><div><strong>Pico do Arieiro</strong><span>Mountain swap start.</span></div><a href="https://commons.wikimedia.org/wiki/File:View_from_Miradouro_do_Pico_do_Arieiro_-_Madeira_03.jpg">Source</a></figcaption></figure>
+                <figure class="photo-card"><img src="assets/pico-ruivo.jpg" alt="Pico Ruivo mountain landscape" loading="lazy"><figcaption><div><strong>Pico Ruivo</strong><span>PR1 / PR1.2 target.</span></div><a href="https://commons.wikimedia.org/wiki/File:Pico_Ruivo,_Madeira.jpg">Source</a></figcaption></figure>
+              </div>
             </div>
             <span class="status">planned</span>
           </div>
@@ -433,6 +425,9 @@
               <h3>Curral das Freiras buffer</h3>
               <p class="summary">Inland valley day that does not duplicate the booked west/north tour.</p>
               <div class="chips"><span class="chip">Eira do Serrado if timing works</span><span class="chip">Curral das Freiras</span><span class="chip">lunch</span></div>
+              <div class="photo-grid day-photos">
+                <figure class="photo-card"><img src="assets/curral-das-freiras.jpg" alt="Curral das Freiras valley surrounded by steep mountains" loading="lazy"><figcaption><div><strong>Curral das Freiras</strong><span>Inland valley fallback day.</span></div><a href="https://commons.wikimedia.org/wiki/File:Vista_de_Curral_das_Freiras,_Madeira,_Portugal,_2019-05-30,_DD_82.jpg">Source</a></figcaption></figure>
+              </div>
             </div>
             <span class="status">flex</span>
           </div>
@@ -452,6 +447,12 @@
               <h3>Booked west / north 4WD tour</h3>
               <p class="summary">The efficient day for Cabo Girao, Seixal, Porto Moniz, Fanal, Paul da Serra and the north-west route.</p>
               <div class="chips"><span class="chip">Cabo Girao</span><span class="chip">Seixal</span><span class="chip">Porto Moniz</span><span class="chip">Fanal</span></div>
+              <div class="photo-grid day-photos">
+                <figure class="photo-card"><img src="assets/cabo-girao.jpg" alt="Cabo Girao cliff above terraced land and the Atlantic" loading="lazy"><figcaption><div><strong>Cabo Girao</strong><span>Skywalk / viewpoint.</span></div><a href="https://commons.wikimedia.org/wiki/File:Cabo_Girao_in_Madeira_land_sea.jpg">Source</a></figcaption></figure>
+                <figure class="photo-card"><img src="assets/seixal-veu-da-noiva.jpg" alt="Veu da Noiva waterfall and north-coast cliffs near Seixal" loading="lazy"><figcaption><div><strong>Seixal / Veu da Noiva</strong><span>North-coast stop.</span></div><a href="https://commons.wikimedia.org/wiki/File:Mirador_del_Velo_de_Novia,_Seixal,_Madeira,_Portugal,_2019-05-30,_DD_67.jpg">Source</a></figcaption></figure>
+                <figure class="photo-card"><img src="assets/porto-moniz.jpg" alt="Natural lava-rock swimming pools at Porto Moniz" loading="lazy"><figcaption><div><strong>Porto Moniz</strong><span>Natural pools.</span></div><a href="https://commons.wikimedia.org/wiki/File:Natural_swimming_pool,_Porto_Moniz,_Madeira.JPG">Source</a></figcaption></figure>
+                <figure class="photo-card"><img src="assets/fanal.jpg" alt="Laurisilva trees in the Fanal forest on Madeira" loading="lazy"><figcaption><div><strong>Fanal forest</strong><span>Good even in mist.</span></div><a href="https://commons.wikimedia.org/wiki/File:O_Fanal,_Ilha_da_Madeira,_Portugal.jpg">Source</a></figcaption></figure>
+              </div>
             </div>
             <span class="status">fixed</span>
           </div>
@@ -471,6 +472,10 @@
               <h3>Recovery day: Garajau or sea plan</h3>
               <p class="summary">Keep this deliberately lighter after the full-day tour.</p>
               <div class="chips"><span class="chip">Funchal late start</span><span class="chip">Garajau</span><span class="chip">boat option</span></div>
+              <div class="photo-grid day-photos">
+                <figure class="photo-card"><img src="assets/garajau-cristo-rei.jpg" alt="Atlantic view from the Cristo Rei viewpoint in Garajau" loading="lazy"><figcaption><div><strong>Garajau / Cristo Rei</strong><span>Light recovery-day option.</span></div><a href="https://commons.wikimedia.org/wiki/File:View_from_Cristo_Rei_Madeira.jpg">Source</a></figcaption></figure>
+                <figure class="photo-card"><img src="assets/funchal-marina.jpg" alt="Funchal marina with boats and hills behind the city" loading="lazy"><figcaption><div><strong>Funchal marina</strong><span>Boat option start.</span></div><a href="https://commons.wikimedia.org/wiki/File:Madeira_-_Funchal_-_Marina_(11826946506).jpg">Source</a></figcaption></figure>
+              </div>
             </div>
             <span class="status">flex</span>
           </div>
@@ -490,6 +495,10 @@
               <h3>Final flex: coastal repeat or Funchal closeout</h3>
               <p class="summary">Do not overcommit. Pick based on what the tour satisfied and what weather remains.</p>
               <div class="chips"><span class="chip">Câmara de Lobos</span><span class="chip">optional Cabo Girao</span><span class="chip">Funchal</span><span class="chip">pack</span></div>
+              <div class="photo-grid day-photos">
+                <figure class="photo-card"><img src="assets/camara-de-lobos.jpg" alt="Camara de Lobos bay and harbor" loading="lazy"><figcaption><div><strong>Camara de Lobos</strong><span>Final flex coastal option.</span></div><a href="https://commons.wikimedia.org/wiki/File:Bah%C3%ADa_de_C%C3%A1mara_de_Lobos,_Madeira,_Portugal,_2019-05-29,_DD_50.jpg">Source</a></figcaption></figure>
+                <figure class="photo-card"><img src="assets/cabo-girao.jpg" alt="Cabo Girao cliff above terraced land and the Atlantic" loading="lazy"><figcaption><div><strong>Cabo Girao</strong><span>Only if not satisfied by tour.</span></div><a href="https://commons.wikimedia.org/wiki/File:Cabo_Girao_in_Madeira_land_sea.jpg">Source</a></figcaption></figure>
+              </div>
             </div>
             <span class="status">flex</span>
           </div>
@@ -509,6 +518,9 @@
               <h3>FNC to BER departure</h3>
               <p class="summary">Protect the morning. The flight is the plan.</p>
               <div class="chips"><span class="chip">Funchal</span><span class="chip">FNC airport</span><span class="chip">BER T1</span></div>
+              <div class="photo-grid day-photos">
+                <figure class="photo-card"><img src="assets/madeira-airport.jpg" alt="Madeira Airport runway and terminal by the sea" loading="lazy"><figcaption><div><strong>Madeira Airport</strong><span>Departure anchor.</span></div><a href="https://commons.wikimedia.org/wiki/File:Madeira_Airport_in_2018.jpg">Source</a></figcaption></figure>
+              </div>
             </div>
             <span class="status">fixed</span>
           </div>

@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Madeira 2026 Trip Plan</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f3ea;
+      --ink: #24211d;
+      --muted: #687176;
+      --line: #d8d0c0;
+      --panel: #fffdf8;
+      --soft: #ebe6da;
+      --accent: #14766f;
+      --accent-2: #b4562e;
+      --accent-3: #2d5b88;
+      --shadow: 0 22px 60px rgba(58, 49, 38, .12);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 16% 4%, rgba(20, 118, 111, .13), transparent 28rem),
+        radial-gradient(circle at 88% 14%, rgba(180, 86, 46, .12), transparent 22rem),
+        var(--bg);
+      color: var(--ink);
+      font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    a { color: var(--accent); text-decoration-thickness: .08em; text-underline-offset: .22em; }
+    .shell { width: min(1160px, calc(100% - 32px)); margin: 0 auto; padding: 26px 0 54px; }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      margin-bottom: 28px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .72);
+      backdrop-filter: blur(16px);
+      padding: 12px 14px;
+      box-shadow: 0 12px 30px rgba(58, 49, 38, .08);
+    }
+    .mark {
+      display: inline-grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid color-mix(in srgb, var(--accent), transparent 55%);
+      border-radius: 7px;
+      color: var(--accent);
+      background: #f4fbf7;
+      font-weight: 900;
+    }
+    .brand { display: flex; gap: 11px; align-items: center; min-width: 0; }
+    .brand b { display: block; line-height: 1.15; }
+    .brand span { display: block; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      color: var(--muted);
+      background: #fffaf0;
+      font: 800 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr);
+      gap: 26px;
+      align-items: end;
+      margin-bottom: 26px;
+    }
+    .eyebrow {
+      color: var(--accent);
+      font: 900 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 12px 0 0;
+      max-width: 11ch;
+      font-size: clamp(44px, 8vw, 96px);
+      line-height: .92;
+      letter-spacing: -.06em;
+    }
+    .lede {
+      max-width: 66ch;
+      margin: 20px 0 0;
+      color: #59646b;
+      font-size: 18px;
+      line-height: 1.7;
+    }
+    .hero-panel, .panel, .day {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .84);
+      box-shadow: var(--shadow);
+    }
+    .hero-panel { padding: 18px; }
+    .fact-grid { display: grid; gap: 10px; }
+    .fact {
+      border: 1px solid #ded5c5;
+      border-radius: 7px;
+      background: rgba(247, 243, 234, .68);
+      padding: 12px;
+    }
+    .fact small, .label {
+      display: block;
+      color: #737b80;
+      font: 900 10px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    .fact strong { display: block; margin-top: 8px; font-size: 15px; }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 24px 0 30px;
+    }
+    .nav a {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fffdf8;
+      padding: 8px 12px;
+      color: #3f474c;
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      transition: transform .16s ease, border-color .16s ease, color .16s ease;
+    }
+    .nav a:hover { transform: translateY(-1px); border-color: var(--accent); color: var(--accent); }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin: 32px 0 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 22px;
+    }
+    h2 { margin: 0; font-size: clamp(24px, 4vw, 42px); line-height: 1; letter-spacing: -.04em; }
+    .section-title p { margin: 0; max-width: 42ch; color: var(--muted); font-size: 14px; }
+
+    .timeline { display: grid; gap: 14px; }
+    .day { overflow: hidden; }
+    .day-head {
+      display: grid;
+      grid-template-columns: 120px minmax(0, 1fr) auto;
+      gap: 18px;
+      padding: 18px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(20, 118, 111, .055), transparent);
+    }
+    .date { color: var(--accent); font: 900 12px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .12em; text-transform: uppercase; }
+    .day h3 { margin: 0; font-size: 24px; line-height: 1.1; letter-spacing: -.03em; }
+    .summary { margin: 8px 0 0; color: #5b656b; }
+    .status {
+      align-self: start;
+      border: 1px solid color-mix(in srgb, var(--accent-2), transparent 45%);
+      border-radius: 999px;
+      padding: 5px 9px;
+      color: var(--accent-2);
+      background: #fff4ec;
+      font: 900 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    .day-body { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; padding: 18px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .chip {
+      border: 1px solid #d7cec0;
+      border-radius: 999px;
+      background: #fbf7ef;
+      padding: 5px 8px;
+      color: #3c4549;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .legs { display: grid; gap: 10px; margin-top: 16px; }
+    .leg {
+      display: grid;
+      grid-template-columns: minmax(150px, .8fr) minmax(0, 1fr) minmax(150px, .8fr);
+      gap: 14px;
+      border: 1px solid #ddd4c6;
+      border-radius: 7px;
+      background: #fffdf8;
+      padding: 13px;
+    }
+    .leg b { display: block; }
+    .leg span { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; }
+    .leg .cost { color: var(--accent); font-weight: 900; text-align: right; }
+    .leg .time { color: var(--ink); font-weight: 800; text-align: right; }
+    .side-note {
+      border: 1px solid #ddd4c6;
+      border-radius: 7px;
+      background: #fbf7ef;
+      padding: 14px;
+      min-height: 100%;
+    }
+    .side-note p { margin: 9px 0 0; color: #5d666b; }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .panel { padding: 17px; box-shadow: 0 14px 36px rgba(58, 49, 38, .09); }
+    .panel h3 { margin: 8px 0 0; font-size: 20px; letter-spacing: -.02em; }
+    .panel p, .panel li { color: #5d666b; }
+    .panel ul { margin: 12px 0 0; padding-left: 18px; }
+
+    .sources {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .sources a { display: block; margin-top: 9px; font-size: 14px; }
+    footer {
+      margin-top: 34px;
+      border-top: 1px solid var(--line);
+      padding-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 820px) {
+      .shell { width: min(100% - 24px, 720px); padding-top: 14px; }
+      .topbar { align-items: flex-start; }
+      .hero, .day-body, .grid-3, .sources { grid-template-columns: 1fr; }
+      .day-head { grid-template-columns: 1fr; gap: 10px; }
+      .status { justify-self: start; }
+      .leg { grid-template-columns: 1fr; }
+      .leg .cost, .leg .time { text-align: left; }
+      h1 { max-width: 9ch; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="mark">M</span>
+        <div>
+          <b>Madeira 2026</b>
+          <span>Sanitized travel page</span>
+        </div>
+      </div>
+      <span class="pill">12-19 Jul</span>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Portugal / FNC leg</div>
+        <h1>Madeira 2026</h1>
+        <p class="lede">Portable trip timeline for Yonatan and Tal. This page is intentionally standalone: no booking-summary URL, no hotel address, no local control-panel access, and no private operational surfaces.</p>
+      </div>
+      <aside class="hero-panel" aria-label="Trip anchors">
+        <div class="fact-grid">
+          <div class="fact"><small>Trip window</small><strong>12-19 Jul 2026</strong></div>
+          <div class="fact"><small>Base assumption</small><strong>Funchal</strong></div>
+          <div class="fact"><small>Booked anchor</small><strong>West / north 4WD tour, 16 Jul</strong></div>
+          <div class="fact"><small>Departure</small><strong>FNC 11:35, gate closes 11:05</strong></div>
+        </div>
+      </aside>
+    </section>
+
+    <nav class="nav" aria-label="Page sections">
+      <a href="#timeline">Timeline</a>
+      <a href="#rules">Fare rules</a>
+      <a href="#sources">Sources</a>
+    </nav>
+
+    <section id="timeline">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">Date-by-date</div>
+          <h2>Working timeline</h2>
+        </div>
+        <p>Built for moving around without a car. Prices are per person unless a line explicitly says total or for two.</p>
+      </div>
+
+      <div class="timeline">
+        <article class="day">
+          <div class="day-head">
+            <div class="date">Sun 12 Jul</div>
+            <div>
+              <h3>Arrival and Funchal soft landing</h3>
+              <p class="summary">Keep the first day light after Lisbon to Madeira. No remote logistics, no hike.</p>
+              <div class="chips"><span class="chip">FNC airport</span><span class="chip">Funchal</span><span class="chip">Old Town dinner</span></div>
+            </div>
+            <span class="status">fixed</span>
+          </div>
+          <div class="day-body">
+            <div>
+              <div class="legs">
+                <div class="leg"><div><b>FNC to Funchal</b><span>Aerobus 500 / 500R</span></div><p>Use if the schedule aligns with landing and luggage.</p><div><div class="time">30-50 min</div><div class="cost">EUR 5.55 prepaid / EUR 6.70 cash guidance</div></div></div>
+                <div class="leg"><div><b>Fallback</b><span>Taxi / Bolt</span></div><p>Use if bus timing is poor or you are tired.</p><div><div class="time">20-30 min</div><div class="cost">estimate EUR 30-45 total</div></div></div>
+              </div>
+            </div>
+            <aside class="side-note"><span class="label">Weather posture</span><p>Landing day. Save weather-sensitive plans for later.</p></aside>
+          </div>
+        </article>
+
+        <article class="day">
+          <div class="day-head">
+            <div class="date">Mon 13 Jul</div>
+            <div>
+              <h3>Funchal, cable car, Monte Palace</h3>
+              <p class="summary">The best first full day: scenic, easy, and recoverable if the weather shifts.</p>
+              <div class="chips"><span class="chip">Mercado</span><span class="chip">Cable car</span><span class="chip">Monte Palace</span><span class="chip">optional sled</span></div>
+            </div>
+            <span class="status">planned</span>
+          </div>
+          <div class="day-body">
+            <div class="legs">
+              <div class="leg"><div><b>Funchal to Monte</b><span>Cable car</span></div><p>Scenic route straight to Monte Palace area.</p><div><div class="time">15-20 min ride</div><div class="cost">EUR 16 one-way / EUR 22 return</div></div></div>
+              <div class="leg"><div><b>Budget route</b><span>Buses 20 / 21 / 22 / 48</span></div><p>Cheaper, less memorable.</p><div><div class="time">about 20 min</div><div class="cost">EUR 1.45 prepaid / EUR 2.05 onboard</div></div></div>
+              <div class="leg"><div><b>Optional descent</b><span>Carreiros do Monte</span></div><p>Basket sled ends at Livramento, not central Funchal.</p><div><div class="time">about 10 min</div><div class="cost">EUR 40 for two</div></div></div>
+            </div>
+            <aside class="side-note"><span class="label">Budget</span><p>Core day for two: about EUR 68 with one-way cable car plus Monte Palace. Add EUR 40 for the sled.</p></aside>
+          </div>
+        </article>
+
+        <article class="day">
+          <div class="day-head">
+            <div class="date">Tue 14 Jul</div>
+            <div>
+              <h3>PR8 Ponta de Sao Lourenco</h3>
+              <p class="summary">Main self-guided hike day. Do it only if wind and heat look reasonable.</p>
+              <div class="chips"><span class="chip">Baia d’Abra</span><span class="chip">PR8</span><span class="chip">Casa do Sardinha</span></div>
+            </div>
+            <span class="status">planned</span>
+          </div>
+          <div class="day-body">
+            <div class="legs">
+              <div class="leg"><div><b>Funchal to trailhead</b><span>SIGA route 702</span></div><p>Check final timetable the night before.</p><div><div class="time">70-90 min each way</div><div class="cost">EUR 2.00 prepaid / EUR 2.65 onboard</div></div></div>
+              <div class="leg"><div><b>Trail access</b><span>SIMplifica / IFCN</span></div><p>Visitor fee and access conditions can change with closures or capacity.</p><div><div class="time">book before trail</div><div class="cost">EUR 4.50</div></div></div>
+            </div>
+            <aside class="side-note"><span class="label">Weather posture</span><p>Exposure is the issue: no trees, wind, high UV. Move to Fri/Sat if conditions are rough.</p></aside>
+          </div>
+        </article>
+
+        <article class="day">
+          <div class="day-head">
+            <div class="date">Wed 15 Jul</div>
+            <div>
+              <h3>Curral das Freiras buffer</h3>
+              <p class="summary">Inland valley day that does not duplicate the booked west/north tour.</p>
+              <div class="chips"><span class="chip">Eira do Serrado if timing works</span><span class="chip">Curral das Freiras</span><span class="chip">lunch</span></div>
+            </div>
+            <span class="status">flex</span>
+          </div>
+          <div class="day-body">
+            <div class="legs">
+              <div class="leg"><div><b>Funchal to Curral</b><span>SIGA route 181</span></div><p>Use this as the PR8 swap day if Tuesday weather is poor.</p><div><div class="time">35-45 min each way</div><div class="cost">EUR 2.00 prepaid / EUR 2.65 onboard</div></div></div>
+              <div class="leg"><div><b>Viewpoint add-on</b><span>Bus timing or taxi</span></div><p>Do not force the viewpoint if it creates a long wait.</p><div><div class="time">variable</div><div class="cost">taxi app/rank if needed</div></div></div>
+            </div>
+            <aside class="side-note"><span class="label">Budget</span><p>About EUR 8-11 for two by bus, plus lunch and any taxi add-on.</p></aside>
+          </div>
+        </article>
+
+        <article class="day">
+          <div class="day-head">
+            <div class="date">Thu 16 Jul</div>
+            <div>
+              <h3>Booked west / north 4WD tour</h3>
+              <p class="summary">The efficient day for Cabo Girao, Seixal, Porto Moniz, Fanal, Paul da Serra and the north-west route.</p>
+              <div class="chips"><span class="chip">Cabo Girao</span><span class="chip">Seixal</span><span class="chip">Porto Moniz</span><span class="chip">Fanal</span></div>
+            </div>
+            <span class="status">fixed</span>
+          </div>
+          <div class="day-body">
+            <div class="legs">
+              <div class="leg"><div><b>Full circuit</b><span>Booked 4WD tour</span></div><p>Check exact pickup time in the GetYourGuide app.</p><div><div class="time">about 8h</div><div class="cost">already selected</div></div></div>
+              <div class="leg"><div><b>Extra fees</b><span>On-site entries</span></div><p>Lunch and drinks usually separate.</p><div><div class="time">during tour</div><div class="cost">Cabo Girao EUR 5, pools about EUR 3</div></div></div>
+            </div>
+            <aside class="side-note"><span class="label">Weather posture</span><p>Mixed day is acceptable. Fanal can be good in mist; pools/coast are less fragile than summit viewpoints.</p></aside>
+          </div>
+        </article>
+
+        <article class="day">
+          <div class="day-head">
+            <div class="date">Fri 17 Jul</div>
+            <div>
+              <h3>Recovery day: Garajau or sea plan</h3>
+              <p class="summary">Keep this deliberately lighter after the full-day tour.</p>
+              <div class="chips"><span class="chip">Funchal late start</span><span class="chip">Garajau</span><span class="chip">boat option</span></div>
+            </div>
+            <span class="status">flex</span>
+          </div>
+          <div class="day-body">
+            <div class="legs">
+              <div class="leg"><div><b>Funchal to Garajau</b><span>SIGA/local bus or taxi app</span></div><p>Use bus if energy is good; taxi if you want frictionless.</p><div><div class="time">20-35 min by bus</div><div class="cost">EUR 2.00-2.65 each way</div></div></div>
+              <div class="leg"><div><b>Boat option</b><span>Funchal marina</span></div><p>Book only after checking sea and wind 24-48h before.</p><div><div class="time">2.5-3h</div><div class="cost">usually EUR 35-45</div></div></div>
+            </div>
+            <aside class="side-note"><span class="label">Budget</span><p>Bus day under EUR 12 for two; boat day likely EUR 70-90 for two.</p></aside>
+          </div>
+        </article>
+
+        <article class="day">
+          <div class="day-head">
+            <div class="date">Sat 18 Jul</div>
+            <div>
+              <h3>Final flex: coastal repeat or Funchal closeout</h3>
+              <p class="summary">Do not overcommit. Pick based on what the tour satisfied and what weather remains.</p>
+              <div class="chips"><span class="chip">Câmara de Lobos</span><span class="chip">optional Cabo Girao</span><span class="chip">Funchal</span><span class="chip">pack</span></div>
+            </div>
+            <span class="status">flex</span>
+          </div>
+          <div class="day-body">
+            <div class="legs">
+              <div class="leg"><div><b>Funchal to Cabo Girao area</b><span>SIGA route 253 area</span></div><p>Only do this if you still want more west-side time after the tour.</p><div><div class="time">about 30 min</div><div class="cost">EUR 2.00 prepaid / EUR 2.65 onboard</div></div></div>
+              <div class="leg"><div><b>Cabo Girao Skywalk</b><span>SIMplifica / on-site access</span></div><p>Skip if already done and weather is hazy.</p><div><div class="time">30-45 min</div><div class="cost">EUR 5</div></div></div>
+            </div>
+            <aside class="side-note"><span class="label">Weather posture</span><p>Final movable slot. Use it to absorb anything missed earlier.</p></aside>
+          </div>
+        </article>
+
+        <article class="day">
+          <div class="day-head">
+            <div class="date">Sun 19 Jul</div>
+            <div>
+              <h3>FNC to BER departure</h3>
+              <p class="summary">Protect the morning. The flight is the plan.</p>
+              <div class="chips"><span class="chip">Funchal</span><span class="chip">FNC airport</span><span class="chip">BER T1</span></div>
+            </div>
+            <span class="status">fixed</span>
+          </div>
+          <div class="day-body">
+            <div class="legs">
+              <div class="leg"><div><b>Funchal to FNC</b><span>Aerobus if schedule aligns</span></div><p>Only use if the bus timing is obviously safe.</p><div><div class="time">30-50 min</div><div class="cost">EUR 5.55 prepaid / EUR 6.70 cash guidance</div></div></div>
+              <div class="leg"><div><b>Safer fallback</b><span>Taxi / Bolt</span></div><p>Recommended for lower-stress departure with luggage.</p><div><div class="time">20-30 min</div><div class="cost">estimate EUR 30-45 total</div></div></div>
+            </div>
+            <aside class="side-note"><span class="label">Flight</span><p>Gate closes 11:05. Departure 11:35.</p></aside>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="rules">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">Decision rules</div>
+          <h2>How to use the plan</h2>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="panel"><div class="label">Keep fixed</div><h3>Flights and 16 Jul tour</h3><p>Move the tour only if cancellation rules and weather make the switch obvious. The flight morning should stay protected.</p></div>
+        <div class="panel"><div class="label">Moveable</div><h3>PR8 and Curral</h3><p>Swap PR8 and Curral based on wind, heat, and cloud. PR8 is exposed; Curral is the safer fallback.</p></div>
+        <div class="panel"><div class="label">Avoid duplicates</div><h3>Do not re-do the west</h3><p>If the tour scratches the Cabo Girao / west coast itch, spend 18 July in Funchal instead of repeating the same corridor.</p></div>
+      </div>
+    </section>
+
+    <section id="sources">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">Verification</div>
+          <h2>Source links</h2>
+        </div>
+        <p>Some route pages and prices can change. Recheck the night before any bus/hike day.</p>
+      </div>
+      <div class="sources">
+        <div class="panel">
+          <div class="label">Transport</div>
+          <a href="https://www.madeiraairport.pt/en/fnc/access-parking/getting-to-and-from-the-airport/public-transportation">Madeira Airport public transport</a>
+          <a href="https://siga.madeira.gov.pt/tiim">SIGA fares</a>
+          <a href="https://siga.madeira.gov.pt/horarios/90">Route 181 Curral das Freiras</a>
+          <a href="https://siga.madeira.gov.pt/horarios/4007">Route 702 Baia d’Abra</a>
+          <a href="https://siga.madeira.gov.pt/horarios/2022">Route 253 Cabo Girao area</a>
+        </div>
+        <div class="panel">
+          <div class="label">Tickets</div>
+          <a href="https://madeiracablecar.com/en/price-and-schedule/">Madeira Cable Car</a>
+          <a href="https://montepalacemadeira.com/en/visit/">Monte Palace</a>
+          <a href="https://www.carreirosdomonte.com/v3/pt/prices.php">Carreiros do Monte</a>
+          <a href="https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-8-vereda-da-ponta-de-sao-lourenco/">PR8 Visit Madeira</a>
+          <a href="https://ifcn.madeira.gov.pt/en/atividades-de-natureza/percursos-pedestres-recomendados/faq-s-taxas-percursos-pedestres-classificados/frequently-asked-questions-fees-classified-walking-routes.html">PR8 fee FAQ</a>
+        </div>
+        <div class="panel">
+          <div class="label">Tour and pools</div>
+          <a href="https://visitmadeira.com/en/where-to-go/madeira/south-coast/camara-de-lobos/cabo-girao/">Cabo Girao</a>
+          <a href="https://www.portomoniz.pt/en/visit/points-interest/beaches">Porto Moniz pools</a>
+          <a href="https://www.getyourguide.com/madeira-l67/madeira-skywalk-porto-moniz-seixal-and-fanal-4wd-tour-t225105/">GetYourGuide west/north tour reference</a>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Last updated 5 Jul 2026. This is a sanitized travel copy derived from the local Mission Control plan. Exact accommodation, booking-summary links, and private operator data are intentionally excluded.
+    </footer>
+  </main>
+</body>
+</html>

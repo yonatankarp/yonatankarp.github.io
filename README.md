@@ -39,7 +39,7 @@ npx playwright install chromium
 
 - custom Hugo layouts in `layouts/`
 - site styles in `assets/css/custom.css`
-- small progressive enhancements in `static/js/site.js`
+- small progressive enhancements in `assets/js/site.js`
 - content remains markdown-first across blog, experience, education, projects, and skills
 
 ## Analytics

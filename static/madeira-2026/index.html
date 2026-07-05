@@ -156,6 +156,59 @@
     h2 { margin: 0; font-size: clamp(24px, 4vw, 42px); line-height: 1; letter-spacing: -.04em; }
     .section-title p { margin: 0; max-width: 42ch; color: var(--muted); font-size: 14px; }
 
+    .route-guide {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .route-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 248, .86);
+      box-shadow: 0 14px 36px rgba(58, 49, 38, .09);
+      padding: 16px;
+    }
+    .route-card h3 { margin: 8px 0 0; font-size: 22px; line-height: 1.1; letter-spacing: -.03em; }
+    .route-card p { color: #5d666b; }
+    .route-flow {
+      display: grid;
+      gap: 8px;
+      margin: 14px 0;
+    }
+    .route-point {
+      display: grid;
+      grid-template-columns: 26px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      border: 1px solid #ded5c5;
+      border-radius: 7px;
+      background: #fbf7ef;
+      padding: 10px;
+    }
+    .route-point i {
+      display: grid;
+      place-items: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fffdf8;
+      font-style: normal;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .route-point strong { display: block; }
+    .route-point span { display: block; color: var(--muted); font-size: 13px; }
+    .route-warning {
+      border-left: 4px solid var(--accent-2);
+      border-radius: 6px;
+      background: #fff4ec;
+      padding: 10px 12px;
+      color: #5b3a2a;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
     .timeline { display: grid; gap: 14px; }
     .day { overflow: hidden; }
     .day-head {
@@ -309,7 +362,7 @@
     @media (max-width: 820px) {
       .shell { width: min(100% - 24px, 720px); padding-top: 14px; }
       .topbar { align-items: flex-start; }
-      .hero, .day-body, .grid-3, .sources { grid-template-columns: 1fr; }
+      .hero, .route-guide, .day-body, .grid-3, .sources { grid-template-columns: 1fr; }
       .photo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .day-photos { grid-template-columns: 1fr; }
       .photo-card img { height: 126px; }
@@ -353,10 +406,61 @@
     </section>
 
     <nav class="nav" aria-label="Page sections">
+      <a href="#trail-guide">Trail guide</a>
       <a href="#timeline">Timeline</a>
       <a href="#rules">Fare rules</a>
       <a href="#sources">Sources</a>
     </nav>
+
+    <section id="trail-guide">
+      <div class="section-title">
+        <div>
+          <div class="eyebrow">Map logic</div>
+          <h2>Two separate trail systems</h2>
+        </div>
+        <p>Ponta de Sao Lourenco is not part of the Pico do Arieiro / Pico Ruivo trail. Treat these as competing nature days, not one continuous route.</p>
+      </div>
+      <div class="route-guide">
+        <article class="route-card">
+          <div class="label">East coast peninsula</div>
+          <h3>PR8 Ponta de Sao Lourenco</h3>
+          <p>This is the dry exposed coastal hike at Madeira’s eastern tip. It starts and ends around Baia d’Abra, so it works cleanly by public bus.</p>
+          <div class="route-flow">
+            <div class="route-point"><i>1</i><div><strong>Funchal</strong><span>Start from the city bus network.</span></div></div>
+            <div class="route-point"><i>2</i><div><strong>SIGA route 702 to Baia d’Abra</strong><span>Public transport to the PR8 trailhead.</span></div></div>
+            <div class="route-point"><i>3</i><div><strong>Walk PR8 out and back</strong><span>Baia d’Abra -> Ponta de Sao Lourenco area -> return to Baia d’Abra.</span></div></div>
+            <div class="route-point"><i>4</i><div><strong>Return route 702 to Funchal</strong><span>Same trailhead, same transport corridor.</span></div></div>
+          </div>
+          <div class="route-warning">Use this when you want simpler logistics. It is exposed to sun and wind but does not need a transfer pickup.</div>
+          <div class="track-links">
+            <a href="https://www.google.com/maps/dir/?api=1&origin=Funchal,+Madeira&destination=Ba%C3%ADa+d%27Abra,+Madeira&travelmode=transit">Transit map</a>
+            <a href="https://www.google.com/maps/search/?api=1&query=Ba%C3%ADa+d%27Abra+Madeira">Trailhead map</a>
+            <a href="https://siga.madeira.gov.pt/horarios/4007">702 timetable</a>
+            <a href="https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-8-vereda-da-ponta-de-sao-lourenco/">Official PR8 page</a>
+          </div>
+        </article>
+
+        <article class="route-card">
+          <div class="label">Central mountains</div>
+          <h3>Pico do Arieiro to Pico Ruivo</h3>
+          <p>This is the mountain ridge route. PR1 links Pico do Arieiro to Pico Ruivo; PR1.2 exits from Pico Ruivo to Achada do Teixeira.</p>
+          <div class="route-flow">
+            <div class="route-point"><i>1</i><div><strong>Funchal to Pico do Arieiro</strong><span>Public bus can work for viewpoint-only. For the full hike, a transfer is cleaner.</span></div></div>
+            <div class="route-point"><i>2</i><div><strong>Walk PR1 to Pico Ruivo</strong><span>Only if the official route status allows the full traverse.</span></div></div>
+            <div class="route-point"><i>3</i><div><strong>Exit via PR1.2 to Achada do Teixeira</strong><span>This avoids walking back across the ridge.</span></div></div>
+            <div class="route-point"><i>4</i><div><strong>Prebook pickup / shuttle</strong><span>Achada do Teixeira is the weak public-transport point.</span></div></div>
+          </div>
+          <div class="route-warning">Do not plan the full Arieiro -> Ruivo -> Achada route by public transport alone. It starts and ends in different places. Also recheck the official PR1 page before booking: on 5 Jul 2026 it still flagged access only as far as Pedra Rija.</div>
+          <div class="track-links">
+            <a href="https://www.google.com/maps/dir/?api=1&origin=Pico+do+Arieiro,+Madeira&destination=Achada+do+Teixeira,+Madeira&travelmode=walking&waypoints=Pico+Ruivo,+Madeira">Ridge map</a>
+            <a href="https://www.horariosdofunchal.pt/index.php/en/travel/pico-do-areeiro">Arieiro bus</a>
+            <a href="https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-1-vereda-do-areeiro/">Official PR1 page</a>
+            <a href="https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-12-vereda-do-pico-ruivo/">Official PR1.2 page</a>
+            <a href="https://ifcn.madeira.gov.pt/en/atividades-de-natureza/percursos-pedestres-recomendados/faq-s-taxas-percursos-pedestres-classificados/frequently-asked-questions-fees-classified-walking-routes.html">Fees + rules</a>
+          </div>
+        </article>
+      </div>
+    </section>
 
     <section id="timeline">
       <div class="section-title">
@@ -603,6 +707,14 @@
           <a href="https://visitmadeira.com/en/where-to-go/madeira/south-coast/camara-de-lobos/cabo-girao/">Cabo Girao</a>
           <a href="https://www.portomoniz.pt/en/visit/points-interest/beaches">Porto Moniz pools</a>
           <a href="https://www.getyourguide.com/madeira-l67/madeira-skywalk-porto-moniz-seixal-and-fanal-4wd-tour-t225105/">GetYourGuide west/north tour reference</a>
+        </div>
+        <div class="panel">
+          <div class="label">Trail maps</div>
+          <a href="https://www.google.com/maps/dir/?api=1&origin=Funchal,+Madeira&destination=Ba%C3%ADa+d%27Abra,+Madeira&travelmode=transit">PR8 transit map</a>
+          <a href="https://www.google.com/maps/dir/?api=1&origin=Pico+do+Arieiro,+Madeira&destination=Achada+do+Teixeira,+Madeira&travelmode=walking&waypoints=Pico+Ruivo,+Madeira">Pico ridge map</a>
+          <a href="https://www.horariosdofunchal.pt/index.php/en/travel/pico-do-areeiro">Pico do Areeiro public bus</a>
+          <a href="https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-1-vereda-do-areeiro/">PR1 official trail page</a>
+          <a href="https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-12-vereda-do-pico-ruivo/">PR1.2 official trail page</a>
         </div>
       </div>
     </section>

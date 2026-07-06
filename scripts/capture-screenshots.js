@@ -25,6 +25,16 @@ const routes = [
   { name: "post-self-compiling-second-brain", path: "/blog/self-compiling-second-brain/" },
 ];
 
+const assertions = [
+  "HTTP response succeeds for every captured route.",
+  "Each page renders a visible h1 and at least 200 characters of body text.",
+  "Mobile pages do not horizontally overflow the viewport.",
+  "Visible images are loaded with non-zero natural dimensions.",
+  "Mobile navigation button is visible, at least 36x36px, labeled, closed by default, and wired to #primary-nav.",
+  "Home page contains the hero and proof sections.",
+  "Blog index contains multiple article rows/cards.",
+];
+
 function parseArgs(args) {
   const parsed = {};
 
@@ -76,6 +86,38 @@ function requestUrl(url) {
 
 function routeUrl(routePath) {
   return new URL(routePath, baseUrl).toString();
+}
+
+function writeManifest() {
+  const relativeDir = path.relative(rootDir, screenshotDir);
+  const lines = [
+    `# Visual Smoke Capture - ${dateStamp}`,
+    "",
+    `Base URL: ${baseUrl}`,
+    `Output directory: ${relativeDir}/`,
+    `Server mode: ${shouldStartServer ? "local Hugo server with --renderToMemory" : "existing server"}`,
+    "",
+    "## Routes",
+    "",
+    ...routes.map((route) => `- ${route.name}: ${route.path}`),
+    "",
+    "## Viewports",
+    "",
+    ...viewports.map((viewport) => `- ${viewport.name}: ${viewport.width}x${viewport.height}`),
+    "",
+    "## Assertions",
+    "",
+    ...assertions.map((assertion) => `- ${assertion}`),
+    "",
+    "## Files",
+    "",
+    ...routes.flatMap((route) =>
+      viewports.map((viewport) => `- ${route.name}-${viewport.name}-${dateStamp}.png`)
+    ),
+    "",
+  ];
+
+  fs.writeFileSync(path.join(screenshotDir, "README.md"), `${lines.join("\n")}\n`);
 }
 
 async function waitForUrl(url, timeoutMs, timeoutMessage) {
@@ -287,6 +329,7 @@ async function main() {
     }
   }
 
+  writeManifest();
   console.log(`Captured ${routes.length * viewports.length} screenshots in ${path.relative(rootDir, screenshotDir)}/`);
 }
 

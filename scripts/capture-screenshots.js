@@ -23,6 +23,17 @@ const routes = [
   { name: "blog", path: "/blog/" },
   { name: "cv", path: "/cv/" },
   { name: "post-self-compiling-second-brain", path: "/blog/self-compiling-second-brain/" },
+  {
+    name: "madeira-2026",
+    path: "/madeira-2026/",
+    requireMobileNav: false,
+    requiredSelectors: [
+      [".route-guide .route-card", 2, "route guide cards"],
+      [".day", 8, "daily itinerary sections"],
+      [".photo-card img", 8, "itinerary photos"],
+      [".sources .panel", 4, "source panels"],
+    ],
+  },
 ];
 
 const assertions = [
@@ -33,6 +44,7 @@ const assertions = [
   "Mobile navigation button is visible, at least 36x36px, labeled, closed by default, and wired to #primary-nav.",
   "Home page contains the hero and proof sections.",
   "Blog index contains multiple article rows/cards.",
+  "Standalone Madeira page contains route cards, daily itinerary sections, photos, and source panels.",
 ];
 
 function parseArgs(args) {
@@ -174,7 +186,7 @@ async function scrollThroughPage(page) {
 }
 
 async function assertPageBasics(page, route, viewport) {
-  const checks = await page.evaluate(() => {
+  const checks = await page.evaluate((requiredSelectors) => {
     const html = document.documentElement;
     const body = document.body;
     const h1 = document.querySelector("h1");
@@ -204,8 +216,14 @@ async function assertPageBasics(page, route, viewport) {
       homeHero: Boolean(document.querySelector(".hero")),
       homeProof: Boolean(document.querySelector(".proof-grid")),
       blogCards: document.querySelectorAll(".post-row, .featured-article").length,
+      requiredSelectorCounts: requiredSelectors.map(([selector, minimum, label]) => ({
+        selector,
+        minimum,
+        label,
+        count: document.querySelectorAll(selector).length,
+      })),
     };
-  });
+  }, route.requiredSelectors || []);
 
   if (!checks.h1Text) {
     fail(`${route.path} (${viewport.name}) has no visible h1`);
@@ -223,7 +241,7 @@ async function assertPageBasics(page, route, viewport) {
     fail(`${route.path} (${viewport.name}) has broken visible images: ${checks.brokenVisibleImages.join(", ")}`);
   }
 
-  if (viewport.name === "mobile") {
+  if (viewport.name === "mobile" && route.requireMobileNav !== false) {
     if (!checks.navToggle) {
       fail(`${route.path} (${viewport.name}) is missing the mobile menu button`);
     }
@@ -247,6 +265,15 @@ async function assertPageBasics(page, route, viewport) {
 
   if (route.name === "blog" && checks.blogCards < 2) {
     fail(`${route.path} (${viewport.name}) has too few blog cards`);
+  }
+
+  for (const selectorCheck of checks.requiredSelectorCounts) {
+    if (selectorCheck.count < selectorCheck.minimum) {
+      fail(
+        `${route.path} (${viewport.name}) has too few ${selectorCheck.label}: ` +
+          `${selectorCheck.count}/${selectorCheck.minimum} for ${selectorCheck.selector}`
+      );
+    }
   }
 }
 

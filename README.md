@@ -20,7 +20,7 @@ Use the local screenshot helper when checking layout changes:
 npm run visual:capture
 ```
 
-By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures for `/`, `/projects/`, `/blog/`, `/cv/`, and a representative blog post to `artifacts/visual-smoke/<YYYY-MM-DD>/`. It also checks basic page landmarks, mobile overflow, key home/blog sections, and broken visible images before writing screenshots. To capture an already-running server, set `SITE_URL`:
+By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures for `/`, `/projects/`, `/blog/`, `/cv/`, a representative blog post, and the standalone Madeira 2026 page to `artifacts/visual-smoke/<YYYY-MM-DD>/`. It also checks basic page landmarks, mobile overflow, key home/blog/Madeira sections, and broken visible images before writing screenshots. To capture an already-running server, set `SITE_URL`:
 
 ```bash
 SITE_URL=http://127.0.0.1:1313/ npm run visual:capture

@@ -6,7 +6,7 @@ That directory is git-ignored because routine captures are binary churn, but eac
 
 ## What Gets Captured
 
-- Routes: `/`, `/projects/`, `/blog/`, `/cv/`, and `/blog/self-compiling-second-brain/`.
+- Routes: `/`, `/projects/`, `/blog/`, `/cv/`, `/blog/self-compiling-second-brain/`, and `/madeira-2026/`.
 - Viewports: desktop `1440x1100` and mobile `390x1200`.
 - Files: `<route>-<viewport>-<YYYY-MM-DD>.png`.
 
@@ -19,6 +19,7 @@ That directory is git-ignored because routine captures are binary churn, but eac
 - The mobile menu button is visible, accessible, closed by default, and wired to `#primary-nav`.
 - The home page keeps its hero and proof sections.
 - The blog index renders multiple article rows/cards.
+- The standalone Madeira page keeps route guide cards, itinerary day sections, visible photos, and source panels.
 
 ## Operational Notes
 

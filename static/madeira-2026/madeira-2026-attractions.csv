@@ -1,0 +1,14 @@
+Name,Layer,Latitude,Longitude,Description
+Madeira Airport,Trip anchors,32.697900,-16.774500,Arrival and departure airport anchor.
+Funchal Marina,Trip anchors,32.647700,-16.910300,Funchal boat and city-buffer start area.
+Monte Palace Tropical Garden,Funchal and east,32.675200,-16.902700,First full-day garden and Monte anchor.
+PR8 / Baia d'Abra Trailhead,Trails,32.743700,-16.701300,Ponta de Sao Lourenco / PR8 start and return point.
+Pico do Arieiro,Trails,32.735000,-16.928600,Conditional mountain viewpoint or PR1 start.
+Pico Ruivo,Trails,32.758600,-16.942500,Conditional highest-peak target.
+Curral das Freiras,Curral buffer,32.719700,-16.968100,Inland valley buffer day.
+Cabo Girao Skywalk,West/north tour,32.657700,-17.004700,Booked west/north tour viewpoint.
+Seixal / Veu da Noiva,West/north tour,32.820200,-17.102500,North-coast waterfall/viewpoint area.
+Porto Moniz Natural Pools,West/north tour,32.866800,-17.166900,Booked west/north tour pools stop.
+Fanal Forest,West/north tour,32.810300,-17.142500,Laurisilva forest tour stop.
+Garajau / Cristo Rei,Funchal and east,32.642400,-16.850700,Recovery-day Garajau/Cristo Rei option.
+Camara de Lobos,Funchal and west buffer,32.648100,-16.976400,Funchal/west-side buffer option.

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Madeira 2026 Attractions</name>
+    <description>Public-safe attraction pins for the Madeira 2026 trip plan. Accommodation and private booking details intentionally omitted.</description>
+    <Style id="anchor"><IconStyle><color>ff6f7614</color><scale>1.1</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/grn-circle.png</href></Icon></IconStyle></Style>
+    <Style id="trail"><IconStyle><color>ff885b2d</color><scale>1.1</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/orange-circle.png</href></Icon></IconStyle></Style>
+    <Style id="tour"><IconStyle><color>ff2e56b4</color><scale>1.1</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/blu-circle.png</href></Icon></IconStyle></Style>
+    <Style id="buffer"><IconStyle><color>ff88742d</color><scale>1.1</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/ylw-circle.png</href></Icon></IconStyle></Style>
+
+    <Folder>
+      <name>Trip anchors</name>
+      <Placemark>
+        <name>Madeira Airport</name>
+        <description>Arrival and departure airport anchor.</description>
+        <styleUrl>#anchor</styleUrl>
+        <Point><coordinates>-16.774500,32.697900,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Funchal Marina</name>
+        <description>Funchal boat and city-buffer start area.</description>
+        <styleUrl>#anchor</styleUrl>
+        <Point><coordinates>-16.910300,32.647700,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+    <Folder>
+      <name>Funchal and east</name>
+      <Placemark>
+        <name>Monte Palace Tropical Garden</name>
+        <description>First full-day garden and Monte anchor.</description>
+        <styleUrl>#anchor</styleUrl>
+        <Point><coordinates>-16.902700,32.675200,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Garajau / Cristo Rei</name>
+        <description>Recovery-day Garajau/Cristo Rei option.</description>
+        <styleUrl>#buffer</styleUrl>
+        <Point><coordinates>-16.850700,32.642400,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+    <Folder>
+      <name>Trails</name>
+      <Placemark>
+        <name>PR8 / Baia d'Abra Trailhead</name>
+        <description>Ponta de Sao Lourenco / PR8 start and return point.</description>
+        <styleUrl>#trail</styleUrl>
+        <Point><coordinates>-16.701300,32.743700,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Pico do Arieiro</name>
+        <description>Conditional mountain viewpoint or PR1 start.</description>
+        <styleUrl>#trail</styleUrl>
+        <Point><coordinates>-16.928600,32.735000,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Pico Ruivo</name>
+        <description>Conditional highest-peak target.</description>
+        <styleUrl>#trail</styleUrl>
+        <Point><coordinates>-16.942500,32.758600,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+    <Folder>
+      <name>Curral buffer</name>
+      <Placemark>
+        <name>Curral das Freiras</name>
+        <description>Inland valley buffer day.</description>
+        <styleUrl>#buffer</styleUrl>
+        <Point><coordinates>-16.968100,32.719700,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+    <Folder>
+      <name>West/north tour</name>
+      <Placemark>
+        <name>Cabo Girao Skywalk</name>
+        <description>Booked west/north tour viewpoint.</description>
+        <styleUrl>#tour</styleUrl>
+        <Point><coordinates>-17.004700,32.657700,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Seixal / Veu da Noiva</name>
+        <description>North-coast waterfall/viewpoint area.</description>
+        <styleUrl>#tour</styleUrl>
+        <Point><coordinates>-17.102500,32.820200,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Porto Moniz Natural Pools</name>
+        <description>Booked west/north tour pools stop.</description>
+        <styleUrl>#tour</styleUrl>
+        <Point><coordinates>-17.166900,32.866800,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Fanal Forest</name>
+        <description>Laurisilva forest tour stop.</description>
+        <styleUrl>#tour</styleUrl>
+        <Point><coordinates>-17.142500,32.810300,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+    <Folder>
+      <name>Funchal and west buffer</name>
+      <Placemark>
+        <name>Camara de Lobos</name>
+        <description>Funchal/west-side buffer option.</description>
+        <styleUrl>#buffer</styleUrl>
+        <Point><coordinates>-16.976400,32.648100,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+  </Document>
+</kml>

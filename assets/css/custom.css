@@ -1777,10 +1777,13 @@ h4 a,
   grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
   gap: 2rem;
   padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
   border-radius: clamp(1.4rem, 3vw, 2rem);
-  color: var(--bg);
-  background: var(--text);
-  box-shadow: 0 34px 100px rgba(6, 18, 24, 0.26);
+  color: var(--text);
+  background:
+    radial-gradient(circle at 85% 12%, color-mix(in srgb, var(--accent) 14%, transparent) 0, transparent 34%),
+    linear-gradient(145deg, var(--surface-strong), var(--surface-muted));
+  box-shadow: var(--shadow-soft);
 }
 
 .contact-band__intro,
@@ -1813,7 +1816,7 @@ h4 a,
 
 .contact-priority li {
   padding-inline-start: 0.35rem;
-  color: var(--bg);
+  color: var(--text);
   line-height: 1.45;
 }
 
@@ -1842,7 +1845,7 @@ h4 a,
 .contact-band__frame .contact-band__links span,
 .contact-band__frame p,
 .contact-band__frame em {
-  color: color-mix(in srgb, var(--bg) 72%, transparent);
+  color: var(--muted);
 }
 
 .contact-band__facts strong {
@@ -1858,10 +1861,10 @@ h4 a,
 
 .contact-band__email,
 .contact-band__links a {
-  border: 1px solid rgba(255,255,255,0.16);
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, rgba(255,255,255,0.16));
   border-radius: var(--radius-xl);
-  background: rgba(255,255,255,0.08);
-  box-shadow: 0 20px 58px rgba(0,0,0,0.16), inset 0 1px 0 rgba(255,255,255,0.1);
+  background: color-mix(in srgb, var(--bg) 52%, rgba(255,255,255,0.08));
+  box-shadow: 0 20px 58px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
   text-decoration: none;
 }
 
@@ -1901,7 +1904,7 @@ h4 a,
 .contact-band__links strong {
   font-size: 1rem;
   line-height: 1.32;
-  color: var(--bg);
+  color: var(--text);
 }
 
 .contact-band__email:hover,
@@ -1919,7 +1922,7 @@ h4 a,
 .contact-band__frame .contact-band__links a:hover,
 .contact-band__frame .contact-band__links a:focus-visible {
   border-color: color-mix(in srgb, var(--accent) 42%, rgba(255,255,255,0.2));
-  background: rgba(255,255,255,0.12);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
 }
 
 .page-head__copy {
@@ -3464,7 +3467,7 @@ h4 a,
 .contact-fit li {
   position: relative;
   padding-inline-start: 1.1rem;
-  color: color-mix(in srgb, var(--bg) 85%, transparent);
+  color: var(--text);
 }
 
 .contact-fit li::before {

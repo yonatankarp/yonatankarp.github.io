@@ -1,7 +1,7 @@
 hero:
-  eyebrow: "Staff Software Engineer · Team multiplier"
-  title: "I help engineering teams make hard systems easier to understand, build, and improve."
-  lede: "I work best where the problem is still messy: too much implicit knowledge, unclear ownership, brittle integrations, or a team that needs a path through the noise. I build the system, explain the tradeoffs, and leave behind tools and context other people can reuse."
+  eyebrow: "Staff Software Engineer · Payments, risk, and compliance"
+  title: "I turn messy backend domains into systems teams can own."
+  lede: "I work where product rules, vendor integrations, event flows, and operational risk all meet. Recently that has meant shaping compliance services, risk orchestration, OpenAPI-first contracts, Backstage tooling, runbooks, and migration paths that give teams clearer ownership after the initial delivery."
   primaryAction:
     label: "Start a conversation"
     url: "#contact"
@@ -10,20 +10,20 @@ hero:
     url: "/cv/"
   proofSignals:
     - label: "Role"
-      text: "Staff+ backend engineer"
-    - label: "Known for"
-      text: "Complex systems made understandable"
-    - label: "How"
-      text: "Code, docs, and tools teams reuse"
+      text: "Staff backend engineer"
+    - label: "Current scope"
+      text: "Payments and compliance platforms"
+    - label: "Evidence"
+      text: "Architecture, integrations, tools, and runbooks"
   multiplier:
     title: "How I multiply a team"
     steps:
       - title: "Clarify the problem"
-        text: "Turn implicit knowledge into shared language, boundaries, and examples."
+        text: "Turn domain ambiguity into service boundaries, contracts, examples, and failure modes."
       - title: "Build the path"
-        text: "Create the code, contracts, tools, and tradeoffs that make the direction real."
+        text: "Ship the integration, migration plan, internal tool, or reference implementation that makes the decision real."
       - title: "Leave leverage"
-        text: "Document the decisions, reusable pieces, and handoff details so others can keep moving."
+        text: "Leave specs, runbooks, templates, and upstream fixes so the work does not stay trapped in one person's head."
     evidence:
       - "Payments / risk / compliance systems"
       - "Kotlin/JVM, Spring Boot, Kafka, OpenAPI"
@@ -43,11 +43,11 @@ hero:
 
 about:
   kicker: "How I work"
-  title: "I like the moment when a hard thing becomes clear enough for a team to move."
+  title: "I like the moment when a domain becomes specific enough to build."
   paragraphs:
-    - "A lot of engineering work is not blocked by a missing framework or one clever abstraction. It is blocked because the team does not yet have the same picture in its head: what the system is for, where the boundaries are, which tradeoffs matter, and what will make the next change easier or harder."
-    - "That is where I tend to be useful. I ask questions until the shape appears, build enough of the real thing to prove the direction, and explain the result in a way other people can use. Sometimes that becomes production code. Sometimes it becomes a library, a template, a diagram, a runbook, a workshop, or a blog post."
-    - "I care about being a strong engineer, but the part I enjoy most is multiplying the people around me: making the confusing parts easier to talk about, the repeated parts easier to reuse, and the important decisions easier to revisit later."
+    - "The hard part of backend engineering is often not choosing a framework. It is finding the real boundary: which team owns the rule, which event is authoritative, what happens when a vendor disagrees, and how the next engineer will debug the failure at 2 a.m."
+    - "That is where I tend to be useful. I ask until the domain is crisp enough to model, then turn it into production code, API contracts, migration plans, dashboards, runbooks, or diagrams that survive the handoff."
+    - "I care about strong implementation, but the higher leverage is making the system easier for the whole team to operate, extend, and argue about with evidence."
   facts:
     - label: "Works across"
       text: "Backend systems, Kotlin/JVM, service design, OpenAPI, Kafka, internal tools, docs, and OSS"
@@ -56,7 +56,7 @@ about:
 
 experience:
   kicker: "Track record"
-  title: "A career path through backend systems, platforms, teaching, and tools."
+  title: "Backend roles shaped by domain ownership and reusable engineering systems."
 
 education:
   kicker: "Education"
@@ -68,23 +68,23 @@ projects:
 
 proof:
   kicker: "Proof"
-  title: "Examples of multiplying a team, not just finishing a ticket."
+  title: "Examples of staff-level leverage beyond ticket delivery."
   items:
-    - label: "Shared language"
-      title: "Making messy domains easier for a team to reason about."
-      context: "When a workflow crosses services, teams, vendors, and product assumptions, the hard part is often not the code. It is agreeing on what the system means."
-      decision: "I turn that ambiguity into names, boundaries, examples, contracts, diagrams, and enough implementation detail to test the idea against reality."
-      result: "The team gets a shared model it can use in planning, code review, debugging, onboarding, and the next round of changes."
-    - label: "Reusable paths"
-      title: "Turning repeated friction into tools and habits."
-      context: "If several people are solving the same setup, monitoring, integration, or documentation problem, the organization is paying the cost more than once."
-      decision: "I look for the small reusable piece: a template, a library, a Backstage tool, a runbook, a checklist, or a better example repository."
-      result: "The next engineer starts from a clearer path instead of rediscovering the same context from memory."
-    - label: "Public explanation"
-      title: "Writing and OSS as part of the engineering work."
-      context: "Explaining something well is a forcing function. It exposes gaps in the model and makes the useful parts available beyond the immediate conversation."
-      decision: "I write, teach, contribute upstream, and publish small tools when a lesson is useful enough to be reused."
-      result: "The work helps people outside the original team, and it makes my own thinking sharper for the next hard problem."
+    - label: "Compliance platform"
+      title: "Creating a new service boundary for compliance workflows."
+      context: "Transaction monitoring, screening, and sanction checks crossed product rules, vendor behavior, operational alerts, and audit expectations."
+      decision: "I authored the technical spec and interface definitions, led the ComplyAdvantage integration, and paired the service design with runbooks for Kafka DLT alerts, settlement reports, and compliance states."
+      result: "The domain moved from scattered operational knowledge toward an owned service with clearer contracts and recovery paths."
+    - label: "Risk architecture"
+      title: "Moving risk work toward explicit orchestration and contracts."
+      context: "Risk decisions depended on multiple services, fraud providers, recurrent identification, tokenization, and direct debit behavior."
+      decision: "I co-designed the Risk Orchestrator, drove OpenAPI-first contracts across risk services, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
+      result: "The team got a clearer model for extending risk decisions and coordinating changes across service boundaries."
+    - label: "Engineering leverage"
+      title: "Turning repeated operational friction into shared tooling."
+      context: "Platform work is expensive when each incident, cronjob, migration, or service setup depends on private memory."
+      decision: "I build Backstage tools, templates, runbooks, migration plans, and upstream fixes when the reusable path is more valuable than another one-off patch."
+      result: "Engineers start from a known path and can challenge decisions through specs, dashboards, examples, and code."
 
 outcomes:
   kicker: "Multiplier effect"

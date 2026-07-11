@@ -8,4 +8,4 @@ location: "Berlin, Germany"
 duration: "Apr 2025 - Oct 2025"
 ---
 
-Co-designed and built the Risk Orchestrator service using hexagonal architecture. Led the Ravelin integration for improved fraud detection, including release planning and cross-team coordination. Authored the Buyer Risk Assessment target architecture. Wrote specs for tokenization, direct debit risk, and recurrent identification. Drove API-first with OpenAPI across all risk services. Led "EDA 2.0" to improve event-driven architecture practices.
+Co-designed and built the Risk Orchestrator service using hexagonal architecture to make risk decisions easier to extend across service boundaries. Led the Ravelin fraud integration, including release planning and cross-team coordination. Authored the Buyer Risk Assessment target architecture and specs for tokenization, direct debit risk, and recurrent identification. Drove OpenAPI-first design across risk services and led "EDA 2.0" to improve event-driven architecture practices.

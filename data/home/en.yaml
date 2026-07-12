@@ -1,7 +1,7 @@
 hero:
   eyebrow: "Staff Software Engineer · Payments, risk, and compliance"
   title: "I turn messy backend domains into systems teams can own."
-  lede: "I work where product rules, vendor integrations, event flows, and operational risk all meet. Recently that has meant shaping compliance services, risk orchestration, OpenAPI-first contracts, Backstage tooling, runbooks, and migration paths that give teams clearer ownership after the initial delivery."
+  lede: "I work where product rules, vendor integrations, event flows, and operational risk all meet. Recently that has meant shaping compliance services, risk orchestration, API-first contracts, internal tools, and migration paths that leave teams with clearer ownership after launch."
   primaryAction:
     label: "Start a conversation"
     url: "#contact"
@@ -14,7 +14,7 @@ hero:
     - label: "Current scope"
       text: "Payments and compliance platforms"
     - label: "Evidence"
-      text: "Architecture, integrations, tools, and runbooks"
+      text: "Service boundaries, integrations, tooling, and recovery paths"
   multiplier:
     title: "How I multiply a team"
     steps:
@@ -23,7 +23,7 @@ hero:
       - title: "Build the path"
         text: "Ship the integration, migration plan, internal tool, or reference implementation that makes the decision real."
       - title: "Leave leverage"
-        text: "Leave specs, runbooks, templates, and upstream fixes so the work does not stay trapped in one person's head."
+        text: "Leave specs, monitors, templates, and upstream fixes so the work does not stay trapped in one person's head."
     evidence:
       - "Payments / risk / compliance systems"
       - "Kotlin/JVM, Spring Boot, Kafka, OpenAPI"
@@ -73,17 +73,17 @@ proof:
     - label: "Compliance platform"
       title: "Creating a new service boundary for compliance workflows."
       context: "Transaction monitoring, screening, and sanction checks crossed product rules, vendor behavior, operational alerts, and audit expectations."
-      decision: "I authored the technical spec and interface definitions, led the ComplyAdvantage integration, and paired the service design with runbooks for Kafka DLT alerts, settlement reports, and compliance states."
-      result: "The domain moved from scattered operational knowledge toward an owned service with clearer contracts and recovery paths."
+      decision: "I authored the technical spec and interface definitions, led the ComplyAdvantage integration, and paired the service design with explicit handling for Kafka DLT alerts, settlement reports, and compliance states."
+      result: "The domain shifted from scattered operational knowledge into a service teams can reason about, monitor, and recover."
     - label: "Risk architecture"
       title: "Moving risk work toward explicit orchestration and contracts."
       context: "Risk decisions depended on multiple services, fraud providers, recurrent identification, tokenization, and direct debit behavior."
-      decision: "I co-designed the Risk Orchestrator, drove OpenAPI-first contracts across risk services, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
-      result: "The team got a clearer model for extending risk decisions and coordinating changes across service boundaries."
+      decision: "I co-designed the Risk Orchestrator, pushed OpenAPI-first contracts across risk services, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
+      result: "Risk changes gained a clearer coordination model across fraud providers, payment behavior, and service boundaries."
     - label: "Engineering leverage"
       title: "Turning repeated operational friction into shared tooling."
       context: "Platform work is expensive when each incident, cronjob, migration, or service setup depends on private memory."
-      decision: "I build Backstage tools, templates, runbooks, migration plans, and upstream fixes when the reusable path is more valuable than another one-off patch."
+      decision: "I build Backstage tools, templates, migration plans, and upstream fixes when the reusable path is more valuable than another one-off patch."
       result: "Engineers start from a known path and can challenge decisions through specs, dashboards, examples, and code."
 
 outcomes:

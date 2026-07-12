@@ -32,6 +32,9 @@ Continue the July 11 website next step: tighten repeated homepage and CV work-hi
 - Manual visual spot-checks
   - `home-desktop-2026-07-12.png` and `home-mobile-2026-07-12.png` render the revised hero/proof/experience copy without visible overlap.
   - `cv-desktop-2026-07-12.png` and `cv-mobile-2026-07-12.png` render the revised CV summary and current-role content without horizontal overflow or broken wrapping.
+- Commit and push
+  - Commit: `5d82297` (`Tighten homepage and CV positioning`).
+  - Push: succeeded to `origin/main`.
 
 ## Changed Files
 

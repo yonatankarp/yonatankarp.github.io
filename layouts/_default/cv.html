@@ -41,7 +41,14 @@
           <span>{{ .Params.duration }}</span>
         </div>
         <p class="cv-item__sub">{{ .Params.company }}, {{ .Params.location }}</p>
-        <p>{{ .Content | plainify }}</p>
+        {{ with .Params.summary }}<p>{{ . }}</p>{{ else }}<p>{{ .Content | plainify }}</p>{{ end }}
+        {{ with .Params.highlights }}
+        <ul class="cv-highlights">
+          {{ range . }}
+          <li>{{ . }}</li>
+          {{ end }}
+        </ul>
+        {{ end }}
       </article>
       {{ end }}
     </div>

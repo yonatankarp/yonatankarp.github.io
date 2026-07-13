@@ -2708,6 +2708,33 @@ h4 a,
   gap: 1rem 1.5rem;
 }
 
+.cv-highlights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem 1.1rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cv-highlights li {
+  position: relative;
+  padding-inline-start: 1rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.cv-highlights li::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.62em;
+  width: 0.36rem;
+  height: 0.36rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 72%, var(--text));
+}
+
 .search-input {
   width: 100%;
   border: 1px solid var(--border);
@@ -3162,7 +3189,8 @@ h4 a,
   .post-row,
   .contact-band__frame,
   .cv-header,
-  .cv-item__top {
+  .cv-item__top,
+  .cv-highlights {
     grid-template-columns: 1fr;
   }
 

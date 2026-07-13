@@ -144,7 +144,7 @@
       </div>
       <div class="timeline-item__body">
         <h4>{{ .Title }}</h4>
-        <p>{{ .Content | plainify }}</p>
+        <p>{{ .Params.summary | default (.Content | plainify) }}</p>
       </div>
     </article>
     {{ end }}

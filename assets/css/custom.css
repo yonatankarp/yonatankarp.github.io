@@ -3511,6 +3511,11 @@ h4 a,
 
 /* Printable CV: force light, ink-friendly output and drop screen-only chrome. */
 @media print {
+  @page {
+    size: A4;
+    margin: 10mm 12mm;
+  }
+
   :root {
     --bg: #ffffff;
     --surface: #ffffff;
@@ -3536,6 +3541,8 @@ h4 a,
   body {
     background: #fff;
     color: #111;
+    font-size: 10.25pt;
+    line-height: 1.35;
   }
 
   .cv-header h1,
@@ -3556,5 +3563,162 @@ h4 a,
   a {
     color: #111 !important;
     text-decoration: none;
+  }
+
+  main {
+    padding-bottom: 0;
+  }
+
+  .skip-link {
+    display: none !important;
+  }
+
+  .shell,
+  .cv-sheet {
+    width: auto;
+    max-width: none;
+    margin: 0;
+  }
+
+  .cv-sheet {
+    padding: 0;
+  }
+
+  .cv-header {
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, auto);
+    align-items: end;
+    gap: 0.35rem 1rem;
+    padding-bottom: 0.45rem;
+    break-after: avoid;
+  }
+
+  .section-kicker {
+    margin-bottom: 0.15rem;
+    font-size: 7.5pt;
+  }
+
+  .cv-header h1 {
+    margin: 0 0 0.12rem;
+    font-size: 22pt;
+    line-height: 1;
+  }
+
+  .cv-header p,
+  .cv-contact,
+  .cv-contact a {
+    font-size: 8.4pt;
+    line-height: 1.25;
+  }
+
+  .cv-contact {
+    display: grid;
+    justify-items: end;
+    gap: 0.12rem;
+  }
+
+  .cv-section {
+    padding-top: 0.55rem;
+    break-inside: auto;
+  }
+
+  .cv-section h2 {
+    margin: 0 0 0.24rem;
+    font-size: 13.4pt;
+    line-height: 1.05;
+  }
+
+  .cv-section > p,
+  .cv-item p {
+    margin-block: 0.18rem 0.35rem;
+  }
+
+  .cv-section--proof {
+    break-after: avoid;
+  }
+
+  .cv-proof-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+  }
+
+  .cv-proof-list li {
+    padding: 0.45rem 0.5rem;
+    border-radius: 0.45rem;
+    font-size: 8.2pt;
+    line-height: 1.28;
+    break-inside: avoid;
+  }
+
+  .cv-list {
+    gap: 0;
+  }
+
+  .cv-item {
+    padding-top: 0.38rem;
+    break-inside: avoid;
+  }
+
+  .cv-item + .cv-item {
+    margin-top: 0.38rem;
+  }
+
+  .cv-item__top {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem 0.8rem;
+    align-items: baseline;
+  }
+
+  .cv-item h3 {
+    margin: 0;
+    font-size: 11.2pt;
+    line-height: 1.1;
+  }
+
+  .cv-item__top span,
+  .cv-item__sub {
+    font-size: 8.2pt;
+    line-height: 1.2;
+  }
+
+  .cv-item__sub {
+    margin-top: 0.12rem;
+  }
+
+  .cv-highlights {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.16rem 0.75rem;
+    margin-top: 0.34rem;
+  }
+
+  .cv-highlights li {
+    padding-inline-start: 0.62rem;
+    font-size: 8.2pt;
+    line-height: 1.28;
+  }
+
+  .cv-highlights li::before {
+    top: 0.52em;
+    width: 0.22rem;
+    height: 0.22rem;
+  }
+
+  .cv-section:last-child .cv-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 0.85rem;
+  }
+
+  .cv-section:last-child .cv-item {
+    margin-top: 0;
+    padding-top: 0.28rem;
+  }
+
+  .cv-section:last-child .cv-item p:last-child {
+    margin-bottom: 0;
+  }
+
+  .cv-section:last-child .text-link {
+    display: none;
   }
 }

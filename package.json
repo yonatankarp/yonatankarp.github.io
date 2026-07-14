@@ -2,8 +2,9 @@
   "scripts": {
     "build": "hugo --gc --minify --cleanDestinationDir || .tools/hugo/hugo --gc --minify --cleanDestinationDir",
     "build:local": ".tools/hugo/hugo --gc --minify --cleanDestinationDir",
-    "check": "npm run check:blog-assets && (npm run build || npm run build:local) && npm run check:site-metadata && npm run check:generated-html && npm run check:links",
+    "check": "npm run check:blog-assets && (npm run build || npm run build:local) && npm run check:site-metadata && npm run check:generated-html && npm run check:cv-print && npm run check:links",
     "check:blog-assets": "node scripts/check-blog-assets.js",
+    "check:cv-print": "node scripts/check-cv-print.js",
     "check:generated-html": "node scripts/check-generated-html.js",
     "check:links": "node scripts/check-links.js",
     "check:links:external": "node scripts/check-links.js --external",

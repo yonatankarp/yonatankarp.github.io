@@ -52,6 +52,9 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
+      - name: Install PDF tools
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
       - name: Check blog assets
         run: npm run check:blog-assets
 
@@ -76,6 +79,9 @@ jobs:
 
       - name: Check generated HTML
         run: npm run check:generated-html
+
+      - name: Check CV print length
+        run: npm run check:cv-print
 
       - name: Check internal links
         run: npm run check:links

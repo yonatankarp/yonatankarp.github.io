@@ -40,11 +40,17 @@
           </div>
         </div>
         <div class="post-row__aside">
+          {{ $fallbackLabel := "Article" }}
+          {{ with index (.GetTerms "tags") 0 }}{{ $fallbackLabel = .LinkTitle }}{{ end }}
+          <a class="post-row__thumb{{ with .Params.images.featured_image }} has-image{{ else }} post-row__thumb--fallback{{ end }}" href="{{ $post.RelPermalink }}" aria-label="Read {{ .Title }}">
           {{ with .Params.images.featured_image }}
-          <a class="post-row__thumb" href="{{ $post.RelPermalink }}">
             <img src="{{ . | relURL }}" alt="{{ $post.Title }}" loading="lazy" decoding="async">
-          </a>
+          {{ else }}
+            <span class="post-row__fallback-kicker">{{ $fallbackLabel }}</span>
+            <span class="post-row__fallback-title">{{ .Title }}</span>
+            <span class="post-row__fallback-mark" aria-hidden="true"></span>
           {{ end }}
+          </a>
           <a class="post-row__cta" href="{{ .RelPermalink }}" aria-label="Read {{ .Title }}">Read article <span aria-hidden="true">&rarr;</span></a>
         </div>
       </article>

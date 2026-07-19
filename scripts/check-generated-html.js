@@ -39,6 +39,10 @@ function isRedirectPage(html) {
   return /http-equiv=["']?refresh/i.test(html) && /rel=["']?canonical/i.test(html);
 }
 
+function countMatches(html, pattern) {
+  return Array.from(html.matchAll(pattern)).length;
+}
+
 if (!fs.existsSync(publicDir)) {
   console.error("Generated HTML check requires a built public/ directory. Run npm run build first.");
   process.exit(1);
@@ -71,6 +75,15 @@ for (const filePath of htmlFiles) {
 
   if (placeholderPattern.test(html)) {
     failures.push(`${route}: contains placeholder text`);
+  }
+
+  if (/^\/blog(?:\/page\/\d+)?\/$/.test(route)) {
+    const postRows = countMatches(html, /class=["'][^"']*\bpost-row\b/g);
+    const rowThumbs = countMatches(html, /class=["'][^"']*\bpost-row__thumb\b/g);
+
+    if (postRows > 0 && postRows !== rowThumbs) {
+      failures.push(`${route}: expected one post-row__thumb per post-row, got ${rowThumbs} thumbs for ${postRows} rows`);
+    }
   }
 }
 

@@ -3169,11 +3169,13 @@ h4 a,
   }
 
   .brand__eyebrow {
-    display: none;
+    display: block;
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
   }
 
   .brand__name {
-    font-size: 1.18rem;
+    font-size: 0.98rem;
     padding-inline-start: 0;
   }
 

@@ -41,6 +41,7 @@ const assertions = [
   "Each page renders a visible h1 and at least 200 characters of body text.",
   "Mobile pages do not horizontally overflow the viewport.",
   "Visible images are loaded with non-zero natural dimensions.",
+  "Mobile header keeps Yonatan Karp-Rudin visible as the brand signal.",
   "Mobile navigation button is visible, at least 36x36px, labeled, closed by default, and wired to #primary-nav.",
   "Home page contains the hero and proof sections.",
   "Blog index contains multiple article rows/cards.",
@@ -190,6 +191,7 @@ async function assertPageBasics(page, route, viewport) {
     const html = document.documentElement;
     const body = document.body;
     const h1 = document.querySelector("h1");
+    const brandEyebrow = document.querySelector(".brand__eyebrow");
     const navToggle = document.querySelector(".menu-toggle");
     const visibleImages = Array.from(document.images).filter((image) => {
       const rect = image.getBoundingClientRect();
@@ -203,6 +205,14 @@ async function assertPageBasics(page, route, viewport) {
       brokenVisibleImages: visibleImages
         .filter((image) => !image.complete || image.naturalWidth === 0 || image.naturalHeight === 0)
         .map((image) => image.currentSrc || image.src),
+      brandEyebrow: brandEyebrow
+        ? {
+            text: brandEyebrow.textContent.replace(/\s+/g, " ").trim(),
+            width: Math.round(brandEyebrow.getBoundingClientRect().width),
+            height: Math.round(brandEyebrow.getBoundingClientRect().height),
+            visible: getComputedStyle(brandEyebrow).display !== "none",
+          }
+        : null,
       navToggle: navToggle
         ? {
             width: Math.round(navToggle.getBoundingClientRect().width),
@@ -242,6 +252,16 @@ async function assertPageBasics(page, route, viewport) {
   }
 
   if (viewport.name === "mobile" && route.requireMobileNav !== false) {
+    if (
+      !checks.brandEyebrow ||
+      checks.brandEyebrow.text !== "Yonatan Karp-Rudin" ||
+      !checks.brandEyebrow.visible ||
+      checks.brandEyebrow.width <= 0 ||
+      checks.brandEyebrow.height <= 0
+    ) {
+      fail(`${route.path} (${viewport.name}) does not expose Yonatan Karp-Rudin in the mobile header`);
+    }
+
     if (!checks.navToggle) {
       fail(`${route.path} (${viewport.name}) is missing the mobile menu button`);
     }

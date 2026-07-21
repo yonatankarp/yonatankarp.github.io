@@ -3398,8 +3398,37 @@ h4 a,
   }
 
   .article__header h1 {
-    font-size: clamp(2rem, 9.5vw, 2.95rem);
-    line-height: 0.98;
+    font-size: clamp(1.9rem, 8.8vw, 2.55rem);
+    line-height: 1.02;
+    text-wrap: balance;
+  }
+
+  .article__header {
+    gap: 0.72rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .article__summary {
+    font-size: 0.96rem;
+    line-height: 1.55;
+  }
+
+  .article__meta,
+  .article__header .chip-row {
+    gap: 0.45rem;
+  }
+
+  .article-toc {
+    margin-bottom: 1.4rem;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .article-toc nav {
+    margin-top: 0.55rem;
+  }
+
+  .article-toc li {
+    margin: 0.12rem 0;
   }
 
   .cv-header h1 {

@@ -7,12 +7,21 @@
 {{- end -}}
 {{- $label := $p.Params.button.btnText | default "View" -}}
 {{- $title := $p.Title | replaceRE `\s*\(contributor\)$` "" -}}
-<li class="project-entry reveal{{ if not $img }} project-entry--no-media{{ end }}">
+<li class="project-entry reveal{{ if and (not $img) (not $media) }} project-entry--no-media{{ end }}{{ if and $media (not $img) }} project-entry--fallback-media{{ end }}">
   <a class="project-entry__link" href="{{ $p.Params.link }}" target="_blank" rel="noopener">
-    {{ with $img }}
-    {{ $thumb := .Fill "640x400" }}
+    {{ if $img }}
+    {{ $thumb := $img.Fill "640x400" }}
     <span class="project-entry__media">
       <img src="{{ $thumb.RelPermalink }}" width="{{ $thumb.Width }}" height="{{ $thumb.Height }}" alt="{{ $title }} project preview" loading="lazy" decoding="async">
+    </span>
+    {{ else if $media }}
+    <span class="project-entry__media project-entry__media--fallback" aria-hidden="true">
+      <span class="project-entry__fallback-grid"></span>
+      <span class="project-entry__fallback-copy">
+        <span>{{ $p.Params.projectKind | default "Project" }}</span>
+        <strong>{{ $title }}</strong>
+        {{ with index $p.Params.tech 0 }}<em>{{ . }}</em>{{ end }}
+      </span>
     </span>
     {{ end }}
     <span class="project-entry__body">

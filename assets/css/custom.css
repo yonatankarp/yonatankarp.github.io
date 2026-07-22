@@ -3006,6 +3006,7 @@ h4 a,
 }
 
 .project-entry__media {
+  position: relative;
   display: block;
   overflow: hidden;
   border-radius: var(--radius-md);
@@ -3027,6 +3028,59 @@ h4 a,
 .project-entry__link:focus-visible .project-entry__media img {
   filter: saturate(1.05) contrast(1.04);
   transform: scale(1.035);
+}
+
+.project-entry__media--fallback {
+  isolation: isolate;
+  background:
+    linear-gradient(135deg, rgba(81, 206, 143, 0.16), transparent 46%),
+    linear-gradient(315deg, rgba(235, 183, 95, 0.18), transparent 42%),
+    var(--surface-muted);
+}
+
+.project-entry__fallback-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.42;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--text) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--text) 10%, transparent) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(120deg, black, transparent 72%);
+}
+
+.project-entry__fallback-copy {
+  display: grid;
+  align-content: end;
+  height: 100%;
+  padding: clamp(0.8rem, 2vw, 1.05rem);
+  color: var(--text);
+}
+
+.project-entry__fallback-copy span,
+.project-entry__fallback-copy em {
+  font-size: 0.63rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.project-entry__fallback-copy strong {
+  margin-top: 0.2rem;
+  font-family: var(--display-font);
+  font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+  font-weight: 700;
+  line-height: 1.05;
+  color: var(--text);
+}
+
+.project-entry__fallback-copy em {
+  margin-top: 0.45rem;
+  color: var(--accent-strong);
 }
 
 .project-entry__body {

@@ -351,13 +351,14 @@ async function main() {
           deviceScaleFactor: 1,
         });
 
-        const response = await page.goto(routeUrl(route.path), { waitUntil: "networkidle" });
+        const response = await page.goto(routeUrl(route.path), { waitUntil: "domcontentloaded" });
 
         if (!response || !response.ok()) {
           const status = response ? response.status() : "no response";
           fail(`Failed to load ${route.path}: ${status}`);
         }
 
+        await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
         await scrollThroughPage(page);
         await assertPageBasics(page, route, viewport);
 

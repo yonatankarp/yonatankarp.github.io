@@ -138,7 +138,7 @@ We will use the following tech stack:
 - [Gradle Kotlin DSL](https://docs.gradle.org/current/userguide/kotlin_dsl.html): We will use the [Gradle multi-module](https://docs.gradle.org/current/userguide/multi_project_builds.html) solution in our example where each service would be a different module.
 
 
-- [Retrofit](https://square.github.io/retrofit/): While the OpenAPI generator [supports multiple REST clients](https://openapi-generator.tech/docs/generators/kotlin), I decided to go with my personal favorite.
+- [Retrofit](https://github.com/square/retrofit): While the OpenAPI generator [supports multiple REST clients](https://openapi-generator.tech/docs/generators/kotlin), I decided to go with my personal favorite.
 
 
 - [OpenAPI](https://www.openapis.org/)

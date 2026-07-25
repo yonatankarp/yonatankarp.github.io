@@ -71,7 +71,7 @@ Our library will utilize:
 - [Gradle](https://gradle.org/): Our trusted build system and dependency manager.
 
 
-- [Retrofit](https://square.github.io/retrofit/): Our choice for an HTTP client.
+- [Retrofit](https://github.com/square/retrofit): Our choice for an HTTP client.
 
 
 - [Jackson](https://github.com/FasterXML/jackson): Essential for serialization, particularly as we’ll be integrating with [Spring Boot](https://spring.io/projects/spring-boot) which defaults to Jackson.

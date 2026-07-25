@@ -18,6 +18,7 @@ const ignoredExternalPatterns = [
   /^https:\/\/x\.com\/intent\//i,
   /^https:\/\/www\.linkedin\.com\/sharing\//i,
   /^https:\/\/bsky\.app\/intent\//i,
+  /^https:\/\/www\.getyourguide\.com\//i,
 ];
 
 function fail(message, details = []) {

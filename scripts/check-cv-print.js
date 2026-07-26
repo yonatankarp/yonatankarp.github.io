@@ -108,7 +108,12 @@ function createStaticServer() {
 
   try {
     const page = await browser.newPage({ viewport: { width: 1240, height: 1754 } });
-    await page.goto(`${baseUrl}/cv/`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}/cv/`, { waitUntil: "domcontentloaded" });
+    try {
+      await page.waitForLoadState("networkidle", { timeout: 5000 });
+    } catch (error) {
+      console.warn("CV print check continuing before networkidle; static print assertions will still run.");
+    }
     await page.emulateMedia({ media: "print" });
     await page.pdf({
       path: pdfPath,

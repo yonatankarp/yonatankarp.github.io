@@ -5,8 +5,8 @@ Personal website and blog built with [Hugo](https://gohugo.io/). Fully custom En
 ## Quick Start
 
 ```bash
-make serve   # dev server at http://localhost:1313; falls back to .tools/hugo/hugo when needed
-make build   # production build; falls back to .tools/hugo/hugo when needed
+make serve   # dev server at http://localhost:1313 using the pinned local Hugo when available
+make build   # production build using the pinned local Hugo when available
 make clean   # remove build artifacts
 ```
 

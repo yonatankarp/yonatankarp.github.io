@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "build": "hugo --gc --minify --cleanDestinationDir || .tools/hugo/hugo --gc --minify --cleanDestinationDir",
-    "build:local": ".tools/hugo/hugo --gc --minify --cleanDestinationDir",
+    "build": "node scripts/run-hugo.js --gc --minify --cleanDestinationDir",
+    "build:local": "node scripts/run-hugo.js --gc --minify --cleanDestinationDir",
     "check": "npm run check:blog-assets && (npm run build || npm run build:local) && npm run check:site-metadata && npm run check:generated-html && npm run check:cv-print && npm run check:links",
     "check:blog-assets": "node scripts/check-blog-assets.js",
     "check:cv-print": "node scripts/check-cv-print.js",
@@ -10,8 +10,8 @@
     "check:links:external": "node scripts/check-links.js --external",
     "check:site-metadata": "node scripts/check-site-metadata.js",
     "visual:capture": "node scripts/capture-screenshots.js",
-    "serve": "hugo server",
-    "serve:local": ".tools/hugo/hugo server"
+    "serve": "node scripts/run-hugo.js server",
+    "serve:local": "node scripts/run-hugo.js server"
   },
   "devDependencies": {
     "playwright": "^1.61.1"

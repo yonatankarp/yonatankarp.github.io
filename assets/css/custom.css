@@ -2984,25 +2984,42 @@ h4 a,
 }
 
 .project-entry__link {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: 180px 1fr;
   align-items: center;
   gap: clamp(1rem, 3vw, 2rem);
   padding: clamp(1.25rem, 3vw, 2rem) 0;
+  border-radius: var(--radius-md);
   text-decoration: none;
   color: inherit;
-  transition: background-color var(--transition), padding-inline var(--transition);
+  transition: color var(--transition);
 }
 
 .project-entry--no-media .project-entry__link {
   grid-template-columns: 1fr;
 }
 
-.project-entry__link:hover,
-.project-entry__link:focus-visible {
+.project-entry__link::before {
+  content: "";
+  position: absolute;
+  inset: 0 -1rem;
+  z-index: -1;
   background: color-mix(in srgb, var(--surface-muted) 60%, transparent);
-  border-radius: var(--radius-md);
-  padding-inline: clamp(0.75rem, 2vw, 1.25rem);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: inherit;
+  box-shadow: 0 18px 56px rgba(7, 6, 12, 0.16);
+  opacity: 0;
+  transform: scaleX(0.985);
+  transform-origin: center;
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.project-entry__link:hover::before,
+.project-entry__link:focus-visible::before {
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 .project-entry__media {
@@ -3108,6 +3125,8 @@ h4 a,
   font-family: var(--display-font);
   font-size: clamp(1.3rem, 2.4vw, 1.7rem);
   letter-spacing: -0.02em;
+  line-height: 1.12;
+  text-wrap: balance;
   color: var(--text);
 }
 
@@ -3115,10 +3134,16 @@ h4 a,
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.28rem 0.72rem;
+  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-strong) 62%, transparent);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
+  transition: border-color var(--transition), background-color var(--transition), color var(--transition);
 }
 
 .project-entry__arrow {
@@ -3127,6 +3152,8 @@ h4 a,
 
 .project-entry__link:hover .project-entry__cta,
 .project-entry__link:focus-visible .project-entry__cta {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface-strong));
   color: var(--accent-strong);
 }
 

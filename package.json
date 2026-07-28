@@ -14,6 +14,6 @@
     "serve:local": "node scripts/run-hugo.js server"
   },
   "devDependencies": {
-    "playwright": "^1.61.1"
+    "playwright": "^1.62.0"
   }
 }

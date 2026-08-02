@@ -51,6 +51,36 @@ const projects = [
     ],
     chips: ["Kotlin", "Spring Boot", "DDD"],
   },
+  {
+    slug: "larry-the-last-zombie",
+    kicker: "LARRY THE LAST ZOMBIE",
+    title: "Tower defense game",
+    subtitle: "University team project in Unity",
+    accent: "#8be15c",
+    secondary: "#c7f06a",
+    code: [
+      "wave 07",
+      "spawn_rate += 1.4",
+      "turret.lock(target)",
+      "base.health: 18%",
+    ],
+    chips: ["Unity", "C#", "Game AI"],
+  },
+  {
+    slug: "jacobs-choice",
+    kicker: "JACOB'S CHOICE",
+    title: "Horror adventure",
+    subtitle: "GameIS 2015 award-winning project",
+    accent: "#b59cff",
+    secondary: "#6ad6c9",
+    code: [
+      "room: cellar",
+      "light = flicker()",
+      "choice.branch('hide')",
+      "ending: unknown",
+    ],
+    chips: ["GameMaker", "GML", "Narrative"],
+  },
 ];
 
 function renderProject(project) {

@@ -24,7 +24,7 @@
   <h2 class="project-group__title">Open-source contributions</h2>
   <ol class="project-list project-list--compact">
     {{ range sort . "Date" "desc" }}
-    {{ partial "project-entry.html" (dict "page" . "media" false) }}
+    {{ partial "project-entry.html" (dict "page" . "media" true) }}
     {{ end }}
   </ol>
   {{ end }}

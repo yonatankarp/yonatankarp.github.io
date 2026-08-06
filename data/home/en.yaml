@@ -103,10 +103,10 @@ fit:
   kicker: "When to call"
   title: "I am useful when the team needs clarity as much as code."
   items:
-    - "A problem is important, but the team is still arguing from different mental models."
-    - "A backend system works, but too much of it depends on hidden context and a few people's memory."
-    - "A repeated engineering problem deserves a reusable tool, template, library, or explanation."
-    - "A team needs a senior engineer who can clarify the work, build the path, and help others own it."
+    - "Important work with fuzzy ownership"
+    - "Backend systems carrying hidden context"
+    - "Repeated problems that need reusable tooling"
+    - "Teams that need a pathfinder and teacher"
 
 writing:
   kicker: "Writing"
@@ -119,16 +119,16 @@ testimonials:
 contact:
   kicker: "Contact"
   title: "If your team needs clarity and code, let's talk."
-  text: "I am most useful in Staff+ backend roles where the work is not only to deliver a system, but to make the team better at understanding, changing, and owning it."
+  text: "I am most useful in Staff+ backend roles where the job is to ship the system and leave the team better at owning it."
   priorities:
     - "Permanent Staff+ backend roles"
-    - "Architecture and backend advisory"
-    - "OSS, writing, teaching, and collaboration"
+    - "Backend architecture advisory"
+    - "OSS, writing, and teaching"
   facts:
     - label: "Based in"
       text: "Berlin, Germany"
     - label: "Best for"
-      text: "Teams that need a strong engineer who can clarify, build, explain, and multiply the people around him"
+      text: "Teams that need clarity, code, and leverage"
   email:
     label: "Email"
     address: "yonvata@gmail.com"

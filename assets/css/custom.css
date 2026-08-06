@@ -1808,20 +1808,22 @@ h4 a,
 }
 
 .contact-priority {
-  display: grid;
-  gap: 0.65rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
   margin: 0.25rem 0 0;
-  padding-inline-start: 1.25rem;
+  padding: 0;
+  list-style: none;
 }
 
 .contact-priority li {
-  padding-inline-start: 0.35rem;
+  padding: 0.42rem 0.7rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 38%, transparent);
   color: var(--text);
-  line-height: 1.45;
-}
-
-.contact-priority li::marker {
-  color: var(--accent);
+  font-size: 0.9rem;
+  line-height: 1.2;
 }
 
 .contact-band__facts div {
@@ -3373,7 +3375,11 @@ h4 a,
   }
 
   .contact-priority {
-    padding-inline-start: 1.1rem;
+    gap: 0.45rem;
+  }
+
+  .contact-priority li {
+    width: 100%;
   }
 }
 
@@ -3639,7 +3645,8 @@ h4 a,
   }
 
   .quote-feature blockquote {
-    font-size: clamp(1.5rem, 8vw, 2.1rem);
+    font-size: clamp(1.08rem, 5.2vw, 1.45rem);
+    line-height: 1.45;
   }
 
   .contact-band__email strong {
@@ -3648,6 +3655,10 @@ h4 a,
 
   .contact-band__frame {
     gap: 1.25rem;
+  }
+
+  .contact-fit ul {
+    grid-template-columns: 1fr;
   }
 
   .skill-row {
@@ -3662,7 +3673,7 @@ h4 a,
 
 /* "Best fit when" list, folded into the contact band from the old Fit section. */
 .contact-fit {
-  margin-top: 1.5rem;
+  margin-top: 0.85rem;
 }
 
 .contact-fit__label {
@@ -3679,13 +3690,15 @@ h4 a,
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 0.9rem;
 }
 
 .contact-fit li {
   position: relative;
   padding-inline-start: 1.1rem;
   color: var(--text);
+  line-height: 1.35;
 }
 
 .contact-fit li::before {

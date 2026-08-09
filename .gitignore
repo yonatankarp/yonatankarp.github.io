@@ -7,3 +7,4 @@ hugo_stats.json
 .superpowers/
 .DS_Store
 artifacts/visual-smoke/
+artifacts/*live-drift-audit*/*.png

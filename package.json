@@ -11,6 +11,7 @@
     "check:site-metadata": "node scripts/check-site-metadata.js",
     "project-thumbnails:generate": "node scripts/generate-project-thumbnails.js",
     "visual:capture": "node scripts/capture-screenshots.js",
+    "visual:capture:live": "SITE_URL=https://yonatankarp.com/ node scripts/capture-screenshots.js",
     "serve": "node scripts/run-hugo.js server",
     "serve:local": "node scripts/run-hugo.js server"
   },

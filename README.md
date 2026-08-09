@@ -26,6 +26,12 @@ By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and wri
 SITE_URL=http://127.0.0.1:1313/ npm run visual:capture
 ```
 
+To check the current published GitHub Pages site directly:
+
+```bash
+npm run visual:capture:live
+```
+
 Routine visual smoke captures are ignored by git. Curated evidence that should stay in history belongs under a dated `artifacts/<YYYY-MM-DD>-<topic>/` folder with a short README explaining why it is worth keeping.
 
 The helper expects Playwright and a Chromium browser to be available locally:

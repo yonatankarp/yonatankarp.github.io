@@ -18,4 +18,4 @@ params:
         URL: "https://yonatankarp.github.io/ff4k/"
 ---
 
-Kotlin Multiplatform feature flags library with DSL configuration, multiple storage backends (JDBC, R2DBC, SQLite), and coroutine-safe context propagation. Built from scratch as a modern alternative to ff4j.
+Kotlin Multiplatform feature flags library built after an upstream ff4j Jakarta migration stalled before release. It focuses on typed DSL configuration, JDBC/R2DBC/SQLite storage options, and coroutine-safe context propagation so feature decisions can stay explicit across backend boundaries.

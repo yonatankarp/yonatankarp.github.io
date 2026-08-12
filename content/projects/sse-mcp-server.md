@@ -15,4 +15,4 @@ params:
         URL: "https://github.com/yonatankarp/sse-mcp-server"
 ---
 
-Kotlin-based SSE MCP server for tool execution in AI agents (Flowise).
+Kotlin-based SSE MCP server for tool execution in AI-agent workflows. Built to make Flowise-style agents easier to connect to typed backend tools without hiding the transport, request shape, or execution boundary.

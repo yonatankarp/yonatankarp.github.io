@@ -17,4 +17,4 @@ params:
         URL: "https://github.com/OpenAPITools/openapi-generator"
 ---
 
-Added Spring Boot 4 and Jackson 3 support for the Kotlin Spring generator. 10 PRs including fixes for Retrofit templates, Jackson converters, and hashmap model generation.
+Added Spring Boot 4 and Jackson 3 support for the Kotlin Spring generator, then followed through on template regressions that surfaced around Retrofit, Jackson converters, and hashmap model generation. The work spans 10 upstream PRs across generator behavior, test fixtures, and compatibility paths.

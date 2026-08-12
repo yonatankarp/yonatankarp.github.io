@@ -18,4 +18,4 @@ params:
         URL: "https://yonatankarp.github.io/TaleKeeper/"
 ---
 
-AI-powered TTRPG session recorder with live transcription, speaker diarization, and session summaries. Python/FastAPI backend + Svelte 5 frontend. Fully self-hosted.
+Self-hosted TTRPG session recorder that turns live table audio into searchable campaign memory. The Python/FastAPI backend handles transcription, speaker diarization, and summary generation; the Svelte 5 frontend keeps review and session lookup usable at the table.

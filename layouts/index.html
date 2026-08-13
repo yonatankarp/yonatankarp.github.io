@@ -162,6 +162,12 @@
     {{ $featured := sort (where $projects.Pages "Params.featured" true) "Date" "desc" }}
     {{ range $index, $project := $featured }}
     {{ $name := $project.Title | replaceRE `\s*\(contributor\)$` "" }}
+    {{ $projectURL := $project.Params.link }}
+    {{ $projectLabel := $project.Params.button.btnText }}
+    {{ if $project.Params.caseStudy }}
+      {{ $projectURL = $project.RelPermalink }}
+      {{ $projectLabel = "Case study" }}
+    {{ end }}
     <article class="work-item reveal">
       <div class="work-item__index">{{ printf "%02d" (add $index 1) }}</div>
       <div class="project-row__body">
@@ -170,7 +176,7 @@
         <p>{{ $project.Summary | plainify }}</p>
       </div>
       <div class="project-row__meta">
-        <a class="button button--ghost" href="{{ $project.Params.link }}">{{ $project.Params.button.btnText }}</a>
+        <a class="button button--ghost" href="{{ $projectURL }}">{{ $projectLabel }}</a>
       </div>
     </article>
     {{ end }}

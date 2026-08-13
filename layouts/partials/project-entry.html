@@ -6,9 +6,16 @@
   {{- $img = or (resources.Get (printf "%s.png" $base)) (resources.Get (printf "%s.jpg" $base)) (resources.Get (printf "%s.webp" $base)) -}}
 {{- end -}}
 {{- $label := $p.Params.button.btnText | default "View" -}}
+{{- $href := $p.Params.link -}}
+{{- $external := true -}}
+{{- if $p.Params.caseStudy -}}
+  {{- $href = $p.RelPermalink -}}
+  {{- $label = "Case study" -}}
+  {{- $external = false -}}
+{{- end -}}
 {{- $title := $p.Title | replaceRE `\s*\(contributor\)$` "" -}}
 <li class="project-entry reveal{{ if and (not $img) (not $media) }} project-entry--no-media{{ end }}{{ if and $media (not $img) }} project-entry--fallback-media{{ end }}">
-  <a class="project-entry__link" href="{{ $p.Params.link }}" target="_blank" rel="noopener">
+  <a class="project-entry__link" href="{{ $href }}"{{ if $external }} target="_blank" rel="noopener"{{ end }}>
     {{ if $img }}
     {{ $thumb := $img.Fill "640x400" }}
     <span class="project-entry__media">

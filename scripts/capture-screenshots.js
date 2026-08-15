@@ -103,13 +103,42 @@ function routeUrl(routePath) {
   return new URL(routePath, baseUrl).toString();
 }
 
-function writeManifest() {
+function screenshotFileName(route, viewport) {
+  return `${route.name}-${viewport.name}-${dateStamp}.png`;
+}
+
+function buildManifestData() {
   const relativeDir = path.relative(rootDir, screenshotDir);
+
+  return {
+    generatedAt: new Date().toISOString(),
+    date: dateStamp,
+    baseUrl,
+    outputDirectory: `${relativeDir}/`,
+    serverMode: shouldStartServer ? "local-hugo-render-to-memory" : "existing-server",
+    routes: routes.map((route) => ({
+      name: route.name,
+      path: route.path,
+    })),
+    viewports: viewports.map((viewport) => ({ ...viewport })),
+    assertions,
+    files: routes.flatMap((route) =>
+      viewports.map((viewport) => ({
+        route: route.name,
+        viewport: viewport.name,
+        file: screenshotFileName(route, viewport),
+      }))
+    ),
+  };
+}
+
+function writeManifest() {
+  const manifest = buildManifestData();
   const lines = [
     `# Visual Smoke Capture - ${dateStamp}`,
     "",
     `Base URL: ${baseUrl}`,
-    `Output directory: ${relativeDir}/`,
+    `Output directory: ${manifest.outputDirectory}`,
     `Server mode: ${shouldStartServer ? "local Hugo server with --renderToMemory" : "existing server"}`,
     "",
     "## Routes",
@@ -127,12 +156,15 @@ function writeManifest() {
     "## Files",
     "",
     ...routes.flatMap((route) =>
-      viewports.map((viewport) => `- ${route.name}-${viewport.name}-${dateStamp}.png`)
+      viewports.map((viewport) => `- ${screenshotFileName(route, viewport)}`)
     ),
+    "",
+    "Machine-readable capture details are available in `manifest.json`.",
     "",
   ];
 
   fs.writeFileSync(path.join(screenshotDir, "README.md"), `${lines.join("\n")}\n`);
+  fs.writeFileSync(path.join(screenshotDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
 async function waitForUrl(url, timeoutMs, timeoutMessage) {
@@ -365,7 +397,7 @@ async function main() {
         await assertPageBasics(page, route, viewport);
 
         await page.screenshot({
-          path: path.join(screenshotDir, `${route.name}-${viewport.name}-${dateStamp}.png`),
+          path: path.join(screenshotDir, screenshotFileName(route, viewport)),
           fullPage: true,
         });
         await page.close();

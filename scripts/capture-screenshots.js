@@ -3,6 +3,7 @@
 const fs = require("fs");
 const http = require("http");
 const https = require("https");
+const net = require("net");
 const path = require("path");
 const { spawn } = require("child_process");
 
@@ -10,7 +11,7 @@ const rootDir = path.resolve(__dirname, "..");
 const dateStamp = new Date().toISOString().slice(0, 10);
 const options = parseArgs(process.argv.slice(2));
 const screenshotDir = path.resolve(rootDir, options.out || path.join("artifacts", "visual-smoke", dateStamp));
-const baseUrl = options.base || process.env.SITE_URL || "http://127.0.0.1:1313/";
+let baseUrl = options.base || process.env.SITE_URL || "http://127.0.0.1:1313/";
 const shouldStartServer = !options.base && !process.env.SITE_URL;
 
 const viewports = [
@@ -56,7 +57,7 @@ function parseArgs(args) {
     const arg = args[index];
     const [flag, inlineValue] = arg.split("=", 2);
 
-    if (flag === "--base" || flag === "--out") {
+    if (flag === "--base" || flag === "--out" || flag === "--port") {
       parsed[flag.slice(2)] = inlineValue || args[index + 1];
 
       if (!inlineValue) {
@@ -101,6 +102,43 @@ function requestUrl(url) {
 
 function routeUrl(routePath) {
   return new URL(routePath, baseUrl).toString();
+}
+
+function localBaseUrl(port) {
+  return `http://127.0.0.1:${port}/`;
+}
+
+function checkPort(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+
+    server.once("error", () => resolve(false));
+    server.once("listening", () => {
+      server.close(() => resolve(true));
+    });
+    server.listen(port, "127.0.0.1");
+  });
+}
+
+async function findAvailablePort(preferredPort) {
+  for (let port = preferredPort; port < preferredPort + 50; port += 1) {
+    if (await checkPort(port)) {
+      return port;
+    }
+  }
+
+  fail(`Could not find an available local Hugo port from ${preferredPort} to ${preferredPort + 49}`);
+}
+
+function preferredPort() {
+  const rawPort = options.port || "1313";
+  const port = Number.parseInt(rawPort, 10);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    fail(`Invalid --port value: ${rawPort}`);
+  }
+
+  return port;
 }
 
 function screenshotFileName(route, viewport) {
@@ -336,7 +374,9 @@ async function main() {
   let server = null;
 
   if (shouldStartServer) {
+    const port = await findAvailablePort(preferredPort());
     const hugo = resolveHugoCommand();
+    baseUrl = localBaseUrl(port);
     server = spawn(
       hugo.command,
       [
@@ -345,7 +385,7 @@ async function main() {
         "--bind",
         "127.0.0.1",
         "--port",
-        "1313",
+        String(port),
         "--disableFastRender",
         "--renderToMemory",
       ],

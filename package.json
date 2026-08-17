@@ -13,7 +13,8 @@
     "visual:capture": "node scripts/capture-screenshots.js",
     "visual:capture:live": "SITE_URL=https://yonatankarp.com/ node scripts/capture-screenshots.js",
     "serve": "node scripts/run-hugo.js server",
-    "serve:local": "node scripts/run-hugo.js server"
+    "serve:local": "node scripts/run-hugo.js server",
+    "visual:compare": "node scripts/compare-visual-captures.js"
   },
   "devDependencies": {
     "playwright": "^1.62.1"

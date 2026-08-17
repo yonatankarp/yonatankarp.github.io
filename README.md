@@ -32,6 +32,14 @@ To check the current published GitHub Pages site directly:
 npm run visual:capture:live
 ```
 
+To compare two visual smoke manifests, usually local versus live or today versus a previous curated baseline:
+
+```bash
+npm run visual:compare -- --baseline artifacts/<baseline>/manifest.json --candidate artifacts/<candidate>/manifest.json
+```
+
+The comparator matches screenshots by route and viewport, verifies the referenced files exist, reports missing/unmatched pairs, and flags changed pairs by image hash or dimensions. Add `--fail-on-drift` when a CI-style non-zero exit is useful for changed screenshots.
+
 Routine visual smoke captures are ignored by git. Curated evidence that should stay in history belongs under a dated `artifacts/<YYYY-MM-DD>-<topic>/` folder with a short README explaining why it is worth keeping.
 
 The helper expects Playwright and a Chromium browser to be available locally:

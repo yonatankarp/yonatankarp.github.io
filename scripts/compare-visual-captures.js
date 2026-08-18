@@ -3,6 +3,7 @@
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 
 const rootDir = path.resolve(__dirname, "..");
 const options = parseArgs(process.argv.slice(2));
@@ -38,6 +39,7 @@ function usage() {
     "  npm run visual:compare -- --baseline <manifest.json> --candidate <manifest.json> [--fail-on-drift]",
     "",
     "Compares visual smoke captures by route + viewport. Drift is reported when paired screenshots differ by hash or dimensions.",
+    "When same-sized PNG screenshots differ, the report includes pixel-level drift metrics.",
   ].join("\n");
 }
 
@@ -90,6 +92,181 @@ function pngDimensions(filePath) {
   return {
     width: buffer.readUInt32BE(16),
     height: buffer.readUInt32BE(20),
+  };
+}
+
+function pngColorChannels(colorType) {
+  if (colorType === 0) return 1; // grayscale
+  if (colorType === 2) return 3; // truecolor
+  if (colorType === 4) return 2; // grayscale + alpha
+  if (colorType === 6) return 4; // truecolor + alpha
+  return null;
+}
+
+function parsePng(filePath) {
+  const buffer = fs.readFileSync(filePath);
+
+  if (
+    buffer.length < 24 ||
+    buffer.toString("ascii", 1, 4) !== "PNG"
+  ) {
+    return null;
+  }
+
+  let offset = 8;
+  let width = null;
+  let height = null;
+  let bitDepth = null;
+  let colorType = null;
+  const idatChunks = [];
+
+  while (offset + 12 <= buffer.length) {
+    const length = buffer.readUInt32BE(offset);
+    const type = buffer.toString("ascii", offset + 4, offset + 8);
+    const dataStart = offset + 8;
+    const dataEnd = dataStart + length;
+
+    if (dataEnd + 4 > buffer.length) {
+      return null;
+    }
+
+    if (type === "IHDR") {
+      width = buffer.readUInt32BE(dataStart);
+      height = buffer.readUInt32BE(dataStart + 4);
+      bitDepth = buffer.readUInt8(dataStart + 8);
+      colorType = buffer.readUInt8(dataStart + 9);
+    } else if (type === "IDAT") {
+      idatChunks.push(buffer.subarray(dataStart, dataEnd));
+    } else if (type === "IEND") {
+      break;
+    }
+
+    offset = dataEnd + 4;
+  }
+
+  const channels = pngColorChannels(colorType);
+
+  if (!width || !height || bitDepth !== 8 || !channels || idatChunks.length === 0) {
+    return null;
+  }
+
+  const inflated = zlib.inflateSync(Buffer.concat(idatChunks));
+  const stride = width * channels;
+  const expectedLength = height * (stride + 1);
+
+  if (inflated.length < expectedLength) {
+    return null;
+  }
+
+  const pixels = Buffer.alloc(height * stride);
+  let sourceOffset = 0;
+
+  for (let y = 0; y < height; y += 1) {
+    const filter = inflated.readUInt8(sourceOffset);
+    sourceOffset += 1;
+    const rowStart = y * stride;
+    const previousRowStart = rowStart - stride;
+
+    for (let x = 0; x < stride; x += 1) {
+      const raw = inflated.readUInt8(sourceOffset);
+      sourceOffset += 1;
+
+      const left = x >= channels ? pixels[rowStart + x - channels] : 0;
+      const up = y > 0 ? pixels[previousRowStart + x] : 0;
+      const upLeft = y > 0 && x >= channels ? pixels[previousRowStart + x - channels] : 0;
+
+      let value;
+      if (filter === 0) {
+        value = raw;
+      } else if (filter === 1) {
+        value = raw + left;
+      } else if (filter === 2) {
+        value = raw + up;
+      } else if (filter === 3) {
+        value = raw + Math.floor((left + up) / 2);
+      } else if (filter === 4) {
+        value = raw + paethPredictor(left, up, upLeft);
+      } else {
+        return null;
+      }
+
+      pixels[rowStart + x] = value & 0xff;
+    }
+  }
+
+  return { width, height, channels, pixels };
+}
+
+function paethPredictor(left, up, upLeft) {
+  const estimate = left + up - upLeft;
+  const leftDistance = Math.abs(estimate - left);
+  const upDistance = Math.abs(estimate - up);
+  const upLeftDistance = Math.abs(estimate - upLeft);
+
+  if (leftDistance <= upDistance && leftDistance <= upLeftDistance) {
+    return left;
+  }
+
+  if (upDistance <= upLeftDistance) {
+    return up;
+  }
+
+  return upLeft;
+}
+
+function pixelDiff(baselineFile, candidateFile) {
+  if (
+    !baselineFile.dimensions ||
+    !candidateFile.dimensions ||
+    baselineFile.dimensions.width !== candidateFile.dimensions.width ||
+    baselineFile.dimensions.height !== candidateFile.dimensions.height
+  ) {
+    return null;
+  }
+
+  const baseline = parsePng(baselineFile.filePath);
+  const candidate = parsePng(candidateFile.filePath);
+
+  if (
+    !baseline ||
+    !candidate ||
+    baseline.width !== candidate.width ||
+    baseline.height !== candidate.height ||
+    baseline.channels !== candidate.channels ||
+    baseline.pixels.length !== candidate.pixels.length
+  ) {
+    return null;
+  }
+
+  let changedPixels = 0;
+  let totalDelta = 0;
+  let maxChannelDelta = 0;
+  const totalPixels = baseline.width * baseline.height;
+
+  for (let offset = 0; offset < baseline.pixels.length; offset += baseline.channels) {
+    let pixelChanged = false;
+
+    for (let channel = 0; channel < baseline.channels; channel += 1) {
+      const delta = Math.abs(baseline.pixels[offset + channel] - candidate.pixels[offset + channel]);
+      totalDelta += delta;
+      maxChannelDelta = Math.max(maxChannelDelta, delta);
+
+      if (delta > 0) {
+        pixelChanged = true;
+      }
+    }
+
+    if (pixelChanged) {
+      changedPixels += 1;
+    }
+  }
+
+  return {
+    changedPixels,
+    totalPixels,
+    changedPercent: totalPixels === 0 ? 0 : (changedPixels / totalPixels) * 100,
+    averageChannelDelta: baseline.pixels.length === 0 ? 0 : totalDelta / baseline.pixels.length,
+    maxChannelDelta,
   };
 }
 
@@ -172,7 +349,13 @@ function compareCaptures(baseline, candidate) {
       continue;
     }
 
-    changed.push({ key, baselineFile, candidateFile, sameDimensions });
+    changed.push({
+      key,
+      baselineFile,
+      candidateFile,
+      sameDimensions,
+      pixelDiff: sameDimensions ? pixelDiff(baselineFile, candidateFile) : null,
+    });
   }
 
   return { keys, missing, changed, unchanged };
@@ -204,7 +387,10 @@ function printReport(baseline, candidate, comparison) {
       const dimensions = item.sameDimensions
         ? "same dimensions"
         : `${formatDimensions(item.baselineFile.dimensions)} -> ${formatDimensions(item.candidateFile.dimensions)}`;
-      console.log(`- ${item.key}: ${dimensions}`);
+      const drift = item.pixelDiff
+        ? `; ${formatPixelDiff(item.pixelDiff)}`
+        : "";
+      console.log(`- ${item.key}: ${dimensions}${drift}`);
     }
   }
 
@@ -227,6 +413,15 @@ function formatDimensions(dimensions) {
   }
 
   return `${dimensions.width}x${dimensions.height}`;
+}
+
+function formatPixelDiff(diff) {
+  return [
+    `${diff.changedPixels}/${diff.totalPixels} px changed`,
+    `${diff.changedPercent.toFixed(4)}%`,
+    `avg channel delta ${diff.averageChannelDelta.toFixed(4)}`,
+    `max channel delta ${diff.maxChannelDelta}`,
+  ].join(", ");
 }
 
 function main() {

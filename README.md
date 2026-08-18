@@ -38,7 +38,7 @@ To compare two visual smoke manifests, usually local versus live or today versus
 npm run visual:compare -- --baseline artifacts/<baseline>/manifest.json --candidate artifacts/<candidate>/manifest.json
 ```
 
-The comparator matches screenshots by route and viewport, verifies the referenced files exist, reports missing/unmatched pairs, and flags changed pairs by image hash or dimensions. Add `--fail-on-drift` when a CI-style non-zero exit is useful for changed screenshots.
+The comparator matches screenshots by route and viewport, verifies the referenced files exist, reports missing/unmatched pairs, and flags changed pairs by image hash or dimensions. When same-sized PNG screenshots drift, it also reports changed pixel count, changed percentage, average channel delta, and max channel delta so tiny rendering variance is easier to distinguish from real layout movement. Add `--fail-on-drift` when a CI-style non-zero exit is useful for changed screenshots.
 
 Routine visual smoke captures are ignored by git. Curated evidence that should stay in history belongs under a dated `artifacts/<YYYY-MM-DD>-<topic>/` folder with a short README explaining why it is worth keeping.
 

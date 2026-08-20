@@ -9,7 +9,12 @@ const rootDir = path.resolve(__dirname, "..");
 const options = parseArgs(process.argv.slice(2));
 
 function parseArgs(args) {
-  const parsed = { failOnDrift: false };
+  const parsed = {
+    failOnDrift: false,
+    maxChangedPercent: null,
+    maxAverageChannelDelta: null,
+    maxChannelDelta: null,
+  };
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -27,7 +32,37 @@ function parseArgs(args) {
       if (!inlineValue) {
         index += 1;
       }
+
+      continue;
     }
+
+    if (
+      flag === "--max-changed-percent" ||
+      flag === "--max-average-channel-delta" ||
+      flag === "--max-channel-delta"
+    ) {
+      const value = inlineValue || args[index + 1];
+
+      if (!inlineValue) {
+        index += 1;
+      }
+
+      parsed[toCamelCase(flag.slice(2))] = parseNumberOption(flag, value);
+    }
+  }
+
+  return parsed;
+}
+
+function toCamelCase(value) {
+  return value.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+function parseNumberOption(flag, value) {
+  const parsed = Number(value);
+
+  if (value === undefined || value === "" || !Number.isFinite(parsed) || parsed < 0) {
+    fail(`${usage()}\n\n${flag} requires a non-negative number`);
   }
 
   return parsed;
@@ -36,10 +71,15 @@ function parseArgs(args) {
 function usage() {
   return [
     "Usage:",
-    "  npm run visual:compare -- --baseline <manifest.json> --candidate <manifest.json> [--fail-on-drift]",
+    "  npm run visual:compare -- --baseline <manifest.json> --candidate <manifest.json> [--fail-on-drift] [drift budgets]",
     "",
     "Compares visual smoke captures by route + viewport. Drift is reported when paired screenshots differ by hash or dimensions.",
     "When same-sized PNG screenshots differ, the report includes pixel-level drift metrics.",
+    "",
+    "Drift budgets only affect --fail-on-drift. Changed pairs are still reported.",
+    "  --max-changed-percent <number>",
+    "  --max-average-channel-delta <number>",
+    "  --max-channel-delta <number>",
   ].join("\n");
 }
 
@@ -378,6 +418,13 @@ function printReport(baseline, candidate, comparison) {
   console.log(`- Changed: ${comparison.changed.length}`);
   console.log(`- Missing or unmatched: ${comparison.missing.length}`);
 
+  const budgets = formatBudgets();
+
+  if (budgets.length > 0) {
+    console.log(`- Drift budgets: ${budgets.join(", ")}`);
+    console.log(`- Over budget: ${overBudgetChanges(comparison.changed).length}`);
+  }
+
   if (comparison.changed.length > 0) {
     console.log("");
     console.log("## Changed Pairs");
@@ -390,7 +437,8 @@ function printReport(baseline, candidate, comparison) {
       const drift = item.pixelDiff
         ? `; ${formatPixelDiff(item.pixelDiff)}`
         : "";
-      console.log(`- ${item.key}: ${dimensions}${drift}`);
+      const budgetState = budgets.length > 0 && isChangeOverBudget(item) ? " [over budget]" : "";
+      console.log(`- ${item.key}: ${dimensions}${drift}${budgetState}`);
     }
   }
 
@@ -424,6 +472,46 @@ function formatPixelDiff(diff) {
   ].join(", ");
 }
 
+function formatBudgets() {
+  const budgets = [];
+
+  if (options.maxChangedPercent !== null) {
+    budgets.push(`changed <= ${options.maxChangedPercent}%`);
+  }
+
+  if (options.maxAverageChannelDelta !== null) {
+    budgets.push(`avg channel delta <= ${options.maxAverageChannelDelta}`);
+  }
+
+  if (options.maxChannelDelta !== null) {
+    budgets.push(`max channel delta <= ${options.maxChannelDelta}`);
+  }
+
+  return budgets;
+}
+
+function isChangeOverBudget(item) {
+  if (!item.pixelDiff || !item.sameDimensions) {
+    return true;
+  }
+
+  const checks = [
+    [options.maxChangedPercent, item.pixelDiff.changedPercent],
+    [options.maxAverageChannelDelta, item.pixelDiff.averageChannelDelta],
+    [options.maxChannelDelta, item.pixelDiff.maxChannelDelta],
+  ];
+
+  return checks.some(([limit, actual]) => limit !== null && actual > limit);
+}
+
+function overBudgetChanges(changed) {
+  if (formatBudgets().length === 0) {
+    return changed;
+  }
+
+  return changed.filter(isChangeOverBudget);
+}
+
 function main() {
   requireOption("baseline");
   requireOption("candidate");
@@ -436,7 +524,7 @@ function main() {
 
   if (comparison.missing.length > 0) {
     process.exitCode = 1;
-  } else if (options.failOnDrift && comparison.changed.length > 0) {
+  } else if (options.failOnDrift && overBudgetChanges(comparison.changed).length > 0) {
     process.exitCode = 1;
   }
 }

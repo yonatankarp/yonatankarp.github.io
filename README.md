@@ -40,6 +40,12 @@ npm run visual:compare -- --baseline artifacts/<baseline>/manifest.json --candid
 
 The comparator matches screenshots by route and viewport, verifies the referenced files exist, reports missing/unmatched pairs, and flags changed pairs by image hash or dimensions. When same-sized PNG screenshots drift, it also reports changed pixel count, changed percentage, average channel delta, and max channel delta so tiny rendering variance is easier to distinguish from real layout movement. Add `--fail-on-drift` when a CI-style non-zero exit is useful for changed screenshots.
 
+For known tiny rendering variance, combine `--fail-on-drift` with explicit drift budgets. Changed pairs are still reported, but the command exits successfully when every changed pair stays within all configured budgets:
+
+```bash
+npm run visual:compare -- --baseline artifacts/local/manifest.json --candidate artifacts/live/manifest.json --fail-on-drift --max-changed-percent 0.5 --max-average-channel-delta 0.01 --max-channel-delta 4
+```
+
 Routine visual smoke captures are ignored by git. Curated evidence that should stay in history belongs under a dated `artifacts/<YYYY-MM-DD>-<topic>/` folder with a short README explaining why it is worth keeping.
 
 The helper expects Playwright and a Chromium browser to be available locally:

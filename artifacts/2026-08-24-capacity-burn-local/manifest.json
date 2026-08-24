@@ -1,0 +1,118 @@
+{
+  "generatedAt": "2026-08-24T09:15:53.914Z",
+  "date": "2026-08-24",
+  "baseUrl": "http://127.0.0.1:1313/",
+  "outputDirectory": "artifacts/2026-08-24-capacity-burn-local/",
+  "serverMode": "local-hugo-render-to-memory",
+  "routes": [
+    {
+      "name": "home",
+      "path": "/"
+    },
+    {
+      "name": "projects",
+      "path": "/projects/"
+    },
+    {
+      "name": "blog",
+      "path": "/blog/"
+    },
+    {
+      "name": "cv",
+      "path": "/cv/"
+    },
+    {
+      "name": "post-self-compiling-second-brain",
+      "path": "/blog/self-compiling-second-brain/"
+    },
+    {
+      "name": "madeira-2026",
+      "path": "/madeira-2026/"
+    }
+  ],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1100
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 1200
+    }
+  ],
+  "assertions": [
+    "HTTP response succeeds for every captured route.",
+    "Each page renders a visible h1 and at least 200 characters of body text.",
+    "Mobile pages do not horizontally overflow the viewport.",
+    "Visible images are loaded with non-zero natural dimensions.",
+    "Mobile header keeps Yonatan Karp-Rudin visible as the brand signal.",
+    "Mobile navigation button is visible, at least 36x36px, labeled, closed by default, and wired to #primary-nav.",
+    "Home page contains the hero and proof sections.",
+    "Blog index contains multiple article rows/cards.",
+    "Standalone Madeira page contains route cards, daily itinerary sections, photos, and source panels."
+  ],
+  "files": [
+    {
+      "route": "home",
+      "viewport": "desktop",
+      "file": "home-desktop-2026-08-24.png"
+    },
+    {
+      "route": "home",
+      "viewport": "mobile",
+      "file": "home-mobile-2026-08-24.png"
+    },
+    {
+      "route": "projects",
+      "viewport": "desktop",
+      "file": "projects-desktop-2026-08-24.png"
+    },
+    {
+      "route": "projects",
+      "viewport": "mobile",
+      "file": "projects-mobile-2026-08-24.png"
+    },
+    {
+      "route": "blog",
+      "viewport": "desktop",
+      "file": "blog-desktop-2026-08-24.png"
+    },
+    {
+      "route": "blog",
+      "viewport": "mobile",
+      "file": "blog-mobile-2026-08-24.png"
+    },
+    {
+      "route": "cv",
+      "viewport": "desktop",
+      "file": "cv-desktop-2026-08-24.png"
+    },
+    {
+      "route": "cv",
+      "viewport": "mobile",
+      "file": "cv-mobile-2026-08-24.png"
+    },
+    {
+      "route": "post-self-compiling-second-brain",
+      "viewport": "desktop",
+      "file": "post-self-compiling-second-brain-desktop-2026-08-24.png"
+    },
+    {
+      "route": "post-self-compiling-second-brain",
+      "viewport": "mobile",
+      "file": "post-self-compiling-second-brain-mobile-2026-08-24.png"
+    },
+    {
+      "route": "madeira-2026",
+      "viewport": "desktop",
+      "file": "madeira-2026-desktop-2026-08-24.png"
+    },
+    {
+      "route": "madeira-2026",
+      "viewport": "mobile",
+      "file": "madeira-2026-mobile-2026-08-24.png"
+    }
+  ]
+}

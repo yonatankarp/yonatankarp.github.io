@@ -1,4 +1,12 @@
 User-agent: *
 Allow: /
 
+# The Guillotine archive is a project Pages site served under this same origin, so this file
+# is the only robots.txt a crawler reads for it. Its /generated/derivatives/ tier is ~434MB of
+# thumbnails, viewer images and audio/video transcodes — almost all of the archive's weight and
+# none of its content, which is already on the release pages above it. GitHub Pages meets its
+# 100GB/month soft bandwidth cap at roughly 168 full mirrors, after which it stops serving the
+# site, so the derivatives are closed to crawlers while every page stays indexable.
+Disallow: /guillotine-archive/generated/derivatives/
+
 Sitemap: https://yonatankarp.com/sitemap.xml

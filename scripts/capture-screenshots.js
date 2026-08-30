@@ -258,6 +258,35 @@ async function scrollThroughPage(page) {
   });
 }
 
+async function waitForPageImages(page) {
+  await page.evaluate(async () => {
+    const images = Array.from(document.images);
+
+    for (const image of images) {
+      image.loading = "eager";
+    }
+
+    await Promise.all(
+      images.map((image) => {
+        if (image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) {
+          return Promise.resolve();
+        }
+
+        const loaded = new Promise((resolve) => {
+          image.addEventListener("load", resolve, { once: true });
+          image.addEventListener("error", resolve, { once: true });
+        });
+
+        if (typeof image.decode === "function") {
+          return image.decode().catch(() => loaded);
+        }
+
+        return loaded;
+      })
+    );
+  });
+}
+
 async function assertPageBasics(page, route, viewport) {
   const checks = await page.evaluate((requiredSelectors) => {
     const html = document.documentElement;
@@ -424,6 +453,24 @@ async function main() {
           viewport: { width: viewport.width, height: viewport.height },
           deviceScaleFactor: 1,
         });
+        await page.addInitScript(() => {
+          const observer = new MutationObserver(() => {
+            document.querySelectorAll("img[loading='lazy']").forEach((image) => {
+              image.loading = "eager";
+            });
+          });
+
+          document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll("img[loading='lazy']").forEach((image) => {
+              image.loading = "eager";
+            });
+          }, { once: true });
+
+          observer.observe(document.documentElement, {
+            childList: true,
+            subtree: true,
+          });
+        });
 
         const response = await page.goto(routeUrl(route.path), { waitUntil: "domcontentloaded" });
 
@@ -433,12 +480,13 @@ async function main() {
         }
 
         await page.waitForLoadState("networkidle", { timeout: 10000 }).catch(() => {});
+        await waitForPageImages(page);
         await scrollThroughPage(page);
+        await waitForPageImages(page);
         await assertPageBasics(page, route, viewport);
 
-        await page.screenshot({
+        await page.locator("body").screenshot({
           path: path.join(screenshotDir, screenshotFileName(route, viewport)),
-          fullPage: true,
         });
         await page.close();
       }

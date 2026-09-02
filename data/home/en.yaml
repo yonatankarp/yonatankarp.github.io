@@ -3,7 +3,7 @@ hero:
   title: "I turn messy backend domains into systems teams can own."
   lede: "I work where product rules, vendor integrations, event flows, and operational risk meet. Recently that has meant compliance services, risk orchestration, API contracts, internal tools, and migrations that leave teams with clearer ownership."
   primaryAction:
-    label: "Start a conversation"
+    label: "Discuss Staff+ backend work"
     url: "#contact"
   secondaryAction:
     label: "View CV"
@@ -118,17 +118,17 @@ testimonials:
 
 contact:
   kicker: "Contact"
-  title: "If your team needs clarity and code, let's talk."
-  text: "I am most useful in Staff+ backend roles where the job is to ship the system and leave the team better at owning it."
+  title: "If your backend domain needs an owner, let's talk."
+  text: "The strongest fit is Staff+ backend work where product rules, vendors, event flows, and operational risk need to become one system the team can own."
   priorities:
-    - "Permanent Staff+ backend roles"
-    - "Backend architecture advisory"
-    - "OSS, writing, and teaching"
+    - "Permanent Staff+ backend roles in Europe"
+    - "Payments, risk, compliance, or platform architecture"
+    - "OSS, technical writing, and teaching"
   facts:
     - label: "Based in"
       text: "Berlin, Germany"
     - label: "Best for"
-      text: "Teams that need clarity, code, and leverage"
+      text: "Teams turning messy backend domains into owned platforms"
   email:
     label: "Email"
     address: "yonvata@gmail.com"

@@ -22,12 +22,16 @@ Tightened the personal site's Staff+ positioning after confirming the September 
 - `npm run visual:capture -- --out artifacts/visual-smoke/2026-09-02-post-copy`: captured 12 route/viewport screenshots after the copy edit.
 - `npm run visual:compare -- --baseline artifacts/visual-smoke/2026-09-02/manifest.json --candidate artifacts/visual-smoke/2026-09-02-post-copy/manifest.json`: only home and CV changed, matching the edited copy; no unrelated page drift.
 - Manual screenshot inspection: home desktop/mobile and CV desktop/mobile show contained text, intact contact band layout, and no visible overflow.
+- `gh run watch 33613213570 --exit-status`: GitHub Pages workflow passed; build finished in 1m1s and deploy finished in 7s.
+- `npm run visual:capture:live -- --out artifacts/visual-smoke/2026-09-02-live`: captured 12 production route/viewport screenshots after deployment.
+- `npm run visual:compare -- --baseline artifacts/visual-smoke/2026-09-02-post-copy/manifest.json --candidate artifacts/visual-smoke/2026-09-02-live/manifest.json`: 12 compared, 12 unchanged, 0 missing/unmatched.
 
 ## Artifacts
 
 - `artifacts/visual-smoke/2026-09-02/manifest.json`
 - `artifacts/visual-smoke/2026-09-02-post-copy/manifest.json`
+- `artifacts/visual-smoke/2026-09-02-live/manifest.json`
 
 ## Next
 
-Run a live capture after the GitHub Pages deployment completes and compare production against the post-copy local manifest.
+Review the project thumbnails and selected-work ordering next; the site is technically deployable, so the remaining leverage is which public proof points get first-screen priority.

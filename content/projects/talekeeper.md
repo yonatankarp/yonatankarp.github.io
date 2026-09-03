@@ -1,6 +1,7 @@
 ---
 date: 2026-03-01T00:00:00+01:00
 title: "TaleKeeper"
+weight: 30
 description: "A self-hosted tabletop RPG memory tool that turns local session audio into transcripts, speaker-aware review, summaries, and searchable campaign records."
 featured: true
 projectKind: "Self-hosted tool"

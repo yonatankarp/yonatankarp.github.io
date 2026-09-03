@@ -1,7 +1,9 @@
 ---
 date: 2016-01-01T00:00:00+01:00
 title: "Emma's Inferno"
+weight: 100
 group: "project"
+projectKind: "Game"
 draft: false
 link: "https://www.youtube.com/watch?v=N9g7VcW2XC0"
 tech: ["Unity", "C#"]

@@ -14,7 +14,7 @@
   {{ with $mine }}
   <h2 class="project-group__title">My projects</h2>
   <ol class="project-list">
-    {{ range sort . "Date" "desc" }}
+    {{ range sort . "Weight" "asc" }}
     {{ partial "project-entry.html" (dict "page" . "media" true) }}
     {{ end }}
   </ol>
@@ -23,7 +23,7 @@
   {{ with $contributions }}
   <h2 class="project-group__title">Open-source contributions</h2>
   <ol class="project-list project-list--compact">
-    {{ range sort . "Date" "desc" }}
+    {{ range sort . "Weight" "asc" }}
     {{ partial "project-entry.html" (dict "page" . "media" true) }}
     {{ end }}
   </ol>

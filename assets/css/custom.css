@@ -3107,12 +3107,24 @@ h4 a,
   gap: 0.5rem;
 }
 
-.project-entry__date {
+.project-entry__meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+}
+
+.project-entry__date,
+.project-entry__kind {
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.project-entry__kind {
+  color: var(--accent-strong);
 }
 
 .project-entry__head {

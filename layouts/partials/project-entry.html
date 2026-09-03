@@ -32,7 +32,10 @@
     </span>
     {{ end }}
     <span class="project-entry__body">
-      <span class="project-entry__date">{{ $p.Params.years | default ($p.Date.Format "2006") }}</span>
+      <span class="project-entry__meta-line">
+        {{ with $p.Params.projectKind }}<span class="project-entry__kind">{{ . }}</span>{{ end }}
+        <span class="project-entry__date">{{ $p.Params.years | default ($p.Date.Format "2006") }}</span>
+      </span>
       <span class="project-entry__head">
         <span class="project-entry__title">{{ $title }}</span>
         <span class="project-entry__cta">{{ $label }}<span class="project-entry__arrow" aria-hidden="true">&#8594;</span></span>

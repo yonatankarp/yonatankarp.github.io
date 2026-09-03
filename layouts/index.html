@@ -159,7 +159,7 @@
   </div>
   <div class="selected-work">
     {{ $projects := site.GetPage "/projects" }}
-    {{ $featured := sort (where $projects.Pages "Params.featured" true) "Date" "desc" }}
+    {{ $featured := sort (where $projects.Pages "Params.featured" true) "Weight" "asc" }}
     {{ range $index, $project := $featured }}
     {{ $name := $project.Title | replaceRE `\s*\(contributor\)$` "" }}
     {{ $projectURL := $project.Params.link }}

@@ -1,6 +1,7 @@
 ---
 date: 2023-08-01T00:00:00+01:00
 title: "openapi-generator (contributor)"
+weight: 20
 featured: true
 projectKind: "Upstream contribution"
 group: "contribution"

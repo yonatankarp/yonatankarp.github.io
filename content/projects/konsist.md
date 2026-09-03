@@ -1,7 +1,9 @@
 ---
 date: 2023-10-01T00:00:00+01:00
 title: "Konsist (contributor)"
+weight: 30
 group: "contribution"
+projectKind: "Upstream contribution"
 draft: false
 link: "https://github.com/LemonAppDev/konsist"
 tech: ["Kotlin", "CI"]

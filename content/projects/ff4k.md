@@ -1,6 +1,7 @@
 ---
 date: 2025-12-01T00:00:00+01:00
 title: "ff4k"
+weight: 10
 description: "A Kotlin Multiplatform feature flag library built to replace a stalled Java-era dependency with typed APIs, async storage, and coroutine-aware targeting."
 featured: true
 projectKind: "Open source library"

@@ -20,6 +20,10 @@ Promoted the new `sse-mcp-server` case study into the homepage selected-work lis
 - `npm run visual:capture -- --out artifacts/visual-smoke/2026-09-05-sse-homepage-featured`: captured 12 post-change local route/viewport screenshots.
 - Targeted generated HTML check: `selectedWorkItems: 5`, `hasSse: true`, `hasCaseStudy: true`.
 - Manual screenshot inspection: desktop and mobile homepage layouts stayed readable after the fifth selected-work entry; no visible horizontal overflow or CTA wrapping issue was observed.
+- `git push origin main`: pushed commit `2253167`; GitHub reported direct-push branch protection bypass for the repository rule set.
+- `gh run watch 33957528579 --exit-status`: GitHub Pages workflow passed; build finished in 1m3s and deploy finished in 12s.
+- `npm run visual:capture:live -- --out artifacts/visual-smoke/2026-09-05-sse-homepage-featured-live`: captured 12 production route/viewport screenshots after deploy.
+- `npm run visual:compare -- --baseline artifacts/visual-smoke/2026-09-05-sse-homepage-featured/manifest.json --candidate artifacts/visual-smoke/2026-09-05-sse-homepage-featured-live/manifest.json`: 12 compared, 12 unchanged, 0 missing/unmatched.
 
 ## Artifacts
 
@@ -27,7 +31,8 @@ Promoted the new `sse-mcp-server` case study into the homepage selected-work lis
 - `artifacts/visual-smoke/2026-09-05-sse-homepage-featured/manifest.json`
 - `artifacts/visual-smoke/2026-09-05-sse-homepage-featured/home-desktop-2026-09-05.png`
 - `artifacts/visual-smoke/2026-09-05-sse-homepage-featured/home-mobile-2026-09-05.png`
+- `artifacts/visual-smoke/2026-09-05-sse-homepage-featured-live/manifest.json`
 
 ## Next
 
-Run live visual capture and compare after GitHub Pages deploys, then record production parity if unchanged.
+Decide whether to keep five selected-work entries long-term or tighten the homepage back to four by replacing the weakest legacy proof point.

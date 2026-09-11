@@ -261,6 +261,8 @@ async function scrollThroughPage(page) {
 async function waitForPageImages(page) {
   await page.evaluate(async () => {
     const images = Array.from(document.images);
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const nextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()));
 
     for (const image of images) {
       image.loading = "eager";
@@ -284,6 +286,23 @@ async function waitForPageImages(page) {
         return loaded;
       })
     );
+
+    for (const image of images) {
+      const rect = image.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) {
+        continue;
+      }
+
+      image.scrollIntoView({ block: "center", inline: "nearest" });
+      if (typeof image.decode === "function") {
+        await image.decode().catch(() => {});
+      }
+      await nextFrame();
+    }
+
+    window.scrollTo(0, 0);
+    await nextFrame();
+    await delay(100);
   });
 }
 

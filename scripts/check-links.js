@@ -12,6 +12,7 @@ const externalUrls = new Set();
 const externalConcurrency = Number(process.env.LINK_CHECK_CONCURRENCY || 8);
 const ignoredSchemes = /^(?:mailto:|tel:|javascript:)/i;
 const localOrigins = new Set(["https://yonatankarp.com", "http://yonatankarp.com"]);
+const externallyManagedLocalPrefixes = ["/kotlin-design-patterns/"];
 const ignoredExternalHosts = new Set(["localhost", "127.0.0.1"]);
 const ignoredExternalPatterns = [
   /^https:\/\/news\.ycombinator\.com\/submitlink\b/i,
@@ -80,6 +81,10 @@ function routeToPublicPath(routePath) {
   }
 
   return path.join(directPath, "index.html");
+}
+
+function isExternallyManagedLocalUrl(url) {
+  return externallyManagedLocalPrefixes.some((prefix) => url.pathname === prefix || url.pathname.startsWith(prefix));
 }
 
 async function requestUrl(url, method) {
@@ -164,6 +169,13 @@ for (const filePath of htmlFiles) {
       const url = new URL(href);
 
       if (localOrigins.has(url.origin)) {
+        if (isExternallyManagedLocalUrl(url)) {
+          if (shouldCheckExternalUrl(href)) {
+            externalUrls.add(stripFragment(href));
+          }
+          continue;
+        }
+
         const targetPath = routeToPublicPath(`${url.pathname}${url.search}`);
 
         if (!fs.existsSync(targetPath)) {

@@ -41,7 +41,9 @@ Results:
 - `npm run check:links:external`: passed across 97 HTML files and 152 external URLs.
 - Visual smoke: captured 12 route/viewport screenshots in `artifacts/visual-smoke/2026-09-13-capacity-burn-final/`.
 - Manual review of `home-desktop-2026-09-13.png` and `home-mobile-2026-09-13.png`: selected-work summary stayed contained; no obvious overlap, CTA wrapping defect, or horizontal overflow.
+- Commit `7868195` was pushed to `origin/main`; GitHub accepted the direct push with the existing rule-bypass message.
+- Pages workflow run `34749292175` was still queued with no jobs assigned after the initial watch window, so production deployment was not verified in this run.
 
 ## Next
 
-Promote `kotlin-design-patterns` to a local case-study page only if the site should own that narrative directly; otherwise keep it as an external docs proof point and move the next content pass to homepage/CV positioning freshness.
+Check Pages workflow run `34749292175`; if it completes successfully, capture a live visual smoke set and compare it against `artifacts/visual-smoke/2026-09-13-capacity-burn-final/`.

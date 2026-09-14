@@ -71,7 +71,7 @@ function parseNumberOption(flag, value) {
 function usage() {
   return [
     "Usage:",
-    "  npm run visual:compare -- --baseline <manifest.json> --candidate <manifest.json> [--fail-on-drift] [drift budgets]",
+    "  npm run visual:compare -- --baseline <manifest.json|capture-dir> --candidate <manifest.json|capture-dir> [--fail-on-drift] [drift budgets]",
     "",
     "Compares visual smoke captures by route + viewport. Drift is reported when paired screenshots differ by hash or dimensions.",
     "When same-sized PNG screenshots differ, the report includes pixel-level drift metrics.",
@@ -103,7 +103,17 @@ function readJson(filePath) {
 }
 
 function resolveManifestPath(inputPath) {
-  return path.resolve(rootDir, inputPath);
+  const resolved = path.resolve(rootDir, inputPath);
+
+  try {
+    if (fs.statSync(resolved).isDirectory()) {
+      return path.join(resolved, "manifest.json");
+    }
+  } catch {
+    return resolved;
+  }
+
+  return resolved;
 }
 
 function captureDir(manifestPath, manifest) {

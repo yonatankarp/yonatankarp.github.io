@@ -4,7 +4,7 @@ Timezone: Europe/Berlin
 
 ## Outcome
 
-Verified the personal site remains build-clean after the September 13-14 content and visual-tooling changes, captured a fresh local visual smoke set, checked the current layout against the latest curated local baseline, and promoted the reviewed September 15 capture as the new local baseline.
+Verified the personal site remains build-clean after the September 13-14 content and visual-tooling changes, captured fresh local and live visual smoke sets, checked the current layout against the latest curated local baseline, promoted the reviewed September 15 capture as the new local baseline, and confirmed production matches it.
 
 No code or content polish was made in this run. The only new issue is expected baseline drift on the homepage and projects page after the Kotlin Design Patterns project copy was strengthened on September 13. The drift is geometric but small: the affected pages are 24-55 px taller, with no capture assertion failures, no mobile horizontal overflow, and no obvious manual-review defect in the homepage screenshot.
 
@@ -23,6 +23,8 @@ npm run check
 npm run visual:capture -- --out artifacts/visual-smoke/2026-09-15
 npm run visual:compare -- --baseline artifacts/2026-09-12-capacity-burn-local/manifest.json --candidate artifacts/visual-smoke/2026-09-15/manifest.json --fail-on-drift --max-changed-percent 1.0 --max-average-channel-delta 0.01 --max-channel-delta 24
 npm run visual:compare -- --baseline artifacts/2026-09-15-capacity-burn-local --candidate artifacts/visual-smoke/2026-09-15
+npm run visual:capture:live -- --out artifacts/visual-smoke/2026-09-15-live
+npm run visual:compare -- --baseline artifacts/2026-09-15-capacity-burn-local --candidate artifacts/visual-smoke/2026-09-15-live --fail-on-drift --max-changed-percent 1.0 --max-average-channel-delta 0.02 --max-channel-delta 24
 ```
 
 Results:
@@ -35,6 +37,9 @@ Results:
 - Changed pairs: `home::desktop` 1440x8269 -> 1440x8296, `home::mobile` 390x12822 -> 390x12877, `projects::desktop` 1440x4512 -> 1440x4536, `projects::mobile` 390x8236 -> 390x8284.
 - Manual review of `artifacts/visual-smoke/2026-09-15/home-desktop-2026-09-15.png`: no obvious overlap, blank render, broken hero image, unreadable card, or footer/contact collapse.
 - Promoted baseline check: comparing `artifacts/2026-09-15-capacity-burn-local` back to `artifacts/visual-smoke/2026-09-15` reported 12 compared, 12 unchanged, 0 changed, 0 missing or unmatched.
+- GitHub Pages workflow `34951808828` for commit `5df882c` completed successfully: build passed in 59s and deploy passed in 9s.
+- Live capture: `npm run visual:capture:live -- --out artifacts/visual-smoke/2026-09-15-live` captured 12 screenshots from `https://yonatankarp.com/`.
+- Live-vs-local comparison: 12 compared, 12 unchanged, 0 changed, 0 missing or unmatched, 0 over drift budget.
 
 ## Files
 
@@ -43,7 +48,9 @@ Results:
 - Curated local baseline README: `artifacts/2026-09-15-capacity-burn-local/README.md`
 - Fresh local visual manifest: `artifacts/visual-smoke/2026-09-15/manifest.json`
 - Fresh local screenshots: `artifacts/visual-smoke/2026-09-15/*.png`
+- Fresh live visual manifest: `artifacts/visual-smoke/2026-09-15-live/manifest.json`
+- Fresh live screenshots: `artifacts/visual-smoke/2026-09-15-live/*.png`
 
 ## Next
 
-Capture live production and compare it against `artifacts/2026-09-15-capacity-burn-local` after the next Pages deployment, so future visual drift alerts are about production differences instead of already-reviewed project copy.
+For the next website capacity burn, review homepage/contact positioning rather than visual stability; the current production deployment is build-clean and visually identical to the promoted baseline.

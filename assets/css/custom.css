@@ -1868,6 +1868,7 @@ h4 a,
   background: color-mix(in srgb, var(--bg) 52%, rgba(255,255,255,0.08));
   box-shadow: 0 20px 58px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
   text-decoration: none;
+  transition: transform var(--transition), border-color var(--transition), background-color var(--transition), box-shadow var(--transition);
 }
 
 .contact-band__email {
@@ -1925,6 +1926,13 @@ h4 a,
 .contact-band__frame .contact-band__links a:focus-visible {
   border-color: color-mix(in srgb, var(--accent) 42%, rgba(255,255,255,0.2));
   background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  box-shadow: 0 24px 64px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.12);
+  transform: translateY(-2px);
+}
+
+.contact-band__email:active,
+.contact-band__links a:active {
+  transform: translateY(0);
 }
 
 .page-head__copy {

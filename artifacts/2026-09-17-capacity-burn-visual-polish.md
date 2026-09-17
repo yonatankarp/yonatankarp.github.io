@@ -27,17 +27,23 @@ Autonomous monthly capacity-burn pass focused on the personal website. The repos
 - `npm run visual:capture -- --out artifacts/2026-09-17-capacity-burn-after`
 - `npm run check`
 - `npm run visual:compare -- --baseline artifacts/2026-09-17-capacity-burn-before --candidate artifacts/2026-09-17-capacity-burn-after`
+- `npm run visual:capture:live -- --out artifacts/2026-09-17-capacity-burn-live`
+- `npm run visual:compare -- --baseline artifacts/2026-09-17-capacity-burn-after --candidate artifacts/2026-09-17-capacity-burn-live`
 
 ## Evidence
 
 - Before screenshots: `artifacts/2026-09-17-capacity-burn-before/`
 - After screenshots: `artifacts/2026-09-17-capacity-burn-after/`
-- Visual comparison: 12 pairs compared, 9 unchanged, 3 changed, 0 missing or unmatched.
-- Expected visual deltas:
+- Live production screenshots: `artifacts/2026-09-17-capacity-burn-live/`
+- Local before/after visual comparison: 12 pairs compared, 9 unchanged, 3 changed, 0 missing or unmatched.
+- Expected local visual deltas:
   - `home::mobile`: height changed from 12877px to 12834px after compact project CTAs.
   - `blog::mobile`: 3.0485% pixel drift from regenerated local capture timing.
   - `projects::desktop`: 0.1436% pixel drift from local render/capture variance.
+- Local after/live production visual comparison: 12 pairs compared, 11 unchanged, 1 changed, 0 missing or unmatched.
+- Expected live visual delta:
+  - `projects::desktop`: 0.1436% pixel drift from render/capture variance.
 
 ## Next Recommended Work
 
-Run a live production capture after the next push/deploy and compare it against `artifacts/2026-09-17-capacity-burn-after/` to verify GitHub Pages is serving the same visual state.
+Use the next capacity-burn block to audit the blog index and post templates for scanability now that the homepage work/project rows are stable.

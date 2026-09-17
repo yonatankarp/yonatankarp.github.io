@@ -1733,6 +1733,11 @@ h4 a,
   justify-items: start;
 }
 
+.project-row__meta .button {
+  width: auto;
+  justify-self: start;
+}
+
 .quote-feature {
   display: grid;
   grid-template-columns: minmax(220px, 0.34fr) minmax(0, 1fr);
@@ -3662,6 +3667,21 @@ h4 a,
   .lang-pill {
     width: 100%;
     justify-content: center;
+  }
+
+  .project-row__meta,
+  .work-item .project-row__meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+
+  .project-row__meta .button,
+  .work-item .project-row__meta .button {
+    width: auto;
+    min-height: 2.45rem;
+    padding: 0.62rem 0.85rem;
+    font-size: 0.9rem;
   }
 
   .quote-feature blockquote {

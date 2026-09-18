@@ -1134,6 +1134,7 @@ section[id] {
 
 .eyebrow,
 .section-kicker,
+.featured-article__meta,
 .post-row__meta,
 .writing-card__date,
 .article__meta,
@@ -1986,6 +1987,15 @@ h4 a,
 
 .featured-article h2 {
   font-size: clamp(2rem, 4.5vw, 3.2rem);
+}
+
+.featured-article__meta {
+  margin: 0.85rem 0 0.7rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  text-transform: uppercase;
 }
 
 .featured-article img {

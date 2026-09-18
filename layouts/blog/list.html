@@ -14,10 +14,12 @@
   <div>
     {{ range $featured }}
     {{ $post := . }}
+    {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
     <article class="featured-article reveal">
       <div class="featured-article__body">
         <p class="eyebrow">Latest article</p>
         <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+        <p class="featured-article__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ $readingTime }} min read · {{ .WordCount }} words</p>
         <p>{{ .Description | default (.Summary | plainify) }}</p>
         <a class="button button--primary" href="{{ .RelPermalink }}">Read article</a>
       </div>
@@ -30,9 +32,10 @@
     <div class="post-list">
       {{ range $paginator.Pages }}
       {{ $post := . }}
+      {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
       <article class="post-row reveal">
         <div class="post-row__body">
-          <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ .WordCount }} words</p>
+          <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ $readingTime }} min read · {{ .WordCount }} words</p>
           <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
           <p>{{ .Description | default (.Summary | plainify) }}</p>
           <div class="chip-row">

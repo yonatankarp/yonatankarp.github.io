@@ -16,6 +16,13 @@
       </div>
       {{ end }}
       {{ with .Params.link }}<a class="text-link" href="{{ . }}" target="_blank" rel="noopener">Open project &rarr;</a>{{ end }}
+      {{ $base := printf "images/projects/%s" .File.BaseFileName }}
+      {{ with or (resources.Get (printf "%s.png" $base)) (resources.Get (printf "%s.jpg" $base)) (resources.Get (printf "%s.webp" $base)) }}
+      {{ $cover := .Fill "1200x675" }}
+      <figure class="article__cover article__cover--project">
+        <img src="{{ $cover.RelPermalink }}" width="{{ $cover.Width }}" height="{{ $cover.Height }}" alt="{{ $.Title }} project preview" loading="eager" decoding="async">
+      </figure>
+      {{ end }}
       {{ end }}
     </header>
     <div class="article__content prose">

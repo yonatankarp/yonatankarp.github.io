@@ -6,6 +6,36 @@ const outDir = path.join(rootDir, "assets", "images", "projects");
 
 const projects = [
   {
+    slug: "ff4k",
+    kicker: "FF4K",
+    title: "Feature flags",
+    subtitle: "Kotlin Multiplatform flags with typed APIs",
+    accent: "#6ee7b7",
+    secondary: "#60a5fa",
+    code: [
+      "feature(\"checkout.risk\")",
+      "  .default(false)",
+      "  .target(account)",
+      "  .evaluate()",
+    ],
+    chips: ["Kotlin", "Multiplatform", "Coroutines"],
+  },
+  {
+    slug: "talekeeper",
+    kicker: "TALEKEEPER",
+    title: "Campaign memory",
+    subtitle: "Local-first audio, transcripts, and summaries",
+    accent: "#f4a261",
+    secondary: "#5eead4",
+    code: [
+      "record(session)",
+      "diarize(speakers)",
+      "summarize(arcs)",
+      "search(campaign)",
+    ],
+    chips: ["Python", "FastAPI", "Svelte"],
+  },
+  {
     slug: "sse-mcp-server",
     kicker: "SSE MCP SERVER",
     title: "Tool bridge",
@@ -38,6 +68,51 @@ const projects = [
     chips: ["Kotlin", "Plugins", "Runtime"],
   },
   {
+    slug: "kotlin-design-patterns",
+    kicker: "KOTLIN PATTERNS",
+    title: "Pattern library",
+    subtitle: "Idiomatic Kotlin examples with generated docs",
+    accent: "#f472b6",
+    secondary: "#38bdf8",
+    code: [
+      "sealed interface Pattern",
+      "data class Example(...)",
+      "docs.publish()",
+      "ci.green()",
+    ],
+    chips: ["Kotlin", "MkDocs", "Teaching"],
+  },
+  {
+    slug: "poor-life-choices",
+    kicker: "POOR LIFE CHOICES",
+    title: "Mead sharing",
+    subtitle: "Small React product for sharing bottles",
+    accent: "#e9c46a",
+    secondary: "#e76f51",
+    code: [
+      "batch: wildflower",
+      "abv: 13.7%",
+      "bottles.reserve(friend)",
+      "notes.save()",
+    ],
+    chips: ["React", "JavaScript", "Vercel"],
+  },
+  {
+    slug: "xkcd-click-and-drag",
+    kicker: "XKCD 1110",
+    title: "Tile map",
+    subtitle: "Kotlin reconstruction of the full comic world",
+    accent: "#93c5fd",
+    secondary: "#c4b5fd",
+    code: [
+      "tiles.fetch(225)",
+      "canvas.stitch()",
+      "bounds.normalize()",
+      "image.export()",
+    ],
+    chips: ["Kotlin", "Imaging", "Reconstruction"],
+  },
+  {
     slug: "beat-the-machine",
     kicker: "BEAT THE MACHINE",
     title: "Prompt guessing game",
@@ -50,6 +125,21 @@ const projects = [
       "fear of the dark",
     ],
     chips: ["Kotlin", "Spring Boot", "DDD"],
+  },
+  {
+    slug: "emmas-inferno",
+    kicker: "EMMA'S INFERNO",
+    title: "Puzzle descent",
+    subtitle: "Atmospheric Unity capstone game",
+    accent: "#fb7185",
+    secondary: "#f59e0b",
+    code: [
+      "scene: inferno",
+      "choice.weight += 1",
+      "puzzle.unlock()",
+      "morality.shift()",
+    ],
+    chips: ["Unity", "C#", "Game Design"],
   },
   {
     slug: "larry-the-last-zombie",
@@ -156,7 +246,7 @@ function renderProject(project) {
   <style>
     :root {
       color-scheme: dark;
-      font-family: "Inter", "Arial", sans-serif;
+      font-family: "Satoshi", "Outfit", "Avenir Next", "Segoe UI", sans-serif;
     }
 
     * {

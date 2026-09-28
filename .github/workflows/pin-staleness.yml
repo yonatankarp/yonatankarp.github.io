@@ -1,0 +1,81 @@
+name: Pin staleness
+
+# Hugo is installed from a GitHub release by ci.yml and deploy.yml, so its
+# version is a string inside a workflow rather than a dependency: Dependabot
+# updates npm, gomod and the action refs and never sees it. Left alone, the site
+# keeps being built by whatever Hugo was current on the day somebody typed the
+# pin. This reports that, and reports the two copies of the pin disagreeing,
+# which is the other failure keeping it in two files allows.
+
+on:
+  schedule:
+    # Weekly, and off the hour -- scheduled runs queue hardest on the boundary.
+    # A pin like this moves when a human decides to move it, so a daily run would
+    # only repeat a finding already sitting on the issue.
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  LABEL: toolchain-pin
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  hugo-pin:
+    name: Hugo pin against its newest release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Compare the pin with the newest Hugo release
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/check-hugo-pin.js --github-output
+
+      - name: Open or update the one issue
+        if: steps.check.outputs.status == 'stale'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: ${{ steps.check.outputs.title }}
+          BODY: ${{ steps.check.outputs.body }}
+        # One issue, edited in place. A fresh issue every Monday -- or a comment
+        # every Monday -- is how this gets muted, and a muted report is the same
+        # as no report at all.
+        run: |
+          gh label create "$LABEL" --color BFD4F2 --force \
+            --description "A version this repository pins that no bot updates"
+          number=$(gh issue list --label "$LABEL" --state open --limit 1 \
+            --json number --jq '.[0].number // empty')
+          if [[ -n "$number" ]]; then
+            gh issue edit "$number" --title "$TITLE" --body "$BODY"
+          else
+            gh issue create --label "$LABEL" --title "$TITLE" --body "$BODY"
+          fi
+
+      - name: Close it once the pin has caught up
+        if: steps.check.outputs.status == 'current'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # Whoever bumps the pin should not also have to tidy up after the report.
+        # A status of "unknown" reaches neither step: an unreachable release API
+        # is not evidence that the pin is stale, nor that it is current.
+        run: |
+          gh issue list --label "$LABEL" --state open --json number --jq '.[].number' |
+            while read -r number; do
+              gh issue close "$number" --comment \
+                "The pinned Hugo version now matches its newest release. Closed by \`Pin staleness\`."
+            done

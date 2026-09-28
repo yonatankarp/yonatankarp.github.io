@@ -76,6 +76,25 @@ The site uses [GoatCounter](https://www.goatcounter.com/) for privacy-friendly a
 - Localhost and private IPs are automatically excluded
 - To exclude your own visits from a browser, visit your site with `#toggle-goatcounter` appended to the URL (e.g. `https://yonatankarp.com#toggle-goatcounter`). This sets a localStorage flag — built into GoatCounter's `count.js`
 
+## Toolchain Pins
+
+Hugo is installed from a GitHub release by both workflows, so its version is a
+string in `.github/workflows/ci.yml` and `.github/workflows/deploy.yml` — not a
+dependency Dependabot can bump. The weekly `Pin staleness` workflow compares that
+pin with Hugo's newest release and keeps a single `toolchain-pin` issue in step
+with what it finds: it opens the issue when the pin falls behind or the two
+workflows disagree, edits it as the answer changes, and closes it once the pin
+catches up. Run the same check locally:
+
+```bash
+npm run check:hugo-pin
+```
+
+It is deliberately outside `npm run check`: it needs the network, and its answer
+changes when Hugo releases rather than when this repository changes, so it has no
+business failing a pull request. Bumping Hugo means editing both workflows and
+letting `Validate Hugo build` decide.
+
 ## Deployment
 
 Push to `main` triggers the GitHub Actions workflow which builds and deploys to GitHub Pages.

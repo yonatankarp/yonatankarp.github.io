@@ -75,3 +75,9 @@ Create `content/experience/name.md` with jobTitle, company, location, duration f
 ## Deployment
 
 Push to `main` triggers GitHub Actions workflow (`.github/workflows/deploy.yml`) which builds Hugo and deploys to GitHub Pages.
+
+Hugo's version is pinned twice, as `HUGO_VERSION` in both
+`.github/workflows/ci.yml` and `.github/workflows/deploy.yml` — bump both, or CI
+and the deploy build the site with different Hugo versions. The weekly
+`Pin staleness` workflow reports either failure (`npm run check:hugo-pin` runs
+the same check locally); nothing else watches that pin.

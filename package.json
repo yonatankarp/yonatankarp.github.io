@@ -18,6 +18,6 @@
     "visual:compare": "node scripts/compare-visual-captures.js"
   },
   "devDependencies": {
-    "playwright": "^1.63.0"
+    "playwright": "^1.64.0"
   }
 }

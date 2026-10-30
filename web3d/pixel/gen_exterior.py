@@ -40,8 +40,11 @@ GLOW_WIN = G.GLOW["amber"]
 
 # Where each window looks into its floor's strip (x, y of the slice's top-left, in strip pixels): the room's
 # signature props. The window's size decides the slice's size.
-LOOK = {"1": (226, 72), "2": (230, 82), "3": (250, 56), "4": (262, 86), "5": (330, 52), "6": (230, 90),
-        "7": (210, 102), "8": (232, 56), "R": (0, 0), "L": (170, 56), "P": (240, 100)}
+LOOK = {"1": (322, 76), "2": (316, 82), "3": (266, 56), "4": (314, 72), "5": (352, 60), "6": (230, 90),
+        "7": (210, 102), "8": (250, 92), "R": (0, 0), "L": (304, 98), "P": (166, 78)}
+NEIGHBOURS = ((0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
+              (314, 348, 196), (348, 398, 160), (398, 440, 206), (440, 480, 172))   # x0, x1, roof
+LAMPS = (40, 142, 338, 440)
 
 
 def windows():
@@ -66,8 +69,7 @@ def blockout():
     sky = roof.crop((140, 84, 464, 104))                             # its skyline, behind the street
     for x in range(0, EW, sky.width):
         img.paste(sky, (x, GROUND - 36))
-    for x0, x1, top in ((0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
-                        (314, 348, 196), (348, 398, 160), (398, 440, 206), (440, 480, 172)):   # neighbours
+    for x0, x1, top in NEIGHBOURS:
         cv.rect(x0, top, x1, GROUND, c("sky", 1))
         cv.rect(x0, top, x1, top + 2, c("sky", 2))
         for y in range(top + 8, GROUND - 6, 10):
@@ -77,6 +79,7 @@ def blockout():
     cv.rect(BX0, top, BX1, GROUND, c("wall", 3))                     # the facade
     cv.rect(BX0, top - 4, BX1, top, c("wall", 5))                    # parapet
     cv.rect(BX0 - 2, top - 5, BX1 + 2, top - 4, INK)
+    cv.rect(BX0, GROUND - STOREY, BX1, GROUND, c("wall", 2))             # the ground floor's darker base
     for i, key in enumerate(STOREYS):
         y0 = GROUND - STOREY * (i + 1)
         cv.rect(BX0, y0, BX1, y0 + 3, c("wall", 4))                  # floor slab band
@@ -85,7 +88,6 @@ def blockout():
             for gx, ch in enumerate(row):
                 if ch == "#":
                     cv.put(BX0 + 3 + gx, y0 + 11 + gy, c("cream", 5))
-    cv.rect(BX0, GROUND - STOREY, BX1, GROUND, c("wall", 2))             # the ground floor's darker base
     cv.rect(212, GROUND - STOREY, 306, GROUND - STOREY + 3, c("amber", 3))       # the lobby's brass awning
     for x in range(284, 287):                                        # the crane on the roof
         cv.rect(x, 12, x + 1, top - 4, c("amber", 4) if x != 285 else c("amber", 2))
@@ -93,17 +95,17 @@ def blockout():
     cv.rect(306, 17, 316, 22, c("steel", 2))
     cv.rect(240, 17, 241, 34, INK)
     cv.rect(238, 34, 243, 37, c("amber", 3))
-    cv.rect(178, GROUND - 23, 210, GROUND - 20, c("grey", 4))          # the garage's sign band
+    cv.rect(178, GROUND - 27, 210, GROUND - 22, c("grey", 4))          # the garage's sign band, above its frame
     for gy, row in enumerate(G.FONT["P"]):
         for gx, ch in enumerate(row):
             if ch == "#":
-                cv.put(192 + gx, GROUND - 24 + gy, c("blue", 4))
+                cv.put(192 + gx, GROUND - 27 + gy, c("blue", 4))
     cv.rect(0, GROUND, EW, GROUND + 6, c("grey", 3))                 # pavement, kerb, road
     cv.rect(0, GROUND + 6, EW, GROUND + 7, c("grey", 1))
     cv.rect(0, GROUND + 7, EW, EH, c("dark", 2))
     for x in range(6, EW, 24):
         cv.rect(x, GROUND + 17, x + 10, GROUND + 18, c("grey", 4))
-    for x in (40, 142, 338, 440):                                    # street lamps
+    for x in LAMPS:                                                  # street lamps
         cv.rect(x, GROUND - 40, x + 1, GROUND, c("steel", 1))
         cv.rect(x - 2, GROUND - 42, x + 3, GROUND - 40, c("amber", 5))
     for key, (x0, y0, x1, y1) in windows().items():                  # frames; the glass is filled at build time
@@ -147,8 +149,53 @@ def build(out):
         boxes = [(x0 - 2, y0 - 2, x1 + 2, y1 + 2) for key, (x0, y0, x1, y1) in windows().items() if key != "R"]
         boxes += [(BX0 + 2, GROUND - STOREY * (i + 1) + 10, BX0 + 7, GROUND - STOREY * (i + 1) + 17)
                   for i in range(len(STOREYS))]                          # and the floor numbers beside them
+        boxes += [(212, GROUND - 31, 306, GROUND - 24), (178, GROUND - 27, 211, GROUND - 22)]   # awning, P sign
+        px = art.load()
+        for x0, x1, top in NEIGHBOURS:                                   # flat walls under the cornice (wiping the
+            wall = max(art.crop((x0, top + 8, x1, GROUND)).getcolors(1 << 16))[1]   # painted halo blobs), a window grid
+            for y in range(top + 7, GROUND):
+                for x in range(x0, x1):
+                    if px[x, y] != INK or x0 + 2 <= x < x1 - 2:          # keeping the outlines
+                        px[x, y] = wall
+            boxes += [(x, y, x + 4, y + 5) for y in range(top + 8, GROUND - 6, 10) for x in range(x0 + 4, x1 - 4, 8)]
         for box in boxes:                                                # the blockout's frames stay exactly put
             art.paste(blk.crop(box), box[:2])
+        for x0, x1, top in NEIGHBOURS:                                   # a 3-step Bayer ramp, on wall pixels only
+            for y in range(top + 3, GROUND):
+                for x in range(x0, x1):
+                    d = min(((x - lx) ** 2 + (y - GROUND + 41) ** 2) ** 0.5 for lx in LAMPS)
+                    lv = int((1 - d / 26) * 3 + G.BAYER[y % 4][x % 4] / 16)
+                    if lv > 0 and px[x, y] not in (INK, GLOW_WIN, c("sky", 0)):
+                        px[x, y] = tuple(round(v + (g - v) * 0.2 * lv) for v, g in zip(px[x, y], c("amber", 5)))
+        for x in LAMPS:                                                  # the blockout's lamps, over their light
+            art.paste(blk.crop((x, GROUND - 42, x + 1, GROUND)), (x, GROUND - 42))
+            art.paste(blk.crop((x - 2, GROUND - 42, x + 3, GROUND - 40)), (x - 2, GROUND - 42))
+        for x in range(196, 322):                                        # the crane, on the painting's own sky
+            for y in range(6, 53):                                       # (its dither repeats every 4 px)
+                col = blk.getpixel((x, y))
+                px[x, y] = col if col != blk.getpixel((0, y)) else px[x % 4, y]
+        for x0, y0 in ((166, 272), (311, 280)):                          # the slots beside the ground floor
+            for y in range(y0 + 1, GROUND):
+                for x in range(x0, x0 + 3):
+                    px[x, y] = px[x, y0]
+        for x in range(EW):                                              # pavement, kerb, road: flat rows, so the
+            for y in range(GROUND + 1, EH):                              # street tiles sideways and fills below
+                d = min(abs(x - lx) for lx in LAMPS)
+                b = G.BAYER[y % 4][x % 4] / 16
+                if y < GROUND + 6:                                       # slabs, lit under the lamps
+                    col = c("amber", 5) if 1 - d / 22 > b else c("wall", 5)
+                    col = c("cream", 1) if x % 24 == 0 else col
+                elif y < GROUND + 8:
+                    col = c("cream", 2) if y == GROUND + 6 else c("wall", 3)
+                elif y == GROUND + 8:
+                    col = INK
+                elif y < GROUND + 16 and (1 - d / 7) * (1 - (y - GROUND - 9) / 7) > b:
+                    col = c("amber", 2)                                  # the lamps' reflections
+                elif y == GROUND + 17 and (x - 6) % 24 < 10:
+                    col = c("grey", 4)
+                else:
+                    col = c("dark", 2)
+                px[x, y] = col
     wins = windows()
     strip = Image.new("RGB", (EW * G.FRAMES, EH))
     floors = {k: Image.open(out / f"floor-{k}.png").convert("RGB") for k in LOOK if (out / f"floor-{k}.png").exists()}

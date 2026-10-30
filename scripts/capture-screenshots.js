@@ -32,7 +32,16 @@ const routes = [
   },
   { name: "projects", path: "/projects/" },
   { name: "blog", path: "/blog/" },
-  { name: "cv", path: "/cv/" },
+  {
+    name: "cv",
+    path: "/cv/",
+    requireMobileNav: false,
+    requiredSelectors: [
+      [".cv-bar__name", 1, "CV name plate"],
+      [".cv-download", 1, "PDF download"],
+      [".cv-role-item", 6, "CV roles"],
+    ],
+  },
   { name: "post-self-compiling-second-brain", path: "/blog/self-compiling-second-brain/" },
   {
     name: "madeira-2026",
@@ -55,6 +64,7 @@ const assertions = [
   "Mobile header keeps Yonatan Karp-Rudin visible as the brand signal.",
   "Mobile navigation button is visible, at least 36x36px, labeled, closed by default, and wired to #primary-nav.",
   "Home page renders the building: its canvas, every floor and the street view's windows.",
+  "CV page renders its own pixel top bar (name plate and PDF download) and every role.",
   "Blog index contains multiple article rows/cards.",
   "Standalone Madeira page contains route cards, daily itinerary sections, photos, and source panels.",
 ];

@@ -258,14 +258,15 @@ def inuitive(room, f):
     room.put(31, 80, GLOW["red"])                                          # the board's power LED, and its activity LEDs
     for i, on in enumerate(BOARD_LEDS):
         room.put(34 + 2 * i, 80, GLOW["green"] if on[f] == "1" else c("plant", 1))
-    y = 31 + (f * 4) % 48                                                  # the calibration line sweeps down
-    for x in range(246, 299):
-        if not (275 <= x < 299 and y >= 64):                               # behind the camera, not over it
-            room.put(x, y, GLOW["cyan"])
-    if f % 2:
-        room.rect(296, 68, 298, 70, GLOW["red"])                            # the camera is recording
+    if f:                                                                  # the calibration line sweeps the grid
+        y = 30 + 4 * f
+        for x in range(249, 297):
+            if not (x >= 283 and y >= 71):                                 # behind the camera, not over it
+                room.put(x, y, GLOW["cyan"])
+    if f % 6 < 4:
+        room.rect(293, 74, 295, 75, GLOW["red"])                            # the camera is recording
     if f % 4 < 2:
-        room.rect(190, 79, 193, 82, GLOW["cyan"])                           # the robot's depth lens
+        room.rect(195, 81, 197, 83, GLOW["cyan"])                           # the robot's depth lens
 
 
 def billie_orchestrator(room, f):

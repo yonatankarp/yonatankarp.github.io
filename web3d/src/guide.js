@@ -87,6 +87,7 @@ export function guide(api, root = document) {
   addEventListener('keydown', (e) => {
     if (!roomy.matches || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
     if (open) { if (e.key === 'Escape') closePanel(); return; }   // the panel scrolls with the keys
+    if (e.key === ' ' && e.target.closest?.('button')) return;   // Space presses the focused button, not the lift
     const next = { ArrowDown: 1, PageDown: 1, ' ': e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
     if (next) { e.preventDefault(); step(next); }
     if (e.key === 'Home') { e.preventDefault(); api.go(0); }

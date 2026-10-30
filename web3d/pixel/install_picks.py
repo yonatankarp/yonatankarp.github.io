@@ -13,6 +13,7 @@ beside the lift stay the room's own, so its planks and furniture run unbroken up
 and <name>-px.png (464 x 154; the lobby is 132 x 154). Install the lobby before the floors.
 """
 import sys
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -57,44 +58,44 @@ def match_base(edit):
 WALL, CONE = (195, 154, 92), (255, 215, 122)   # the lobby's plaster and its lamp's light
 
 
-def lamps(lum, x_min):
-    """Hanging lamps: follow each cord down from the ceiling to the bottom of its shade. Returns the mouths
-    (y, x0, x1): the row just under the shade and its span."""
-    h, w = lum.shape
-    dark = lum < 110
-    out = []
-    for x in range(x_min + 1, w - 1):
-        if not (dark[0, x] and dark[1, x]) or dark[0, x - 1]:
-            continue
-        cx, y = x, 0
-        while y < 70:
-            step = next((d for d in (0, -1, 1) if 0 <= cx + d < w and dark[y, cx + d]), None)
-            if step is None:
-                break
-            cx, y = cx + step, y + 1
-        row = dark[y - 1]
-        x0 = x1 = cx
-        while x0 > 0 and row[x0 - 1]:
-            x0 -= 1
-        while x1 < w - 1 and row[x1 + 1]:
-            x1 += 1
-        if 4 <= x1 - x0 + 1 <= 24 and y > 8:                               # a shade, not a hung screen or a shelf
-            out.append((y, x0, x1))
-    return out
+LIGHT = {CONE, (191, 165, 140)}                                        # painted light, and its pale halo
+RIM, FILL = G.c("cream", 5), (G.c("wood", 2), G.c("wood", 1))           # the lamp's bulb seen under the shade; its two tones
 
 
-def relight(px, x_min=110, y_max=124, length=30, keep=(), unlit=()):
-    """Redraw the rooms' lamp light in the lobby lamp's style. The painted light pools quantise into ragged blobs
-    and, after the colour match, sometimes into pale grey; so every bright patch in a lamp's sweep that is not
-    outlined like an object (a plaque, a screen) is erased to plaster, and each lamp gets a cone like the lobby's:
-    solid lamp yellow, widening a pixel every second row, fading out in a dither, drawn only over bare wall
-    so furniture stays in front of it. A lamp whose cone would reach an `unlit` box (a wall screen) gets none."""
+def shade(w):
+    """The shared pendant shade, w (odd) px wide at the rim: each row's half-width, from the cap down to the rim. A bell:
+    a neck, sides flaring a pixel a row, then straight down to the rim."""
+    return [1, 1, *range(2, w // 2 + 1), w // 2, w // 2]
+
+
+def paint_out(a, box):
+    """Paint a box over with the room beside it, row by row, from a side that is bare wall on that row if there is
+    one: a painted lamp taken down, so the stamped one (or none) hangs there instead."""
+    x0, y0, x1, y1 = box
+    for y in range(y0, y1):
+        a[y, x0:x1] = a[y, x1] if tuple(a[y, x0 - 1]) != WALL and tuple(a[y, x1]) == WALL else a[y, x0 - 1]
+
+
+def relight(px, lamps=(), gone=(), y_max=124, keep=(), unlit=()):
+    """Redraw the rooms' lamps and their light in the lobby lamp's style. The painted lamps come out five different
+    ways and their light pools quantise into ragged blobs, so each lamp in `lamps` (x, top, y, w[, length]: its cord
+    column, the row the cord hangs from, the row under its shade, the shade's width) is painted out and stamped
+    again as the one shared lamp, and the boxes in `gone` (doubled lamps) are painted out. Every bright patch in a
+    lamp's sweep that is not outlined like an object (a plaque, a screen) is erased to plaster, and so is any
+    lamp-yellow patch on bare wall that no lamp casts. Each lamp gets a cone like the lobby's: solid lamp yellow,
+    widening a pixel every second row, fading out in a dither, drawn only over bare wall and stopping short of
+    whatever stands under it. A lamp whose cone would reach an `unlit` box (a wall screen) gets none."""
     a = np.asarray(px, dtype=np.int32).copy()
+    h, w = a.shape[:2]
+    lamps = [(x, top, y, wd, *rest, 30)[:5] for x, top, y, wd, *rest in lamps]
+    for x, top, y, wd, _ in lamps:
+        paint_out(a, (x - wd // 2 - 3, top, x + wd // 2 + 4, y + 2))
+    for box in gone:
+        paint_out(a, box)
     lum = a @ np.array([299, 587, 114]) // 1000
-    h, w = lum.shape
-    mouths = lamps(lum, x_min)
+    mouths = [(y, x - shade(wd)[-1] + 1, x + shade(wd)[-1] - 1, length) for x, top, y, wd, length in lamps]
     sweep = np.zeros((h, w), dtype=bool)
-    for y0, x0, x1 in mouths:
+    for y0, x0, x1, length in mouths:
         for r in range(length):
             if y0 + r < y_max:
                 sweep[y0 + r, max(0, x0 - 4 - r * 2 // 3):min(w, x1 + 5 + r * 2 // 3)] = True
@@ -103,7 +104,7 @@ def relight(px, x_min=110, y_max=124, length=30, keep=(), unlit=()):
         bright[y0:y1, x0:x1] = False
     seen = np.zeros_like(bright)
     for y in range(y_max):
-        for x in range(x_min, w):
+        for x in range(w):
             if not bright[y, x] or seen[y, x]:
                 continue
             comp, todo = [], [(y, x)]
@@ -112,37 +113,50 @@ def relight(px, x_min=110, y_max=124, length=30, keep=(), unlit=()):
                 cy, cx = todo.pop()
                 comp.append((cy, cx))
                 for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
-                    if 0 <= ny < y_max and x_min <= nx < w and bright[ny, nx] and not seen[ny, nx]:
+                    if 0 <= ny < y_max and 0 <= nx < w and bright[ny, nx] and not seen[ny, nx]:
                         seen[ny, nx] = True
                         todo.append((ny, nx))
             inside = set(comp)
             edge = [(ny, nx) for cy, cx in comp for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1))
                     if (ny, nx) not in inside and 0 <= ny < h and 0 <= nx < w]
             if not any(sweep[p] for p in comp):                            # stray light: a lamp-yellow patch on bare wall
-                if not (all(tuple(a[p]) == CONE for p in comp) and sum(tuple(a[p]) == WALL for p in edge) > 0.7 * len(edge)):
-                    continue
+                if all(tuple(a[p]) in LIGHT for p in comp) and sum(tuple(a[p]) == WALL for p in edge) > 0.5 * len(edge):
+                    for p in comp:
+                        a[p] = WALL
+                continue
             ys, xs = zip(*comp)
-            if len(comp) > 0.88 * (max(ys) - min(ys) + 1) * (max(xs) - min(xs) + 1):
+            if len(comp) >= 12 and len(comp) > 0.88 * (max(ys) - min(ys) + 1) * (max(xs) - min(xs) + 1):
                 continue                                                   # a filled rectangle: a whiteboard, a plaque
             if sum(lum[p] < 110 for p in edge) > 0.6 * len(edge):            # framed all round: a plaque, a screen
                 continue
             for p in comp:
                 a[p] = WALL
-    for y0, x0, x1 in mouths:
+    bare = (a == WALL).all(-1)                                             # what the cones may light, before any is drawn
+    for x0, y0, x1, y1 in keep:
+        bare[y0:y1, x0:x1] = False
+    for y0, x0, x1, length in mouths:
         reach = (length - 1) // 2
         if any(x0 - reach < bx1 and x1 + reach >= bx0 and y0 < by1 and y0 + length > by0 for bx0, by0, bx1, by1 in unlit):
             continue
-        for r in range(length):
-            yy = y0 + r
-            if yy >= y_max:
-                break
-            spread = r // 2
-            for xx in range(max(0, x0 - spread), min(w, x1 + spread + 1)):
-                if tuple(a[yy, xx]) != WALL:
-                    continue
+        for xx in range(max(0, x0 - reach), min(w, x1 + reach + 1)):
+            for r in range(2 * max(0, x0 - xx, xx - x1), length):         # down the column, from where the cone reaches it
+                yy = y0 + r
+                if yy + 3 > y_max or not bare[yy:yy + 3, xx].all():        # stop short of whatever stands below
+                    break
                 fade = r / length
                 if fade < 0.55 or (fade < 0.8 and (xx + yy) % 2 == 0) or (xx % 2 == 0 and yy % 2 == 0):
                     a[yy, xx] = CONE
+    for x, top, y, wd, _ in lamps:                                         # the lamps, over their light
+        rows = shade(wd)
+        y0 = y - len(rows)
+        a[top:y0, x] = G.INK                                               # the cord
+        for r, k in enumerate(rows):
+            for xx in range(x - k, x + k + 1):
+                d = abs(xx - x)
+                if r == len(rows) - 1:
+                    a[y0 + r, xx] = G.INK if d == k else RIM
+                else:
+                    a[y0 + r, xx] = G.INK if d == k or r < 2 or d >= rows[r - 1] else FILL[xx > x]
     return Image.fromarray(a.astype(np.uint8), "RGB")
 
 
@@ -178,6 +192,44 @@ def sprite(a, x, y, rows, col):
                 a[y + dy, x + dx] = col
 
 
+PLANK = {(160, 100, 15), (106, 63, 12)}                                # the floors' planks
+SHADE = {(127, 44, 36): (106, 63, 12), (82, 27, 24): (58, 34, 8), (160, 50, 39): (106, 63, 12)}   # skirting maroons
+
+
+def shadows(px, top):
+    """The shadows on the floor quantise to the skirting's maroons. Grow the planks back over them from below `top`,
+    from the planks inwards, so maroon things outlined in ink (a desk, a box) keep their colour."""
+    a = np.asarray(px).copy()
+    h, w = a.shape[:2]
+    todo = [(y, x) for y in range(top, h) for x in range(w) if tuple(a[y, x]) in PLANK]
+    while todo:
+        y, x = todo.pop()
+        for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+            if top <= ny < h and 0 <= nx < w and tuple(a[ny, nx]) in SHADE:
+                a[ny, nx] = SHADE[tuple(a[ny, nx])]
+                todo.append((ny, nx))
+    return Image.fromarray(a, "RGB")
+
+
+LAMPS = {}      # name: its hanging lamps, (x, top, y, w[, length]) as relight takes them
+GONE = {}       # name: boxes of painted lamps to take down (doubled, fused, hung over a screen)
+KEEP = {}       # name: boxes the light pass must not touch
+UNLIT = {}      # name: boxes no lamp may cast a cone on
+TOUCHUPS = {}   # name: the floor's own fix-up, run after the light pass
+
+
+# --- Parking ---
+LAMPS["parking"] = [(207, 37, 51, 9), (243, 34, 50, 15), (319, 36, 48, 15, 12), (343, 36, 46, 13, 12),
+                    (387, 23, 46, 11)]   # hung from the ducts; the two over the pegboard short of it
+
+# --- Lobby, reception ---
+LAMPS["reception"] = [(161, 0, 31, 19), (189, 0, 30, 11), (226, 0, 30, 11), (258, 0, 30, 11), (292, 0, 31, 19)]
+
+# --- Floor 1, reichman ---
+LAMPS["reichman"] = [(190, 0, 29, 15), (203, 0, 29, 11), (254, 0, 27, 13), (323, 0, 27, 13), (364, 0, 29, 15),
+                     (387, 0, 29, 13)]   # the two over the board hang clear of its frame
+GONE["reichman"] = [(372, 0, 378, 31), (244, 27, 266, 34), (313, 27, 335, 34)]   # a third shade fused between the
+# right-hand pair; the painted rims of the two over the board, so its frame runs on under them
 GLYPHS = {  # floor 1's chalk drawings, 1px strokes
     "tree": ["....###.###....",
              "..##...#...##..",
@@ -293,6 +345,35 @@ def chalk(px):
     return Image.fromarray(a, "RGB")
 
 
+TOUCHUPS["reichman"] = chalk
+
+# --- Floor 2, inuitive ---
+LAMPS["inuitive"] = [(159, 0, 30, 19, 16), (192, 0, 30, 19, 16), (258, 0, 30, 19), (323, 0, 30, 19), (369, 0, 30, 19),
+                     (430, 0, 30, 19)]   # the first two hang close: short cones, or they merge
+TOUCHUPS["inuitive"] = lambda px: shadows(px, 120)
+
+# --- Floor 3, nice ---
+LAMPS["nice"] = [(193, 0, 32, 17), (254, 0, 32, 15), (291, 0, 32, 15), (322, 0, 32, 15), (364, 0, 32, 15), (395, 0, 32, 15)]
+TOUCHUPS["nice"] = lambda px: shadows(px, 142)   # above, the maroon is its skirting and cabinet
+KEEP["nice"] = [(366, 28, 402, 80)]   # floor 3's whiteboard, which its lamp's light touches
+
+# --- Floor 4, sumup ---
+LAMPS["sumup"] = [(177, 0, 34, 13), (236, 0, 33, 13, 0), (268, 0, 33, 13), (304, 0, 35, 13)]   # the copper one is off
+GONE["sumup"] = [(158, 0, 168, 36)]   # the doubled pendant beside the first
+TOUCHUPS["sumup"] = lambda px: shadows(px, 120)
+
+# --- Floor 5, billie_risk ---
+LAMPS["billie_risk"] = [(150, 0, 28, 19), (191, 0, 30, 15), (258, 0, 32, 17), (296, 0, 32, 15), (324, 0, 32, 15)]
+GONE["billie_risk"] = [(424, 0, 433, 25), (434, 22, 442, 35)]   # a lamp fused behind the screen's corner
+
+# --- Floor 6, billie_orchestrator ---
+LAMPS["billie_orchestrator"] = [(190, 0, 42, 19), (384, 0, 44, 19)]   # down over their painted bulbs
+GONE["billie_orchestrator"] = [(219, 0, 251, 29), (316, 0, 346, 29), (369, 0, 373, 26)]   # the two hung in front of
+# the screen, and a cord with no lamp
+KEEP["billie_orchestrator"] = [(220, 30, 355, 95)]    # the wall screen: its invoice cards are bright
+UNLIT["billie_orchestrator"] = [(220, 30, 355, 95)]   # the two lamps hung in front of that screen cast no cone on it
+
+
 def screen(px):
     """Floor 6: the wall screen's bezel came out lamp-lit brown where the two lamps hang in front of it, and its
     right-hand panel came out as wall colour. Its frame is redrawn from an intact column, its sides as dark steel,
@@ -350,6 +431,16 @@ def ghost(px):
     return Image.fromarray(a, "RGB")
 
 
+TOUCHUPS["billie_orchestrator"] = lambda px: ghost(screen(px))
+
+
+# --- Floor 7, billie_payments ---
+LAMPS["billie_payments"] = [(188, 21, 36, 19, 16), (240, 21, 40, 17, 16), (287, 21, 43, 17, 16), (308, 21, 43, 17, 16),
+                            (341, 21, 40, 17, 16), (363, 21, 45, 15, 16), (384, 21, 37, 17, 16),
+                            (414, 21, 41, 19, 16)]   # hung from the pipe, close together: short cones
+GONE["billie_payments"] = [(160, 21, 179, 42), (424, 21, 440, 44)]   # the second of two fused pairs
+
+
 def planks(px):
     """Floor 7: the red tray's reflection turned whole planks red; grow the plank colours back over them, from the
     planks inwards, so the tray and the box (outlined in ink) keep theirs."""
@@ -372,13 +463,30 @@ def planks(px):
     return Image.fromarray(a, "RGB")
 
 
-KEEP = {"nice": [(366, 28, 402, 80)],    # floor 3's whiteboard, which its lamp's light touches
-        "writing": [(236, 0, 392, 34)],   # floor 8's pale lamp shades, which read as light
-        "billie_orchestrator": [(220, 30, 355, 95)]}   # floor 6's wall screen: its invoice cards are bright
-UNLIT = {"billie_orchestrator": [(220, 30, 355, 95)]}   # the two lamps hung in front of that screen cast no cone on it
+TOUCHUPS["billie_payments"] = planks
+
+# --- Floor 8, writing ---
+LAMPS["writing"] = [(252, 0, 34, 19, 3), (292, 0, 34, 19, 3), (320, 0, 34, 17), (366, 0, 31, 17)]   # the board under
+# the first two takes no light, and their sweep would wipe its clippings
+GONE["writing"] = [(397, 0, 402, 33), (304, 0, 309, 34)]   # a cord with no lamp on it; a painted shade's edge
+TOUCHUPS["writing"] = lambda px: shadows(px, 142)   # its bookcase and press stand on maroon feet
+KEEP["writing"] = [(236, 0, 392, 34)]   # the pale lamp shades, which read as light
 
 
-TOUCHUPS = {"reichman": chalk, "billie_orchestrator": lambda px: ghost(screen(px)), "billie_payments": planks}
+# --- Roof ---
+def sky(px):
+    """The roof's dusk as an even dither. A cloud streak came out a grey the bands don't have, so it takes the band
+    above first; and the painted lobby wall ran on past the lift housing's corner, so sky and deck carry on there."""
+    a = np.asarray(px).copy()
+    for y in range(40, 47):
+        row, grey = a[y, 107:256], (a[y, 107:256] == G.c("sky", 4)).all(-1)
+        row[grey] = a[y - 1, 107:256][grey]
+    a[:, 109:117] = a[:, 117:125]                                          # the dither repeats every 4
+    return dither_bands(Image.fromarray(a, "RGB"), 84, 192)
+
+
+def mode(row):
+    return Counter(map(tuple, row)).most_common(1)[0][0]
 
 
 def install(name):
@@ -392,13 +500,21 @@ def install(name):
         lobby = Image.open(HERE / "picks" / "lobby-px.png").convert("RGB")
         px = pixelate(crop, FLOOR_PX, colours, keep=sorted({c for _, c in lobby.getcolors()}))
         if name == "roof":
-            px = dither_bands(px, 84, 192)                                 # sky
+            px = sky(px)
         else:
-            px = relight(px, keep=KEEP.get(name, ()), unlit=UNLIT.get(name, ()))   # lamps
+            px = relight(px, LAMPS.get(name, ()), GONE.get(name, ()), keep=KEEP.get(name, ()), unlit=UNLIT.get(name, ()))
         if name in TOUCHUPS:
             px = TOUCHUPS[name](px)
-        lift = (0, 0, *LIFT[2:]) if name == "roof" else LIFT              # the roof's lift housing is all lobby plaster
+        side = np.asarray(px)[:, :LIFT[0]].copy()                          # the room's skirting beside the lift
+        lift = (0, 0, LIFT[2], LOBBY_PX[1]) if name == "roof" else LIFT   # the roof's lift housing is all lobby, floor too
         px.paste(lobby.crop(lift), lift[:2])
+        if name != "roof":                                                 # under the lift, the skirting is the room's
+            a, ref = np.asarray(px).copy(), np.asarray(lobby)
+            for y in range(134, LIFT[3]):
+                run, was = a[y, LIFT[0]:LIFT[2]], mode(ref[y, :LIFT[0]])
+                if was != G.INK:                                           # its ink lines run through the door frame
+                    run[(run == was).all(-1)] = mode(side[y])
+            px = Image.fromarray(a, "RGB")
     px.save(HERE / "picks" / f"{name}-px.png")
     print("installed", name, "seed", seed, crop.size, "->", px.size)
 

@@ -299,16 +299,24 @@ BELT_INK = {"#": INK, "W": c("cream", 5), "w": c("cream", 4), "v": c("cream", 2)
             "g": c("steel", 4), "s": c("amber", 4), "-": c("steel", 2)}
 
 
+SCREENING = [(283 + 9 * i, 55 + 6 * j, (i, j) in {(2, 0), (0, 2), (3, 3), (1, 5)}) for j in range(6) for i in range(4)]
+# the screening board's tiles, 7 x 4 in room pixels, as (x, y, flagged): payments passed in green, a few flagged in red
+
+
 def billie_payments(room, f):
     for x in range(104, 198):                                              # lift the painted envelopes off the belt:
         room.rect(x, 96, x + 1, 98, room.get(x, 95))                       # the arch post and wall carry on down to it,
     for y, row in BELT.items():                                            # then the belt runs from the feed to the pile
         for x in range(102, 198):
             room.put(x, y, BELT_INK[row[(x - 2 * f) % len(row)]])
-    x = 60 + (f * 24) % 264                                                # a message travels the ceiling pipe
-    room.rect(x, 14, x + 6, 16, c("coral", 4))
-    room.blink((282, 50, 320, 90), greenish, c("plant", 1), f)             # the screening board's tiles
-    room.blink((282, 50, 320, 90), reddish, c("red", 1), f, every=7, lit=2)
+    x = 60 + f * 22                                                        # a message travels the ceiling pipe
+    if f:
+        room.rect(x - 12, 15, x, 16, c("coral", 2))                        # its trail
+    room.rect(x, 13, x + 10, 18, INK)
+    room.rect(x + 1, 14, x + 9, 17, c("coral", 4))
+    for k, (x, y, flagged) in enumerate(SCREENING):                       # the board re-screens two tiles a frame
+        if f and (k * 5 + f) % 12 == 0:
+            room.rect(x, y, x + 7, y + 4, GLOW["green" if flagged else "red"])
 
 
 def roof(room, f):

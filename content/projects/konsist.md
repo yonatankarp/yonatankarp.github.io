@@ -10,8 +10,6 @@ link: "https://github.com/LemonAppDev/konsist"
 caseStudy: true
 tech: ["Kotlin", "Static analysis", "CI"]
 years: "2023"
-build:
-  list: local
 params:
     button:
         icon: "icon-arrow-right"

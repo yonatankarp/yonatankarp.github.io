@@ -1,10 +1,11 @@
 hero:
-  eyebrow: "Staff Software Engineer · Payments, risk, and compliance"
+  eyebrow: "Staff Software Engineer · Payments, Risk & Compliance · Kotlin, Spring Boot, Kafka · openapi-generator contributor"
   title: "I turn messy backend domains into systems teams can own."
   lede: "I work where product rules, vendor integrations, event flows, and operational risk meet. Recently that has meant compliance services, risk orchestration, API contracts, internal tools, and migrations that leave teams with clearer ownership."
+  availability: "Open to Staff+ backend roles in Tel Aviv and central Israel, on-site or hybrid."
   primaryAction:
     label: "Discuss Staff+ backend work"
-    url: "#contact"
+    url: "#floor-R"   # the roof: contact
   secondaryAction:
     label: "View CV"
     url: "/cv/"
@@ -71,16 +72,19 @@ proof:
   title: "Examples of staff-level leverage beyond ticket delivery."
   items:
     - label: "Compliance platform"
+      floor: "7"   # the building floor whose panel tells this story
       title: "Creating a new service boundary for compliance workflows."
       context: "Transaction monitoring, screening, and sanction checks crossed product rules, vendor behavior, alerts, and audit expectations."
       decision: "I authored the technical spec and interfaces, led the ComplyAdvantage integration, and covered Kafka DLT alerts, settlement reports, and compliance states in the service design."
       result: "Scattered operational knowledge became a service teams can reason about, monitor, and recover."
     - label: "Risk architecture"
+      floor: "6"   # the building floor whose panel tells this story
       title: "Moving risk work toward explicit orchestration and contracts."
       context: "Risk decisions depended on multiple services, fraud providers, recurrent identification, tokenization, and direct debit behavior."
       decision: "I co-designed the Risk Orchestrator, pushed OpenAPI-first contracts across risk services, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
       result: "Risk changes gained a clearer coordination model across providers, payment behavior, and service boundaries."
     - label: "Engineering leverage"
+      floor: "L"   # the building floor whose panel tells this story
       title: "Turning repeated operational friction into shared tooling."
       context: "Platform work gets expensive when incidents, cronjobs, migrations, and service setup depend on private memory."
       decision: "I build Backstage tools, templates, migration plans, and upstream fixes when the reusable path beats another one-off patch."
@@ -121,12 +125,12 @@ contact:
   title: "If your backend domain needs an owner, let's talk."
   text: "The strongest fit is Staff+ backend work where product rules, vendors, event flows, and operational risk need to become one system the team can own."
   priorities:
-    - "Permanent Staff+ backend roles in Europe"
+    - "Staff+ backend roles in central Israel, on-site or hybrid"
     - "Payments, risk, compliance, or platform architecture"
     - "OSS, technical writing, and teaching"
   facts:
     - label: "Based in"
-      text: "Berlin, Germany"
+      text: "Tel Aviv District, Israel"
     - label: "Best for"
       text: "Teams turning messy backend domains into owned platforms"
   email:

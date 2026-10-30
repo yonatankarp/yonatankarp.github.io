@@ -1,0 +1,182 @@
+# /// script
+# dependencies = ["pillow==12.1.0", "numpy==2.3.4"]   # numpy: pixelate
+# ///
+"""The street view: the whole building at dusk, its windows showing the live rooms. The landing view.
+
+Run: uv run web3d/pixel/gen_exterior.py blockout            # the code blockout, for a look
+     uv run web3d/pixel/gen_exterior.py paint [--count N]   # Draw Things repaints the blockout (port 7860)
+     uv run web3d/pixel/gen_exterior.py build OUT           # OUT/exterior.png (12 frames) + exterior.json
+
+The blockout fixes what the model must not move: the number of storeys, the window grid, the entrance, the garage
+and the crane. The model repaints it into the rooms' style; the picked painting is pixelated with the floors'
+palette and colour match, then the blockout's windows are pasted back and filled with 1:1 crops of each floor's
+strip, frame by frame, so the street view animates in step with the floors. Build the floors first.
+"""
+import argparse
+import base64
+import io
+import json
+import sys
+from pathlib import Path
+
+from PIL import Image
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import gen_floors as G  # noqa: E402
+from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
+from pixelate import dither_bands, pixelate  # noqa: E402
+
+HERE = Path(__file__).resolve().parent / "paintings"
+EW, EH = 480, 336               # art pixels: 2x on a 1440x900 screen, 1x on a phone (cropped to the building)
+PAINT = 4                        # painting pixels per art pixel
+PICK = 634                       # the picked candidate's seed, or None to build from the blockout
+GROUND = 310                     # the pavement line
+BX0, BX1 = 170, 310              # the building, in the middle of the street
+STOREY = 28
+STOREYS = ["L", "1", "2", "3", "4", "5", "6", "7", "8"]   # bottom to top above ground; P is below the street
+WIN_X0, WIN_X1 = 180, 300        # each storey's ribbon window
+c, INK = G.c, G.INK
+GLOW_WIN = G.GLOW["amber"]
+
+# Where each window looks into its floor's strip (x, y of the slice's top-left, in strip pixels): the room's
+# signature props. The window's size decides the slice's size.
+LOOK = {"1": (226, 72), "2": (230, 82), "3": (250, 56), "4": (262, 86), "5": (330, 52), "6": (230, 90),
+        "7": (210, 102), "8": (232, 56), "R": (0, 0), "L": (170, 56), "P": (240, 100)}
+
+
+def windows():
+    """Window rectangles (x0, y0, x1, y1) on the street view, by floor key."""
+    out = {}
+    for i, key in enumerate(STOREYS):
+        y0 = GROUND - STOREY * (i + 1)
+        out[key] = (WIN_X0, y0 + 5, WIN_X1, y0 + 25)
+    out["L"] = (216, GROUND - 24, 302, GROUND - 4)   # the lobby's shop front, beside the garage
+    out["P"] = (178, GROUND - 20, 210, GROUND)          # the garage door: the ramp down to the parking
+    out["R"] = (BX0, 8, BX1, GROUND - STOREY * len(STOREYS) - 4)   # the roof deck and its crane
+    return out
+
+
+def blockout():
+    img = Image.new("RGB", (EW, EH))
+    cv = G.Layer(img)
+    roof = Image.open(HERE / "picks" / "roof-px.png").convert("RGB")
+    smooth = Image.open(CANDIDATES / "roof_400.png").convert("RGB").resize(roof.size, Image.BOX)   # undithered
+    for y in range(GROUND):                                          # the roof's own sky, stretched to fit
+        cv.rect(0, y, EW, y + 1, smooth.getpixel((192, min(84, y * 85 // 250))))   # a clear column, above the skyline
+    sky = roof.crop((140, 84, 464, 104))                             # its skyline, behind the street
+    for x in range(0, EW, sky.width):
+        img.paste(sky, (x, GROUND - 36))
+    for x0, x1, top in ((0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
+                        (314, 348, 196), (348, 398, 160), (398, 440, 206), (440, 480, 172)):   # neighbours
+        cv.rect(x0, top, x1, GROUND, c("sky", 1))
+        cv.rect(x0, top, x1, top + 2, c("sky", 2))
+        for y in range(top + 8, GROUND - 6, 10):
+            for x in range(x0 + 4, x1 - 4, 8):
+                cv.rect(x, y, x + 4, y + 5, GLOW_WIN if (x * 3 + y) % 7 < 3 else c("sky", 0))
+    top = GROUND - STOREY * len(STOREYS)
+    cv.rect(BX0, top, BX1, GROUND, c("wall", 3))                     # the facade
+    cv.rect(BX0, top - 4, BX1, top, c("wall", 5))                    # parapet
+    cv.rect(BX0 - 2, top - 5, BX1 + 2, top - 4, INK)
+    for i, key in enumerate(STOREYS):
+        y0 = GROUND - STOREY * (i + 1)
+        cv.rect(BX0, y0, BX1, y0 + 3, c("wall", 4))                  # floor slab band
+        cv.rect(BX0, y0 + 3, BX1, y0 + 4, c("wall", 2))
+        for gy, row in enumerate(G.FONT[key]):                       # the floor number beside its window
+            for gx, ch in enumerate(row):
+                if ch == "#":
+                    cv.put(BX0 + 3 + gx, y0 + 11 + gy, c("cream", 5))
+    cv.rect(BX0, GROUND - STOREY, BX1, GROUND, c("wall", 2))             # the ground floor's darker base
+    cv.rect(212, GROUND - STOREY, 306, GROUND - STOREY + 3, c("amber", 3))       # the lobby's brass awning
+    for x in range(284, 287):                                        # the crane on the roof
+        cv.rect(x, 12, x + 1, top - 4, c("amber", 4) if x != 285 else c("amber", 2))
+    cv.rect(200, 14, 316, 17, c("amber", 4))
+    cv.rect(306, 17, 316, 22, c("steel", 2))
+    cv.rect(240, 17, 241, 34, INK)
+    cv.rect(238, 34, 243, 37, c("amber", 3))
+    cv.rect(178, GROUND - 23, 210, GROUND - 20, c("grey", 4))          # the garage's sign band
+    for gy, row in enumerate(G.FONT["P"]):
+        for gx, ch in enumerate(row):
+            if ch == "#":
+                cv.put(192 + gx, GROUND - 24 + gy, c("blue", 4))
+    cv.rect(0, GROUND, EW, GROUND + 6, c("grey", 3))                 # pavement, kerb, road
+    cv.rect(0, GROUND + 6, EW, GROUND + 7, c("grey", 1))
+    cv.rect(0, GROUND + 7, EW, EH, c("dark", 2))
+    for x in range(6, EW, 24):
+        cv.rect(x, GROUND + 17, x + 10, GROUND + 18, c("grey", 4))
+    for x in (40, 142, 338, 440):                                    # street lamps
+        cv.rect(x, GROUND - 40, x + 1, GROUND, c("steel", 1))
+        cv.rect(x - 2, GROUND - 42, x + 3, GROUND - 40, c("amber", 5))
+    for key, (x0, y0, x1, y1) in windows().items():                  # frames; the glass is filled at build time
+        if key != "R":
+            cv.rect(x0 - 2, y0 - 2, x1 + 2, y1 + (2 if key != "P" else 0), INK)
+            cv.rect(x0, y0, x1, y1, c("amber", 5))
+    return img
+
+
+
+def paint(count, start, host):
+    base = blockout().resize((EW * PAINT, EH * PAINT), Image.NEAREST)
+    buf = io.BytesIO()
+    base.save(buf, "PNG")
+    prompt = ("Edit this picture. Repaint it as a detailed flat 2D side-view video game background in clean cel "
+              "shading with bold dark outlines: a nine-storey brick and plaster city building at dusk in the middle "
+              "of a street of older neighbouring buildings. Keep every shape exactly where it is: the same storeys, the same long window on every storey, "
+              "the same lobby shop front with its awning, the same garage door, the same crane on the roof, the same "
+              "neighbouring buildings, street lamps, pavement and road, and the same sunset sky. Add brick texture, "
+              "cornices, window sills, a few balcony plants, glowing lamp light on the pavement. No people, no cars, "
+              "no text, no letters, no logos.")
+    for k in range(count):
+        seed = start + 17 * k
+        path = CANDIDATES / f"street9_{seed}.png"
+        if path.exists():
+            print("kept", path.name)
+            continue
+        res = call(host, "/sdapi/v1/img2img", {"prompt": prompt, "width": base.width, "height": base.height, "seed": seed,
+                                               "batch_size": 1, "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
+        path.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
+        print("painted", path.name, flush=True)
+
+
+def build(out):
+    blk = blockout()
+    if PICK is None:
+        art = blk.copy()
+    else:
+        art = pixelate(Image.open(CANDIDATES / f"street9_{PICK}.png").convert("RGB"), (EW, EH), 40)
+        art = dither_bands(art, 150, 4)                                  # the sky above the neighbours
+        boxes = [(x0 - 2, y0 - 2, x1 + 2, y1 + 2) for key, (x0, y0, x1, y1) in windows().items() if key != "R"]
+        boxes += [(BX0 + 2, GROUND - STOREY * (i + 1) + 10, BX0 + 7, GROUND - STOREY * (i + 1) + 17)
+                  for i in range(len(STOREYS))]                          # and the floor numbers beside them
+        for box in boxes:                                                # the blockout's frames stay exactly put
+            art.paste(blk.crop(box), box[:2])
+    wins = windows()
+    strip = Image.new("RGB", (EW * G.FRAMES, EH))
+    floors = {k: Image.open(out / f"floor-{k}.png").convert("RGB") for k in LOOK if (out / f"floor-{k}.png").exists()}
+    for f in range(G.FRAMES):
+        img = art.copy()
+        for key, (x0, y0, x1, y1) in wins.items():
+            if key == "R" or key not in floors:
+                continue
+            sx, sy = LOOK[key]
+            img.paste(floors[key].crop((f * G.W + sx, sy, f * G.W + sx + x1 - x0, sy + y1 - y0)), (x0, y0))
+        strip.paste(img, (f * EW, 0))
+    strip.save(out / "exterior.png")
+    (out / "exterior.json").write_text(json.dumps({"size": [EW, EH], "windows": wins}))
+    print("drew exterior", "from blockout" if PICK is None else f"from seed {PICK}")
+
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("cmd", choices=["blockout", "paint", "build"])
+    ap.add_argument("out", nargs="?", default="static/building/pixel")
+    ap.add_argument("--count", type=int, default=4)
+    ap.add_argument("--start", type=int, default=400)
+    ap.add_argument("--host", default="http://127.0.0.1:7860")
+    a = ap.parse_args()
+    if a.cmd == "blockout":
+        blockout().resize((EW * 3, EH * 3), Image.NEAREST).save(Path(a.out) / "exterior-blockout.png")
+        print("wrote", Path(a.out) / "exterior-blockout.png")
+    elif a.cmd == "paint":
+        paint(a.count, a.start, a.host)
+    else:
+        build(Path(a.out))

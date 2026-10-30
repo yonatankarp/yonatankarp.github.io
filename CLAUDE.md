@@ -12,9 +12,15 @@
 ## Build & Run
 
 ```bash
-hugo server              # dev server
-hugo --gc --minify       # production build
+npm run serve            # dev server (builds the pixel building bundle, then hugo server)
+npm run build            # production build: bundle, hugo --gc --minify, then the CV PDF
 ```
+
+The homepage (`layouts/index.html`) is the pixel-art career building. Its script and styles live in
+`web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
+`npm run build:building` has run. The art is in `static/building/pixel/`, made by the Python pipeline in
+`web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Each experience entry's `floor`
+front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
 
 ## Content Structure
 

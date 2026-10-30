@@ -287,14 +287,15 @@ def inuitive(room, f):
     room.put(31, 80, GLOW["red"])                                          # the board's power LED, and its activity LEDs
     for i, on in enumerate(BOARD_LEDS):
         room.put(34 + 2 * i, 80, GLOW["green"] if on[f] == "1" else c("plant", 1))
-    y = 31 + (f * 4) % 48                                                  # the calibration line sweeps down
-    for x in range(246, 299):
-        if not (275 <= x < 299 and y >= 64):                               # behind the camera, not over it
-            room.put(x, y, GLOW["cyan"])
-    if f % 2:
-        room.rect(296, 68, 298, 70, GLOW["red"])                            # the camera is recording
+    if f:                                                                  # the calibration line sweeps the grid
+        y = 30 + 4 * f
+        for x in range(249, 297):
+            if not (x >= 283 and y >= 71):                                 # behind the camera, not over it
+                room.put(x, y, GLOW["cyan"])
+    if f % 6 < 4:
+        room.rect(293, 74, 295, 75, GLOW["red"])                            # the camera is recording
     if f % 4 < 2:
-        room.rect(190, 79, 193, 82, GLOW["cyan"])                           # the robot's depth lens
+        room.rect(195, 81, 197, 83, GLOW["cyan"])                           # the robot's depth lens
 
 
 TOWERS = [(100, 84, 116, 126), (182, 84, 196, 126)]   # the two server towers behind the core, trimmed in its magenta
@@ -427,12 +428,42 @@ def reception(room, f):
                     room.put(x + dx, y, col)
 
 
+LAND = ["........................",   # the globe's map, one turn: 24 px, 2 px a frame
+        "...##.........###.......",
+        "..####.......#####......",
+        ".######.....#######.....",
+        ".#######....######......",
+        "..######.....####.......",
+        "...####.......###.......",
+        "....###........#........",
+        ".....##...........##....",
+        ".....###.........####...",
+        "......####......######..",
+        "......#####.....######..",
+        ".......####......####...",
+        ".......###........##....",
+        "........##..............",
+        "........#.........###...",
+        ".................#####..",
+        "..................###...",
+        "........................",
+        "........................",
+        "........................"]
+
+
 def reichman(room, f):
-    room.roll((278, 67, 289, 81), f)                                       # the globe turns
-    for i, y in enumerate((68, 70, 72)):                                   # notes typed on the lectern laptop
-        n = max(0, min(10, (f - 4 * i) * 3))
-        for x in range(247, 247 + n):
-            room.put(x, y, c("dark", 3))
+    gx, gy, r = 281, 73, 10                                                # the globe turns under fixed shading
+    disc = {(dx, dy) for dy in range(-r, r + 1) for dx in range(-r, r + 1) if dx * dx + dy * dy <= r * r + r}
+    for dx, dy in disc:
+        edge = any(p not in disc for p in ((dx + 1, dy), (dx - 1, dy), (dx, dy + 1), (dx, dy - 1)))
+        land = LAND[dy + r][(dx - 2 * f) % 24] == "#"
+        lit = 5 if (dx, dy) == (-4, -5) else 4 if 2 * dx + dy < 9 else 3   # a glint; the night side
+        room.put(gx + dx, gy + dy, INK if edge else c("plant" if land else "blue", min(lit, 4) if land else lit))
+    if f:                                                                  # the hierarchy is drawn again on the board
+        room.rect(200, 60 + min(14, 3 + (f - 1) * 3 // 2), 221, 74, c("chalk", 2))
+    for i, (y, n) in enumerate(((69, 10), (71, 10), (73, 7))):            # a note typed on the lectern laptop
+        n = n if f == 0 else max(0, min(n, (f - 1 - 3 * i) * 4))
+        room.rect(247, y, 247 + n, y + 1, c("dark", 3))
 
 
 FLOORS = {  # key: (painting, accent ramp, animation), bottom to top

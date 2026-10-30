@@ -502,10 +502,10 @@ def glow(px):
     for y in range(72, 119):                                               # the wall glow behind the core
         for x in range(220, 355):
             col = tuple(a[y, x])
-            if col == G.c("coral", 5):
-                a[y, x] = G.c("violet", 5) if (x + y) % 2 == 0 else WALL
-            elif col in (G.c("sky", 5), G.c("sky", 4), G.c("wall", 3), G.c("wall", 4)):
+            if col == G.c("coral", 5):                                       # a quarter lit near the core,
                 a[y, x] = G.c("violet", 5) if x % 2 == 0 and y % 2 == 0 else WALL
+            elif col in (G.c("sky", 5), G.c("sky", 4), G.c("wall", 3), G.c("wall", 4)):   # an eighth further out
+                a[y, x] = G.c("violet", 5) if (x + y // 2 * 2) % 4 == 0 and y % 2 == 0 else WALL
     pool = {G.c("magenta", 1), G.c("magenta", 2)}                         # its dark floor, not the lit cables
     was = a.copy()
     for y in range(129, a.shape[0]):                                       # the pool's edge, two pixels deep

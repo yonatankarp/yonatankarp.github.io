@@ -38,7 +38,8 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox }) {
   const hashIndex = () => keys.indexOf((location.hash.match(/^#floor-(\w+)$/) || [])[1]);
   ride.from = ride.to = Math.max(0, hashIndex());
   const rideU = (now) => (ride.dur ? clamp01((now - ride.start) / ride.dur) : 1);
-  const pos = (u) => ride.from + (ride.to - ride.from) * easeInOut(u) + ride.v * u * (1 - u) ** 2;
+  // A carried speed rides a cubic Hermite (smoothstep plus the speed's term), which lands without overshooting.
+  const pos = (u) => ride.from + (ride.to - ride.from) * (ride.v ? u * u * (3 - 2 * u) : easeInOut(u)) + ride.v * u * (1 - u) ** 2;
   const emit = (name, detail) => document.dispatchEvent(new CustomEvent(name, { detail }));
   function go(index) {
     const now = performance.now(), u = rideU(now);
@@ -174,8 +175,8 @@ function streetView(base, box, stops) {
   document.addEventListener('building:depart', () => box?.classList.remove('is-here'));
   document.addEventListener('building:arrive', (e) => box?.classList.toggle('is-here', e.detail.key === 'E'));
 
-  // The neighbours repeated down the street, left and right: whole periods of the road's 24 px dashes, cut
-  // between buildings, so the seams fall where two buildings meet anyway.
+  // The neighbours repeated down the street, left and right: whole periods of the road's 24 px dashes, so the
+  // dashes and joints run on across the seams (art columns 95|0 on the left, 479|408 on the right).
   const SIDE = [96, 72];
   const PITCH = 4;   // a window's button reaches 4 art px above and below it: the whole storey, an easier target
   function layout(w, h, dpr, wide) {   // sized by the height; the building centred beside the card, the street running under it

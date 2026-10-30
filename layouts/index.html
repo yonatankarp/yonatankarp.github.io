@@ -51,14 +51,14 @@
 
   <nav class="elevator" aria-label="Floors">
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor>E</span></div>
-    <button class="building-floor-btn" type="button" data-goto="P" aria-label="Parking, projects">P</button>
-    <button class="building-floor-btn" type="button" data-goto="L" aria-label="Lobby, recommendations and skills">L</button>
-    {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}">1</button>{{ end }}
+    <button class="building-floor-btn" type="button" data-goto="P" aria-label="Parking, projects" title="Parking, projects">P</button>
+    <button class="building-floor-btn" type="button" data-goto="L" aria-label="Lobby, recommendations and skills" title="Lobby, recommendations and skills">L</button>
+    {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</button>{{ end }}
     {{ range sort $experience "Params.floor" "asc" }}
-    <button class="building-floor-btn" type="button" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</button>
+    <button class="building-floor-btn" type="button" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}" title="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</button>
     {{ end }}
-    <button class="building-floor-btn" type="button" data-goto="8" aria-label="Floor 8, writing">8</button>
-    <button class="building-floor-btn" type="button" data-goto="R" aria-label="Roof, contact">R</button>
+    <button class="building-floor-btn" type="button" data-goto="8" aria-label="Floor 8, writing" title="Floor 8, writing">8</button>
+    <button class="building-floor-btn" type="button" data-goto="R" aria-label="Roof, contact" title="Roof, contact">R</button>
   </nav>
 
   <p class="building-hint">Scroll, swipe or use the arrow keys to ride the elevator</p>
@@ -84,10 +84,10 @@
         <p class="floor-skills"><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>, <a href="https://github.com/yonatankarp">GitHub</a>, <a href="https://www.linkedin.com/in/yonatankarp/">LinkedIn</a></p>
         <button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Step inside</button>
       </article>
-      <div class="floor-panel" id="panel-R" style="--accent:{{ index $accent "R" }}" tabindex="-1" aria-label="Floor R in full">
+      <div class="floor-panel" id="panel-R" style="--accent:{{ index $accent "R" }}" tabindex="-1" role="region" aria-labelledby="ptR">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">R</span><p><b>Roof</b><span>{{ $home.contact.kicker }}</span></p></div>
-        <p class="panel-title">{{ $home.contact.title }}</p>
+        <h2 class="panel-title" id="ptR">{{ $home.contact.title }}</h2>
         <p>{{ $home.contact.text }}</p>
         <dl class="panel-facts">{{ range $home.contact.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
         <h3>{{ $home.fit.title }}</h3>
@@ -100,16 +100,16 @@
     </section>
 
     <section class="building-stop" id="floor-8" data-floor="8" aria-labelledby="f8">
-      <article class="floor-card" style="--accent:{{ index $accent "8" }}">
+      <article class="floor-card" style="--accent:{{ index $accent "8" }};--accent-text:#E0664A">
         <header><span class="floor-badge">8</span><span class="floor-company">Newsroom</span><span class="floor-when">{{ $home.writing.kicker }}</span></header>
         <h2 id="f8" tabindex="-1">{{ $home.writing.title }}</h2>
         <ul>{{ range first 3 $posts }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <span class="panel-soft">· {{ .Date.Format "Jan 2006" }}</span></li>{{ end }}</ul>
         <button class="step-in" type="button" aria-controls="panel-8" aria-expanded="false">Step inside</button>
       </article>
-      <div class="floor-panel" id="panel-8" style="--accent:{{ index $accent "8" }}" tabindex="-1" aria-label="Floor 8 in full">
+      <div class="floor-panel" id="panel-8" style="--accent:{{ index $accent "8" }};--accent-text:#E0664A" tabindex="-1" role="region" aria-labelledby="pt8">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">8</span><p><b>Newsroom</b><span>{{ $home.writing.kicker }}</span></p></div>
-        <p class="panel-title">{{ $home.writing.title }}</p>
+        <h2 class="panel-title" id="pt8">{{ $home.writing.title }}</h2>
         <ul class="panel-projects">
           {{ range first 8 $posts }}
           <li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <span class="panel-soft">· {{ .Date.Format "Jan 2006" }}</span>
@@ -130,10 +130,10 @@
         <ul>{{ range first 3 .Params.highlights }}<li>{{ . }}</li>{{ end }}</ul>
         <button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">Step inside</button>
       </article>
-      <div class="floor-panel" id="panel-{{ $floor }}" style="--accent:{{ index $accent $floor }}" tabindex="-1" aria-label="Floor {{ $floor }} in full">
+      <div class="floor-panel" id="panel-{{ $floor }}" style="--accent:{{ index $accent $floor }}" tabindex="-1" role="region" aria-labelledby="pt{{ $floor }}">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">{{ $floor }}</span><p><b>{{ .Params.company }}, {{ .Params.location }}</b><span>{{ replace .Params.duration " - " " – " }}</span></p></div>
-        <p class="panel-title">{{ replace .Title " - " ", " }}</p>
+        <h2 class="panel-title" id="pt{{ $floor }}">{{ replace .Title " - " ", " }}</h2>
         <p>{{ .Params.summary }}</p>
         <h3>What I did</h3>
         <ul>{{ range .Params.highlights }}<li>{{ . }}</li>{{ end }}</ul>
@@ -160,10 +160,10 @@
         <ul>{{ range first 4 $courses }}<li>{{ .Title }} ({{ .Params.year }})</li>{{ end }}</ul>
         <button class="step-in" type="button" aria-controls="panel-1" aria-expanded="false">Step inside</button>
       </article>
-      <div class="floor-panel" id="panel-1" style="--accent:{{ index $accent "1" }}" tabindex="-1" aria-label="Floor 1 in full">
+      <div class="floor-panel" id="panel-1" style="--accent:{{ index $accent "1" }}" tabindex="-1" role="region" aria-labelledby="pt1">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">1</span><p><b>{{ .Params.university }}</b><span>{{ replace .Params.year "-" " – " }}</span></p></div>
-        <p class="panel-title">{{ .Params.degree }}</p>
+        <h2 class="panel-title" id="pt1">{{ .Params.degree }}</h2>
         <p>{{ $home.education.title }}</p>
         {{ with .Params.teaching }}
         <h3>Teaching</h3>
@@ -187,10 +187,10 @@
         {{ with $skills }}<p class="floor-skills">{{ delimit .Params.working_set ", " }}</p>{{ end }}
         <button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">Step inside</button>
       </article>
-      <div class="floor-panel" id="panel-L" style="--accent:{{ index $accent "L" }}" tabindex="-1" aria-label="Floor L in full">
+      <div class="floor-panel" id="panel-L" style="--accent:{{ index $accent "L" }}" tabindex="-1" role="region" aria-labelledby="ptL">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">L</span><p><b>Lobby</b><span>{{ $home.about.kicker }}</span></p></div>
-        <p class="panel-title">{{ $home.about.title }}</p>
+        <h2 class="panel-title" id="ptL">{{ $home.about.title }}</h2>
         {{ range $home.about.paragraphs }}<p>{{ . }}</p>{{ end }}
         <dl class="panel-facts">{{ range $home.about.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
         {{ range first 1 (where $home.proof.items "floor" "L") }}
@@ -203,7 +203,7 @@
           <p class="panel-k">Result</p><p>{{ .result }}</p>
         </div>
         {{ end }}
-        <h3>{{ $home.testimonials.title }}</h3>
+        <h3>Recommendations</h3>
         {{ range $testimonials }}
         {{ $t := . }}
         <figure class="panel-quote">
@@ -237,10 +237,10 @@
         <button class="step-in" type="button" aria-controls="panel-P" aria-expanded="false">Step inside</button>
         <p class="floor-end">Bottom of the building: the lift goes no lower. Scroll up, or <a href="#floor-R" data-goto="R">ride to the roof</a> to get in touch.</p>
       </article>
-      <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }}" tabindex="-1" aria-label="Floor P in full">
+      <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }}" tabindex="-1" role="region" aria-labelledby="ptP">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">P</span><p><b>Parking</b><span>{{ $home.projects.kicker }}</span></p></div>
-        <p class="panel-title">{{ $home.projects.title }}</p>
+        <h2 class="panel-title" id="ptP">{{ $home.projects.title }}</h2>
         {{ range slice (slice "Upstream contributions" "contribution") (slice "Libraries and tools" "tool") (slice "Games" "game") }}
         {{ $label := index . 0 }}{{ $kind := index . 1 }}
         <h3>{{ $label }}</h3>

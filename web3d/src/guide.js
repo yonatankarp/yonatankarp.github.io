@@ -90,7 +90,15 @@ export function guide(api, root = document) {
 
   addEventListener('keydown', (e) => {
     if (!roomy.matches || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
-    if (open) { if (e.key === 'Escape') closePanel(); return; }   // the panel scrolls with the keys
+    if (open) {   // the panel scrolls with the keys, and Tab goes round inside it until it is closed (#37)
+      if (e.key === 'Escape') closePanel();
+      if (e.key === 'Tab') {
+        const ring = [...open.panel.querySelectorAll('a[href], button')], a = document.activeElement;
+        const [first, last] = e.shiftKey ? [ring.at(-1), ring[0]] : [ring[0], ring.at(-1)];
+        if (a === last || !open.panel.contains(a) || (e.shiftKey && a === open.panel)) { e.preventDefault(); first?.focus(); }
+      }
+      return;
+    }
     if (e.key === ' ' && e.target.closest?.('button, a, [role=button], summary')) return;   // Space presses the control
     const next = { ArrowDown: 1, PageDown: 1, ' ': e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
     if (next && !scrollsInside(document.activeElement, next)) {   // a long card scrolls first, as with the wheel

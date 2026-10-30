@@ -149,7 +149,8 @@
   .pixel .building-hint { display: none; }
   .pixel .building-scrim { background: linear-gradient(0deg, rgba(10, 11, 16, 0.75) 0, rgba(10, 11, 16, 0.5) 40%, rgba(10, 11, 16, 0) 52%); }
 }
-.pixel .floor-card a { color: var(--accent, var(--amber)); text-underline-offset: 4px; }
+/* Links are text: a floor whose paint is too dark to read on the panel sets a lighter --accent-text (#38). */
+.pixel .floor-card a { color: var(--accent-text, var(--accent, var(--amber))); text-underline-offset: 4px; }
 
 /* The street view: its hero card and the windows, which are buttons over the painted ones. */
 .pixel .exterior-windows { position: fixed; inset: 0; z-index: 2; pointer-events: none; visibility: hidden; }
@@ -230,7 +231,7 @@ html.panel-open .pixel .building-hint { visibility: hidden; }
 .pixel .floor-panel .panel-title { font: 400 36px/1.05 var(--display); margin: 18px 0 10px; }
 .pixel .floor-panel h3 { font: 400 26px/1 var(--display); margin: 28px 0 12px; color: var(--accent, var(--amber)); }
 .pixel .floor-panel p { font-size: 16px; line-height: 1.6; margin: 0 0 12px; }
-.pixel .floor-panel a { color: var(--accent, var(--amber)); text-underline-offset: 4px; }
+.pixel .floor-panel a { color: var(--accent-text, var(--accent, var(--amber))); text-underline-offset: 4px; }
 .pixel .floor-panel ul { list-style: none; padding: 0; margin: 0; font-size: 15.5px; line-height: 1.55; }
 .pixel .floor-panel li { position: relative; padding-left: 20px; margin-bottom: 9px; }
 .pixel .floor-panel li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 8px; height: 8px; background: var(--accent, var(--amber)); }

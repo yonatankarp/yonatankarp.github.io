@@ -10,7 +10,7 @@ duration: "Aug 2014 - Dec 2017"
 summary: "Vision-processing algorithms in C++, and production lines for the chips in South Korea and China."
 highlights:
   - "Developed algorithms for vision processing chips in C++."
-  - "Set up production lines in South Korea and China."
+  - "Set up production lines and their calibration tooling on-site in South Korea and China."
 ---
 
-Developed algorithms for vision processing chips in C++. Set up production lines in South Korea and China.
+Developed algorithms for vision processing chips in C++. Set up production lines and their calibration tooling on-site in South Korea and China.

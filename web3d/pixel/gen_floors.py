@@ -192,28 +192,44 @@ def frame_base(key, room_name, accent):
 
 
 # --- SumUp, floor 4: a Berlin café that takes cards; the template press stamps out new services for prod ---------
+LIGHTS = [(244, 74), (248, 71), (254, 77), (259, 73), (261, 64), (249, 62), (271, 75), (277, 70), (283, 76),
+          (287, 72), (272, 65), (288, 66)]   # windows in the skyline install_picks draws
+RAM = (193, 70)       # the press's ram, its top-left: it hangs in a bay install_picks leaves empty
+CARD = [None, -32, -25, -18, -12, -10, -10, -10, -12, -18, -25, None]   # the card's height over the terminal, by frame
+WAVES = ([(-1, 1), (0, 0), (1, 1)], [(-2, 1), (-1, 0), (0, 0), (1, 0), (2, 1)],
+         [(-3, 2), (-2, 1), (-1, 0), (0, 0), (1, 0), (2, 1), (3, 2)])   # contactless arcs, 3, 5 and 7 px
+
+
 def sumup(room, f):
-    if f in (0, 1):
-        room.nudge((182, 58, 215, 66), 0, 2)                        # the press stamps a new service
+    x, y = RAM                                                      # the press stamps a new service
+    y += 2 if f in (5, 6) else 0
+    room.rect(x + 4, RAM[1] - 1, x + 6, y, c("steel", 3))
+    room.rect(x, y, x + 10, y + 5, INK)
+    room.rect(x + 1, y + 1, x + 9, y + 4, c("steel", 4))
+    room.rect(x + 1, y + 1, x + 9, y + 2, c("steel", 5))
     room.blink((291, 50, 330, 146), greenish, c("plant", 1), f)     # rack LEDs
-    room.twinkle((238, 60, 316, 95), f)                              # Berlin's windows around the TV tower
-    tx, ty = 150, 78                                                # the card taps the terminal
-    cy = ty + [-22, -23, -22, -18, -13, -10, -10, -13, -17, -21, -22, -22][f]
+    for k, (x, y) in enumerate(LIGHTS):                             # Berlin's windows light up
+        if (f + 4 * k) % 6 < 3:
+            room.put(x, y, GLOW["city"])
+    if CARD[f] is None:                                             # the card taps the terminal
+        return
+    tx, cy = 152, 78 + CARD[f]
     for y in range(cy, cy + 10):
         for x in range(tx, tx + 16):
             room.put(x, y, INK if y in (cy, cy + 9) or x in (tx, tx + 15) else c("blue", 5 if y < cy + 3 else 4))
     room.rect(tx + 3, cy + 4, tx + 7, cy + 7, c("amber", 5))
-    if 4 <= f <= 7:                                                 # approved: green screen, tick, contactless waves
-        room.rect(156, 80, 165, 86, GLOW["green"])
-        for x, y in ((158, 83), (159, 84), (160, 83), (161, 82), (162, 81)):
+    if 5 <= f <= 7:                                                 # approved: green screen, tick, contactless waves
+        room.rect(157, 81, 163, 84, GLOW["green"])
+        for x, y in ((158, 82), (159, 83), (160, 82), (161, 81)):
             room.put(x, y, INK)
-        for r in (3, 6):
-            for a in range(-3, 4):
-                room.put(tx + 17 + r, cy + 5 + a, GLOW["wave"])
+        for i, arc in enumerate(WAVES):
+            for dx, dy in arc:
+                room.put(tx + 8 + dx, cy - 2 - 2 * i + dy, GLOW["wave"])
 
 
 # --- NICE, floor 3: a contact-centre operations room; the cache cabinet reshuffles (the cache refactor) -------
-CITIES = [(137, 43), (145, 48), (141, 53), (149, 63), (165, 48), (169, 58), (178, 46), (186, 52), (194, 49), (190, 64)]   # cities on the wall map
+CITIES = [(137, 43), (145, 48), (141, 53), (149, 63), (165, 48), (169, 58), (178, 46), (186, 52), (194, 49),
+          (190, 64)]   # cities on the wall map
 STATS = [(53, 14), (56, 9), (59, 18), (62, 6), (65, 12), (68, 16)]   # the queue-stats bars: row, length from x 208
 PRINTER = (294, 90)   # the printer's 8 px output slot: its left end and the lid's top row (install_picks draws the lid)
 SHEET = [9, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # how far the sheet is out, by frame: taken at f1, printed again by f11

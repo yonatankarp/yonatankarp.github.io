@@ -325,12 +325,18 @@ def roof(room, f):
 
 
 # --- Writing, floor 8: the newsroom; a post being typed, then printed -------------------------------------------
+POST = (12, 12, 12, 6)   # the laptop's paragraph, line by line
+PLASTER = (195, 154, 92)   # the painted rooms' wall (install_picks.WALL)
+
+
 def writing(room, f):
-    for i, y in enumerate((86, 89, 92)):                                   # lines appear on the laptop
-        for x in range(142, 142 + max(0, min(12, (f - 3 * i) * 3))):
-            room.put(x, y, c("cream", 4))
-    room.nudge((160, 86, 197, 92), [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f], 0)   # the typewriter's carriage
-    room.nudge((256, 112, 282, 122), 0, [0, 0, 0, 1, 1, 2, 2, 3, 3, 3, 2, 1][f])  # a page eases out of the press
+    n = sum(POST) if f == 0 else (f - 1) * sum(POST) // 10                # the room rests on a finished paragraph;
+    for i, w in enumerate(POST):                                           # then a fresh page, typed out by f11
+        room.rect(142, 86 + 3 * i, 142 + max(0, min(w, n - sum(POST[:i]))), 87 + 3 * i, c("cream", 4))
+    room.nudge((164, 80, 199, 89), [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f], 0,   # the typewriter's carriage, its
+               mask=lambda col: col != PLASTER, bg=PLASTER)                          # sheet and roller, not the wall
+    room.nudge((256, 115, 280, 124), 0, [0, 0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0][f],  # a page eases out of the press
+               mask=lambda col: col in R["cream"], bg=c("cream", 5))
 
 
 # --- Parking: the side projects parked below the street; the games live in the arcade cabinet ----------------

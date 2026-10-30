@@ -319,17 +319,31 @@ def billie_payments(room, f):
             room.rect(x, y, x + 7, y + 4, GLOW["green" if flagged else "red"])
 
 
+CITY_LIGHTS = [(57, 99), (68, 99), (79, 99), (90, 100), (101, 100), (112, 100), (123, 100), (134, 101), (236, 100),
+               (247, 97), (258, 100), (269, 100), (280, 100), (304, 97), (315, 100), (326, 97)]   # windows, clear of
+# the scaffolds, each a 2 x 1 pair
+
+
 def roof(room, f):
-    dy = [0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 1, 1][f]                           # the crane lowers its hook and lifts it again
-    room.nudge((180, 40, 193, 58), 0, dy)
-    for i, x in enumerate(range(278, 298)):                                # the flag ripples
-        lift = (i // 3 + f) % 4 == 0
-        if lift:
+    dy = [0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 1, 0][f]                           # the crane lowers its load and lifts it again:
+    room.rect(182, 33, 188, 35, INK)                                       # the trolley, its cable paying out,
+    room.rect(185, 35, 186, 45 + dy, INK)
+    room.rect(184, 45 + dy, 187, 48 + dy, INK)                             # the hook block,
+    room.put(185, 46 + dy, c("amber", 4))
+    for i in range(1, 6):                                                  # two slings
+        room.put(185 - i, 47 + dy + i * 4 // 5, INK)
+        room.put(185 + i, 47 + dy + i * 4 // 5, INK)
+    room.rect(178, 52 + dy, 193, 55 + dy, INK)                             # and a steel beam
+    room.rect(179, 53 + dy, 192, 54 + dy, c("steel", 3))
+    for i, x in enumerate(range(278, 295)):                                # the flag ripples
+        if (i // 3 + f) % 4 == 0:
             for y in range(55, 71):
-                room.put(x, y, room.get(x - 14, y) if y == 70 else room.get(x, y + 1))
-    room.twinkle((150, 86, 330, 100), f, count=12, dark_below=400, col=GLOW["amber"])   # the city switches on
+                room.put(x, y, room.get(x, y + 1))
+    for k, (x, y) in enumerate(CITY_LIGHTS):                               # the city switches on, window by window
+        if (k + f // 3) % 3:
+            room.rect(x, y, x + 2, y + 1, GLOW["amber"])
     if f % 4 < 2:
-        room.rect(232, 6, 234, 8, GLOW["red"])                              # the crane's warning light
+        room.rect(225, 3, 227, 5, GLOW["red"])                              # the warning light on the cat head
 
 
 # --- Writing, floor 8: the newsroom; a post being typed, then printed -------------------------------------------

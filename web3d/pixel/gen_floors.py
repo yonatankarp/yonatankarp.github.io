@@ -88,22 +88,29 @@ class Layer:
             for x in range(x0, x1):
                 self.put(x, y, col)
 
-    def roll(self, box, shift):
-        """Rotate a strip sideways by whole pixels, wrapping: things riding a belt or a pipe."""
+    def lift(self, box, mask=None, bg=None):
+        """A box's pixels as (x, y, col). With a mask (col -> bool) only the ones it picks out, and those are lifted
+        off: their place shows bg, a colour or (x, y) -> colour, so a moving thing leaves no copy of itself behind."""
         x0, y0, x1, y1 = box
-        n = x1 - x0
-        rows = [[self.px[x, y] for x in range(x0, x1)] for y in range(y0, y1)]
-        for j, row in enumerate(rows):
-            for i, col in enumerate(row):
-                self.px[x0 + (i + shift) % n, y0 + j] = col
+        out = [(x, y, self.px[x, y]) for y in range(y0, y1) for x in range(x0, x1)
+               if mask is None or mask(self.get(x, y))]
+        if mask is not None:
+            for x, y, _ in out:
+                self.put(x, y, bg(x, y) if callable(bg) else bg)
+        return out
 
-    def nudge(self, box, dx, dy):
-        """Move a block of pixels by (dx, dy): a press ram, a needle, a lid."""
-        x0, y0, x1, y1 = box
-        rows = [[self.px[x, y] for x in range(x0, x1)] for y in range(y0, y1)]
-        for j, row in enumerate(rows):
-            for i, col in enumerate(row):
-                self.put(x0 + i + dx, y0 + j + dy, col)
+    def roll(self, box, shift, mask=None, bg=None):
+        """Rotate a strip sideways by whole pixels, wrapping: things riding a belt or a pipe. With a mask, only those
+        pixels ride and the strip behind them shows bg (see lift)."""
+        x0, x1 = box[0], box[2]
+        for x, y, col in self.lift(box, mask, bg):
+            self.px[x0 + (x - x0 + shift) % (x1 - x0), y] = col
+
+    def nudge(self, box, dx, dy, mask=None, bg=None):
+        """Move a block of pixels by (dx, dy): a press ram, a needle, a lid. With a mask, only those pixels move and
+        the place they leave shows bg (see lift)."""
+        for x, y, col in self.lift(box, mask, bg):
+            self.put(x + dx, y + dy, col)
 
     def swap(self, a, b):
         """Exchange two equally sized blocks: things trading places on a shelf."""
@@ -115,7 +122,10 @@ class Layer:
                 self.px[a[0] + i, a[1] + j], self.px[b[0] + i, b[1] + j] = rb[j][i], ra[j][i]
 
     def blink(self, box, is_light, off, f, every=11, lit=3):
-        """Switch some of the lit pixels in a box off on this frame: LEDs, status lights."""
+        """Switch some of the lit pixels in a box off on this frame: LEDs, status lights. Never on frame 0, which the
+        room rests on."""
+        if f == 0:
+            return
         x0, y0, x1, y1 = box
         for y in range(y0, y1):
             for x in range(x0, x1):
@@ -173,7 +183,7 @@ def frame_base(key, room_name, accent):
             if x >= W - 8:
                 for y in range(CEIL, H - 12):
                     cv.put(x, y, painting.getpixel((x - LOBBY_X - 8, y - CEIL)))   # the dither repeats every 4
-    cv.rect(LOBBY_X + 59, CEIL + 41, LOBBY_X + 72, CEIL + 46, (26, 18, 8))          # the lift's floor display
+    cv.rect(LOBBY_X + 58, CEIL + 41, LOBBY_X + 73, CEIL + 46, (26, 18, 8))          # the lift's floor display, bezel to bezel
     for y, row in enumerate(FONT[key]):
         for x, ch in enumerate(row):
             if ch == "#":

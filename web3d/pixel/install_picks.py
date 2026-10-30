@@ -13,6 +13,7 @@ beside the lift stay the room's own, so its planks and furniture run unbroken up
 and <name>-px.png (464 x 154; the lobby is 132 x 154). Install the lobby before the floors.
 """
 import sys
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -178,6 +179,25 @@ def sprite(a, x, y, rows, col):
                 a[y + dy, x + dx] = col
 
 
+PLANK = {(160, 100, 15), (106, 63, 12)}                                # the floors' planks
+SHADE = {(127, 44, 36): (106, 63, 12), (82, 27, 24): (58, 34, 8), (160, 50, 39): (106, 63, 12)}   # skirting maroons
+
+
+def shadows(px, top):
+    """The shadows on the floor quantise to the skirting's maroons. Grow the planks back over them from below `top`,
+    from the planks inwards, so maroon things outlined in ink (a desk, a box) keep their colour."""
+    a = np.asarray(px).copy()
+    h, w = a.shape[:2]
+    todo = [(y, x) for y in range(top, h) for x in range(w) if tuple(a[y, x]) in PLANK]
+    while todo:
+        y, x = todo.pop()
+        for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+            if top <= ny < h and 0 <= nx < w and tuple(a[ny, nx]) in SHADE:
+                a[ny, nx] = SHADE[tuple(a[ny, nx])]
+                todo.append((ny, nx))
+    return Image.fromarray(a, "RGB")
+
+
 KEEP = {}       # name: boxes the light pass must not touch
 UNLIT = {}      # name: boxes no lamp may cast a cone on
 TOUCHUPS = {}   # name: the floor's own fix-up, run after the light pass
@@ -306,11 +326,14 @@ def chalk(px):
 TOUCHUPS["reichman"] = chalk
 
 # --- Floor 2, inuitive ---
+TOUCHUPS["inuitive"] = lambda px: shadows(px, 120)
 
 # --- Floor 3, nice ---
+TOUCHUPS["nice"] = lambda px: shadows(px, 142)   # above, the maroon is its skirting and cabinet
 KEEP["nice"] = [(366, 28, 402, 80)]   # floor 3's whiteboard, which its lamp's light touches
 
 # --- Floor 4, sumup ---
+TOUCHUPS["sumup"] = lambda px: shadows(px, 120)
 
 # --- Floor 5, billie_risk ---
 
@@ -405,9 +428,24 @@ def planks(px):
 TOUCHUPS["billie_payments"] = planks
 
 # --- Floor 8, writing ---
+TOUCHUPS["writing"] = lambda px: shadows(px, 142)   # its bookcase and press stand on maroon feet
 KEEP["writing"] = [(236, 0, 392, 34)]   # the pale lamp shades, which read as light
 
+
 # --- Roof ---
+def sky(px):
+    """The roof's dusk as an even dither. A cloud streak came out a grey the bands don't have, so it takes the band
+    above first; and the painted lobby wall ran on past the lift housing's corner, so sky and deck carry on there."""
+    a = np.asarray(px).copy()
+    for y in range(40, 47):
+        row, grey = a[y, 107:256], (a[y, 107:256] == G.c("sky", 4)).all(-1)
+        row[grey] = a[y - 1, 107:256][grey]
+    a[:, 109:117] = a[:, 117:125]                                          # the dither repeats every 4
+    return dither_bands(Image.fromarray(a, "RGB"), 84, 192)
+
+
+def mode(row):
+    return Counter(map(tuple, row)).most_common(1)[0][0]
 
 
 def install(name):
@@ -421,13 +459,21 @@ def install(name):
         lobby = Image.open(HERE / "picks" / "lobby-px.png").convert("RGB")
         px = pixelate(crop, FLOOR_PX, colours, keep=sorted({c for _, c in lobby.getcolors()}))
         if name == "roof":
-            px = dither_bands(px, 84, 192)                                 # sky
+            px = sky(px)
         else:
             px = relight(px, keep=KEEP.get(name, ()), unlit=UNLIT.get(name, ()))   # lamps
         if name in TOUCHUPS:
             px = TOUCHUPS[name](px)
-        lift = (0, 0, *LIFT[2:]) if name == "roof" else LIFT              # the roof's lift housing is all lobby plaster
+        side = np.asarray(px)[:, :LIFT[0]].copy()                          # the room's skirting beside the lift
+        lift = (0, 0, LIFT[2], LOBBY_PX[1]) if name == "roof" else LIFT   # the roof's lift housing is all lobby, floor too
         px.paste(lobby.crop(lift), lift[:2])
+        if name != "roof":                                                 # under the lift, the skirting is the room's
+            a, ref = np.asarray(px).copy(), np.asarray(lobby)
+            for y in range(134, LIFT[3]):
+                run, was = a[y, LIFT[0]:LIFT[2]], mode(ref[y, :LIFT[0]])
+                if was != G.INK:                                           # its ink lines run through the door frame
+                    run[(run == was).all(-1)] = mode(side[y])
+            px = Image.fromarray(a, "RGB")
     px.save(HERE / "picks" / f"{name}-px.png")
     print("installed", name, "seed", seed, crop.size, "->", px.size)
 

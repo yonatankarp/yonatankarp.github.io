@@ -429,7 +429,109 @@ TOUCHUPS["nice"] = lambda px: ops_room(shadows(px, 142))   # above, the maroon i
 # --- Floor 4, sumup ---
 LAMPS["sumup"] = [(177, 0, 34, 13), (236, 0, 33, 13, 0), (268, 0, 33, 13), (304, 0, 35, 13)]   # the copper one is off
 GONE["sumup"] = [(158, 0, 168, 36)]   # the doubled pendant beside the first
-TOUCHUPS["sumup"] = lambda px: shadows(px, 120)
+SKY = [((116, 34, 138), 22), ((142, 120, 160), 33), ((215, 154, 156), 43), ((255, 176, 162), 56)]   # dusk: colour,
+# the row it is pure at
+CITY = {(116, 34, 138), (142, 120, 160), (215, 154, 156), (255, 176, 162), (71, 48, 122), (44, 28, 79), (255, 210, 138)}
+SKYLINE = [  # Berlin's roofs in two flat tones: (x0, x1, top), behind and in front
+    [(373, 378, 60), (378, 384, 56), (384, 389, 62), (389, 395, 58), (395, 401, 61), (401, 407, 61), (407, 412, 57),
+     (412, 418, 63), (418, 423, 59), (423, 447, 61)],
+    [(373, 377, 72), (377, 383, 68), (383, 388, 74), (388, 395, 70), (395, 401, 73), (401, 406, 71), (406, 413, 67),
+     (413, 417, 73), (417, 423, 69), (423, 447, 72)]]
+CUBE = G.c("cyan", 5), G.c("cyan", 4)
+
+
+def cube(a, x, y):
+    """An 8 x 5 service block, outlined: lit top, cyan face."""
+    a[y:y + 5, x:x + 8] = G.INK
+    a[y + 1, x + 1:x + 7], a[y + 2:y + 4, x + 1:x + 7] = CUBE
+
+
+def cafe(px):
+    """Floor 4: the window's sky came out in hard bands behind a stair-stepped frame, with a mushy city and two TV
+    towers; the press's label, middle and legs melted; the bistro table lost its shape; the menu board is a smear;
+    the rack lost its rows. Each is drawn again plainly. The press's ram, the card and the city's lit windows move in
+    gen_floors.sumup()."""
+    a = np.asarray(px).copy()
+
+    def rack(x, y):                                                        # the rack stands in front of the window
+        return x >= 423 and y >= 46 or x >= 438 and y >= 45
+
+    a[4:12, 366:454] = WALL                                                # the window: the old slanted top off,
+    for y in range(19, 95):                                                # the panes: an even dusk, two rows of roofs
+        for x in range(373, 447):
+            if rack(x, y) or x >= 404 and y >= 80 and tuple(a[y, x]) not in CITY:   # nor the plant on the table
+                continue
+            i = max([k for k, (_, m) in enumerate(SKY) if m <= y], default=0)
+            t = 0 if i + 1 == len(SKY) or y < SKY[0][1] else (y - SKY[i][1]) / (SKY[i + 1][1] - SKY[i][1])
+            a[y, x] = SKY[i + 1][0] if t > BAYER[y % 4, x % 4] else SKY[i][0]
+            for tone, row in zip(((71, 48, 122), (44, 28, 79)), SKYLINE):
+                if any(x0 <= x < x1 and y >= top for x0, x1, top in row):
+                    a[y, x] = tone
+    a[24:34, 411], a[39:59, 411:413] = (71, 48, 122), (71, 48, 122)        # one Fernsehturm
+    for y, k in zip(range(34, 39), (1, 2, 2, 2, 1)):
+        a[y, 411 - k:412 + k] = (71, 48, 122)
+    assert all(tuple(a[y, x + 132]) in ((71, 48, 122), (44, 28, 79)) for x, y in G.LIGHTS), "a lit window off the roofs"
+    wood, maroon, ink = ((106, 63, 12), (160, 100, 15)), (127, 44, 36), G.INK
+    frame = [  # square bars, (box, colours across the bar): the frame, the casement, the mullion and the transom
+        (366, 12, 370, 100, (ink, *wood, ink)), (450, 12, 454, 45, (ink, *wood[::-1], ink)),
+        (366, 12, 454, 16, (ink, wood[1], wood[0], ink)),
+        (370, 16, 373, 95, (maroon, maroon, ink)), (447, 16, 450, 45, (ink, maroon, maroon)),
+        (370, 16, 450, 19, (maroon, maroon, ink)),
+        (396, 19, 401, 95, (ink, maroon, maroon, maroon, ink)), (373, 48, 447, 53, (ink, maroon, maroon, maroon, ink))]
+    for x0, y0, x1, y1, section in frame:
+        across_x = x1 - x0 == len(section)
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                if not rack(x, y):
+                    a[y, x] = section[x - x0] if across_x else section[y - y0]
+    a[37:70, 166:221] = (23, 50, 34)                                      # the menu board: one green, menu lines
+    for i, n in enumerate((18, 13, 20, 11, 15)):
+        a[42 + 5 * i, 170:170 + n], a[42 + 5 * i, 216] = G.c("cream", 3), G.c("amber", 4)
+    a[57:65, 332:345] = G.INK                                              # the press: a plain label,
+    a[60, [336, 339]] = G.c("amber", 5)
+    a[69:82, 323:337] = G.c("amber", 2)                                    # the ram's bay (the ram is gen_floors'),
+    cube(a, 326, 77)                                                       # the block under it,
+    belt = a[83:105, 340:358]                                              # the belt out and down, its smear cleared,
+    keep = np.zeros(belt.shape[:2], dtype=bool)
+    for col in (G.INK, (58, 53, 48), WALL, G.c("amber", 4), G.c("amber", 3)):
+        keep |= (belt == col).all(-1)
+    belt[~keep] = G.INK
+    a[84:87, 321:348], a[87, 321:348] = (58, 53, 48), G.INK
+    a[88:104, 321:340] = WALL                                              # two finished blocks on the shelf below
+    a[84:104, 318:320], a[84:104, 320] = G.c("amber", 4), G.INK            # beside the post's clean inner edge
+    cube(a, 322, 99)
+    cube(a, 331, 99)
+    a[122:138, 312:347] = a[116, 312:347]                                  # its posts straight down to two feet
+    for x0, x1 in ((309, 326), (333, 350)):
+        a[138, x0:x1] = a[141, x0:x1] = G.INK
+        a[139:141, x0:x1], a[139:141, [x0, x1 - 1]] = G.c("amber", 4), G.INK
+    a[138:142, 326:333] = WALL
+    for k in range(10):                                                    # the rack: a steel line between LED rows
+        y = 50 + 7 * k
+        a[y, 427:450], a[y + 1:y + 7, 426:450] = G.c("steel", 2), G.INK
+        a[y + 3, [437, 442]], a[y + 3, 446] = G.c("plant", 5), G.c("plant", 3)
+    a[120, 427:450] = G.c("steel", 2)
+    a[100:111, 370:423] = a[99, 411:423] = WALL                            # the bistro table: the old one off,
+    a[111:132, 388:423] = WALL
+    floor = a[132:144, 388:423]
+    for was in ((127, 44, 36), (82, 27, 24), (58, 34, 8), G.INK):
+        floor[(floor == was).all(-1)] = (106, 63, 12)
+    a[105, 392:419], a[105, [391, 419]] = G.c("wood", 4), G.INK             # an oval top over an ink underline,
+    a[106, 391:420], a[106, [390, 420]] = G.c("wood", 3), G.INK
+    a[107, 391:420] = G.INK
+    a[108:141, [404, 406]], a[108:141, 405] = G.INK, G.c("wood", 2)        # one pedestal leg and its foot
+    a[141, 401:410], a[143, 399:412] = G.INK, G.INK
+    a[142, 400:411], a[142, [399, 411]] = G.c("wood", 2), G.INK
+    for x in (392, 401):                                                   # two cups, handles out
+        a[101, x:x + 6], a[102:105, [x, x + 5]], a[102:105, x + 1:x + 5] = G.INK, G.INK, G.c("cream", 5)
+        a[[102, 104], x + 6], a[103, x + 7] = G.INK, G.INK
+    a[101, 411:417], a[102:105, [411, 416]] = G.INK, G.INK                 # and the plant's terracotta pot
+    a[102:104, 412:416], a[104, 412:416] = G.c("red", 4), G.c("red", 3)
+    a[98:101, 413:415] = G.c("plant", 3)
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["sumup"] = lambda px: cafe(shadows(px, 120))
 
 # --- Floor 5, billie_risk ---
 LAMPS["billie_risk"] = [(150, 0, 28, 19), (191, 0, 30, 15), (258, 0, 32, 17), (296, 0, 32, 15), (324, 0, 32, 15)]

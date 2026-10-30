@@ -11,8 +11,6 @@ link: "https://yonatankarp.github.io/ff4k/"
 caseStudy: true
 tech: ["Kotlin", "Multiplatform", "Coroutines"]
 years: "2025–present"
-build:
-  list: local
 params:
     button:
         icon: "icon-arrow-right"

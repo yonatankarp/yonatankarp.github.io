@@ -8,7 +8,7 @@
 {{ $degree := index (where $education "Params.floor" "1") 0 }}
 {{ $courses := where $education "Params.floor" "!=" "1" }}
 {{ $testimonials := sort (where .Site.RegularPages "Type" "testimonial") "Date" "desc" }}
-{{ $projects := (.Site.GetPage "/projects").RegularPages.ByWeight }}{{/* listed locally only, so not in .Site.RegularPages */}}
+{{ $projects := (.Site.GetPage "/projects").RegularPages.ByWeight }}{{/* most are listed locally only, so not in .Site.RegularPages */}}
 {{ $skills := .Site.GetPage "/skills" }}
 {{ $posts := sort (where .Site.RegularPages "Type" "blog") "Date" "desc" }}
 {{/* The colour of each storey's accent band, as painted (web3d/pixel/gen_floors.py FLOORS). */}}
@@ -45,6 +45,7 @@
     <a class="building-name" href="#floor-E" data-goto="E">Yonatan Karp-Rudin</a>
     <div class="building-links">
       <nav aria-label="Site">
+        <a href="{{ "projects/" | relURL }}">Projects</a>
         <a href="{{ "blog/" | relURL }}">Blog</a>
         <a href="{{ "cv/" | relURL }}">CV</a>
       </nav>
@@ -135,13 +136,16 @@
 
     {{ range $experience }}
     {{ $floor := .Params.floor }}
+    {{ $cases := where $home.proof.items "floor" $floor }}
     <section class="building-stop" id="floor-{{ $floor }}" data-floor="{{ $floor }}" aria-labelledby="f{{ $floor }}">
       <article class="floor-card" style="--accent:{{ index $accent $floor }}">
         <header><span class="floor-badge">{{ $floor }}</span><span class="floor-company">{{ .Params.company }}, {{ index (split .Params.location ",") 0 }}</span><span class="floor-when">{{ replace .Params.duration " - " " – " }}</span></header>
         <h2 id="f{{ $floor }}" tabindex="-1">{{ replace .Title " - " ", " }}</h2>
+        {{- /* Above the summary, so a reader riding past sees the floor has a case study, even on a phone (#34). */}}
+        {{ range $cases }}<p class="floor-case"><b>Case study · {{ .label }}</b> <span>{{ .title }}</span></p>{{ end }}
         <p class="floor-lead">{{ .Params.summary }}</p>
         <ul>{{ range first 3 .Params.highlights }}<li>{{ . }}</li>{{ end }}</ul>
-        <button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">Step inside</button>
+        <button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">{{ if not $cases }}Step inside{{ else if eq (len $cases) 1 }}Read the case study{{ else }}Read the case studies{{ end }}</button>
       </article>
       <div class="floor-panel" id="panel-{{ $floor }}" style="--accent:{{ index $accent $floor }}" tabindex="-1" role="region" aria-labelledby="pt{{ $floor }}">
         <button class="panel-back" type="button">Back to the lift</button>
@@ -150,7 +154,7 @@
         <p>{{ .Params.summary }}</p>
         <h3>What I did</h3>
         <ul>{{ range .Params.highlights }}<li>{{ . }}</li>{{ end }}</ul>
-        {{ range first 1 (where $home.proof.items "floor" $floor) }}
+        {{ range $cases }}
         <h3>Case study</h3>
         <div class="panel-case">
           <p class="panel-k">{{ .label }}</p>
@@ -206,16 +210,6 @@
         <h2 class="panel-title" id="ptL">{{ $home.about.title }}</h2>
         {{ range $home.about.paragraphs }}<p>{{ . }}</p>{{ end }}
         <dl class="panel-facts">{{ range $home.about.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
-        {{ range first 1 (where $home.proof.items "floor" "L") }}
-        <h3>Case study</h3>
-        <div class="panel-case">
-          <p class="panel-k">{{ .label }}</p>
-          <h4>{{ .title }}</h4>
-          <p class="panel-k">Context</p><p>{{ .context }}</p>
-          <p class="panel-k">Decision</p><p>{{ .decision }}</p>
-          <p class="panel-k">Result</p><p>{{ .result }}</p>
-        </div>
-        {{ end }}
         <h3>Recommendations</h3>
         {{ range $testimonials }}
         {{ $t := . }}
@@ -262,8 +256,10 @@
           {{ $isGame := in (lower .Params.projectKind) "game" }}
           {{ $group := cond (eq .Params.group "contribution") "contribution" (cond $isGame "game" "tool") }}
           {{ if eq $group $kind }}
-          <li><a href="{{ .Params.link }}">{{ replace .Title " (contributor)" "" }}</a> <span class="panel-soft">· {{ .Params.projectKind }}</span>
+          {{- /* A case study's own page first, its repository or docs second (#33). */}}
+          <li>{{ if .Params.caseStudy }}{{ replace .Title " (contributor)" "" }}{{ else }}<a href="{{ .Params.link }}">{{ replace .Title " (contributor)" "" }}</a>{{ end }} <span class="panel-soft">· {{ .Params.projectKind }}</span>
             <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 180 }}</span>
+            {{ if .Params.caseStudy }}<span class="panel-desc"><a href="{{ .RelPermalink }}">Case study</a> · <a href="{{ .Params.link }}">{{ .Params.button.btnText }}</a></span>{{ end }}
             {{ with .Params.tech }}<span class="panel-chips">{{ range . }}<i>{{ . }}</i>{{ end }}</span>{{ end }}</li>
           {{ end }}
           {{ end }}

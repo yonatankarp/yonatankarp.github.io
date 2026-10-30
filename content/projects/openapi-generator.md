@@ -11,8 +11,6 @@ link: "https://github.com/OpenAPITools/openapi-generator"
 caseStudy: true
 tech: ["Kotlin", "Spring Boot", "OpenAPI"]
 years: "2023-2026"
-build:
-  list: local
 params:
     button:
         icon: "icon-arrow-right"

@@ -382,12 +382,42 @@ def reception(room, f):
                 room.put(x + dx, y, HEADLIGHT)
 
 
+LAND = ["........................",   # the globe's map, one turn: 24 px, 2 px a frame
+        "...##.........###.......",
+        "..####.......#####......",
+        ".######.....#######.....",
+        ".#######....######......",
+        "..######.....####.......",
+        "...####.......###.......",
+        "....###........#........",
+        ".....##...........##....",
+        ".....###.........####...",
+        "......####......######..",
+        "......#####.....######..",
+        ".......####......####...",
+        ".......###........##....",
+        "........##..............",
+        "........#.........###...",
+        ".................#####..",
+        "..................###...",
+        "........................",
+        "........................",
+        "........................"]
+
+
 def reichman(room, f):
-    room.roll((278, 67, 289, 81), f)                                       # the globe turns
-    for i, y in enumerate((68, 70, 72)):                                   # notes typed on the lectern laptop
-        n = max(0, min(10, (f - 4 * i) * 3))
-        for x in range(247, 247 + n):
-            room.put(x, y, c("dark", 3))
+    gx, gy, r = 281, 73, 10                                                # the globe turns under fixed shading
+    disc = {(dx, dy) for dy in range(-r, r + 1) for dx in range(-r, r + 1) if dx * dx + dy * dy <= r * r + r}
+    for dx, dy in disc:
+        edge = any(p not in disc for p in ((dx + 1, dy), (dx - 1, dy), (dx, dy + 1), (dx, dy - 1)))
+        land = LAND[dy + r][(dx - 2 * f) % 24] == "#"
+        lit = 5 if (dx, dy) == (-4, -5) else 4 if 2 * dx + dy < 9 else 3   # a glint; the night side
+        room.put(gx + dx, gy + dy, INK if edge else c("plant" if land else "blue", min(lit, 4) if land else lit))
+    if f:                                                                  # the hierarchy is drawn again on the board
+        room.rect(200, 60 + min(14, 3 + (f - 1) * 3 // 2), 221, 74, c("chalk", 2))
+    for i, (y, n) in enumerate(((69, 10), (71, 10), (73, 7))):            # a note typed on the lectern laptop
+        n = n if f == 0 else max(0, min(n, (f - 1 - 3 * i) * 4))
+        room.rect(247, y, 247 + n, y + 1, c("dark", 3))
 
 
 FLOORS = {  # key: (painting, accent ramp, animation), bottom to top

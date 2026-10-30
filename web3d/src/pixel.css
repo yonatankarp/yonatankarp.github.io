@@ -59,8 +59,8 @@
   overflow: auto; overscroll-behavior: contain;
   scroll-padding: 12px 0 72px;   /* a link tabbed to stops clear of the pinned Step inside and keeps its focus ring */
 }
-/* On wide screens the card covers the lift doors: it arrives once they have opened. */
-@media (min-width: 761px) { html.building--guided .pixel .building-stop.is-here .floor-card { transition-delay: 450ms; } }
+/* On wide screens the card covers the lift doors: it arrives once they have opened. The street has no doors. */
+@media (min-width: 761px) { html.building--guided .pixel .building-stop.is-here:not(.building-stop--hero) .floor-card { transition-delay: 450ms; } }
 @media (prefers-reduced-motion: reduce) { .pixel .floor-card, html.building--guided .pixel .building-stop.is-here .floor-card { transition: none; } }
 .pixel .floor-card h2 { font-family: var(--display); font-weight: 400; font-stretch: normal; font-size: 30px; line-height: 1; letter-spacing: 0.01em; }
 .pixel .floor-company { font-size: 15px; font-weight: 500; }

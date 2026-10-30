@@ -178,6 +178,16 @@ def sprite(a, x, y, rows, col):
                 a[y + dy, x + dx] = col
 
 
+KEEP = {}       # name: boxes the light pass must not touch
+UNLIT = {}      # name: boxes no lamp may cast a cone on
+TOUCHUPS = {}   # name: the floor's own fix-up, run after the light pass
+
+
+# --- Parking ---
+
+# --- Lobby, reception ---
+
+# --- Floor 1, reichman ---
 GLYPHS = {  # floor 1's chalk drawings, 1px strokes
     "tree": ["....###.###....",
              "..##...#...##..",
@@ -293,6 +303,22 @@ def chalk(px):
     return Image.fromarray(a, "RGB")
 
 
+TOUCHUPS["reichman"] = chalk
+
+# --- Floor 2, inuitive ---
+
+# --- Floor 3, nice ---
+KEEP["nice"] = [(366, 28, 402, 80)]   # floor 3's whiteboard, which its lamp's light touches
+
+# --- Floor 4, sumup ---
+
+# --- Floor 5, billie_risk ---
+
+# --- Floor 6, billie_orchestrator ---
+KEEP["billie_orchestrator"] = [(220, 30, 355, 95)]    # the wall screen: its invoice cards are bright
+UNLIT["billie_orchestrator"] = [(220, 30, 355, 95)]   # the two lamps hung in front of that screen cast no cone on it
+
+
 def screen(px):
     """Floor 6: the wall screen's bezel came out lamp-lit brown where the two lamps hang in front of it, and its
     right-hand panel came out as wall colour. Its frame is redrawn from an intact column, its sides as dark steel,
@@ -350,6 +376,10 @@ def ghost(px):
     return Image.fromarray(a, "RGB")
 
 
+TOUCHUPS["billie_orchestrator"] = lambda px: ghost(screen(px))
+
+
+# --- Floor 7, billie_payments ---
 def planks(px):
     """Floor 7: the red tray's reflection turned whole planks red; grow the plank colours back over them, from the
     planks inwards, so the tray and the box (outlined in ink) keep theirs."""
@@ -372,13 +402,12 @@ def planks(px):
     return Image.fromarray(a, "RGB")
 
 
-KEEP = {"nice": [(366, 28, 402, 80)],    # floor 3's whiteboard, which its lamp's light touches
-        "writing": [(236, 0, 392, 34)],   # floor 8's pale lamp shades, which read as light
-        "billie_orchestrator": [(220, 30, 355, 95)]}   # floor 6's wall screen: its invoice cards are bright
-UNLIT = {"billie_orchestrator": [(220, 30, 355, 95)]}   # the two lamps hung in front of that screen cast no cone on it
+TOUCHUPS["billie_payments"] = planks
 
+# --- Floor 8, writing ---
+KEEP["writing"] = [(236, 0, 392, 34)]   # the pale lamp shades, which read as light
 
-TOUCHUPS = {"reichman": chalk, "billie_orchestrator": lambda px: ghost(screen(px)), "billie_payments": planks}
+# --- Roof ---
 
 
 def install(name):

@@ -10,9 +10,10 @@
   --steel-hi: #97a2ac;
   --amber: #ffb547;
   --px: 4px;
-  --display: 'Jersey 15', 'Pixelify Sans', system-ui, sans-serif;   /* headings, floor numbers, buttons: only at 30px (2x its 15px grid) */
-  font-family: 'Outfit', system-ui, sans-serif;                      /* body text: the site's own face, set for reading */
+  --display: 'Jersey 15', system-ui, sans-serif;   /* headings, floor numbers, buttons: at 15 or 30px (its grid) */
+  font-family: 'Outfit', system-ui, sans-serif;     /* body text: the site's own face, set for reading */
   color: var(--text);
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;   /* card and panel text the same weight */
 }
 .pixel #pixel-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
 /* A quiet zone for reading: the card's side of the scene is dimmed (left on wide screens, bottom on phones). */
@@ -23,7 +24,9 @@
 
 /* Stepped corners: the outline of a pixel-art box, one step of --px at each corner. */
 .pixel .px-box, .pixel .floor-card, .pixel .floor-badge, .pixel .building-download, .pixel .building-name,
-.pixel .elevator, .pixel .building-floor-btn, .pixel .elevator-display, .pixel .building-hint {
+.pixel .elevator, .pixel .building-floor-btn, .pixel .elevator-display, .pixel .building-hint, .pixel .step-in,
+.pixel .panel-back, .pixel .building-links a, .pixel .panel-case, .pixel .panel-chips i, .pixel .panel-quote img,
+.pixel .floor-card .hero-cta, .pixel .floor-panel {
   border-radius: 0;
   clip-path: polygon(
     var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
@@ -35,28 +38,38 @@
 /* The card starts under the name and links (where the panels start) and stops clear of the hint; a taller card
    scrolls inside itself, which guide.js lets the wheel and swipes do before the lift moves. */
 .pixel .building-stop { filter: drop-shadow(8px 8px 0 rgba(0, 0, 0, 0.45)); padding: 132px clamp(16px, 3vw, 36px) 104px 24px; }
-@media (min-width: 1100px) { .pixel .building-stop { padding-bottom: 24px; } }   /* the centred hint is clear of the card */
+@media (min-width: 1100px) { .pixel .building-stop { padding-bottom: 24px; } }   /* the hint is clear of the card */
 @media (max-height: 520px) { .pixel .building-stop { padding-bottom: 16px; } .pixel .building-hint { display: none; } }
+.pixel .floor-card, .pixel .floor-panel {
+  /* The ink frame is a border, not an inset shadow, so text scrolling inside never paints over it (and the
+     scrollbar sits inside it); the highlight and the floor's stripe are inset shadows within. */
+  border: 4px solid var(--ink);
+  box-shadow: inset 4px 4px 0 0 var(--panel-hi), inset 12px 0 0 0 var(--accent, var(--amber));
+  scrollbar-width: thin; scrollbar-color: var(--steel-hi) var(--ink);
+}
+.pixel .floor-card::-webkit-scrollbar, .pixel .floor-panel::-webkit-scrollbar { width: 8px; background: var(--ink); }   /* Safari */
+.pixel .floor-card::-webkit-scrollbar-thumb, .pixel .floor-panel::-webkit-scrollbar-thumb { background: var(--steel-hi); }
 .pixel .floor-card {
+  transform: translateY(16px); transition: opacity 240ms steps(4), transform 240ms steps(4);   /* whole 4px steps */
   background: var(--panel);
-  border: 0;
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--panel-hi), inset 16px 0 0 0 var(--accent, var(--amber));
   width: min(400px, 30vw);       /* ends over the lift lobby, clear of the room */
-  padding: 26px 26px 24px 38px;
+  padding: 22px 22px 20px 34px;
   color: var(--text);
   max-height: 100%;              /* of the fixed stop; without JavaScript the stop has no height and this is none */
   overflow: auto; overscroll-behavior: contain;
   scroll-padding: 12px 0 72px;   /* a link tabbed to stops clear of the pinned Step inside and keeps its focus ring */
-  scrollbar-width: thin; scrollbar-color: var(--steel) transparent;
 }
+/* On wide screens the card covers the lift doors: it arrives once they have opened. */
+@media (min-width: 761px) { html.building--guided .pixel .building-stop.is-here .floor-card { transition-delay: 450ms; } }
+@media (prefers-reduced-motion: reduce) { .pixel .floor-card, html.building--guided .pixel .building-stop.is-here .floor-card { transition: none; } }
 .pixel .floor-card h2 { font-family: var(--display); font-weight: 400; font-stretch: normal; font-size: 30px; line-height: 1; letter-spacing: 0.01em; }
 .pixel .floor-company { font-size: 15px; font-weight: 500; }
 .pixel .floor-when { font-size: 15px; color: var(--text-soft); }
-.pixel .floor-lead { font-size: 17px; line-height: 1.55; }
-.pixel .floor-card ul { font-size: 15px; line-height: 1.6; color: var(--text); padding-left: 0; list-style: none; }
+.pixel .floor-lead { font-size: 16px; line-height: 24px; }
+.pixel .floor-card ul { font-size: 15px; line-height: 24px; color: var(--text); padding-left: 0; list-style: none; }
 .pixel .floor-card li { position: relative; padding-left: 20px; }
 .pixel .floor-card li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 8px; height: 8px; background: var(--accent, var(--amber)); }
-.pixel .floor-skills { font-size: 15px; color: var(--text-soft); border-top: 4px solid var(--panel-hi); }
+.pixel .floor-skills { font-size: 15px; line-height: 24px; color: var(--text-soft); border-top: 4px solid var(--panel-hi); }
 .pixel .floor-badge {
   width: 48px; height: 48px;
   background: var(--accent, var(--amber));
@@ -69,7 +82,7 @@
 .pixel .building-name {
   background: var(--panel);
   box-shadow: inset 0 0 0 4px var(--ink);
-  padding: 12px 18px;
+  display: flex; align-items: center; box-sizing: border-box; height: 56px; padding: 0 18px;
   font-family: var(--display); font-weight: 400; font-stretch: normal; font-size: 30px; color: var(--text);
   backdrop-filter: none;
 }
@@ -78,7 +91,7 @@
   background: var(--amber);
   color: var(--ink);
   font-family: var(--display); font-size: 30px; font-weight: 400;
-  padding: 0 20px; min-height: 52px;
+  padding: 0 20px; min-height: 56px;
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a, inset -4px -4px 0 4px #d38f1b;
   transition: transform 80ms steps(1);
 }
@@ -99,7 +112,7 @@
   border-radius: 0;
   background: var(--steel);
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--steel-hi), inset -4px -4px 0 4px #30363e;
-  padding: 10px 14px;
+  padding: 8px 14px;
   gap: 8px;
 }
 .pixel .elevator-display { margin: 0 4px 0 0; }
@@ -108,29 +121,31 @@
   width: 48px; height: 40px;
   background: #1a1208;
   box-shadow: inset 0 0 0 4px var(--ink);
-  font-family: var(--display); font-size: 30px;
+  font: 400 30px/1 var(--display); font-variant-numeric: normal;
   text-shadow: none;
 }
 .pixel .elevator-arrow { border-left-width: 6px; border-right-width: 6px; border-bottom-width: 8px; }
 .pixel .building-floor-btn {
-  width: 44px; height: 44px;
+  width: 44px; height: 40px;
   border: 0; border-radius: 0;
   background: #30363e;
   color: var(--text);
   font: 400 30px/1 var(--display);
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #4a525c;
 }
-.pixel .building-floor-btn:hover { background: #4a525c; }
+.pixel .building-floor-btn:hover { background: #3c434c; }
 .pixel .building-floor-btn[aria-current="true"] {
   background: var(--amber);
   color: var(--ink);
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a;
 }
 /* The stepped clip-path cuts any outline away, so focus is a ring drawn inside the box: cream, then ink. */
-.pixel .building-name:focus-visible, .pixel .building-floor-btn:focus-visible, .pixel .building-download:focus-visible {
+.pixel .building-name:focus-visible, .pixel .building-floor-btn:focus-visible, .pixel .building-download:focus-visible,
+.pixel .floor-card .step-in:focus-visible, .pixel .panel-back:focus-visible, .pixel .building-links a:focus-visible,
+.pixel .floor-card .hero-cta:focus-visible {
   outline: none; box-shadow: inset 0 0 0 4px var(--text), inset 0 0 0 8px var(--ink);
 }
-.pixel .building-hint { border-radius: 0; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; }
+.pixel .building-hint { left: calc(50% + 12px + min(200px, 15vw)); white-space: nowrap; border-radius: 0; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; }
 
 /* Phones stack the room (centred at 30% of the height by pixel.js, 360px tall), the elevator just under it,
    then the card, which scrolls inside itself before the lift moves. */
@@ -139,18 +154,17 @@
      never above the links; the elevator rides just above it. */
   .building.pixel { --card-top: clamp(116px, calc(100svh - 216px), calc(30svh + 260px)); }
   .pixel .building-stop { align-items: flex-end; padding: var(--card-top) 12px 16px; }
-  .pixel .floor-card { width: 100%; padding: 20px 20px 18px 30px; }
-  .pixel .floor-lead { font-size: 16px; }
+  .pixel .floor-card { width: 100%; padding: 16px 16px 14px 26px; }
   .pixel .elevator { top: calc(var(--card-top) - 64px); padding: 8px; gap: 4px; }
   /* At 400% zoom there is no row left for it between the links and the card: swipes and keys still ride. */
   @media (max-height: 340px) { .pixel .elevator { visibility: hidden; } }
   .pixel .building-floor-btn { width: 36px; height: 36px; }
   .pixel .elevator-display { display: none; }
-  .pixel .building-name { padding: 10px 14px; }
+  .pixel .building-name { padding: 0 14px; }
   .pixel .building-hint { display: none; }
   .pixel .building-scrim { background: linear-gradient(0deg, rgba(10, 11, 16, 0.75) 0, rgba(10, 11, 16, 0.5) 40%, rgba(10, 11, 16, 0) 52%); }
 }
-.pixel .floor-card a { color: var(--accent, var(--amber)); text-underline-offset: 4px; }
+.pixel .floor-card a, .pixel .floor-panel a { color: var(--text); text-decoration-color: var(--accent, var(--amber)); text-decoration-thickness: 2px; text-underline-offset: 4px; }
 
 /* The street view: its hero card and the windows, which are buttons over the painted ones. */
 .pixel .exterior-windows { position: fixed; inset: 0; z-index: 2; pointer-events: none; visibility: hidden; }
@@ -159,9 +173,10 @@
 .pixel .building-window:hover { box-shadow: 0 0 0 4px var(--amber); }
 .pixel .building-window:focus-visible { outline: 4px solid var(--text); outline-offset: 4px; }
 .pixel .building-stop--hero .floor-card { width: min(400px, 30vw); }
-.pixel .floor-eyebrow { margin: 0 0 12px; font-size: 15px; font-weight: 500; color: var(--accent, var(--amber)); }
+.pixel .floor-eyebrow { margin: 0 0 12px; font-size: 15px; line-height: 24px; font-weight: 500; color: var(--accent, var(--amber)); }
 .pixel .floor-card h1 { margin: 0 0 16px; font-family: var(--display); font-weight: 400; font-size: 45px; line-height: 1; }
-.pixel .floor-quotes li { margin-bottom: 12px; }
+.pixel .floor-quotes li { margin-bottom: 12px; padding-left: 0; }
+.pixel .floor-quotes li::before { content: none; }
 .pixel .floor-quotes q { color: var(--text); }
 .pixel .floor-quotes cite { display: block; font-style: normal; color: var(--text-soft); }
 @media (max-width: 760px) {
@@ -178,7 +193,11 @@
   .pixel .building-download span { display: none; }
   .pixel .building-download { padding: 0 14px; }
 }
-.pixel .elevator-arrow:not([data-dir="up"]):not([data-dir="down"]) { visibility: hidden; }
+.pixel .elevator-arrow:not([data-dir="up"]):not([data-dir="down"]) { display: none; }
+@media (min-width: 761px) and (max-width: 1279px) {   /* tablets: a wider hero card with a smaller title, so it is not six lines */
+  .pixel .building-stop--hero .floor-card { width: min(400px, 40vw); }
+  .pixel .floor-card h1 { font-size: 30px; }
+}
 @media (min-width: 761px) and (max-width: 1279px) {   /* the panel moves beside the download button, clear of the name */
   .pixel .elevator { left: auto; right: 96px; transform: none; padding: 8px 10px; gap: 4px; }
   .pixel .building-floor-btn { width: 36px; height: 40px; }
@@ -188,82 +207,95 @@ html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card 
 /* The way out to the rest of the site, under the name: small pixel tabs. */
 .pixel .building-links { position: fixed; top: 84px; left: clamp(16px, 3vw, 36px); display: flex; gap: 8px; }
 .pixel .building-links a {
-  padding: 6px 12px; font-size: 15px; font-weight: 500; color: var(--text); text-decoration: none; background: var(--panel);
+  display: flex; align-items: center; min-height: 44px; box-sizing: border-box; padding: 0 12px; font-size: 15px; font-weight: 500; color: var(--text); text-decoration: none; background: var(--panel);
   box-shadow: inset 0 0 0 4px var(--ink);
 }
 .pixel .building-links a:hover { background: var(--panel-hi); }
-.pixel .building-links a:focus-visible { outline: 4px solid var(--text); outline-offset: 4px; }
-@media (max-width: 760px) { .pixel .building-links { top: 76px; } .pixel .building-links a { padding: 4px 10px; } }
+@media (max-width: 760px) { .pixel .building-links a { padding: 0 12px; } }
 /* Without JavaScript there is no lift to ride: the floors are a plain page, read top to bottom. */
 html:not(.building--guided) .pixel .elevator, html:not(.building--guided) .pixel .exterior-windows { display: none; }
 
 /* Step inside: each floor's full story, a wide panel over the left of its room (a sheet from the bottom on
    phones). The short card is the preview; while a panel is open the lift stays where it is. */
-/* It is the card's footer: when the card scrolls it stays in view at the bottom, with stepped shading above it
-   that says there is more, a strip of panel and the card's ink edge below, and room for its focus ring. */
-.pixel .floor-card .step-in {
-  display: flex; width: 100%; justify-content: center; margin-top: 16px; padding: 10px 16px; border: 0; cursor: pointer;
+/* It is the card's footer: when the card scrolls its bar stays in view at the bottom, with stepped shading above
+   it that says there is more and a strip of panel below. The bar carries those (the button's stepped corners
+   would clip them away). */
+.pixel .step-in-bar {
   position: sticky; bottom: -16px;   /* sticky insets count from the card's content box: 8px off its edge */
-  background: var(--accent, var(--amber)); color: var(--ink); font: 400 24px/1 var(--display);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px rgba(255, 255, 255, 0.35),
-    0 -4px 0 0 rgba(21, 25, 35, 0.85), 0 -8px 0 0 rgba(21, 25, 35, 0.6), 0 -12px 0 0 rgba(21, 25, 35, 0.3),
-    0 4px 0 0 var(--panel), 0 8px 0 0 var(--ink);
+  margin-top: 16px; background: var(--panel);
+  box-shadow: 0 -4px 0 0 rgba(21, 25, 35, 0.85), 0 -8px 0 0 rgba(21, 25, 35, 0.6), 0 -12px 0 0 rgba(21, 25, 35, 0.3), 0 4px 0 0 var(--panel);
 }
-.pixel .floor-card .step-in::after { content: '→'; margin-left: 10px; font-family: 'Outfit', sans-serif; font-size: 20px; }
-.pixel .floor-card .step-in:focus-visible, .pixel .panel-back:focus-visible { outline: 4px solid var(--text); outline-offset: 4px; }
+/* A card with no Step inside still says there is more: the same shading, pinned to its bottom edge (it is the
+   panel's own colour, so it only shows over text). */
+.pixel .floor-card:not(:has(.step-in-bar))::after {
+  content: ''; display: block; position: sticky; bottom: -20px; height: 12px; margin-top: -12px; pointer-events: none;
+  background: linear-gradient(rgba(21, 25, 35, 0.3) 0 4px, rgba(21, 25, 35, 0.6) 4px 8px, rgba(21, 25, 35, 0.85) 8px);
+}
+.pixel .floor-card .step-in {
+  display: flex; width: 100%; justify-content: center; align-items: center; padding: 7px 16px; border: 0; cursor: pointer;
+  background: var(--accent, var(--amber)); color: var(--ink); font: 400 30px/1 var(--display);
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px rgba(255, 255, 255, 0.35);
+  transition: transform 80ms steps(1);
+}
+.pixel .floor-card .step-in::after {   /* a 10x10 pixel arrow, drawn at 2x */
+  content: ''; width: 20px; height: 20px; margin-left: 10px; background: currentColor;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' shape-rendering='crispEdges'%3E%3Cpath d='M0 4h5V2h1v1h1v1h1v2H7v1H6v1H5V6H0z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+}
+.pixel .floor-card .step-in:hover { filter: brightness(1.12); }
+.pixel .floor-card .step-in:active, .pixel .panel-back:active { transform: translateY(4px); }
 .pixel .floor-panel {
   box-sizing: border-box; pointer-events: auto; overflow: auto; overscroll-behavior: contain;
-  background: var(--panel); color: var(--text); padding: 30px 34px 30px 46px;
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--panel-hi), inset 16px 0 0 0 var(--accent, var(--amber));
-  clip-path: polygon(4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) calc(100% - 4px),
-    calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px), 0 4px, 4px 4px);
+  background: var(--panel); color: var(--text); padding: 26px 30px 26px 42px;
 }
 .pixel .floor-panel:focus { outline: none; }
 html.building--guided .pixel .floor-panel { position: absolute; left: clamp(16px, 3vw, 36px); top: 132px; bottom: 24px; width: min(780px, 58vw); display: none; }
 html.building--guided .pixel .floor-panel.is-open { display: block; }
 html.panel-open .pixel .building-stop.is-here .floor-card { visibility: hidden; }
 html.panel-open .pixel .building-hint { visibility: hidden; }
-.pixel .panel-back { position: absolute; top: 26px; right: 28px; padding: 8px 12px; border: 0; cursor: pointer;
-  font: 400 20px/1 var(--display); color: var(--text); background: var(--panel-hi); box-shadow: inset 0 0 0 4px var(--ink); }
+.pixel .panel-back { position: absolute; top: 22px; right: 24px; min-height: 44px; padding: 0 14px; border: 0; cursor: pointer;
+  font: 400 15px/1 var(--display); color: var(--text); background: var(--panel-hi); box-shadow: inset 0 0 0 4px var(--ink);
+  transition: transform 80ms steps(1); }
+.pixel .panel-back:hover { background: var(--steel); }
 .pixel .panel-head { display: flex; gap: 14px; align-items: center; }
 .pixel .panel-head p { margin: 0; font-size: 15px; } .pixel .panel-head b { display: block; font-weight: 500; }
 .pixel .panel-head p span, .pixel .panel-soft { color: var(--text-soft); }
-.pixel .floor-panel .panel-title { font: 400 36px/1.05 var(--display); margin: 18px 0 10px; }
-.pixel .floor-panel h3 { font: 400 26px/1 var(--display); margin: 28px 0 12px; color: var(--accent, var(--amber)); }
-.pixel .floor-panel p { font-size: 16px; line-height: 1.6; margin: 0 0 12px; }
-.pixel .floor-panel a { color: var(--accent, var(--amber)); text-underline-offset: 4px; }
-.pixel .floor-panel ul { list-style: none; padding: 0; margin: 0; font-size: 15.5px; line-height: 1.55; }
+.pixel .floor-panel .panel-title { font: 400 30px/1 var(--display); margin: 18px 0 10px; }
+.pixel .floor-panel h3 { font: 400 30px/1 var(--display); margin: 28px 0 12px; color: var(--accent, var(--amber)); }
+.pixel .floor-panel p { font-size: 16px; line-height: 24px; margin: 0 0 12px; }
+.pixel .floor-panel ul { list-style: none; padding: 0; margin: 0; font-size: 15px; line-height: 24px; }
 .pixel .floor-panel li { position: relative; padding-left: 20px; margin-bottom: 9px; }
 .pixel .floor-panel li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 8px; height: 8px; background: var(--accent, var(--amber)); }
 .pixel .panel-case { background: #10131b; padding: 18px 20px; box-shadow: inset 0 0 0 4px var(--ink); }
-.pixel .panel-case h4 { font-size: 18px; font-weight: 600; margin: 4px 0 8px; }
-.pixel .panel-k { font: 400 20px/1 var(--display) !important; color: var(--text-soft); margin: 14px 0 4px !important; }
+.pixel .panel-case h4 { font-size: 17px; line-height: 24px; font-weight: 600; margin: 4px 0 8px; }
+.pixel .panel-k { font: 400 15px/1 var(--display) !important; color: var(--text-soft); margin: 14px 0 4px !important; }
 .pixel .panel-case .panel-k:first-child { margin-top: 0 !important; }
-.pixel .panel-facts { display: grid; grid-template-columns: 120px 1fr; gap: 6px 16px; font-size: 15px; margin: 4px 0 0; }
+.pixel .panel-facts { display: grid; grid-template-columns: 120px 1fr; gap: 6px 16px; font-size: 15px; line-height: 24px; margin: 4px 0 0; }
 .pixel .panel-facts dt { color: var(--text-soft); } .pixel .panel-facts dd { margin: 0; }
 .pixel .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
-.pixel .panel-grid b { display: block; font-weight: 600; font-size: 15.5px; }
-.pixel .panel-grid span { display: block; font-size: 14.5px; line-height: 1.5; color: var(--text-soft); }
+.pixel .panel-grid b { display: block; font-weight: 600; font-size: 15px; line-height: 24px; }
+.pixel .panel-grid span { display: block; font-size: 15px; line-height: 24px; color: var(--text-soft); }
 .pixel .panel-chips { display: flex !important; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.pixel .panel-chips i { font-style: normal; font-size: 13px; padding: 3px 8px; color: var(--text); background: var(--panel-hi); box-shadow: inset 0 0 0 2px var(--ink); }
-.pixel .panel-quote { display: grid; grid-template-columns: 60px 1fr; gap: 16px; margin: 0 0 18px; }
-.pixel .panel-quote img { width: 60px; height: 60px; object-fit: cover; box-shadow: 0 0 0 4px var(--ink); }
-.pixel .panel-quote blockquote { margin: 0; font-size: 15.5px; line-height: 1.55; }
-.pixel .panel-quote cite { display: block; margin-top: 6px; font-style: normal; font-size: 14px; color: var(--text-soft); }
-.pixel .panel-projects .panel-desc { display: block; color: var(--text-soft); font-size: 14.5px; }
+.pixel .panel-chips i { font-style: normal; font-size: 13px; line-height: 20px; padding: 2px 8px; color: var(--text); background: var(--panel-hi); box-shadow: inset 0 0 0 2px var(--ink); --px: 2px; }
+.pixel .panel-quote { display: grid; grid-template-columns: 68px 1fr; gap: 16px; margin: 0 0 18px; }
+.pixel .panel-quote img { width: 60px; height: 60px; border: 4px solid var(--ink); object-fit: cover; image-rendering: pixelated; }
+.pixel .panel-quote blockquote { margin: 0; font-size: 15px; line-height: 24px; }
+.pixel .panel-quote cite { display: block; margin-top: 6px; font-style: normal; font-size: 13px; line-height: 20px; color: var(--text-soft); }
+.pixel .panel-projects .panel-desc { display: block; color: var(--text-soft); font-size: 15px; line-height: 24px; }
+.pixel .panel-soft, .pixel .nowrap { white-space: nowrap; }   /* "· Jun 2024" keeps its dot; names keep their hyphens */
 @media (max-width: 760px) {
-  html.building--guided .pixel .floor-panel { left: 8px; right: 8px; width: auto; top: 30svh; bottom: 8px; padding: 22px 18px 24px 32px; }
+  html.building--guided .pixel .floor-panel { left: 8px; right: 8px; width: auto; top: 30svh; bottom: 8px; padding: 18px 14px 20px 28px; }
   .pixel .panel-back { position: static; margin-bottom: 14px; }
-  .pixel .floor-panel .panel-title { font-size: 30px; }
   html.panel-open .pixel .elevator { visibility: hidden; }
-  .pixel .panel-grid { grid-template-columns: 1fr; }
-  .pixel .floor-card .step-in { margin-top: 12px; bottom: -10px; }
+  .pixel .panel-grid, .pixel .panel-facts { grid-template-columns: 1fr; }
+  .pixel .panel-facts { gap: 0; } .pixel .panel-facts dd { margin-bottom: 10px; }
+  .pixel .step-in-bar { margin-top: 12px; bottom: -10px; }
+  .pixel .floor-card:not(:has(.step-in-bar))::after { bottom: -14px; }
 }
 /* Without JavaScript the panels are simply the rest of each floor's text, read in place. */
 html:not(.building--guided) .pixel .building-stop { flex-direction: column; align-items: flex-start; gap: 16px; }
 html:not(.building--guided) .pixel .floor-panel { width: min(780px, 100%); }
 html:not(.building--guided) .pixel .floor-card { opacity: 1; transform: none; }   /* nothing arrives to fade them in */
-html:not(.building--guided) .pixel .step-in, html:not(.building--guided) .pixel .panel-back { display: none; }
+html:not(.building--guided) .pixel .step-in-bar, html:not(.building--guided) .pixel .panel-back { display: none; }
 html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* clear of the fixed name and links */
 
 /* The homepage loads no site CSS: its own screen-reader-only text (the live region) and skip link. */
@@ -288,12 +320,11 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
   background: var(--accent, var(--amber)); font: 400 24px/1 var(--display);
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px rgba(255, 255, 255, 0.35);
 }
-.pixel .floor-card .hero-cta:focus-visible { outline: 4px solid var(--text); outline-offset: 4px; }
 /* P: the bottom of the line says so. */
 .pixel .floor-end { margin: 16px 0 0; padding: 10px 14px; font-size: 15px; color: var(--text-soft); background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
 @media (max-width: 760px) {   /* the street leaves the card ~38svh: keep the how-to, the title and the way to get in touch in view */
   .pixel .building-stop--hero .floor-eyebrow, .pixel .building-stop--hero .floor-lead { display: none; }
-  .pixel .floor-how { margin-bottom: 8px; padding-bottom: 0; border-bottom: 0; font-size: 14px; }
+  .pixel .floor-how { margin-bottom: 8px; padding-bottom: 0; border-bottom: 0; font-size: 13px; line-height: 20px; }
   .pixel .building-stop--hero .floor-card h1 { margin-bottom: 10px; }
   .pixel .floor-open { margin-bottom: 8px; font-size: 15px; }
   .pixel .floor-cta { margin-bottom: 0; gap: 6px 16px; }
@@ -313,3 +344,5 @@ html:not(.building--guided) .pixel .building-stop { min-height: 0; padding: 12px
 html:not(.building--guided) .pixel .building-stop .floor-card { width: min(640px, 100%); max-height: none; }
 html:not(.building--guided) .pixel .floor-card, html:not(.building--guided) .pixel .floor-panel { overflow: visible; overscroll-behavior: auto; }
 html:not(.building--guided) .pixel .floor-how { display: none; }
+/* Each panel follows its own card there: not its head and title again (the lobby's title is its own). */
+html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pixel .floor-panel:not(#panel-L) .panel-title { display: none; }

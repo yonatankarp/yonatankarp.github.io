@@ -343,8 +343,7 @@ section[id] {
 .blog-layout,
 .article-shell,
 .skill-layout,
-.search-view,
-.cv-sheet {
+.search-view {
   padding-top: clamp(3rem, 7vw, 6rem);
 }
 
@@ -498,8 +497,6 @@ section[id] {
 .blog-sidebar,
 .article,
 .skill-section,
-.cv-header,
-.cv-section,
 .search-results,
 .search-result {
   background: transparent;
@@ -523,8 +520,7 @@ section[id] {
 .about-grid__image,
 .contact-panel,
 .featured-article,
-.article,
-.cv-sheet {
+.article {
   box-shadow: var(--shadow);
 }
 
@@ -546,7 +542,6 @@ section[id] {
 .blog-sidebar,
 .article,
 .skill-section,
-.cv-sheet,
 .search-view > div {
   border-radius: var(--radius-xl);
 }
@@ -1150,7 +1145,6 @@ section[id] {
 .post-row__meta,
 .writing-card__date,
 .article__meta,
-.cv-item__sub,
 .contact-panel__details,
 .hero__links {
   color: var(--muted);
@@ -1205,7 +1199,6 @@ h4 {
 .quote-card blockquote,
 .contact-panel p,
 .skill-row p,
-.cv-item p,
 .search-result p {
   max-width: 68ch;
   font-size: 1.02rem;
@@ -1351,7 +1344,6 @@ h2 a,
 h3 a,
 h4 a,
 .prose a,
-.cv-contact a,
 .hero__links a,
 .contact-panel__details a,
 .search-result a,
@@ -1383,7 +1375,6 @@ h4 a,
 .project-list,
 .selected-work,
 .skill-table,
-.cv-list,
 .search-results,
 .quote-stack {
   display: grid;
@@ -1396,8 +1387,6 @@ h4 a,
 .featured-article,
 .post-row,
 .skill-section,
-.cv-header,
-.cv-section,
 .search-result {
   padding: 1.5rem;
 }
@@ -1439,8 +1428,6 @@ h4 a,
 .education-item span,
 .quote-card span,
 .skill-row__meta span,
-.cv-contact,
-.cv-item span,
 .contact-panel__details span,
 .contact-panel__details a {
   color: var(--muted);
@@ -1733,13 +1720,11 @@ h4 a,
 .post-row h2 a,
 .featured-article h2 a,
 .article h1,
-.skill-row h3,
-.cv-item h3 {
+.skill-row h3 {
   text-decoration: none;
 }
 
-.project-row__meta,
-.cv-contact {
+.project-row__meta {
   display: grid;
   gap: 0.75rem;
   align-content: start;
@@ -2753,102 +2738,8 @@ h4 a,
   background: color-mix(in srgb, var(--accent) 10%, var(--surface-strong));
 }
 
-.cv-sheet {
-  padding: clamp(1.5rem, 4vw, 3rem);
-}
-
-.cv-header,
-.cv-section {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  padding: 0;
-}
-
-.cv-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
 /* A CV is a dense document, not a hero — keep the name modest so the first
    screen shows real content (Summary + sections) and it's clear there's more. */
-.cv-header h1 {
-  font-size: clamp(2.2rem, 5vw, 3.2rem);
-  line-height: 1.05;
-}
-
-.cv-contact a {
-  text-decoration: none;
-}
-
-.cv-proof-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-  margin: 1rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cv-proof-list li {
-  min-width: 0;
-  padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
-  color: var(--text);
-  line-height: 1.45;
-}
-
-.cv-section {
-  padding-top: 1.5rem;
-}
-
-.cv-item {
-  padding: 0.85rem 0 0;
-  border-top: 1px solid var(--border);
-}
-
-.cv-item:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.cv-item__top {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem 1.5rem;
-}
-
-.cv-highlights {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.45rem 1.1rem;
-  margin: 0.85rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cv-highlights li {
-  position: relative;
-  padding-inline-start: 1rem;
-  color: var(--muted);
-  line-height: 1.45;
-}
-
-.cv-highlights li::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 0;
-  top: 0.62em;
-  width: 0.36rem;
-  height: 0.36rem;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--accent) 72%, var(--text));
-}
 
 .search-input {
   width: 100%;
@@ -3269,8 +3160,6 @@ h4 a,
   .education-item,
   .site-footer__inner,
   .post-row,
-  .cv-header,
-  .cv-item__top,
   .article__footer,
   .quote-feature,
   .contact-band__frame,
@@ -3292,7 +3181,6 @@ h4 a,
   .footer-social {
     justify-content: flex-start;
   }
-
 
   .outcome-card,
   .outcome-card:nth-child(1),
@@ -3365,8 +3253,7 @@ h4 a,
 @media (max-width: 720px) {
   .hero__proof-strip,
   .case-card__details,
-  .proof-quote,
-  .cv-proof-list {
+  .proof-quote {
     grid-template-columns: 1fr;
   }
 
@@ -3421,19 +3308,14 @@ h4 a,
   .blog-layout,
   .featured-article,
   .post-row,
-  .contact-band__frame,
-  .cv-header,
-  .cv-item__top,
-  .cv-highlights {
+  .contact-band__frame {
     grid-template-columns: 1fr;
   }
 
   .work-item,
   .project-row,
   .post-row,
-  .featured-article,
-  .cv-header,
-  .cv-section {
+  .featured-article {
     overflow-wrap: break-word;
   }
 
@@ -3597,14 +3479,6 @@ h4 a,
 
   .article-toc li {
     margin: 0.12rem 0;
-  }
-
-  .cv-header h1 {
-    font-size: clamp(2.2rem, 11vw, 3.3rem);
-  }
-
-  .cv-item h3 {
-    font-size: clamp(1.25rem, 7vw, 1.8rem);
   }
 
   .product-card__top img,
@@ -3832,7 +3706,6 @@ h4 a,
 
   .site-header,
   .site-footer,
-  .cv-header::before,
   .page-head::before {
     display: none !important;
   }
@@ -3844,19 +3717,10 @@ h4 a,
     line-height: 1.35;
   }
 
-  .cv-header h1,
   .page-head h1,
   h1, h2, h3, h4 {
     text-shadow: none !important;
     color: #111 !important;
-  }
-
-  .cv-sheet,
-  .cv-section,
-  .cv-header {
-    background: #fff !important;
-    box-shadow: none !important;
-    border-color: #ddd !important;
   }
 
   a {
@@ -3872,152 +3736,178 @@ h4 a,
     display: none !important;
   }
 
-  .shell,
-  .cv-sheet {
+  .shell {
     width: auto;
     max-width: none;
     margin: 0;
-  }
-
-  .cv-sheet {
-    padding: 0;
-  }
-
-  .cv-header {
-    grid-template-columns: minmax(0, 1fr) minmax(14rem, auto);
-    align-items: end;
-    gap: 0.35rem 1rem;
-    padding-bottom: 0.45rem;
-    break-after: avoid;
   }
 
   .section-kicker {
     margin-bottom: 0.15rem;
     font-size: 7.5pt;
   }
+}
 
-  .cv-header h1 {
-    margin: 0 0 0.12rem;
-    font-size: 22pt;
-    line-height: 1;
-  }
+/* CV (/cv/, layouts/_default/cv.html): the building's pixel skin (web3d/src/pixel.css) over a plain document.
+   Stepped 4px corners, hard inset outlines, flat fills, Jersey 15 for display only, Outfit for reading. Each role
+   keeps its storey's colour (data/floor_accents.yaml). Print is light paper with the same accents: it is the PDF. */
+.cv-page {
+  --ink: #0a0b10;
+  --panel: #151923;
+  --panel-hi: #2b3344;
+  --well: #10131b;
+  --cv-text: #f2ece0;
+  --cv-soft: #d3cabb;
+  --amber: #ffb547;
+  --px: 4px;
+  --pixel-font: 'Jersey 15', 'Pixelify Sans', system-ui, sans-serif;
+  --stepped: polygon(
+    var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
+    100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%,
+    var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)), 0 var(--px), var(--px) var(--px));
+  background: #0c0e14;
+  color: var(--cv-text);
+  font-family: 'Outfit', system-ui, sans-serif;
+  line-height: 1.6;
+}
+/* The street from the homepage behind the sheet, dimmed: first frame of its strip (12 frames of 480x336). */
+.cv-page::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; image-rendering: pixelated;
+  background: linear-gradient(rgba(12, 14, 20, 0.5), rgba(12, 14, 20, 0.5)), var(--scene) 0 100% / 1200% auto no-repeat;
+}
+.cv-page h1, .cv-page h2 { font-family: var(--pixel-font); font-weight: 400; letter-spacing: 0.01em; line-height: 1; text-wrap: initial; }
+.cv-page h3 { font-family: 'Outfit', system-ui, sans-serif; font-weight: 600; letter-spacing: 0; line-height: 1.3; font-size: 19px; }
+.cv-page a { color: inherit; }
+.cv-page a:hover { color: inherit; }
+.cv-page ul { margin: 0; padding: 0; list-style: none; }
 
-  .cv-header p,
-  .cv-contact,
-  .cv-contact a {
-    font-size: 8.4pt;
-    line-height: 1.25;
-  }
+/* Top bar: the homepage's name plate, tabs and Download button. */
+.cv-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 20px clamp(16px, 3vw, 36px); }
+.cv-bar__name, .cv-download, .cv-floor, .cv-focus li, .cv { clip-path: var(--stepped); }
+.cv-bar__name {
+  padding: 12px 18px; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink);
+  font: 400 30px/1 var(--pixel-font); color: var(--cv-text); text-decoration: none;
+}
+.cv-bar__links { display: flex; gap: 8px; }
+.cv-bar__links a {
+  padding: 6px 12px; font-size: 15px; font-weight: 500; text-decoration: none; background: var(--panel);
+  box-shadow: inset 0 0 0 4px var(--ink);
+}
+.cv-bar__links a:hover { background: var(--panel-hi); }
+.cv-download {
+  display: inline-flex; align-items: center; gap: 10px; margin-left: auto; padding: 0 20px; min-height: 52px;
+  background: var(--amber); color: var(--ink) !important; text-decoration: none; font: 400 30px/1 var(--pixel-font);
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a, inset -4px -4px 0 4px #d38f1b;
+}
+.cv-download:hover { background: #ffc46a; }
+.cv-download:active { transform: translateY(4px); }
+.cv-download svg { shape-rendering: crispEdges; }
+/* The stepped clip-path cuts outlines away, so focus is a ring drawn inside the box: cream, then ink. */
+.cv-page .cv-bar__name:focus-visible, .cv-page .cv-download:focus-visible, .cv-page .cv-floor:focus-visible {
+  outline: none; box-shadow: inset 0 0 0 4px var(--cv-text), inset 0 0 0 8px var(--ink);
+}
+.cv-page .skip-link { background: var(--amber); color: var(--ink); border-radius: 0; font: 400 24px/1 var(--pixel-font); box-shadow: inset 0 0 0 4px var(--ink); }
 
-  .cv-contact {
-    display: grid;
-    justify-items: end;
-    gap: 0.12rem;
-  }
+/* The sheet: one dark pixel panel, like a floor card. */
+.cv {
+  width: min(1000px, calc(100% - 2 * clamp(16px, 3vw, 36px)));
+  margin: 4px auto 64px; padding: 40px 48px 48px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--panel-hi);
+}
+.cv-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding-bottom: 28px; border-bottom: 4px solid var(--panel-hi); }
+.cv-kicker { margin: 0 0 10px; font-size: 15px; font-weight: 500; color: var(--amber); }
+.cv-page h1 { margin: 0 0 12px; font-size: 60px; }
+.cv-role { margin: 0 0 18px; font-size: 17px; color: var(--cv-soft); }
+.cv-contact { display: flex; flex-wrap: wrap; gap: 8px; }
+.cv-contact a { display: inline-block; padding: 4px 8px; font-size: 14px; text-decoration: none; background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi); }
+.cv-contact a:hover { box-shadow: inset 0 0 0 2px var(--amber); }
+/* The top of the building and its crane: first frame of the street-view strip (12 frames of 480x336), at 1x. */
+.cv-head__art {
+  width: 200px; height: 176px; background: var(--scene) no-repeat; background-size: 5760px 336px; background-position: -140px 0;
+  image-rendering: pixelated; box-shadow: inset 0 0 0 4px var(--ink); clip-path: var(--stepped);
+}
 
-  .cv-section {
-    padding-top: 0.55rem;
-    break-inside: auto;
-  }
+.cv-section { padding-top: 32px; }
+.cv-page h2 { display: flex; align-items: center; gap: 14px; margin: 0 0 16px; font-size: 30px; }
+.cv-page h2::before { content: ''; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
+.cv-page h2::after { content: ''; flex: 1; height: 4px; background: var(--panel-hi); }
+.cv-section > p { margin: 0 0 12px; font-size: 16.5px; line-height: 1.65; max-width: 72ch; }
 
-  .cv-section h2 {
-    margin: 0 0 0.24rem;
-    font-size: 13.4pt;
-    line-height: 1.05;
-  }
+.cv-focus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cv-focus li { padding: 22px 18px 18px; font-size: 15px; line-height: 1.5; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink), inset 0 12px 0 0 var(--amber); }
 
-  .cv-section > p,
-  .cv-item p {
-    margin-block: 0.18rem 0.35rem;
-  }
+.cv-role-item { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 20px; padding: 20px 0; }
+.cv-role-item + .cv-role-item { border-top: 4px solid var(--panel-hi); }
+.cv-floor {
+  display: grid; place-items: center; width: 48px; height: 48px; text-decoration: none;
+  background: var(--accent); color: var(--ink) !important; font: 400 30px/1 var(--pixel-font);
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px rgba(255, 255, 255, 0.35);
+}
+.cv-floor:hover { transform: translateY(-4px); }
+.cv-role-item__top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 20px; }
+.cv-role-item__top span { font-size: 15px; color: var(--cv-soft); white-space: nowrap; }
+.cv-sub { margin: 2px 0 8px; font-size: 15px; font-weight: 500; color: var(--accent, var(--amber)); }
+.cv-role-item__body > p:not(.cv-sub) { margin: 0 0 12px; font-size: 16px; }
+.cv-bullets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; font-size: 15px; line-height: 1.5; color: var(--cv-soft); }
+.cv-bullets li { position: relative; padding-left: 20px; }
+.cv-bullets li::before { content: ''; position: absolute; left: 0; top: 0.5em; width: 8px; height: 8px; background: var(--accent); }
 
-  .cv-section--proof {
-    break-after: avoid;
-  }
+.cv-edu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.cv-edu__item { padding: 14px 18px 14px 32px; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink), inset 12px 0 0 0 var(--accent); }
+.cv-edu__item h3 { font-size: 17px; }
+.cv-edu__item .cv-sub { margin: 2px 0 0; color: var(--cv-soft); font-weight: 400; }
+.cv-edu__item .cv-sub a { color: var(--amber); text-underline-offset: 4px; }
 
-  .cv-proof-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.35rem;
-    margin-top: 0.35rem;
-  }
+@media screen and (max-width: 760px) {
+  .cv-bar { padding: 16px; gap: 10px; }
+  .cv-bar__name { padding: 10px 14px; font-size: 24px; }
+  .cv-download { min-height: 44px; padding: 0 14px; font-size: 24px; }
+  .cv { width: calc(100% - 24px); padding: 26px 20px 30px; }
+  .cv-head { grid-template-columns: 1fr; }
+  .cv-head__art, .cv-page::before { display: none; }
+  .cv-page h1 { font-size: 36px; }   /* the whole name on one line at 375px */
+  .cv-focus, .cv-bullets, .cv-edu { grid-template-columns: 1fr; }
+  .cv-role-item { grid-template-columns: 36px minmax(0, 1fr); gap: 14px; }
+  .cv-floor { width: 36px; height: 36px; font-size: 24px; }
+}
 
-  .cv-proof-list li {
-    padding: 0.45rem 0.5rem;
-    border-radius: 0.45rem;
-    font-size: 8.2pt;
-    line-height: 1.28;
-    break-inside: avoid;
+@media print {
+  .cv-page {
+    --cv-text: #111; --cv-soft: #333; --panel-hi: #111; --well: #fff; --amber: #e8962b; --px: 2px;
+    background: #fff; color: #111; font-size: 9.4pt; line-height: 1.35;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
-
-  .cv-list {
-    gap: 0;
-  }
-
-  .cv-item {
-    padding-top: 0.38rem;
-    break-inside: avoid;
-  }
-
-  .cv-item + .cv-item {
-    margin-top: 0.38rem;
-  }
-
-  .cv-item__top {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.25rem 0.8rem;
-    align-items: baseline;
-  }
-
-  .cv-item h3 {
-    margin: 0;
-    font-size: 11.2pt;
-    line-height: 1.1;
-  }
-
-  .cv-item__top span,
-  .cv-item__sub {
-    font-size: 8.2pt;
-    line-height: 1.2;
-  }
-
-  .cv-item__sub {
-    margin-top: 0.12rem;
-  }
-
-  .cv-highlights {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.16rem 0.75rem;
-    margin-top: 0.34rem;
-  }
-
-  .cv-highlights li {
-    padding-inline-start: 0.62rem;
-    font-size: 8.2pt;
-    line-height: 1.28;
-  }
-
-  .cv-highlights li::before {
-    top: 0.52em;
-    width: 0.22rem;
-    height: 0.22rem;
-  }
-
-  .cv-section:last-child .cv-list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.25rem 0.85rem;
-  }
-
-  .cv-section:last-child .cv-item {
-    margin-top: 0;
-    padding-top: 0.28rem;
-  }
-
-  .cv-section:last-child .cv-item p:last-child {
-    margin-bottom: 0;
-  }
-
-  .cv-section:last-child .text-link {
-    display: none;
-  }
+  :root:has(.cv-page) { background: #fff; color-scheme: light; }   /* else the page margins print in the dark scheme */
+  .cv-bar, .cv-head__art, .cv-page::before { display: none; }
+  .cv, .cv-focus li { clip-path: none; }
+  .cv { width: auto; margin: 0; padding: 0; background: none; box-shadow: none; }
+  .cv-head { padding-bottom: 8px; border-bottom-width: 3px; gap: 0; }
+  .cv-kicker { margin: 0 0 2px; font-size: 8pt; color: #9a5a00; }
+  .cv-page h1 { margin: 0 0 4px; font-size: 32pt; }
+  .cv-role { margin: 0 0 6px; font-size: 10pt; }
+  .cv-contact { gap: 2px 14px; }
+  .cv-contact a { padding: 0; font-size: 8.6pt; background: none; box-shadow: none; }
+  .cv-section { padding-top: 10px; }
+  .cv-page h2 { gap: 8px; margin: 0 0 6px; font-size: 16pt; break-after: avoid; }
+  .cv-page h2::before { width: 7px; height: 7px; box-shadow: 2px 2px 0 #111; }
+  .cv-page h2::after { height: 2px; }
+  .cv-section > p { margin: 0 0 4px; font-size: 9.4pt; line-height: 1.4; max-width: none; }
+  .cv-focus { gap: 6px; }
+  .cv-focus li { padding: 8px 8px 6px; font-size: 8.4pt; line-height: 1.3; box-shadow: inset 0 0 0 1.5px #111, inset 0 5px 0 0 var(--amber); break-inside: avoid; }
+  .cv-role-item { grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 7px 0; break-inside: avoid; }
+  .cv-role-item + .cv-role-item { border-top-width: 1px; border-top-color: #bbb; }
+  .cv-floor { width: 22px; height: 22px; font-size: 13pt; box-shadow: inset 0 0 0 1.5px #111; }
+  .cv-page h3 { font-size: 10.6pt; }
+  .cv-role-item__top span { font-size: 8.6pt; }
+  .cv-sub { margin: 0 0 3px; font-size: 8.8pt; color: #111 !important; }
+  .cv-role-item__body > p:not(.cv-sub) { margin: 0 0 4px; font-size: 9pt; }
+  .cv-bullets { gap: 2px 16px; font-size: 8.3pt; line-height: 1.3; }
+  .cv-bullets li { padding-left: 11px; }
+  .cv-bullets li::before { top: 0.45em; width: 5px; height: 5px; }
+  .cv-edu { gap: 6px; }
+  .cv-edu__item { padding: 5px 8px 5px 14px; box-shadow: inset 0 0 0 1px #bbb, inset 5px 0 0 0 var(--accent); break-inside: avoid; }
+  .cv-edu__item h3 { font-size: 9.6pt; }
+  .cv-edu__item .cv-sub { font-size: 8.4pt; }
+  .cv-edu__item .cv-sub a { color: #111 !important; }
 }

@@ -221,9 +221,115 @@ TOUCHUPS = {}   # name: the floor's own fix-up, run after the light pass
 # --- Parking ---
 LAMPS["parking"] = [(207, 37, 51, 9), (243, 34, 50, 15), (319, 36, 48, 15, 12), (343, 36, 46, 13, 12),
                     (387, 23, 46, 11)]   # hung from the ducts; the two over the pegboard short of it
+TOOLS = {  # the pegboard's tools, 1px silhouettes: steel '#', handle 'o'
+    "wrench": ["#.#", "###", ".#.", ".#.", ".#.", ".#.", ".#.", ".#.", "###", "#.#"],
+    "driver": ["ooo", "ooo", "ooo", ".o.", ".#.", ".#.", ".#.", ".#.", ".#."],
+    "hammer": ["#####", "#####", "..o..", "..o..", "..o..", "..o..", "..o..", "..o..", "..o.."],
+    "pliers": ["#.#", "#.#", ".#.", ".#.", "o.o", "o.o", "o.o", "o.o"],
+}
+PEGBOARD = [("wrench", 310), ("driver", 315), ("hammer", 320), ("pliers", 327), ("driver", 332), ("wrench", 336)]
+
+
+def garage(px):
+    """Parking: the far lamp's light is a painted slab, so it is cut down to the lamp's cone; the ceiling's navy
+    blotches and the tent of shadow on the beam go flat; the pegboard tools and the bench's tablet, which pixelate
+    into smears, are drawn again; and the exit's blown-out daylight becomes a dusk sky with a street lamp."""
+    a = np.asarray(px).copy()
+    ceiling, beam, steel = (58, 53, 48), (106, 111, 118), G.c("steel", 2)
+    box = a[0:20, 360:410]
+    box[(box == (48, 54, 62)).all(-1)] = ceiling                           # navy on the ceiling (the ramp's is kept)
+    a[18:23, 383:385][(a[18:23, 383:385] == G.INK).all(-1)] = ceiling      # a painted cord beside the stamped one
+    tent = a[23:29, 239:268]
+    tent[(tent == (93, 86, 77)).all(-1) | (tent == ceiling).all(-1) | (tent == G.INK).all(-1)] = beam
+    a[8:60, 352], a[8:60, 353] = G.c("steel", 4), beam                     # the near pillar's edge, one clean line
+    x0, x1, y0 = 383, 391, 46                                               # the far lamp's mouth, as relight has it
+    for y in range(y0, 92):
+        for x in range(374, 389):
+            if tuple(a[y, x]) == CONE:
+                r, fade = y - y0, (y - y0) / 30
+                lit = r >= 2 * max(0, x0 - x, x - x1) and (fade < 0.55 or (fade < 0.8 and (x + y) % 2 == 0)
+                                                           or (x % 2 == 0 and y % 2 == 0 and fade < 1))
+                a[y, x] = CONE if lit else WALL
+    for y in range(62, 78):                                                # the pegboard, past the lantern and the
+        for x in range(308, 349):                                          # scooter's mirror
+            if not (x >= 339 and y >= 66 or 321 <= x <= 334 and y >= 73):
+                a[y, x] = (93, 86, 77) if (x - 308) % 3 == 1 and (y - 62) % 3 == 1 else (173, 163, 149)
+    for name, x in PEGBOARD:
+        sprite(a, x, 63, [r.replace("o", ".") for r in TOOLS[name]], steel)
+        sprite(a, x, 63, [r.replace("#", ".").replace("o", "#") for r in TOOLS[name]], G.c("amber", 3))
+    a[84:90, 156:159], a[84:90, 159], a[84:90, 160:162] = CONE, WALL, G.INK   # the lit wall carries on down
+    a[90:92, 156:177], a[93, 156:177] = (191, 165, 140), (138, 100, 70)    # the bench: its top and apron, edged
+    a[92, 156:177] = a[94, 156:177] = G.INK
+    sprite(a, 156, 86, ["#####", "#...#", "#...#", "#####"], G.c("steel", 2))   # the tablet, propped at its end
+    a[87:89, 157:160] = G.c("magenta", 4)
+    sky, todo = G.R["sky"], [(60, 450)]                                     # the exit, from inside its opening
+    while todo:
+        y, x = todo.pop()
+        if not (0 <= y < a.shape[0] and 0 <= x < a.shape[1]) or tuple(a[y, x]) != (242, 236, 224):
+            continue
+        level = 1 + 3 * min(1, max(0, (y - 20) / 72))                     # dusk, lighter down to the street
+        a[y, x] = sky[int(level) + (level % 1 > BAYER[y % 4, x % 4])]
+        if y >= 96:
+            a[y, x] = G.c("steel", 1) if y > 96 else G.c("steel", 3)       # the street at the top of the ramp
+        todo += [(y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)]
+    a[66:96, 452] = G.INK                                                  # a street lamp
+    a[65, 449:453] = G.INK
+    a[66, 449:451] = G.c("amber", 5)
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["parking"] = garage
 
 # --- Lobby, reception ---
 LAMPS["reception"] = [(161, 0, 31, 19), (189, 0, 30, 11), (226, 0, 30, 11), (258, 0, 30, 11), (292, 0, 31, 19)]
+PLAQUES = [(160, 34, 194, 76), (200, 33, 247, 76), (253, 35, 284, 76)]   # the three recommendations, inclusive
+DOOR_GLASS = {(35, 42, 77), (93, 90, 134), (74, 82, 92), (48, 54, 62)}
+STREET_WINDOWS = [(411, 13, 416, 19, 1), (421, 13, 426, 19, 0), (441, 13, 446, 19, 0), (451, 13, 456, 19, 1),
+                  (441, 40, 446, 46, 1), (451, 40, 456, 46, 0), (441, 62, 446, 68, 0), (451, 62, 456, 68, 0)]
+# x0, y0, x1, y1, lit: three floors of the facade across the street, the lower two behind the plant on the left
+
+
+def foyer(px):
+    """The lobby: the recommendations pixelate into cream with smudges, so each is drawn again (ink-edged frame, a
+    header bar, lines of text, a signature) with the lamps' light stopping short of it; and the street through the
+    glass door, which came out as purple blocks and black dashes, is drawn as a dusk street: a facade with lit
+    windows over a pavement and a road, behind the door's brass and the plant."""
+    a = np.asarray(px).copy()
+    for x0, y0, x1, y1 in PLAQUES:
+        around = a[y0 - 2:y1 + 1, x0 - 1:x1 + 2]
+        around[(around == CONE).all(-1)] = WALL
+        for i, col in enumerate((G.INK, G.c("wood", 2), G.c("wood", 2), G.INK)):
+            a[y0 + i:y1 + 1 - i, x0 + i:x1 + 1 - i] = col
+        x0, y0, x1, y1 = x0 + 4, y0 + 4, x1 - 4, y1 - 4                    # the paper
+        a[y0:y1 + 1, x0:x1 + 1] = G.c("cream", 5)
+        a[y0 + 3:y0 + 5, x0 + 3:x1 - 2] = G.c("wood", 3)                   # the header
+        for k, y in enumerate(range(y0 + 9, y0 + 25, 4)):
+            a[y, x0 + 3:x1 - 2 - (x1 - x0) // 3 * (k == 3)] = G.INK
+        a[y1 - 4, x1 - 9:x1 - 3] = G.INK                                    # the signature, and its seal
+        a[y1 - 5:y1 - 3, x1 - 3:x1 - 1] = G.c("red", 3)
+    for x, _, y, _ in LAMPS["reception"][1:4]:                             # the three hung over the plaques: a short
+        top = next(y0 for x0, y0, x1, _ in PLAQUES if x0 <= x <= x1)       # pool of light, two rows short of the frame
+        a[y:top, x - 9:x + 10] = WALL
+        a[y:top - 2, x - 4:x + 5] = CONE
+    glass = np.array([[tuple(col) in DOOR_GLASS for col in row] for row in a])
+    ink = (a == G.INK).all(-1)
+    for y in range(1, 142):                                                # the dashes: ink that only touches glass
+        for x in [*range(409, 428), *range(438, 458)]:
+            near = a[y - 1:y + 2, x - 1:x + 2].reshape(-1, 3)
+            if ink[y, x] and glass[y - 1:y + 2, x - 1:x + 2].any() and all(
+                    tuple(n) in DOOR_GLASS or tuple(n) == G.INK for n in near):
+                glass[y, x] = True
+    for y in range(142):
+        for x in range(404, 464):
+            if glass[y, x]:
+                a[y, x] = G.c("sky", 2) if y < 12 else G.c("sky", 1) if y < 96 else G.c("steel", 2 if y < 99 else 1)
+    for x0, y0, x1, y1, lit in STREET_WINDOWS:
+        win = a[y0:y1, x0:x1]
+        win[glass[y0:y1, x0:x1]] = G.c("amber", 4) if lit else G.c("sky", 2)
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["reception"] = foyer
 
 # --- Floor 1, reichman ---
 LAMPS["reichman"] = [(190, 0, 29, 15), (203, 0, 29, 11), (254, 0, 27, 13), (323, 0, 27, 13), (364, 0, 29, 15),

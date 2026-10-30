@@ -345,7 +345,46 @@ def chalk(px):
     return Image.fromarray(a, "RGB")
 
 
-TOUCHUPS["reichman"] = chalk
+SPINES = [(154, 27, "plant"), (157, 29, "blue"), (160, 26, "red"), (163, 28, "amber"), (166, 30, "steel")]   # x, top
+
+
+def certificate(a, x0, y0, x1, y1):
+    """A framed certificate (inclusive box): ink frame, a wood moulding, cream paper with a title, two lines of
+    text and a red seal, and its shadow on the wall."""
+    a[y0 + 1:y1 + 2, x0 + 1:x1 + 2] = (172, 129, 89)
+    a[y0:y1 + 1, x0:x1 + 1] = G.INK
+    a[y0 + 1:y1, x0 + 1:x1] = G.c("wood", 3)
+    a[y0 + 2:y1 - 1, x0 + 2:x1 - 1] = G.c("cream", 4)
+    a[y0 + 4, x0 + 5:x1 - 4] = G.INK
+    a[y0 + 7, x0 + 4:x1 - 3] = a[y0 + 9, x0 + 4:x1 - 6] = G.c("cream", 2)
+    a[y1 - 4:y1 - 2, x1 - 5:x1 - 3] = G.c("red", 3)
+
+
+def lecture(px):
+    """Floor 1, beside the board: the bookcase's top-right corner (lost under a lamp's light) and the books standing
+    on it, which melt into speckle, and the two certificates (one bleached to plaster, one a scribble) drawn again;
+    the cord left of them, which holds no lamp, taken down."""
+    a = np.asarray(px).copy()
+    col = a[:49, 400]
+    col[(col == G.INK).all(-1)] = WALL
+    a[22:38, 150:184] = WALL
+    for x, top, ramp in SPINES:                                            # books standing on the case
+        a[top:38, x - 1:x + 3] = G.INK
+        a[top + 1:38, x:x + 2] = G.c(ramp, 3)
+    for y0, x0, x1, ramp in ((31, 172, 183, "plant"), (34, 171, 182, "cream")):   # and a stack lying on it
+        a[y0:y0 + 4, x0:x1 + 1] = G.INK
+        a[y0 + 1:y0 + 3, x0 + 1:x1] = G.c(ramp, 4)
+    a[38:42, 145:190] = G.INK                                              # the case's top, out to its right edge
+    a[39:41, 146:189] = G.c("wood", 3)
+    a[42:46, 182:190] = a[46, 182:190]
+    a[38:100, 189] = G.INK
+    a[29:48, 402:428] = a[26:45, 428:457] = WALL                           # clear of the shelf below
+    certificate(a, 404, 31, 424, 46)
+    certificate(a, 431, 28, 451, 43)
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["reichman"] = lambda px: lecture(chalk(px))
 
 # --- Floor 2, inuitive ---
 LAMPS["inuitive"] = [(159, 0, 30, 19, 16), (192, 0, 30, 19, 16), (258, 0, 30, 19), (323, 0, 30, 19), (369, 0, 30, 19),

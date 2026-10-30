@@ -353,9 +353,78 @@ LAMPS["inuitive"] = [(159, 0, 30, 19, 16), (192, 0, 30, 19, 16), (258, 0, 30, 19
 TOUCHUPS["inuitive"] = lambda px: shadows(px, 120)
 
 # --- Floor 3, nice ---
-LAMPS["nice"] = [(193, 0, 32, 17), (254, 0, 32, 15), (291, 0, 32, 15), (322, 0, 32, 15), (364, 0, 32, 15), (395, 0, 32, 15)]
-TOUCHUPS["nice"] = lambda px: shadows(px, 142)   # above, the maroon is its skirting and cabinet
-KEEP["nice"] = [(366, 28, 402, 80)]   # floor 3's whiteboard, which its lamp's light touches
+LAMPS["nice"] = [(193, 0, 29, 17), (254, 0, 29, 15), (291, 0, 29, 15), (322, 0, 29, 15), (364, 0, 29, 15), (395, 0, 29, 15)]
+# hung a little higher, so the shades clear the wall screen's top
+GONE["nice"] = [(167, 0, 171, 49), (207, 0, 210, 89),   # two bare cords with no lamp, down to the cabinet and a chair;
+                (183, 29, 204, 34), (245, 29, 258, 34), (398, 29, 405, 34)]   # the painted rims left under the shades
+KEEP["nice"] = [(366, 28, 402, 80), (144, 49, 191, 144)]   # floor 3's whiteboard, which its lamp's light touches; the
+# wall-coloured cabinet, which its cone would dither into
+NAVY, BLUE_LED = G.c("dark", 2), G.c("blue", 5)
+
+
+def ops_room(px):
+    """Floor 3: the cabinet's right frame came out as lamp glare, the stats panel and the rack front as scribble, the
+    printer as a white shard, the chairs as one black mass. Each is drawn again plainly; the parts that move (the
+    stats bars, the printed sheet, the rack LEDs' blinking) are gen_floors.nice()'s."""
+    a = np.asarray(px).copy()
+    side = a[77, 178:190].copy()                                           # the cabinet's right side, inside to out,
+    a[49, 178:190] = G.INK                                                 # from the clean lower shelf: the top,
+    a[50:52, 178:189], a[50:52, 189] = G.c("wood", 2), G.INK
+    a[52:55, 178:182] = a[52:55, 172:173]
+    a[55:61, 163:178] = (191, 165, 140)                                   # the top shelf's back, glare off
+    a[55:61, 178:190] = side
+    a[61, 176:182] = G.INK
+    a[52:73, 182:190] = side[4:]                                           # and the frame down to the shelf
+    a[33:75, 338:367] = NAVY                                               # the queue-stats panel: a title,
+    a[36, 340:351] = G.c("steel", 3)
+    for i, h in enumerate((3, 5, 4, 7, 6, 8)):                             # a bar chart, the bars below (gen_floors)
+        a[47 - h:47, 340 + 3 * i:342 + 3 * i] = G.c("plant", 5) if i % 2 == 0 else G.c("amber", 4)
+    a[49, 339:366] = G.c("dark", 4)
+    a[29, 258:398], a[30, 258:398], a[31:33, 258:398] = WALL, (172, 129, 89), G.INK   # the screen's top, clear of
+    a[33, 260:337], a[33, [337, 367]] = G.c("dark", 3), G.INK              # the lamps, and its top-left corner
+    a[33:35, 258], a[33:35, 259] = (106, 75, 53), (58, 53, 48)
+    a[34:37, 262:337] = G.c("dark", 3)                                     # the map's header, a title bar not text
+    a[35, 263:277] = a[35, 279:285] = G.c("steel", 3)
+    a[31:33, 368:398] = a[31:77, 396:398] = G.INK                          # the white panel's top and right frame
+    a[33:35, 368:396] = G.c("cream", 5)
+    for k in range(6):                                                     # the rack: six units, blue LEDs
+        y = 104 + 6 * k
+        a[y, 414:433], a[y + 1:y + 6, 414:433] = G.c("steel", 2), G.c("dark", 1)
+        a[y + 3, 424:431] = G.c("dark", 3)
+        for x in (416, 418, 420)[:2 + k % 2]:
+            a[y + 3, x] = BLUE_LED
+    x0, x1 = 412, 455                                                      # the printer on it: a flat lid, a body
+    a[85:90, x0:x1 + 1] = WALL
+    a[90:104, x0:x1 + 1] = G.INK
+    a[91:93, x0 + 1:x1] = G.c("grey", 5)
+    a[94:103, x0 + 1:x1] = G.c("grey", 4)
+    slot = G.PRINTER[0] + 132
+    a[91, slot:slot + 8] = G.c("dark", 1)                                  # the slot the sheet comes out of
+    a[96:100, 416:422] = G.c("cream", 3)                                   # paper in the tray,
+    a[96:98, 444:452], a[96, 450] = G.c("dark", 1), G.c("plant", 5)        # the panel
+    for y in range(95, 104):                                               # the right-hand desk's edge, one line
+        for x in range(384, 409):
+            if tuple(a[y, x]) in ((158, 116, 65), (122, 85, 48)):
+                a[y, x] = WALL
+    for t in range(25):
+        a[95 + round(t / 3), 384 + t] = G.INK
+    for x0, y0, x1, y1 in ((187, 81, 237, 144), (258, 81, 288, 144), (316, 81, 345, 144), (372, 81, 392, 144)):
+        chair = a[y0:y1, x0:x1]                                            # the chairs, a step lighter than ink
+        for was, now in (((31, 22, 16), G.c("dark", 3)), ((36, 23, 15), G.c("dark", 4))):
+            chair[(chair == was).all(-1)] = now
+    a[130:142, 124:144] = a[130:142, 117:118]                              # the skirting runs on past the lobby
+    pool = a[129:154, 404:464]                                             # a light pool by the rack with no light:
+    lit = (pool == (242, 177, 59)).all(-1) | (pool == CONE).all(-1)
+    for y in range(pool.shape[0]):                                         # back to planks, its seams dark again
+        for x in range(1, pool.shape[1] - 2):
+            for n in (1, 2):
+                if lit[y, x - 1] and lit[y, x + n] and not lit[y, x:x + n].any():
+                    pool[y, x:x + n] = (106, 63, 12)
+    pool[lit] = (160, 100, 15)
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["nice"] = lambda px: ops_room(shadows(px, 142))   # above, the maroon is its skirting and cabinet
 
 # --- Floor 4, sumup ---
 LAMPS["sumup"] = [(177, 0, 34, 13), (236, 0, 33, 13, 0), (268, 0, 33, 13), (304, 0, 35, 13)]   # the copper one is off

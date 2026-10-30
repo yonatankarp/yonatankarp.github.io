@@ -225,6 +225,12 @@ html:not(.building--guided) .pixel .elevator, html:not(.building--guided) .pixel
   margin-top: 16px; background: var(--panel);
   box-shadow: 0 -4px 0 0 rgba(21, 25, 35, 0.85), 0 -8px 0 0 rgba(21, 25, 35, 0.6), 0 -12px 0 0 rgba(21, 25, 35, 0.3), 0 4px 0 0 var(--panel);
 }
+/* A card with no Step inside still says there is more: the same shading, pinned to its bottom edge (it is the
+   panel's own colour, so it only shows over text). */
+.pixel .floor-card:not(:has(.step-in-bar))::after {
+  content: ''; display: block; position: sticky; bottom: -20px; height: 12px; margin-top: -12px; pointer-events: none;
+  background: linear-gradient(rgba(21, 25, 35, 0.3) 0 4px, rgba(21, 25, 35, 0.6) 4px 8px, rgba(21, 25, 35, 0.85) 8px);
+}
 .pixel .floor-card .step-in {
   display: flex; width: 100%; justify-content: center; align-items: center; padding: 7px 16px; border: 0; cursor: pointer;
   background: var(--accent, var(--amber)); color: var(--ink); font: 400 30px/1 var(--display);
@@ -283,6 +289,7 @@ html.panel-open .pixel .building-hint { visibility: hidden; }
   .pixel .panel-grid, .pixel .panel-facts { grid-template-columns: 1fr; }
   .pixel .panel-facts { gap: 0; } .pixel .panel-facts dd { margin-bottom: 10px; }
   .pixel .step-in-bar { margin-top: 12px; bottom: -10px; }
+  .pixel .floor-card:not(:has(.step-in-bar))::after { bottom: -14px; }
 }
 /* Without JavaScript the panels are simply the rest of each floor's text, read in place. */
 html:not(.building--guided) .pixel .building-stop { flex-direction: column; align-items: flex-start; gap: 16px; }

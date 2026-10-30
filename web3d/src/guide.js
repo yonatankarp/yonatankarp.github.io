@@ -34,14 +34,17 @@ export function guide(api, root = document) {
     open.panel.classList.remove('is-open');
     open.button.setAttribute('aria-expanded', 'false');
     document.documentElement.classList.remove('panel-open');
-    if (refocus) open.button.focus();
+    if (refocus) {   // back on Step inside, with the card where the reader left it (focus would scroll it to the end)
+      open.button.focus({ preventScroll: true });
+      open.button.closest('.floor-card').scrollTop = open.top;
+    }
     open = null;
   };
   const openPanel = (button) => {
     const panel = document.getElementById(button.getAttribute('aria-controls'));
     if (!panel) return;
     closePanel(false);
-    open = { panel, button };
+    open = { panel, button, top: button.closest('.floor-card').scrollTop };
     panel.classList.add('is-open');
     button.setAttribute('aria-expanded', 'true');
     document.documentElement.classList.add('panel-open');
@@ -87,7 +90,9 @@ export function guide(api, root = document) {
   addEventListener('keydown', (e) => {
     if (!roomy.matches || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
     if (open) { if (e.key === 'Escape') closePanel(); return; }   // the panel scrolls with the keys
+    if (e.key === ' ' && e.target.closest?.('button, a, [role=button], summary')) return;   // Space presses the control
     const next = { ArrowDown: 1, PageDown: 1, ' ': e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
+    if (next && scrollsInside(document.activeElement, next)) return;   // a long card scrolls first, as with the wheel
     if (next) { e.preventDefault(); step(next); }
     if (e.key === 'Home') { e.preventDefault(); api.go(0); }
     if (e.key === 'End') { e.preventDefault(); api.go(keys.length - 1); }
@@ -111,23 +116,27 @@ export function guide(api, root = document) {
 
   const show = (index) => stops.forEach((s, i) => s.classList.toggle('is-here', i === index));
   document.addEventListener('building:floor', (e) => {
-    if (indicator) indicator.textContent = e.detail.key;
+    if (indicator) indicator.textContent = e.detail.key === 'E' ? '' : e.detail.key;   // outside, the lift shows no floor
   });
   const hint = root.querySelector('.building-hint');
   // After a ride, focus follows the reader to the new floor's heading, unless it is on the lift or the top bar.
   // null until the first ride: the load's own arrival neither moves focus nor speaks.
-  let follow = null;
+  let follow = null, leaving = null;
   document.addEventListener('building:depart', (e) => {
     const a = document.activeElement;
     follow = !a || a === document.body || !!a.closest('.building-stop, .exterior-windows');
+    // A card under an open panel leaves hidden: un-hidden, it would flash at full opacity while it fades out.
+    if (open) (leaving = open.button.closest('.floor-card')).style.visibility = 'hidden';
     closePanel(false);
     show(-1);
     document.documentElement.classList.remove('at-street');
     if (hint) hint.style.opacity = '0';
-    if (arrow) arrow.dataset.dir = e.detail.dir > 0 ? 'down' : 'up';
+    if (arrow) arrow.dataset.dir = e.detail.dir > 0 ? 'down' : e.detail.dir < 0 ? 'up' : '';   // a dissolve has no direction
     buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.goto === e.detail.key)));
   });
   document.addEventListener('building:arrive', (e) => {
+    leaving?.style.removeProperty('visibility');
+    leaving = null;
     show(e.detail.index);
     document.documentElement.classList.toggle('at-street', e.detail.key === 'E');
     if (arrow) arrow.dataset.dir = '';   // standing still: no arrow, like a real lift display

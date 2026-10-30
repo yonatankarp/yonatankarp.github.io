@@ -5,12 +5,11 @@ title: "Backend Software Developer"
 jobTitle: "Backend Software Developer"
 company: "NICE"
 location: "Ra'anana, Israel"
+floor: "3"   # its storey in the building on the homepage
 duration: "Dec 2017 - May 2019"
-summary: "Worked on distributed backend systems, cache reliability, and release automation."
+summary: "Backend development on a distributed product, focused on cache performance and reliability."
 highlights:
-  - "Built Java and Python applications on distributed systems."
-  - "Refactored a product cache system to improve performance and reliability."
-  - "Built an automated release notes generator integrating Python 3 and Jira."
+  - "Refactored a product's cache system for performance and reliability."
 ---
 
-Java and Python application development on distributed systems. Refactored a product's cache system improving performance and reliability. Built an automated release notes generator integrating Python 3 and Jira.
+Refactored a product's cache system for performance and reliability.

@@ -4,6 +4,7 @@ draft: false
 title: "Blake Irvin"
 name: "Blake Irvin"
 position: "Leading Observability Engineering at SumUp"
+pullQuote: "I'd love to work with Yonatan again."   # an exact excerpt, shown in the building's lobby
 params:
     image:
         src: "images/testimonials/blake-irvin.jpg"

@@ -69,6 +69,9 @@ jobs:
         id: pages
         uses: actions/configure-pages@v6
 
+      - name: Build the pixel building
+        run: npm run build:building
+
       - name: Build with Hugo
         env:
           HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
@@ -85,6 +88,9 @@ jobs:
 
       - name: Check generated HTML
         run: npm run check:generated-html
+
+      - name: Generate CV PDF
+        run: npm run pdf
 
       - name: Check CV print length
         run: npm run check:cv-print

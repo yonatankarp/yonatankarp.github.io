@@ -55,12 +55,12 @@ target = "static"
 
 [params]
 title = "Yonatan Karp-Rudin - Staff Software Engineer, Payments"
-description = "Staff Software Engineer based in Berlin. Building payment, compliance, and platform systems at Billie. Open source contributor."
+description = "Staff Software Engineer based in the Tel Aviv area. Building payment, compliance, and platform systems at Billie. Open source contributor."
 images = ["/img/og-img.png"]
 
 [params.seo]
 siteName = "Yonatan Karp-Rudin"
-siteDescription = "Staff Software Engineer based in Berlin. Building payment, compliance, and platform systems at Billie."
+siteDescription = "Staff Software Engineer based in the Tel Aviv area. Building payment, compliance, and platform systems at Billie."
 
 [params.social]
 twitter = "yonvata"

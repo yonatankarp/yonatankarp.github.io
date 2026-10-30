@@ -9,3 +9,27 @@ hugo_stats.json
 artifacts/visual-smoke/
 artifacts/*live-drift-audit*/*.png
 artifacts/*capacity-burn*/*.png
+
+# The pixel building's bundle, built by Vite (npm run build:building)
+assets/building/
+
+# Draw Things paintings: only the picked candidates are inputs (install_picks.PICKS, paint_rooms.LOBBY_PICK,
+# gen_exterior.PICK); the rest are kept locally for comparison
+web3d/pixel/paintings/candidates/*
+!web3d/pixel/paintings/candidates/lobby_100.png
+!web3d/pixel/paintings/candidates/sumup_451.png
+!web3d/pixel/paintings/candidates/nice_400.png
+!web3d/pixel/paintings/candidates/billie_risk_400.png
+!web3d/pixel/paintings/candidates/inuitive_400.png
+!web3d/pixel/paintings/candidates/reichman_400.png
+!web3d/pixel/paintings/candidates/billie_orchestrator_417.png
+!web3d/pixel/paintings/candidates/billie_payments_417.png
+!web3d/pixel/paintings/candidates/roof_400.png
+!web3d/pixel/paintings/candidates/reception_400.png
+!web3d/pixel/paintings/candidates/parking_400.png
+!web3d/pixel/paintings/candidates/writing_400.png
+!web3d/pixel/paintings/candidates/street9_634.png
+# install_picks.py also saves each crop beside its pixel art; only the -px.png files are read
+web3d/pixel/paintings/picks/*
+!web3d/pixel/paintings/picks/*-px.png
+__pycache__/

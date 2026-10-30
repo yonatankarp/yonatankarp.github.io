@@ -20,7 +20,16 @@ const viewports = [
 ];
 
 const routes = [
-  { name: "home", path: "/" },
+  {
+    name: "home",
+    path: "/",
+    requireMobileNav: false,
+    requiredSelectors: [
+      ["#pixel-canvas", 1, "building canvas"],
+      ["section.building-stop", 12, "building floors"],
+      [".building-window", 9, "street view windows"],
+    ],
+  },
   { name: "projects", path: "/projects/" },
   { name: "blog", path: "/blog/" },
   { name: "cv", path: "/cv/" },
@@ -45,7 +54,7 @@ const assertions = [
   "Visible images are loaded with non-zero natural dimensions.",
   "Mobile header keeps Yonatan Karp-Rudin visible as the brand signal.",
   "Mobile navigation button is visible, at least 36x36px, labeled, closed by default, and wired to #primary-nav.",
-  "Home page contains the hero and proof sections.",
+  "Home page renders the building: its canvas, every floor and the street view's windows.",
   "Blog index contains multiple article rows/cards.",
   "Standalone Madeira page contains route cards, daily itinerary sections, photos, and source panels.",
 ];
@@ -343,8 +352,6 @@ async function assertPageBasics(page, route, viewport) {
             label: navToggle.getAttribute("aria-label") || "",
           }
         : null,
-      homeHero: Boolean(document.querySelector(".hero")),
-      homeProof: Boolean(document.querySelector(".proof-grid")),
       blogCards: document.querySelectorAll(".post-row, .featured-article").length,
       requiredSelectorCounts: requiredSelectors.map(([selector, minimum, label]) => ({
         selector,
@@ -397,10 +404,6 @@ async function assertPageBasics(page, route, viewport) {
     if (checks.navToggle.ariaControls !== "primary-nav" || !checks.navToggle.label || checks.navToggle.ariaExpanded !== "false") {
       fail(`${route.path} (${viewport.name}) has incomplete mobile menu accessibility attributes`);
     }
-  }
-
-  if (route.name === "home" && (!checks.homeHero || !checks.homeProof)) {
-    fail(`${route.path} (${viewport.name}) is missing the hero or proof section`);
   }
 
   if (route.name === "blog" && checks.blogCards < 2) {
@@ -463,7 +466,7 @@ async function main() {
 
   fs.mkdirSync(screenshotDir, { recursive: true });
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {});
 
   try {
     for (const route of routes) {

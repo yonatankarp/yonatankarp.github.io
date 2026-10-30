@@ -1,283 +1,264 @@
-{{ define "main" }}
+{{- /* The homepage is the career building: a pixel-art street view, then one storey per chapter of the CV, top
+     to bottom. A standalone document (no baseof): it has its own top bar and no site header or footer.
+     Every card is real HTML from content/ and data/home; web3d/src/pixel.js (bundled into assets/building/ by
+     `npm run build:building`) draws the building behind them and rides the lift between them. */ -}}
 {{ $home := hugo.Data.home.en }}
-{{ $allPosts := sort (where .Site.RegularPages "Type" "blog") "Date" "desc" }}
-{{ $posts := first 3 $allPosts }}
-{{ $leadPost := false }}
-{{ range first 1 $posts }}{{ $leadPost = . }}{{ end }}
-{{ $secondaryPosts := slice }}
-{{ if gt (len $posts) 1 }}{{ $secondaryPosts = after 1 $posts }}{{ end }}
+{{ $experience := sort (where .Site.RegularPages "Type" "experience") "Params.floor" "desc" }}
+{{ $education := sort (where .Site.RegularPages "Type" "education") "Date" "desc" }}
+{{ $degree := index (where $education "Params.floor" "1") 0 }}
+{{ $courses := where $education "Params.floor" "!=" "1" }}
 {{ $testimonials := sort (where .Site.RegularPages "Type" "testimonial") "Date" "desc" }}
-{{ if eq (len $testimonials) 0 }}{{ $testimonials = sort (where (index hugo.Sites 0).RegularPages "Type" "testimonial") "Date" "desc" }}{{ end }}
-{{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
-{{ $showcaseImage := resources.Get "images/showcase/showcase.png" }}
-{{ $aboutImage := resources.Get "images/about/user-picture.png" }}
-<section class="hero shell reveal-group" aria-labelledby="home-title">
-  <div class="hero__copy reveal">
-    <p class="eyebrow">{{ $home.hero.eyebrow }}</p>
-    <h1 id="home-title">{{ $home.hero.title }}</h1>
-    <p class="hero__lede">{{ $home.hero.lede }}</p>
-    <div class="hero__actions">
-      <a class="button button--primary" href="{{ $home.hero.primaryAction.url }}">{{ $home.hero.primaryAction.label }}</a>
-      <a class="button button--ghost" href="{{ $home.hero.secondaryAction.url }}">{{ $home.hero.secondaryAction.label }}</a>
-    </div>
-    <div class="hero__proof-strip" aria-label="Credibility signals">
-      {{ range $home.hero.proofSignals }}
-      <div class="hero__proof-item">
-        <span>{{ .label }}</span>
-        <strong>{{ .text }}</strong>
-      </div>
-      {{ end }}
-    </div>
-    <ul class="hero__links">
-      {{ range $home.hero.links }}
-      <li><a href="{{ .url }}">{{ .label }}</a></li>
-      {{ end }}
-    </ul>
-  </div>
-  <div class="hero__visual reveal" aria-label="How Yonatan multiplies an engineering team">
-    <div class="multiplier-panel">
-      <div class="multiplier-panel__header">
-        {{ with $showcaseImage }}<img src="{{ .RelPermalink }}" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
-        <div>
-          <p>Yonatan Karp-Rudin</p>
-          <strong>Staff Software Engineer, Payments</strong>
-          <span>Builder · explainer · team multiplier</span>
-        </div>
-      </div>
-      <div class="multiplier-panel__body">
-        <h2>{{ $home.hero.multiplier.title }}</h2>
-        <div class="multiplier-steps">
-          {{ range $index, $step := $home.hero.multiplier.steps }}
-          <article class="multiplier-step">
-            <span>{{ printf "%02d" (add $index 1) }}</span>
-            <div>
-              <h3>{{ $step.title }}</h3>
-              <p>{{ $step.text }}</p>
-            </div>
-          </article>
-          {{ end }}
-        </div>
-      </div>
-      <div class="multiplier-evidence" aria-label="Proof points">
-        {{ range $home.hero.multiplier.evidence }}
-        <span>{{ . }}</span>
-        {{ end }}
-      </div>
-    </div>
-  </div>
-</section>
-
-<section id="proof" class="shell proof-section reveal-group" aria-labelledby="proof-title">
-  <div class="section-heading reveal">
-    <p class="section-kicker">{{ $home.proof.kicker }}</p>
-    <h2 id="proof-title">{{ $home.proof.title }}</h2>
-  </div>
-  <div class="proof-grid">
-    {{ range $home.proof.items }}
-    <article class="case-card reveal">
-      <div class="case-card__header">
-        <p class="case-card__label">{{ .label }}</p>
-        <h3>{{ .title }}</h3>
-      </div>
-      <dl class="case-card__details">
-        <div>
-          <dt>Problem</dt>
-          <dd>{{ .context }}</dd>
-        </div>
-        <div>
-          <dt>Leverage</dt>
-          <dd>{{ .decision }}</dd>
-        </div>
-        <div>
-          <dt>Result</dt>
-          <dd>{{ .result }}</dd>
-        </div>
-      </dl>
-    </article>
-    {{ end }}
-  </div>
-  {{ if gt (len $testimonials) 0 }}
-  {{ with index $testimonials 0 }}
-  <aside class="proof-quote reveal">
-    <blockquote>{{ .Content | plainify }}</blockquote>
-    <p>{{ .Params.name }} · {{ .Params.position }}</p>
-  </aside>
-  {{ end }}
-  {{ end }}
-</section>
-
-<section id="about" class="shell about-grid reveal-group">
-  <div class="about-grid__image reveal">
-    {{ with $aboutImage }}<img src="{{ .RelPermalink }}" alt="Yonatan Karp-Rudin">{{ end }}
-  </div>
-  <div class="about-grid__body reveal">
-    <p class="section-kicker">{{ $home.about.kicker }}</p>
-    <h2>{{ $home.about.title }}</h2>
-    <div class="prose">
-      {{ range $home.about.paragraphs }}
-      <p>{{ . }}</p>
-      {{ end }}
-    </div>
-    <div class="about-grid__facts">
-      {{ range $home.about.facts }}
-      <div>
-        <span>{{ .label }}</span>
-        <strong>{{ .text }}</strong>
-      </div>
-      {{ end }}
-    </div>
-  </div>
-</section>
-
-<section id="experience" class="shell section-stack reveal-group">
-  <div class="section-heading reveal">
-    <p class="section-kicker">{{ $home.experience.kicker }}</p>
-    <h2>{{ $home.experience.title }}</h2>
-  </div>
-  <div class="timeline">
-    {{ range first 2 $experience }}
-    <article class="timeline-item reveal">
-      <div class="timeline-item__meta">
-        <p>{{ .Params.duration }}</p>
-        <h3>{{ .Params.jobTitle }}</h3>
-        <span>{{ .Params.company }}, {{ .Params.location }}</span>
-      </div>
-      <div class="timeline-item__body">
-        <h4>{{ .Title }}</h4>
-        <p>{{ .Params.summary | default (.Content | plainify) }}</p>
-      </div>
-    </article>
-    {{ end }}
-    <p class="timeline-more reveal"><a class="text-link" href="/cv/">See the full history on the CV →</a></p>
-  </div>
-</section>
-
-<section id="client-and-work-section" class="shell section-stack reveal-group">
-  <div class="section-heading reveal">
-    <p class="section-kicker">{{ $home.projects.kicker }}</p>
-    <h2>{{ $home.projects.title }}</h2>
-  </div>
-  <div class="selected-work">
-    {{ $projects := site.GetPage "/projects" }}
-    {{ $featured := sort (where $projects.Pages "Params.featured" true) "Weight" "asc" }}
-    {{ range $index, $project := $featured }}
-    {{ $name := $project.Title | replaceRE `\s*\(contributor\)$` "" }}
-    {{ $projectURL := $project.Params.link }}
-    {{ $projectLabel := $project.Params.button.btnText }}
-    {{ if $project.Params.caseStudy }}
-      {{ $projectURL = $project.RelPermalink }}
-      {{ $projectLabel = "Case study" }}
-    {{ end }}
-    <article class="work-item reveal">
-      <div class="work-item__index">{{ printf "%02d" (add $index 1) }}</div>
-      <div class="project-row__body">
-        <p class="work-item__kind">{{ $project.Params.projectKind }}</p>
-        <h3>{{ $name }}</h3>
-        <p>{{ $project.Summary | plainify }}</p>
-      </div>
-      <div class="project-row__meta">
-        <a class="button button--ghost" href="{{ $projectURL }}">{{ $projectLabel }}</a>
-      </div>
-    </article>
-    {{ end }}
-  </div>
-  <p class="section-more"><a class="text-link" href="/projects/">View all projects →</a></p>
-</section>
-
-<section class="shell section-stack reveal-group">
-  <div class="section-heading reveal">
-    <p class="section-kicker">{{ $home.writing.kicker }}</p>
-    <h2>{{ $home.writing.title }}</h2>
-  </div>
-  <div class="writing-showcase">
-    {{ with $leadPost }}
-    <article class="writing-lead reveal{{ with .Params.images.featured_image }} has-cover{{ end }}"{{ with .Params.images.featured_image }} style="--cover: url('{{ . | relURL }}');"{{ end }}>
-      <p class="writing-card__date">{{ .Date.Format "Jan 2, 2006" }}</p>
-      <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
-      <p>{{ .Description | default (.Summary | plainify) }}</p>
-      <a class="text-link" href="{{ .RelPermalink }}">Read article</a>
-    </article>
-    {{ end }}
-    <div class="writing-stack">
-      {{ range $secondaryPosts }}
-      <article class="writing-card reveal{{ with .Params.images.featured_image }} has-cover{{ end }}"{{ with .Params.images.featured_image }} style="--cover: url('{{ . | relURL }}');"{{ end }}>
-        <p class="writing-card__date">{{ .Date.Format "Jan 2, 2006" }}</p>
-        <h3><a href="{{ .RelPermalink }}">{{ .Title }}</a></h3>
-        <p>{{ .Description | default (.Summary | plainify) }}</p>
-        <a class="text-link" href="{{ .RelPermalink }}">Read article</a>
-      </article>
-      {{ end }}
-    </div>
-  </div>
-  <p class="section-more"><a class="text-link" href="/blog/">View all blog posts →</a></p>
-</section>
-
-<section id="testimonial" class="shell section-stack reveal-group">
-  <div class="section-heading reveal">
-    <p class="section-kicker">{{ $home.testimonials.kicker }}</p>
-    <h2>{{ $home.testimonials.title }}</h2>
-  </div>
-  <div class="quote-stack">
-    {{ range $testimonials }}
-    {{ $img := resources.Get (printf "images/testimonials/%s.jpg" .File.BaseFileName) }}
-    {{ $testimonialName := .Params.name | default .Title }}
-    <figure class="quote-feature reveal">
-      <div class="quote-feature__person">
-        {{ with $img }}<img src="{{ .RelPermalink }}" alt="{{ $testimonialName }}">{{ end }}
-        <div>
-          <strong>{{ .Params.name }}</strong>
-          <span>{{ .Params.position }}</span>
-        </div>
-      </div>
-      <blockquote>{{ .Content | plainify }}</blockquote>
-    </figure>
-    {{ end }}
-  </div>
-</section>
-
-<section id="contact" class="shell contact-band reveal-group">
-  <div class="contact-band__frame reveal">
-    <div class="contact-band__intro">
-      <p class="section-kicker">{{ $home.contact.kicker }}</p>
-      <h2>{{ $home.contact.title }}</h2>
-      <p>{{ $home.contact.text }}</p>
-      {{ with $home.contact.priorities }}
-      <ol class="contact-priority">
-        {{ range . }}<li>{{ . }}</li>{{ end }}
-      </ol>
-      {{ end }}
-      {{ with $home.fit.items }}
-      <div class="contact-fit">
-        <p class="contact-fit__label">{{ $home.fit.title }}</p>
-        <ul>{{ range . }}<li>{{ . }}</li>{{ end }}</ul>
-      </div>
-      {{ end }}
-      <div class="contact-band__facts">
-        {{ range $home.contact.facts }}
-        <div>
-          <span>{{ .label }}</span>
-          <strong>{{ .text }}</strong>
-        </div>
-        {{ end }}
-      </div>
-    </div>
-
-    <div class="contact-band__rail">
-      <a class="contact-band__email" href="mailto:{{ $home.contact.email.address }}">
-        <span>{{ $home.contact.email.label }}</span>
-        <strong>{{ $home.contact.email.address }}</strong>
-        <em>{{ $home.contact.email.note }}</em>
-      </a>
-
-      <div class="contact-band__links">
-        {{ range $home.contact.links }}
-        <a href="{{ .url }}">
-          <span>{{ .label }}</span>
-          <strong>{{ .text }}</strong>
-        </a>
-        {{ end }}
-      </div>
-    </div>
-  </div>
-</section>
+{{ $projects := (.Site.GetPage "/projects").RegularPages.ByWeight }}{{/* listed locally only, so not in .Site.RegularPages */}}
+{{ $skills := .Site.GetPage "/skills" }}
+{{ $posts := sort (where .Site.RegularPages "Type" "blog") "Date" "desc" }}
+{{/* The colour of each storey's accent band, as painted (web3d/pixel/gen_floors.py FLOORS). */}}
+{{ $accent := dict "E" "#F2B13B" "R" "#F2B13B" "8" "#C94F33" "7" "#FF6B5A" "6" "#9B7BFF" "5" "#3FC6CF" "4" "#F2B13B" "3" "#4F86C0" "2" "#62B08E" "1" "#62B08E" "L" "#C39A5C" "P" "#9499A0" }}
+{{ $js := resources.Get "building/building.js" }}
+{{ $css := resources.Get "building/building.css" }}
+{{ if and $js $css }}
+  {{ $js = $js | fingerprint }}
+  {{ $css = $css | fingerprint }}
+{{ else }}
+  {{ errorf "The homepage needs the pixel building bundle in assets/building/: run `npm run build:building` first." }}
 {{ end }}
+{{ $cv := "yonatan-karp-rudin-cv.pdf" | relURL }}
+<!DOCTYPE html>
+<html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
+<head>
+  {{ partial "head.html" . }}
+  <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
+  <style>html, body { margin: 0; background: #151923; }</style>
+</head>
+<body class="building pixel">
+  <a class="skip-link" href="#building-stops">Skip to the current floor</a>
+  <canvas id="pixel-canvas" data-base="{{ "building/" | relURL }}" aria-hidden="true"></canvas>
+  <div class="building-scrim" aria-hidden="true"></div>
+
+  <div class="building-top">
+    <a class="building-name" href="#floor-E" data-goto="E">Yonatan Karp-Rudin</a>
+    <nav class="building-links" aria-label="Site">
+      <a href="{{ "blog/" | relURL }}">Blog</a>
+      <a href="{{ "cv/" | relURL }}">CV</a>
+    </nav>
+    <a class="building-download" href="{{ $cv }}" download aria-label="Download CV (PDF)">
+      <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
+      <span>Download CV</span>
+    </a>
+  </div>
+  <div class="exterior-windows" data-exterior-windows></div>
+  <p class="sr-only" role="status" aria-live="polite" data-building-status></p>
+
+  <nav class="elevator" aria-label="Floors">
+    <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor>E</span></div>
+    <button class="building-floor-btn" type="button" data-goto="P" aria-label="Parking, projects">P</button>
+    <button class="building-floor-btn" type="button" data-goto="L" aria-label="Lobby, recommendations and skills">L</button>
+    {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}">1</button>{{ end }}
+    {{ range sort $experience "Params.floor" "asc" }}
+    <button class="building-floor-btn" type="button" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</button>
+    {{ end }}
+    <button class="building-floor-btn" type="button" data-goto="8" aria-label="Floor 8, writing">8</button>
+    <button class="building-floor-btn" type="button" data-goto="R" aria-label="Roof, contact">R</button>
+  </nav>
+
+  <p class="building-hint" aria-hidden="true">Scroll, swipe or use the arrow keys to ride the elevator</p>
+
+  <main class="building-stops" id="building-stops">
+    <section class="building-stop building-stop--hero" id="floor-E" data-floor="E" aria-labelledby="fE">
+      <article class="floor-card floor-card--hero" style="--accent:{{ index $accent "E" }}">
+        <p class="floor-how">Every floor is a chapter of my CV. Scroll to go inside, or pick a window.</p>
+        <p class="floor-eyebrow">{{ $home.hero.eyebrow }}</p>
+        <h1 id="fE" tabindex="-1">{{ $home.hero.title }}</h1>
+        <p class="floor-open">{{ $home.hero.availability }}</p>
+        <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <a href="mailto:{{ $home.contact.email.address }}">{{ $home.contact.email.address }}</a></p>
+        <p class="floor-lead">{{ index (split $home.hero.lede ". ") 0 }}.</p>
+      </article>
+    </section>
+
+    <section class="building-stop" id="floor-R" data-floor="R" aria-labelledby="fR">
+      <article class="floor-card" style="--accent:{{ index $accent "R" }}">
+        <header><span class="floor-badge">R</span><span class="floor-company">Roof</span><span class="floor-when">{{ $home.contact.kicker }}</span></header>
+        <h2 id="fR" tabindex="-1">{{ $home.contact.title }}</h2>
+        <p class="floor-lead">{{ $home.contact.text }}</p>
+        <ul>{{ range $home.contact.priorities }}<li>{{ . }}</li>{{ end }}</ul>
+        <p class="floor-skills"><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>, <a href="https://github.com/yonatankarp">GitHub</a>, <a href="https://www.linkedin.com/in/yonatankarp/">LinkedIn</a></p>
+        <button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Step inside</button>
+      </article>
+      <div class="floor-panel" id="panel-R" style="--accent:{{ index $accent "R" }}" tabindex="-1" aria-label="Floor R in full">
+        <button class="panel-back" type="button">Back to the lift</button>
+        <div class="panel-head"><span class="floor-badge">R</span><p><b>Roof</b><span>{{ $home.contact.kicker }}</span></p></div>
+        <p class="panel-title">{{ $home.contact.title }}</p>
+        <p>{{ $home.contact.text }}</p>
+        <dl class="panel-facts">{{ range $home.contact.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
+        <h3>{{ $home.fit.title }}</h3>
+        <ul>{{ range $home.fit.items }}<li>{{ . }}</li>{{ end }}</ul>
+        <h3>{{ $home.outcomes.title }}</h3>
+        <div class="panel-grid">{{ range $home.outcomes.items }}<div><b>{{ .title }}</b><span>{{ .text }}</span></div>{{ end }}</div>
+        <h3>Get in touch</h3>
+        <ul><li><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li><li><a href="https://github.com/yonatankarp">github.com/yonatankarp</a></li><li><a href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a></li></ul>
+      </div>
+    </section>
+
+    <section class="building-stop" id="floor-8" data-floor="8" aria-labelledby="f8">
+      <article class="floor-card" style="--accent:{{ index $accent "8" }}">
+        <header><span class="floor-badge">8</span><span class="floor-company">Newsroom</span><span class="floor-when">{{ $home.writing.kicker }}</span></header>
+        <h2 id="f8" tabindex="-1">{{ $home.writing.title }}</h2>
+        <ul>{{ range first 3 $posts }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <span class="panel-soft">· {{ .Date.Format "Jan 2006" }}</span></li>{{ end }}</ul>
+        <button class="step-in" type="button" aria-controls="panel-8" aria-expanded="false">Step inside</button>
+      </article>
+      <div class="floor-panel" id="panel-8" style="--accent:{{ index $accent "8" }}" tabindex="-1" aria-label="Floor 8 in full">
+        <button class="panel-back" type="button">Back to the lift</button>
+        <div class="panel-head"><span class="floor-badge">8</span><p><b>Newsroom</b><span>{{ $home.writing.kicker }}</span></p></div>
+        <p class="panel-title">{{ $home.writing.title }}</p>
+        <ul class="panel-projects">
+          {{ range first 8 $posts }}
+          <li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <span class="panel-soft">· {{ .Date.Format "Jan 2006" }}</span>
+            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 180 }}</span></li>
+          {{ end }}
+        </ul>
+        <p><a href="{{ "blog/" | relURL }}">All posts</a></p>
+      </div>
+    </section>
+
+    {{ range $experience }}
+    {{ $floor := .Params.floor }}
+    <section class="building-stop" id="floor-{{ $floor }}" data-floor="{{ $floor }}" aria-labelledby="f{{ $floor }}">
+      <article class="floor-card" style="--accent:{{ index $accent $floor }}">
+        <header><span class="floor-badge">{{ $floor }}</span><span class="floor-company">{{ .Params.company }}, {{ index (split .Params.location ",") 0 }}</span><span class="floor-when">{{ replace .Params.duration " - " " – " }}</span></header>
+        <h2 id="f{{ $floor }}" tabindex="-1">{{ replace .Title " - " ", " }}</h2>
+        <p class="floor-lead">{{ .Params.summary }}</p>
+        <ul>{{ range first 3 .Params.highlights }}<li>{{ . }}</li>{{ end }}</ul>
+        <button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">Step inside</button>
+      </article>
+      <div class="floor-panel" id="panel-{{ $floor }}" style="--accent:{{ index $accent $floor }}" tabindex="-1" aria-label="Floor {{ $floor }} in full">
+        <button class="panel-back" type="button">Back to the lift</button>
+        <div class="panel-head"><span class="floor-badge">{{ $floor }}</span><p><b>{{ .Params.company }}, {{ .Params.location }}</b><span>{{ replace .Params.duration " - " " – " }}</span></p></div>
+        <p class="panel-title">{{ replace .Title " - " ", " }}</p>
+        <p>{{ .Params.summary }}</p>
+        <h3>What I did</h3>
+        <ul>{{ range .Params.highlights }}<li>{{ . }}</li>{{ end }}</ul>
+        {{ range first 1 (where $home.proof.items "floor" $floor) }}
+        <h3>Case study</h3>
+        <div class="panel-case">
+          <p class="panel-k">{{ .label }}</p>
+          <h4>{{ .title }}</h4>
+          <p class="panel-k">Context</p><p>{{ .context }}</p>
+          <p class="panel-k">Decision</p><p>{{ .decision }}</p>
+          <p class="panel-k">Result</p><p>{{ .result }}</p>
+        </div>
+        {{ end }}
+      </div>
+    </section>
+    {{ end }}
+
+    {{ with $degree }}
+    <section class="building-stop" id="floor-1" data-floor="1" aria-labelledby="f1">
+      <article class="floor-card" style="--accent:{{ index $accent "1" }}">
+        <header><span class="floor-badge">1</span><span class="floor-company">{{ .Params.university }}</span><span class="floor-when">{{ replace .Params.year "-" " – " }}</span></header>
+        <h2 id="f1" tabindex="-1">{{ .Params.degree }}</h2>
+        <p class="floor-lead">{{ $home.education.title }}</p>
+        <ul>{{ range first 4 $courses }}<li>{{ .Title }} ({{ .Params.year }})</li>{{ end }}</ul>
+        <button class="step-in" type="button" aria-controls="panel-1" aria-expanded="false">Step inside</button>
+      </article>
+      <div class="floor-panel" id="panel-1" style="--accent:{{ index $accent "1" }}" tabindex="-1" aria-label="Floor 1 in full">
+        <button class="panel-back" type="button">Back to the lift</button>
+        <div class="panel-head"><span class="floor-badge">1</span><p><b>{{ .Params.university }}</b><span>{{ replace .Params.year "-" " – " }}</span></p></div>
+        <p class="panel-title">{{ .Params.degree }}</p>
+        <p>{{ $home.education.title }}</p>
+        {{ with .Params.teaching }}
+        <h3>Teaching</h3>
+        <ul>{{ range . }}<li>{{ .title }} <span class="panel-soft">· {{ replace .when " - " " – " }}</span></li>{{ end }}</ul>
+        {{ end }}
+        <h3>Courses and workshops</h3>
+        <ul>{{ range $courses }}<li>{{ .Title }} <span class="panel-soft">· {{ .Params.degree }}, {{ .Params.year }}</span>{{ with .Params.link }} · <a href="{{ . }}">certificate</a>{{ end }}</li>{{ end }}</ul>
+      </div>
+    </section>
+    {{ end }}
+
+    <section class="building-stop" id="floor-L" data-floor="L" aria-labelledby="fL">
+      <article class="floor-card" style="--accent:{{ index $accent "L" }}">
+        <header><span class="floor-badge">L</span><span class="floor-company">Lobby</span><span class="floor-when">{{ $home.testimonials.kicker }}</span></header>
+        <h2 id="fL" tabindex="-1">{{ $home.testimonials.title }}</h2>
+        <ul class="floor-quotes">
+          {{ range $testimonials }}
+          <li><q>{{ .Params.pullQuote }}</q> <cite>{{ .Params.name }}, {{ .Params.position }}</cite></li>
+          {{ end }}
+        </ul>
+        {{ with $skills }}<p class="floor-skills">{{ delimit .Params.working_set ", " }}</p>{{ end }}
+        <button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">Step inside</button>
+      </article>
+      <div class="floor-panel" id="panel-L" style="--accent:{{ index $accent "L" }}" tabindex="-1" aria-label="Floor L in full">
+        <button class="panel-back" type="button">Back to the lift</button>
+        <div class="panel-head"><span class="floor-badge">L</span><p><b>Lobby</b><span>{{ $home.about.kicker }}</span></p></div>
+        <p class="panel-title">{{ $home.about.title }}</p>
+        {{ range $home.about.paragraphs }}<p>{{ . }}</p>{{ end }}
+        <dl class="panel-facts">{{ range $home.about.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
+        {{ range first 1 (where $home.proof.items "floor" "L") }}
+        <h3>Case study</h3>
+        <div class="panel-case">
+          <p class="panel-k">{{ .label }}</p>
+          <h4>{{ .title }}</h4>
+          <p class="panel-k">Context</p><p>{{ .context }}</p>
+          <p class="panel-k">Decision</p><p>{{ .decision }}</p>
+          <p class="panel-k">Result</p><p>{{ .result }}</p>
+        </div>
+        {{ end }}
+        <h3>{{ $home.testimonials.title }}</h3>
+        {{ range $testimonials }}
+        {{ $t := . }}
+        <figure class="panel-quote">
+          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "120x120 Center" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
+          <blockquote>{{ .Plain | htmlUnescape }}<cite>{{ .Params.name }}, {{ .Params.position }}</cite></blockquote>
+        </figure>
+        {{ end }}
+        {{ with $skills }}
+        <h3>{{ .Title }}</h3>
+        <div class="panel-grid">{{ range .Params.practice_areas }}<div><b>{{ .name }}</b><span>{{ .summary }}</span><span class="panel-chips">{{ range .tools }}<i>{{ . }}</i>{{ end }}</span></div>{{ end }}</div>
+        {{ end }}
+      </div>
+    </section>
+
+    <section class="building-stop" id="floor-P" data-floor="P" aria-labelledby="fP">
+      <article class="floor-card" style="--accent:{{ index $accent "P" }}">
+        <header><span class="floor-badge">P</span><span class="floor-company">Parking</span><span class="floor-when">{{ $home.projects.kicker }}</span></header>
+        <h2 id="fP" tabindex="-1">{{ $home.projects.title }}</h2>
+        {{ $upstream := slice }}{{ $tools := slice }}{{ $games := slice }}
+        {{ range $projects }}
+          {{ if eq .Params.group "contribution" }}{{ $upstream = $upstream | append (replace .Title " (contributor)" "") }}
+          {{ else if in (lower .Params.projectKind) "game" }}{{ $games = $games | append .Title }}
+          {{ else }}{{ $tools = $tools | append .Title }}{{ end }}
+        {{ end }}
+        <ul>
+          <li>Upstream: {{ delimit $upstream ", " }}.</li>
+          <li>Libraries and tools: {{ delimit (first 5 $tools) ", " }}.</li>
+          <li>Games: {{ delimit $games ", " }}.</li>
+        </ul>
+        <p class="floor-skills"><a href="{{ "projects/" | relURL }}">All projects</a></p>
+        <button class="step-in" type="button" aria-controls="panel-P" aria-expanded="false">Step inside</button>
+        <p class="floor-end">Bottom of the building: the lift goes no lower. Scroll up, or <a href="#floor-R" data-goto="R">ride to the roof</a> to get in touch.</p>
+      </article>
+      <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }}" tabindex="-1" aria-label="Floor P in full">
+        <button class="panel-back" type="button">Back to the lift</button>
+        <div class="panel-head"><span class="floor-badge">P</span><p><b>Parking</b><span>{{ $home.projects.kicker }}</span></p></div>
+        <p class="panel-title">{{ $home.projects.title }}</p>
+        {{ range slice (slice "Upstream contributions" "contribution") (slice "Libraries and tools" "tool") (slice "Games" "game") }}
+        {{ $label := index . 0 }}{{ $kind := index . 1 }}
+        <h3>{{ $label }}</h3>
+        <ul class="panel-projects">
+          {{ range $projects }}
+          {{ $isGame := in (lower .Params.projectKind) "game" }}
+          {{ $group := cond (eq .Params.group "contribution") "contribution" (cond $isGame "game" "tool") }}
+          {{ if eq $group $kind }}
+          <li><a href="{{ .Params.link }}">{{ replace .Title " (contributor)" "" }}</a> <span class="panel-soft">· {{ .Params.projectKind }}</span>
+            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 180 }}</span>
+            {{ with .Params.tech }}<span class="panel-chips">{{ range . }}<i>{{ . }}</i>{{ end }}</span>{{ end }}</li>
+          {{ end }}
+          {{ end }}
+        </ul>
+        {{ end }}
+      </div>
+    </section>
+  </main>
+  <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
+</body>
+</html>

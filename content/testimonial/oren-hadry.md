@@ -4,6 +4,7 @@ draft: false
 title: "Oren Hadry"
 name: "Oren Hadry"
 position: "Former Engineering Manager at Inuitive"
+pullQuote: "the go-to person for almost any problem"   # an exact excerpt, shown in the building's lobby
 params:
     image:
         src: "images/testimonials/oren-hadry.jpg"

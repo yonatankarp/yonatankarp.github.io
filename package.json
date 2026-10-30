@@ -1,7 +1,7 @@
 {
   "scripts": {
-    "build": "node scripts/run-hugo.js --gc --minify --cleanDestinationDir",
-    "build:local": "node scripts/run-hugo.js --gc --minify --cleanDestinationDir",
+    "build": "npm run build:building && node scripts/run-hugo.js --gc --minify --cleanDestinationDir && npm run pdf",
+    "build:local": "npm run build:building && node scripts/run-hugo.js --gc --minify --cleanDestinationDir && npm run pdf",
     "check": "npm run check:blog-assets && (npm run build || npm run build:local) && npm run check:site-metadata && npm run check:generated-html && npm run check:cv-print && npm run check:links",
     "check:blog-assets": "node scripts/check-blog-assets.js",
     "check:cv-print": "node scripts/check-cv-print.js",
@@ -13,11 +13,14 @@
     "project-thumbnails:generate": "node scripts/generate-project-thumbnails.js",
     "visual:capture": "node scripts/capture-screenshots.js",
     "visual:capture:live": "SITE_URL=https://yonatankarp.com/ node scripts/capture-screenshots.js",
-    "serve": "node scripts/run-hugo.js server",
-    "serve:local": "node scripts/run-hugo.js server",
-    "visual:compare": "node scripts/compare-visual-captures.js"
+    "serve": "npm run build:building && node scripts/run-hugo.js server --renderToMemory",
+    "serve:local": "npm run build:building && node scripts/run-hugo.js server --renderToMemory",
+    "visual:compare": "node scripts/compare-visual-captures.js",
+    "build:building": "vite build --config web3d/vite.config.js",
+    "pdf": "node scripts/generate-cv-pdf.js"
   },
   "devDependencies": {
-    "playwright": "^1.64.1"
+    "playwright": "^1.64.1",
+    "vite": "8.3.5"
   }
 }

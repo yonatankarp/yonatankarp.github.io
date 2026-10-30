@@ -357,29 +357,31 @@ def parking(room, f):
     room.rect(37, 81, 38, 82, GLOW["cyan"])
     room.rect(36, 82, 39, 83, GLOW["cyan"])
     room.rect(34, 83, 41, 84, c("plant", 3))                               # and the ground line
-    if f in (3, 4, 9):                                                     # one tired fluorescent tube flickers
-        for y in range(10, 48):
-            for x in range(25, 75):
+    if f in (3, 4, 9):                                                     # one tired fluorescent tube flickers: the
+        for y in range(15, 29):                                            # diagonal one, not the long ceiling bar
+            for x in range(28, 48):
                 if min(room.get(x, y)) > 215:
                     room.put(x, y, c("grey", 3))
 
 
 # --- Lobby: reception, the three recommendations framed on the wall, the building directory --------------------
-def brassy(col):
-    r, g, b = col
-    return r > 150 and g > 90 and b < 90 and r > b + 80
-
-
 HEADLIGHT = (255, 236, 170)
+PLATES = {  # the directory's name plates that light up, (x, y, rows): on/off over the 12 frames, all off at rest
+    (179, 84, 2): "011110000000", (201, 49, 1): "001111000000", (190, 63, 1): "000001111000",
+    (212, 84, 2): "000000111100", (223, 42, 1): "000000000110",
+}
 
 
 def reception(room, f):
-    room.blink((172, 32, 236, 88), brassy, c("amber", 1), f, every=13, lit=3)   # the directory's name plates
-    x = 274 + f * 4                                                        # a car's lights pass the glass door
-    for dx in (0, 3):
-        for y in (112, 113):
-            if sum(room.get(x + dx, y)) < 330:
-                room.put(x + dx, y, HEADLIGHT)
+    for (x, y, rows), on in PLATES.items():
+        if on[f] == "1":
+            room.rect(x, y, x + 7, y + rows, HEADLIGHT)
+    if 0 < f < 11:                                                         # a car's lights pass along the street
+        x = 266 + f * 6                                                    # through the glass door, behind its brass
+        for dx, col in ((-1, c("amber", 4)), (0, HEADLIGHT), (1, HEADLIGHT)):
+            for y in (112, 113):
+                if room.get(x + dx, y) == c("steel", 1):
+                    room.put(x + dx, y, col)
 
 
 def reichman(room, f):

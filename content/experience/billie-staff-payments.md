@@ -10,9 +10,9 @@ duration: "Oct 2025 - Present"
 summary: "Owns payments/compliance platform reliability across service boundaries, vendor integrations, migration work, and operational tooling."
 highlights:
   - "Took ComplyAdvantage transaction monitoring live, validated in shadow mode before blocking payments."
+  - "Rebuilt the compliance service around hexagonal architecture and a transactional outbox."
   - "Designed the dead-letter and replay pattern for payment services and shipped it as a shared Spring Boot library."
-  - "Planned the Payments move to Spring Boot 4 and unblocked it upstream in openapi-generator."
-  - "Built a Backstage Payments Hub that replaced Postman workflows for payment operations."
+  - "Built a Backstage Payments Hub that replaced Postman workflows, and on-call triage tooling used across about 80 production incidents."
 ---
 
-Took ComplyAdvantage transaction monitoring live, validated in shadow mode before blocking payments. Designed the dead-letter and replay pattern for payment services and shipped it as a shared Spring Boot library. Planned the Payments move to Spring Boot 4 and unblocked it upstream in openapi-generator. Built a Backstage Payments Hub that replaced Postman workflows for payment operations.
+Took ComplyAdvantage transaction monitoring live, validated in shadow mode before blocking payments. Rebuilt the compliance service around hexagonal architecture and a transactional outbox. Designed the dead-letter and replay pattern for payment services and shipped it as a shared Spring Boot library. Built a Backstage Payments Hub that replaced Postman workflows, and on-call triage tooling used across about 80 production incidents.

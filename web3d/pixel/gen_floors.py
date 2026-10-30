@@ -213,16 +213,32 @@ def sumup(room, f):
 
 
 # --- NICE, floor 3: a contact-centre operations room; the cache cabinet reshuffles (the cache refactor) -------
+CITIES = [(137, 43), (145, 48), (141, 53), (149, 63), (165, 48), (169, 58), (178, 46), (186, 52), (194, 49), (190, 64)]   # cities on the wall map
+STATS = [(53, 14), (56, 9), (59, 18), (62, 6), (65, 12), (68, 16)]   # the queue-stats bars: row, length from x 208
+PRINTER = (294, 90)   # the printer's 8 px output slot: its left end and the lid's top row (install_picks draws the lid)
+SHEET = [9, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # how far the sheet is out, by frame: taken at f1, printed again by f11
+
+
 def nice(room, f):
-    room.twinkle((128, 35, 200, 72), f, count=14, dark_below=400, col=GLOW["amber"])   # calls light up on the map
-    room.blink((205, 35, 235, 72), greenish, c("plant", 1), f)                          # queue stats tick
+    for i, (x, y) in enumerate(CITIES):                                                 # calls light up on the map
+        k = (f + 5 * i) % 6
+        if k < 2:
+            room.put(x, y, GLOW["amber"])
+        if k == 1:
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                room.put(x + dx, y + dy, c("amber", 3))
+    for i, (y, n) in enumerate(STATS):                                                  # queue stats tick
+        room.rect(208, y, 208 + n + [0, 1, 2, 1][(f + i) % 4], y + 1, c("plant", 5))
     if 4 <= f <= 9:
-        room.swap((20, 59, 50, 71), (20, 81, 50, 93))                                   # the cache reshuffles
-    n = max(0, f - 5) * 2
-    if n:
-        room.rect(295, 86 - n, 308, 86, c("cream", 5))                                  # release notes print
-        room.rect(295, 86 - n, 296, 86, c("cream", 3))
-    room.blink((281, 100, 301, 143), bluish, c("violet", 1), f)                         # rack lights
+        room.swap((21, 56, 50, 73), (21, 76, 50, 93))                                   # the cache reshuffles
+    x, y = PRINTER                                                                      # release notes print
+    top = y - SHEET[f]
+    if top < y:
+        room.rect(x, top, x + 8, y, INK)
+        room.rect(x + 1, top + 1, x + 7, y, c("cream", 5))
+        for ly in range(top + 2, y, 2):
+            room.rect(x + 2, ly, x + 6, ly + 1, c("cream", 3))
+    room.blink((281, 100, 301, 143), bluish, c("blue", 2), f)                           # rack lights
 
 
 # --- Billie, floor 5 (Senior, Risk): real-time fraud signals flow through the Flink pipe; the graph flags one -----

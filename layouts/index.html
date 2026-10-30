@@ -29,6 +29,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   <style>html, body { margin: 0; background: #151923; }</style>
+  {{- /* Guided from the first paint, not when the module runs (#39): the query is guide.js's roomy, and only where
+       a module can run. The street's look too, unless the address names a floor. */}}
+  <script>
+    if ('noModule' in HTMLScriptElement.prototype && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
+    if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.add('at-street');
+  </script>
 </head>
 <body class="building pixel">
   <a class="skip-link" href="#building-stops">Skip to the current floor</a>
@@ -37,10 +43,15 @@
 
   <div class="building-top">
     <a class="building-name" href="#floor-E" data-goto="E">Yonatan Karp-Rudin</a>
-    <nav class="building-links" aria-label="Site">
-      <a href="{{ "blog/" | relURL }}">Blog</a>
-      <a href="{{ "cv/" | relURL }}">CV</a>
-    </nav>
+    <div class="building-links">
+      <nav aria-label="Site">
+        <a href="{{ "blog/" | relURL }}">Blog</a>
+        <a href="{{ "cv/" | relURL }}">CV</a>
+      </nav>
+      <button class="building-pause" type="button" data-building-pause hidden>
+        <svg width="14" height="14" viewBox="0 0 7 7" aria-hidden="true"><path class="i-pause" fill="currentColor" d="M1 1h2v5H1zM4 1h2v5H4z"/><path class="i-play" fill="currentColor" d="M2 0h1v7H2zM3 1h1v5H3zM4 2h1v3H4zM5 3h1v1H5z"/></svg>
+      </button>
+    </div>
     <a class="building-download" href="{{ $cv }}" download aria-label="Download CV (PDF)">
       <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
       <span>Download CV</span>
@@ -61,10 +72,10 @@
     <button class="building-floor-btn" type="button" data-goto="R" aria-label="Roof, contact" title="Roof, contact">R</button>
   </nav>
 
-  <p class="building-hint">Scroll, swipe or use the arrow keys to ride the elevator</p>
+  <p class="building-hint" style="opacity:0">Scroll, swipe or use the arrow keys to ride the elevator</p>
 
   <main class="building-stops" id="building-stops">
-    <section class="building-stop building-stop--hero" id="floor-E" data-floor="E" aria-labelledby="fE">
+    <section class="building-stop building-stop--hero is-here" id="floor-E" data-floor="E" aria-labelledby="fE">
       <article class="floor-card floor-card--hero" style="--accent:{{ index $accent "E" }}">
         <p class="floor-how">Every floor is a chapter of my CV. Scroll to go inside, or pick a window.</p>
         <p class="floor-eyebrow">{{ $home.hero.eyebrow }}</p>
@@ -74,6 +85,8 @@
         <p class="floor-lead">{{ index (split $home.hero.lede ". ") 0 }}.</p>
       </article>
     </section>
+    {{- /* The street is where the lift starts, so its card is there at the first paint; not under a floor's address. */}}
+    <script>document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');</script>
 
     <section class="building-stop" id="floor-R" data-floor="R" aria-labelledby="fR">
       <article class="floor-card" style="--accent:{{ index $accent "R" }}">
@@ -259,6 +272,6 @@
       </div>
     </section>
   </main>
-  <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
+  <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" onerror="document.documentElement.classList.remove('building--guided')"></script>
 </body>
 </html>

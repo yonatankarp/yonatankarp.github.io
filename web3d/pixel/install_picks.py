@@ -364,7 +364,7 @@ TOUCHUPS["sumup"] = lambda px: shadows(px, 120)
 
 # --- Floor 5, billie_risk ---
 LAMPS["billie_risk"] = [(150, 0, 28, 19), (191, 0, 30, 15), (258, 0, 32, 17), (296, 0, 32, 15), (324, 0, 32, 15)]
-GONE["billie_risk"] = [(420, 0, 444, 33), (432, 33, 444, 40)]   # a lamp fused behind the screen's corner
+GONE["billie_risk"] = [(424, 0, 433, 25), (434, 22, 442, 35)]   # a lamp fused behind the screen's corner
 
 # --- Floor 6, billie_orchestrator ---
 LAMPS["billie_orchestrator"] = [(190, 0, 42, 19), (384, 0, 44, 19)]   # down over their painted bulbs
@@ -466,8 +466,9 @@ def planks(px):
 TOUCHUPS["billie_payments"] = planks
 
 # --- Floor 8, writing ---
-LAMPS["writing"] = [(252, 0, 34, 17), (292, 0, 34, 17), (320, 0, 33, 15), (366, 0, 31, 17)]
-GONE["writing"] = [(397, 0, 402, 33)]   # a cord with no lamp on it
+LAMPS["writing"] = [(252, 0, 34, 19, 3), (292, 0, 34, 19, 3), (320, 0, 34, 17), (366, 0, 31, 17)]   # the board under
+# the first two takes no light, and their sweep would wipe its clippings
+GONE["writing"] = [(397, 0, 402, 33), (304, 0, 309, 34)]   # a cord with no lamp on it; a painted shade's edge
 TOUCHUPS["writing"] = lambda px: shadows(px, 142)   # its bookcase and press stand on maroon feet
 KEEP["writing"] = [(236, 0, 392, 34)]   # the pale lamp shades, which read as light
 

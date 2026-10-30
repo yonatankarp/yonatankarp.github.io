@@ -413,6 +413,8 @@ def ops_room(px):
         for was, now in (((31, 22, 16), G.c("dark", 3)), ((36, 23, 15), G.c("dark", 4))):
             chair[(chair == was).all(-1)] = now
     a[130:142, 124:144] = a[130:142, 117:118]                              # the skirting runs on past the lobby
+    a[:, 190:413] = np.asarray(shadows(Image.fromarray(a[:, 190:413].copy()), 114))   # past the cabinet the floor
+    # shadows start higher, under the desks, and came out skirting maroon too
     pool = a[129:154, 404:464]                                             # a light pool by the rack with no light:
     lit = (pool == (242, 177, 59)).all(-1) | (pool == CONE).all(-1)
     for y in range(pool.shape[0]):                                         # back to planks, its seams dark again

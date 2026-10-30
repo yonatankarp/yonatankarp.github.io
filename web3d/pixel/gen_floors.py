@@ -232,7 +232,7 @@ CITIES = [(137, 43), (145, 48), (141, 53), (149, 63), (165, 48), (169, 58), (178
           (190, 64)]   # cities on the wall map
 STATS = [(53, 14), (56, 9), (59, 18), (62, 6), (65, 12), (68, 16)]   # the queue-stats bars: row, length from x 208
 PRINTER = (294, 90)   # the printer's 8 px output slot: its left end and the lid's top row (install_picks draws the lid)
-SHEET = [9, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # how far the sheet is out, by frame: taken at f1, printed again by f11
+SHEET = [9, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # how far the sheet is out, by frame: taken (fading) at f1, printed by f11
 
 
 def nice(room, f):
@@ -249,11 +249,12 @@ def nice(room, f):
         room.swap((21, 56, 50, 73), (21, 76, 50, 93))                                   # the cache reshuffles
     x, y = PRINTER                                                                      # release notes print
     top = y - SHEET[f]
-    if top < y:
-        room.rect(x, top, x + 8, y, INK)
-        room.rect(x + 1, top + 1, x + 7, y, c("cream", 5))
-        for ly in range(top + 2, y, 2):
-            room.rect(x + 2, ly, x + 6, ly + 1, c("cream", 3))
+    for py in range(top, y):
+        for px in range(x, x + 8):
+            if f == 1 and (px + py) % 2:
+                continue
+            line = x + 2 <= px < x + 6 and py > top and (py - top) % 2 == 0
+            room.put(px, py, INK if py == top or px in (x, x + 7) else c("cream", 3 if line else 5))
     room.blink((281, 100, 301, 143), bluish, c("blue", 2), f)                           # rack lights
 
 

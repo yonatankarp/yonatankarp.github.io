@@ -12,7 +12,6 @@ the lift and its doors stay identical on every floor, while the floor, the wall 
 beside the lift stay the room's own, so its planks and furniture run unbroken up to the doors. Writes paintings/picks/<name>.png (the crop)
 and <name>-px.png (464 x 154; the lobby is 132 x 154). Install the lobby before the floors.
 """
-import math
 import sys
 from collections import Counter
 from pathlib import Path
@@ -484,7 +483,7 @@ def mailroom(px):
     cx, cy, r = 238.5, 72, 28.5
     for y in range(41, 98):
         for x in range(206, 272):
-            t = math.floor(r + 0.5 - np.hypot(x - cx, y - cy)) if y <= cy else x - 210 if x < cx else 267 - x
+            t = int(np.floor(r + 0.5 - np.hypot(x - cx, y - cy))) if y <= cy else x - 210 if x < cx else 267 - x
             if 0 <= t <= 5:                                                # its depth into the tube, from outside
                 a[y, x] = G.INK if t in (0, 5) else G.c("steel", 4 if t < 3 else 3)
     for y in range(118, 142):                                              # the tray: the wall and skirting behind

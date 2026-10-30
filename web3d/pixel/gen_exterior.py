@@ -91,7 +91,10 @@ def blockout():
     cv.rect(212, GROUND - STOREY, 306, GROUND - STOREY + 3, c("amber", 3))       # the lobby's brass awning
     for x in range(284, 287):                                        # the crane on the roof
         cv.rect(x, 12, x + 1, top - 4, c("amber", 4) if x != 285 else c("amber", 2))
-    cv.rect(200, 14, 316, 17, c("amber", 4))
+    cv.rect(200, 13, 316, 14, c("amber", 5))                         # the jib: a light top chord,
+    cv.rect(200, 16, 316, 17, c("amber", 3))                         # a dark bottom chord, diagonals between
+    for x in range(200, 316):
+        cv.put(x, 14 if x % 4 in (0, 3) else 15, c("amber", 3))
     cv.rect(306, 17, 316, 22, c("steel", 2))
     cv.rect(240, 17, 241, 34, INK)
     cv.rect(238, 34, 243, 37, c("amber", 3))
@@ -107,7 +110,9 @@ def blockout():
         cv.rect(x, GROUND + 17, x + 10, GROUND + 18, c("grey", 4))
     for x in LAMPS:                                                  # street lamps
         cv.rect(x, GROUND - 40, x + 1, GROUND, c("steel", 1))
-        cv.rect(x - 2, GROUND - 42, x + 3, GROUND - 40, c("amber", 5))
+        cv.rect(x - 1, GROUND - 45, x + 2, GROUND - 44, INK)            # a lantern with a bright core
+        cv.rect(x - 1, GROUND - 44, x + 2, GROUND - 40, c("amber", 4))
+        cv.rect(x, GROUND - 43, x + 1, GROUND - 41, c("cream", 5))
     for key, (x0, y0, x1, y1) in windows().items():                  # frames; the glass is filled at build time
         if key != "R":
             cv.rect(x0 - 2, y0 - 2, x1 + 2, y1 + (2 if key != "P" else 0), INK)
@@ -160,16 +165,20 @@ def build(out):
             boxes += [(x, y, x + 4, y + 5) for y in range(top + 8, GROUND - 6, 10) for x in range(x0 + 4, x1 - 4, 8)]
         for box in boxes:                                                # the blockout's frames stay exactly put
             art.paste(blk.crop(box), box[:2])
-        for x0, x1, top in NEIGHBOURS:                                   # a 3-step Bayer ramp, on wall pixels only
+
+        def glow(x, y, col, cy, r):                                      # a 3-step Bayer ramp toward the lamp light
+            d = min(((x - lx) ** 2 + (y - cy) ** 2) ** 0.5 for lx in LAMPS)
+            lv = min(3, int((1 - d / r) * 3 + G.BAYER[y % 4][x % 4] / 16))
+            return col if lv <= 0 else tuple(round(v + (g - v) * (0, 0.35, 0.65, 0.95)[lv]) for v, g in zip(col, c("amber", 5)))
+
+        for x0, x1, top in NEIGHBOURS:                                   # the lamps' halos, on wall pixels only
             for y in range(top + 3, GROUND):
                 for x in range(x0, x1):
-                    d = min(((x - lx) ** 2 + (y - GROUND + 41) ** 2) ** 0.5 for lx in LAMPS)
-                    lv = int((1 - d / 26) * 3 + G.BAYER[y % 4][x % 4] / 16)
-                    if lv > 0 and px[x, y] not in (INK, GLOW_WIN, c("sky", 0)):
-                        px[x, y] = tuple(round(v + (g - v) * 0.2 * lv) for v, g in zip(px[x, y], c("amber", 5)))
+                    if px[x, y] not in (INK, GLOW_WIN, c("sky", 0)):
+                        px[x, y] = glow(x, y, px[x, y], GROUND - 43, 32)
         for x in LAMPS:                                                  # the blockout's lamps, over their light
-            art.paste(blk.crop((x, GROUND - 42, x + 1, GROUND)), (x, GROUND - 42))
-            art.paste(blk.crop((x - 2, GROUND - 42, x + 3, GROUND - 40)), (x - 2, GROUND - 42))
+            art.paste(blk.crop((x, GROUND - 40, x + 1, GROUND)), (x, GROUND - 40))
+            art.paste(blk.crop((x - 1, GROUND - 45, x + 2, GROUND - 40)), (x - 1, GROUND - 45))
         for x in range(196, 322):                                        # the crane, on the painting's own sky
             for y in range(6, 53):                                       # (its dither repeats every 4 px)
                 col = blk.getpixel((x, y))
@@ -183,7 +192,7 @@ def build(out):
                 d = min(abs(x - lx) for lx in LAMPS)
                 b = G.BAYER[y % 4][x % 4] / 16
                 if y < GROUND + 6:                                       # slabs, lit under the lamps
-                    col = c("amber", 5) if 1 - d / 22 > b else c("wall", 5)
+                    col = glow(x, y, c("wall", 4), y, 30)
                     col = c("cream", 1) if x % 24 == 0 else col
                 elif y < GROUND + 8:
                     col = c("cream", 2) if y == GROUND + 6 else c("wall", 3)

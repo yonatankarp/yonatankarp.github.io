@@ -226,6 +226,30 @@ def nice(room, f):
 
 
 # --- Billie, floor 5 (Senior, Risk): real-time fraud signals flow through the Flink pipe; the graph flags one -----
+def blobs(get, box, pick):
+    """The 8-connected patches of pixels in a box that pick(col) takes, largest first, as lists of (x, y)."""
+    x0, y0, x1, y1 = box
+    seen, out = set(), []
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            if (x, y) in seen or not pick(get(x, y)):
+                continue
+            blob, todo = [], [(x, y)]
+            seen.add((x, y))
+            while todo:
+                cx, cy = todo.pop()
+                blob.append((cx, cy))
+                for nx in (cx - 1, cx, cx + 1):
+                    for ny in (cy - 1, cy, cy + 1):
+                        if x0 <= nx < x1 and y0 <= ny < y1 and (nx, ny) not in seen and pick(get(nx, ny)):
+                            seen.add((nx, ny))
+                            todo.append((nx, ny))
+            out.append(blob)
+    return sorted(out, key=len, reverse=True)
+
+
+THROB = "001100110000"   # the flagged node, pale on a '1': twice, then it rests saturated
+WARN = "100110011001"    # the console's warning lamp, lit on a '1'
 PIPE_CORE = {  # the pipe's glowing core, row by row: '#' is a lit event; every period divides the loop's 48 px
     61: "#...........#...",
     62: "##.....###......#.......",
@@ -238,16 +262,21 @@ assert all(48 % len(row) == 0 for row in PIPE_CORE.values())
 def billie_risk(room, f):
     core = (c("cyan", 4), c("cyan", 5))                                        # events stream through the pipe's core
     for y, row in PIPE_CORE.items():
-        for x in range(27, 180):
-            if room.get(x, y) in core:                                          # the flanges and the coupling stay put
+        for x in range(27, 222):
+            if room.get(x, y) in core:                                          # the flanges and the clamps stay put
                 room.put(x, y, core[row[(x - 4 * f) % len(row)] == "#"])
-    room.blink((223, 30, 301, 81), cyanish, c("cyan", 1), f, every=9, lit=2)    # graph nodes flicker
-    if f % 4 < 2:                                                               # the flagged node throbs
+    lit = {R["cyan"][i]: R["cyan"][i - 2] for i in (3, 4, 5)}
+    for k, node in enumerate(blobs(room.get, (223, 30, 301, 81), lambda col: col in lit)):
+        if f and (f + 5 * k) % 6 == 0:                                          # each node dims in its turn
+            for x, y in node:
+                room.put(x, y, lit[room.get(x, y)])
+    if THROB[f] == "1":                                                         # the flagged node throbs
         for y in range(52, 76):
             for x in range(255, 281):
                 if reddish(room.get(x, y)):
                     room.put(x, y, (255, 150, 128))
-    room.blink((0, 80, 60, 100), reddish, c("red", 1), f, every=7, lit=3)       # the console's warning light
+    if WARN[f] == "0":
+        room.rect(38, 84, 41, 86, c("coral", 1))                                # the console's warning lamp
 
 
 # --- Inuitive, floor 2: the 3D-vision lab; a calibration scan sweeps the checkerboard -------------------------
@@ -268,22 +297,36 @@ def inuitive(room, f):
         room.rect(190, 79, 193, 82, GLOW["cyan"])                           # the robot's depth lens
 
 
+TOWERS = [(100, 84, 116, 126), (182, 84, 196, 126)]   # the two server towers behind the core, trimmed in its magenta
+PULSE = "011100111000"   # the core's throb: on a '1' its body is a step brighter, and in the middle of each, its pool
+LED = {"green": (GLOW["green"], c("plant", 1)), "amber": (GLOW["amber"], c("amber", 1)), "red": (GLOW["red"], c("red", 1))}
+LEDS = [  # the services' status lights on the towers' faces: x, y, colour, lit on a '1'
+    (59, 99, "green", "110111011101"), (61, 99, "amber", "111110011111"), (87, 97, "green", "101101101111"),
+    (89, 97, "green", "111011110111"), (108, 101, "green", "110110111011"), (110, 101, "red", "111111000111"),
+    (185, 97, "green", "101110111011"), (187, 97, "amber", "111101111001"), (205, 96, "green", "110111101101"),
+    (207, 96, "green", "111011011011"), (209, 96, "red", "111111100011"), (226, 98, "green", "101111011101"),
+    (228, 98, "amber", "111001111111"),
+]
+
+
 def billie_orchestrator(room, f):
-    if f in (0, 1, 6, 7):                                                  # the core throbs twice
+    if PULSE[f] == "1":                                                    # the core throbs twice, easing in and out:
+        hide = lambda x, y: None if any(x0 <= x < x1 and y0 <= y < y1 for x0, y0, x1, y1 in TOWERS) else room.get(x, y)
+        glow = [p for b in blobs(hide, (0, 0, room.img.width, room.img.height), lambda col: col in R["magenta"])
+                if any(117 <= x < 182 and y >= 80 for x, y in b) for p in b]  # its whole glow, cut off at the towers
         up = {R["magenta"][i]: R["magenta"][i + 1] for i in range(1, 5)}
-        for y in range(75, 145):
-            for x in range(100, 190):
-                col = room.get(x, y)
-                if col in up:
-                    room.put(x, y, up[col])
-    x = 96 + f * 9                                                         # an invoice crosses the wall screen
-    room.rect(x - 1, 36, x + 7, 45, INK)
-    room.rect(x, 37, x + 6, 44, c("cream", 5))
-    room.rect(x, 37, x + 6, 39, c("violet", 4))
-    for y in (40, 42):
-        room.rect(x + 1, y, x + 5, y + 1, c("cream", 2))
-    room.blink((0, 85, 100, 140), greenish, c("plant", 1), f)               # the services' status lights
-    room.blink((140, 85, 215, 140), greenish, c("plant", 1), f)
+        for x, y in glow:
+            if y < 125 or PULSE[f - 1:f + 2] == "111":                     # the body, then the plinth and pool too
+                room.put(x, y, up.get(room.get(x, y), room.get(x, y)))
+    if f < 10:                                                             # an invoice climbs the screen's green lane,
+        x, y = 104 + 3 * f, 55 - f                                         # then is filed
+        room.rect(x, y, x + 8, y + 9, INK)
+        room.rect(x + 1, y + 1, x + 7, y + 8, c("cream", 5))
+        room.rect(x + 1, y + 1, x + 7, y + 3, c("violet", 4))
+        for yy in (y + 4, y + 6):
+            room.rect(x + 2, yy, x + 6, yy + 1, c("cream", 2))
+    for x, y, col, on in LEDS:
+        room.put(x, y, LED[col][on[f] == "0"])
 
 
 BELT = {  # the belt's top, row by row, as a 24 px tile riding 2 px a frame: an envelope (flap up), a gap, a stamped one

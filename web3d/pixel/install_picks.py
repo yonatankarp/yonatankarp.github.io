@@ -365,13 +365,70 @@ TOUCHUPS["sumup"] = lambda px: shadows(px, 120)
 # --- Floor 5, billie_risk ---
 LAMPS["billie_risk"] = [(150, 0, 28, 19), (191, 0, 30, 15), (258, 0, 32, 17), (296, 0, 32, 15), (324, 0, 32, 15)]
 GONE["billie_risk"] = [(424, 0, 433, 25), (434, 22, 442, 35)]   # a lamp fused behind the screen's corner
+CORAL, CYAN = G.R["coral"], G.R["cyan"]
+
+
+def risk(px):
+    """Floor 5: the pipe hung on two rods and run on into the graph's frame, its glow smear gone; the graph's one
+    flagged node left red; the console's warning lamp and side panel; the desk drawn again, with a keyboard."""
+    a = np.asarray(px).copy()
+    smear = a[50:75, 130:320]
+    smear[(smear == G.c("mint", 5)).all(-1)] = WALL                     # the pipe's glow, above and below it
+    a[67, 134], a[67, 135:145], a[68, 145] = WALL, G.INK, WALL          # the end cap's bottom edge
+    a[55:58, 308:354][(a[55:58, 308:354] == CONE).all(-1)] = WALL       # the light stops short of the pipe, as elsewhere
+    a[58:69, 308:354] = a[58:69, 242:243]                               # the pipe runs on into the graph's frame
+    for x in (224, 346):                                                # hung from the ceiling on two rods, clamped
+        a[0:58, x], a[0:58, x + 1] = G.INK, G.c("steel", 3)
+        a[58:69, x - 1:x + 3] = G.INK
+        a[59:68, x:x + 2] = G.c("steel", 4)
+    screen = a[30:83, 354:438]                                          # the graph: only the flagged node stays red
+    red = {CORAL[i]: i for i in (1, 2, 4, 5)}
+    nodes = G.blobs(lambda x, y: tuple(screen[y, x]), (0, 0, 84, 53), lambda col: col in red)
+    for node in nodes[1:]:
+        for x, y in node:
+            screen[y, x] = CYAN[red[tuple(screen[y, x])]]
+    around = lambda y, x, r: {tuple(screen[j, i]) for j in range(max(0, y - r), y + r + 1)
+                              for i in range(max(0, x - r), x + r + 1)}
+    glass, lit = {*CYAN, *CORAL, G.INK}, {*CYAN[3:], *CORAL}
+    edges = [(y, x) for y in range(2, 51) for x in range(2, 76) if tuple(screen[y, x]) == G.INK
+             and not around(y, x, 1) & lit and around(y, x, 2) <= glass]   # inside the frame, clear of the nodes
+    for y, x in edges:                                                  # its edges, a step lighter than ink
+        screen[y, x] = CYAN[2]
+    for pot in (a[120:147, 314:322], a[120:148, 432:445]):              # the pots' cyan glints
+        for i in (1, 3, 4, 5):
+            pot[(pot == CYAN[i]).all(-1)] = G.c("cream", 1)
+    a[83:87, 169:174] = G.INK                                           # the console's warning lamp, rimmed in ink
+    a[84:86, 170:173] = CORAL[4]
+    a[84, 170] = CORAL[5]
+    side = a[87:143, 178:190]                                           # its side panel, one flat tone
+    for col in (G.c("wood", 1), G.c("plank", 0)):
+        side[(side == col).all(-1)] = G.c("cream", 0)
+    sliver = a[116:135, 334:341]
+    sliver[(sliver == CONE).all(-1)] = WALL
+    a[106:114, 338:436] = G.INK                                         # the desk: an even grey top, lit along its back
+    a[107, 339:435] = G.c("steel", 5)
+    a[108:112, 339:435] = G.c("steel", 4)
+    a[112, 339:435] = G.c("steel", 3)
+    a[108:112, 364:384] = G.INK                                         # a keyboard
+    for y in (109, 110):
+        for x in range(365, 383):
+            a[y, x] = G.c("steel", 4 if (x + y) % 2 else 2)
+    for x0, x1, front, side_col in ((339, 369, 10, G.c("grey", 2)), (404, 435, 9, G.c("grey", 3))):   # level pedestals
+        a[114:149, x0:x1 + 1] = G.INK
+        a[114:148, x0 + 1:x0 + front] = G.c("steel", 5)
+        a[114:148, x0 + front] = G.c("steel", 4)
+        a[114:148, x0 + front + 2:x1] = side_col
+    a[149, 404:436] = a[149, 370:402]                                   # the floor under the right one's old foot
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["billie_risk"] = risk
 
 # --- Floor 6, billie_orchestrator ---
 LAMPS["billie_orchestrator"] = [(190, 0, 42, 19), (384, 0, 44, 19)]   # down over their painted bulbs
-GONE["billie_orchestrator"] = [(219, 0, 251, 29), (316, 0, 346, 29), (369, 0, 373, 26)]   # the two hung in front of
-# the screen, and a cord with no lamp
+GONE["billie_orchestrator"] = [(219, 0, 251, 29), (316, 0, 346, 29), (369, 0, 373, 26), (174, 0, 177, 75)]   # the two
+# hung in front of the screen, a cord with no lamp, and one run down into the terminal
 KEEP["billie_orchestrator"] = [(220, 30, 355, 95)]    # the wall screen: its invoice cards are bright
-UNLIT["billie_orchestrator"] = [(220, 30, 355, 95)]   # the two lamps hung in front of that screen cast no cone on it
 
 
 def screen(px):
@@ -390,11 +447,17 @@ def screen(px):
     panel = a[37:68, intact[1]:x1 - 5]                                     # right of the trays, whose rims are wall-tan
     for col in (WALL, G.c("wall", 5), G.c("plank", 5)):
         panel[(panel == col).all(-1)] = G.c("blue", 5)
+    for box, col, to in (((33, 35, x0, x1), (G.c("red", 2), G.c("coral", 1)), G.c("steel", 0)),   # a red dash on the
+                         ((68, 69, x0, x1), (G.c("coral", 1),), G.c("magenta", 1)),               # title bar and bezel
+                         ((58, 60, x0, x1), (WALL,), G.c("amber", 4))):                           # the trays' rims
+        part = a[box[0]:box[1], box[2]:box[3]]
+        for c in col:
+            part[(part == c).all(-1)] = to
     return Image.fromarray(a, "RGB")
 
 
 GLASS = {G.c("violet", 5), G.c("violet", 4), G.c("wall", 5), G.c("grey", 5), G.c("steel", 4),   # the painted cabinet,
-         G.c("cream", 5), G.c("sky", 5), G.c("sky", 4), G.c("coral", 5), CONE}               # its glints and halo
+         G.c("cream", 5), G.c("cream", 4), G.c("sky", 5), G.c("sky", 4), G.c("coral", 5), CONE}   # its glints, halo
 
 
 def ghost(px):
@@ -431,7 +494,45 @@ def ghost(px):
     return Image.fromarray(a, "RGB")
 
 
-TOUCHUPS["billie_orchestrator"] = lambda px: ghost(screen(px))
+def glow(px):
+    """Floor 6: the core's glow on the wall came out salmon, and its pool on the floor ends in a hard edge. The wall
+    glow becomes a two-step violet dither, the pool's edge dithers into the planks, and the terminal beside the core
+    gets back its lit screen, bezel and buttons."""
+    a = np.asarray(px).copy()
+    for y in range(72, 119):                                               # the wall glow behind the core
+        for x in range(220, 355):
+            col = tuple(a[y, x])
+            if col == G.c("coral", 5):
+                a[y, x] = G.c("violet", 5) if (x + y) % 2 == 0 else WALL
+            elif col in (G.c("sky", 5), G.c("sky", 4), G.c("wall", 3), G.c("wall", 4)):
+                a[y, x] = G.c("violet", 5) if x % 2 == 0 and y % 2 == 0 else WALL
+    pool = {G.c("magenta", 1), G.c("magenta", 2)}                         # its dark floor, not the lit cables
+    was = a.copy()
+    for y in range(129, a.shape[0]):                                       # the pool's edge, two pixels deep
+        for x in range(197, 365):
+            if tuple(was[y, x]) not in pool or (x + y) % 2:
+                continue
+            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0), (0, 2), (0, -2)):
+                ny, nx = y + dy, x + dx
+                if ny < a.shape[0] and tuple(was[ny, nx]) not in {*G.R["magenta"], G.INK, *G.R["violet"]}:
+                    a[y, x] = was[ny, nx]
+                    break
+    halo = a[72:132, 147:157]                                              # the terminal: its tan halo goes
+    for col in (G.c("plank", 5), G.c("plank", 4), G.c("plank", 3)):
+        halo[(halo == col).all(-1)] = WALL
+    a[75:93, 156:182] = G.INK                                              # its screen, in a violet bezel
+    a[76:92, 157:181] = G.c("violet", 2)
+    for y in range(77, 91):
+        a[y, 158:180] = G.c("blue", 3 if y % 2 else 2)
+    for y, n in ((79, 12), (81, 8), (83, 14), (85, 6)):                    # a few lines of text
+        a[y, 160:160 + n] = G.c("cyan", 4)
+    a[87, 160:162] = G.c("cyan", 5)                                        # the cursor
+    for x, col in ((160, G.c("cyan", 4)), (162, G.c("amber", 4)), (164, G.c("red", 4))):
+        a[97, x] = col                                                     # and its buttons
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["billie_orchestrator"] = lambda px: glow(ghost(screen(px)))
 
 
 # --- Floor 7, billie_payments ---

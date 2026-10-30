@@ -12,6 +12,7 @@ the lift and its doors stay identical on every floor, while the floor, the wall 
 beside the lift stay the room's own, so its planks and furniture run unbroken up to the doors. Writes paintings/picks/<name>.png (the crop)
 and <name>-px.png (464 x 154; the lobby is 132 x 154). Install the lobby before the floors.
 """
+import math
 import sys
 from collections import Counter
 from pathlib import Path
@@ -435,9 +436,11 @@ TOUCHUPS["billie_orchestrator"] = lambda px: ghost(screen(px))
 
 
 # --- Floor 7, billie_payments ---
-LAMPS["billie_payments"] = [(188, 21, 36, 19, 16), (240, 21, 40, 17, 16), (287, 21, 43, 17, 16), (308, 21, 43, 17, 16),
+LAMPS["billie_payments"] = [(188, 21, 36, 19, 16), (240, 21, 40, 17, 0), (287, 21, 43, 17, 16), (308, 21, 43, 17, 16),
                             (341, 21, 40, 17, 16), (363, 21, 45, 15, 16), (384, 21, 37, 17, 16),
-                            (414, 21, 41, 19, 16)]   # hung from the pipe, close together: short cones
+                            (414, 21, 41, 19, 16)]   # hung from the pipe, close together: short cones; the one over
+# the scanner arch is off
+KEEP["billie_payments"] = [(400, 46, 456, 94)]   # the screening board, redrawn below; its lamp's cone stops evenly above it
 GONE["billie_payments"] = [(160, 21, 179, 42), (424, 21, 440, 44)]   # the second of two fused pairs
 
 
@@ -463,7 +466,59 @@ def planks(px):
     return Image.fromarray(a, "RGB")
 
 
-TOUCHUPS["billie_payments"] = planks
+def mailroom(px):
+    """Floor 7, after planks: the screening board comes out wall-coloured with garbled tiles, so it is drawn again as
+    a dark panel in an ink frame with flat tiles (gen_floors.SCREENING, which flips them). The scanner arch was fused
+    with a door frame and a ghost arch: one steel arch now. The post box's envelope read as a "B"; the red tray
+    melted into the skirting. The floor is planked again, as on floor 5, across the lobby too."""
+    a = np.asarray(px).copy()
+    a[46:96, 400:456] = WALL                                               # the board, and painted light beside it
+    a[48:92, 412:452] = G.INK
+    a[49:91, 413:451] = G.c("steel", 1)
+    a[50:90, 414:450] = G.c("dark", 1)
+    a[52, 415:431] = G.c("cream", 3)                                       # its title
+    for x, y, flagged in G.SCREENING:
+        a[y:y + 4, x + 132:x + 139] = G.GLOW["red" if flagged else "green"]
+    a[34:98, 206:272] = WALL                                               # the arch: a steel tube, ink either side,
+    a[29:40, 231:250] = np.asarray(px)[29:40, 231:250]                     # under the lamp
+    cx, cy, r = 238.5, 72, 28.5
+    for y in range(41, 98):
+        for x in range(206, 272):
+            t = math.floor(r + 0.5 - np.hypot(x - cx, y - cy)) if y <= cy else x - 210 if x < cx else 267 - x
+            if 0 <= t <= 5:                                                # its depth into the tube, from outside
+                a[y, x] = G.INK if t in (0, 5) else G.c("steel", 4 if t < 3 else 3)
+    for y in range(118, 142):                                              # the tray: the wall and skirting behind
+        for x in range(152, 207):                                          # it first, but not the conveyor's feed
+            if not (x >= 193 and y < 128):
+                a[y, x] = a[y, 130]
+    a[124:142, 156:207] = G.INK
+    a[125:128, 157:206] = G.c("red", 1)                                    # inside
+    a[128, 157:206] = G.c("red", 5)                                        # the front's lit lip
+    a[129:141, 157:206] = G.c("red", 3)
+    a[129:141, 203:206] = G.c("red", 2)                                    # its side in shadow
+    a[133:136, 175:188] = G.INK                                            # the handle slot
+    floor = {G.c("amber", 1), G.c("amber", 2)}
+    h, w = a.shape[:2]
+    on = lambda y, x: y >= 142 or y >= 128 and x >= 216                    # behind the conveyor it shows from row 128
+    for _ in range(2):                                                     # specks and stray shadow strokes go first
+        for y in range(128, h):
+            for x in range(w):
+                if on(y, x) and tuple(a[y, x]) not in floor and sum(
+                        tuple(a[ny, nx]) in floor for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1))
+                        if 0 <= ny < h and 0 <= nx < w) >= 3:
+                    a[y, x] = G.c("amber", 2)
+    for y in range(128, h):                                                # then the planks, on the floor between things
+        for x in range(w):
+            if on(y, x) and tuple(a[y, x]) in floor:
+                a[y, x] = G.c("amber", 1 if (x + y + 5 * (y >= 148)) % 11 == 0 else 2)
+    a[80:89, 170:181] = G.c("coral", 4)                                    # the post box's envelope: flap down
+    a[81:86, 172:179] = G.c("cream", 5)
+    for i in range(4):
+        a[81 + i, 172 + i] = a[81 + i, 178 - i] = G.INK
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["billie_payments"] = lambda px: mailroom(planks(px))
 
 # --- Floor 8, writing ---
 LAMPS["writing"] = [(252, 0, 34, 19, 3), (292, 0, 34, 19, 3), (320, 0, 34, 17, 3), (366, 0, 31, 17)]   # the board under

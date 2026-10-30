@@ -16,6 +16,7 @@ export function guide(api, root = document) {
   }).observe(windows, { childList: true });
   // Short or narrow (zoomed) screens have no room for a room, a card and the lift at once: they get the plain,
   // scrolling page of the no-JS layout. Zooming crosses the line both ways, so it is followed live (#24).
+  // layouts/index.html sets the first mode with the same query in <head>, before the first paint (#39).
   const roomy = matchMedia('(min-height: 500px) and (min-width: 360px)');
 
   // Inside, stops are in page order, top to bottom: scrolling down (+1) rides down a floor. The street (E) sits

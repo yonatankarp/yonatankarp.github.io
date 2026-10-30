@@ -50,14 +50,14 @@
 
   <nav class="elevator" aria-label="Floors">
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor>E</span></div>
-    <button class="building-floor-btn" type="button" data-goto="P" aria-label="Parking, projects">P</button>
-    <button class="building-floor-btn" type="button" data-goto="L" aria-label="Lobby, recommendations and skills">L</button>
-    {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}">1</button>{{ end }}
-    {{ range sort $experience "Params.floor" "asc" }}
+    <button class="building-floor-btn" type="button" data-goto="R" aria-label="Roof, contact">R</button>
+    <button class="building-floor-btn" type="button" data-goto="8" aria-label="Floor 8, writing">8</button>
+    {{ range $experience }}
     <button class="building-floor-btn" type="button" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</button>
     {{ end }}
-    <button class="building-floor-btn" type="button" data-goto="8" aria-label="Floor 8, writing">8</button>
-    <button class="building-floor-btn" type="button" data-goto="R" aria-label="Roof, contact">R</button>
+    {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}">1</button>{{ end }}
+    <button class="building-floor-btn" type="button" data-goto="L" aria-label="Lobby, recommendations and skills">L</button>
+    <button class="building-floor-btn" type="button" data-goto="P" aria-label="Parking, projects">P</button>
   </nav>
 
   <p class="building-hint" aria-hidden="true">Scroll, swipe or use the arrow keys to ride the elevator</p>

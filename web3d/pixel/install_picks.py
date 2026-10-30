@@ -466,11 +466,71 @@ def planks(px):
 TOUCHUPS["billie_payments"] = planks
 
 # --- Floor 8, writing ---
-LAMPS["writing"] = [(252, 0, 34, 19, 3), (292, 0, 34, 19, 3), (320, 0, 34, 17), (366, 0, 31, 17)]   # the board under
+LAMPS["writing"] = [(252, 0, 34, 19, 3), (292, 0, 34, 19, 3), (320, 0, 34, 17, 3), (366, 0, 31, 17)]   # the board under
 # the first two takes no light, and their sweep would wipe its clippings
 GONE["writing"] = [(397, 0, 402, 33), (304, 0, 309, 34)]   # a cord with no lamp on it; a painted shade's edge
-TOUCHUPS["writing"] = lambda px: shadows(px, 142)   # its bookcase and press stand on maroon feet
-KEEP["writing"] = [(236, 0, 392, 34)]   # the pale lamp shades, which read as light
+KEEP["writing"] = [(236, 0, 392, 34), (224, 38, 321, 80), (296, 78, 331, 100), (140, 17, 191, 140),
+                   (334, 26, 402, 135)]   # the pale lamp shades, which read as light; the corkboard and its
+# clippings, the typewriter's sheet, the two bookcases
+
+
+def paper(a, y, bundles, skip=(0, 0, 0, 0)):
+    """A stack of tied bundles of paper standing on row y, listed from the bottom as (x0, x1, rows), each sharing its
+    outline row with the one below: an ink outline, a page line every second row, the right side in shadow, the
+    twine down the middle. Pixels in `skip` (a box, half-open) are left alone: something standing in front."""
+    for x0, x1, rows in bundles:
+        for yy in range(y - rows + 1, y + 1):
+            for x in range(x0, x1 + 1):
+                if skip[0] <= x < skip[2] and skip[1] <= yy < skip[3]:
+                    continue
+                if x in (x0, x1) or yy in (y - rows + 1, y):
+                    a[yy, x] = G.INK
+                elif x == (x0 + x1) // 2:
+                    a[yy, x] = G.c("wood", 3)
+                else:
+                    a[yy, x] = G.c("cream", 2 if x >= x1 - 2 else 3 if (y - yy) % 2 else 5)
+        y -= rows - 1
+
+
+def newsroom(px):
+    """Floor 8: the paper stacks pixelate into black and white static, so they are drawn again as stacks of pages.
+    The cork's lamp-lit band and painted light go back to cork, as does the light pillar beside the typewriter. The
+    desk lamp's painted glow is a blob, so it gets a small cone of its own onto the press. The press's shadow is
+    a maroon wedge over the skirting, which runs on straight under it; the seam's skirting carries the room's band
+    on to the bookcase, and the halo on the bookcase's cornice goes."""
+    a = np.asarray(px).copy()
+    wall = np.array(WALL)
+    cork = a[41:78, 227:318]
+    for col in (G.c("amber", 3), CONE, WALL):
+        cork[(cork == col).all(-1)] = G.c("amber", 2)
+    a[80:100, 225:265] = WALL                                              # the desk's two stacks
+    paper(a, 99, [(225, 243, 7), (226, 242, 6), (225, 242, 6)])
+    paper(a, 99, [(244, 264, 8), (245, 263, 7), (244, 262, 7)])
+    for y in range(108, 142):                                              # the floor stack, behind the bin
+        for x in range(190, 222):
+            if y >= 112 and not (193 <= x < 203 and y >= 133) or tuple(a[y, x]) == G.c("plank", 5):
+                a[y, x] = WALL
+    paper(a, 141, [(191, 220, 9), (192, 219, 8), (191, 218, 8), (193, 219, 7)], skip=(193, 133, 203, 142))
+    for x0, y0, x1, y1 in ((190, 17, 192, 112), (400, 26, 403, 92), (132, 14, 162, 25)):   # pale halos by the
+        halo = a[y0:y1, x0:x1]                                                             # bookcases
+        for col in (G.c("plank", 4), G.c("plank", 5)):
+            halo[(halo == col).all(-1)] = WALL
+    side = a[77:100, 282:334]
+    side[(side == CONE).all(-1)] = WALL                                    # the light pillar around the typewriter
+    glow = a[79:98, 400:440]
+    glow[(glow == CONE).all(-1)] = WALL
+    for r in range(12):                                                    # the desk lamp's cone, down to the paper
+        y = 80 + r
+        for x in range(410 - r * 2 // 3, 421 + r // 3):
+            if (a[y, x] == wall).all() and (r < 5 or (r < 9 and (x + y) % 2 == 0) or (x % 2 == 0 and y % 2 == 0)):
+                a[y, x] = CONE
+    a[133:135, 442:464] = WALL                                             # the skirting behind the press
+    a[135:143, 442:464] = a[135:143, 460:461]
+    a[134:142, 122:140] = a[134:142, 112:113]                              # the seam's skirting
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["writing"] = lambda px: newsroom(shadows(px, 142))   # its bookcase and press stand on maroon feet
 
 
 # --- Roof ---

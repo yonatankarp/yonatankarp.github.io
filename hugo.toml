@@ -104,7 +104,7 @@ URL = "/"
 weight = 1
 [[menus.header]]
 name = "About"
-URL = "/#about"
+URL = "/#floor-L"
 weight = 2
 [[menus.header]]
 name = "Projects"

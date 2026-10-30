@@ -14,6 +14,10 @@ const FOCUS_X = 300;                                            // on narrow scr
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const easeInOut = (u) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
+// The old one-page site's anchors, still linked from elsewhere, land on the floor that took their place (#29).
+const LEGACY = { about: 'L', testimonial: 'L', contact: 'R', experience: '7', proof: '7', 'client-and-work-section': 'P' };
+// Hugo lowercases menu URLs, so the site menu's About arrives as #floor-l.
+const hashKey = () => { const h = location.hash.slice(1); return LEGACY[h] ?? (h.match(/^floor-(\w+)$/) || [])[1]?.toUpperCase(); };
 
 export function mountPixel({ canvas, stops, base = '/building/', windowsBox }) {
   const ctx = canvas.getContext('2d');
@@ -31,19 +35,25 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox }) {
   // ---- the ride ----
   const ride = { from: 0, to: 0, start: 0, dur: 0, fade: false };
   const eAt = keys.indexOf('E');                               // the street view's stop
-  const fromHash = keys.indexOf((location.hash.match(/^#floor-(\w+)$/) || [])[1]);
+  const fromHash = keys.indexOf(hashKey());
   ride.from = ride.to = Math.max(0, fromHash);
+  if (fromHash >= 0 && location.hash !== `#floor-${keys[fromHash]}`) {   // a legacy or lowercased anchor: show the floor's own
+    history.replaceState(null, '', `#floor-${keys[fromHash]}`);
+    requestAnimationFrame(() => document.documentElement.classList.contains('building--guided') || stops[fromHash].scrollIntoView());
+  }
   const rideU = (now) => (ride.dur ? clamp01((now - ride.start) / ride.dur) : 1);
   const emit = (name, detail) => document.dispatchEvent(new CustomEvent(name, { detail }));
   function go(index) {
     const now = performance.now();
     const to = Math.max(0, Math.min(keys.length - 1, index));
-    const here = ride.from + (ride.to - ride.from) * easeInOut(rideU(now));
-    if (to === ride.to && rideU(now) === 1) return false;
+    const u = rideU(now);
+    const here = ride.fade ? (u < 0.5 ? ride.from : ride.to) : ride.from + (ride.to - ride.from) * easeInOut(u);   // where frame() draws it
+    if (to === ride.to && u === 1) return false;
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: a dissolve, not a ride
     const dur = fade ? 900 : Math.min(2600, 1150 + 380 * Math.max(0, Math.abs(to - here) - 1));
     Object.assign(ride, { from: fade ? Math.round(here) : here, to, start: now, fade, dur: reduceMotion ? 1 : dur });
     history.replaceState(null, '', `#floor-${keys[to]}`);
+    arrived = -1;   // a ride redirected back to the floor it left still arrives there (#31)
     emit('building:depart', { index: to, key: keys[to], dir: Math.sign(to - here) });
     return true;
   }
@@ -100,6 +110,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox }) {
     street.draw(ctx, f, w, h, streetA);
   }
   requestAnimationFrame(frame);
+  addEventListener('hashchange', () => { const i = keys.indexOf(hashKey()); if (i >= 0 && !go(i)) history.replaceState(null, '', `#floor-${keys[i]}`); });   // e.g. the site menu's About
   return { go, index: () => ride.to, moving: () => rideU(performance.now()) < 1 };
 }
 

@@ -600,6 +600,63 @@ def sky(px):
     return dither_bands(Image.fromarray(a, "RGB"), 84, 192)
 
 
+def line(a, x0, y0, x1, y1, col):
+    n = max(abs(x1 - x0), abs(y1 - y0))
+    for i in range(n + 1):
+        a[round(y0 + (y1 - y0) * i / n), round(x0 + (x1 - x0) * i / n)] = col
+
+
+def crane(px):
+    """The roof, after sky: the crane's lattice pixelated into a dark noisy bar, so its jib, mast and cat head are
+    drawn again as trusses (amber chords in ink, a zigzag of diagonals) with solid pendant cables, over the sky's
+    dither (which repeats every 4 columns, so the probe column's phase gives the sky behind anything). The hook is
+    taken down to be drawn by gen_floors, which lowers it. The ladder scaffold's translucent pole and braces become
+    ink, and the brown smear on the deck goes back to the deck's grey, its plate a solid bar."""
+    a = np.asarray(px).copy()
+    behind = lambda x, y, right: a[y, 192 + x % 4] if y < 84 else a[y, x + right]   # sky, or the city further right
+    clear = lambda x0, y0, x1, y1, right=16: [a.__setitem__((y, x), behind(x, y, right))
+                                              for y in range(y0, y1) for x in range(x0, x1)]
+    clear(232, 3, 411, 24)                                                 # the old cables, cat head and jib
+    clear(232, 24, 350, 34)
+    clear(346, 24, 369, 30)
+    clear(365, 24, 395, 34)                                                # the counter-jib
+    for y in range(36, 49):                                                # the cloud streak, on past the one sky()
+        for x in range(256, 464):                                          # mends
+            if tuple(a[y, x]) == G.c("sky", 4):
+                a[y, x] = behind(x, y, 0)
+    clear(309, 34, 326, 59)                                                # the hook
+    clear(351, 49, 366, 111)                                               # the mast
+    amber = (G.c("amber", 4), G.c("amber", 3))
+    for x in range(232, 395):                                              # the jib, through the cat head to the
+        for y, col in ((24, G.INK), (25, amber[0]), (26, G.INK), (30, G.INK), (31, amber[1]), (32, G.INK)):
+            a[y, x] = col                                                  # counterweight: chords and diagonals
+        a[29 - x % 4 if x % 4 < 3 else 28, x] = G.c("amber", 2)
+    a[24:33, 232] = G.INK                                                  # the jib's tip
+    for y in range(49, 111):                                               # the mast
+        a[y, 353:364] = [G.INK, amber[0], G.INK, *[behind(x, y, 16) for x in range(356, 361)], G.INK, amber[1], G.INK]
+        a[y, 356 + min(y % 8, 8 - y % 8)] = G.c("amber", 2)
+    line(a, 353, 29, 357, 5, G.INK)                                        # the cat head, an A frame on the cab
+    line(a, 362, 29, 358, 5, G.INK)
+    a[18, 355:361] = G.INK
+    a[5, 357:359] = G.INK
+    line(a, 357, 6, 250, 24, G.INK)                                        # the pendant cables
+    line(a, 358, 6, 392, 24, G.INK)
+    clear(151, 56, 176, 105, right=24)                                     # the ladder scaffold
+    for x, top in ((152, 60), (164, 60), (173, 62)):
+        a[top:105, x] = G.INK
+    a[[66, 68], 151:166] = G.INK
+    line(a, 163, 72, 153, 82, G.INK)
+    line(a, 153, 82, 163, 92, G.INK)
+    line(a, 163, 92, 153, 102, G.INK)
+    deck = a[118:141, 362:464]
+    deck[(deck == G.c("plank", 2)).all(-1)] = G.c("cream", 0)
+    a[132:134, 374:439] = G.c("cream", 4)                                  # the plate
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["roof"] = crane
+
+
 def mode(row):
     return Counter(map(tuple, row)).most_common(1)[0][0]
 

@@ -753,9 +753,11 @@ TOUCHUPS["billie_orchestrator"] = lambda px: glow(ghost(screen(px)))
 
 
 # --- Floor 7, billie_payments ---
-LAMPS["billie_payments"] = [(188, 21, 36, 19, 16), (240, 21, 40, 17, 16), (287, 21, 43, 17, 16), (308, 21, 43, 17, 16),
+LAMPS["billie_payments"] = [(188, 21, 36, 19, 16), (240, 21, 40, 17, 0), (287, 21, 43, 17, 16), (308, 21, 43, 17, 16),
                             (341, 21, 40, 17, 16), (363, 21, 45, 15, 16), (384, 21, 37, 17, 16),
-                            (414, 21, 41, 19, 16)]   # hung from the pipe, close together: short cones
+                            (414, 21, 41, 19, 16)]   # hung from the pipe, close together: short cones; the one over
+# the scanner arch is off
+KEEP["billie_payments"] = [(400, 46, 456, 94)]   # the screening board, redrawn below; its lamp's cone stops evenly above it
 GONE["billie_payments"] = [(160, 21, 179, 42), (424, 21, 440, 44)]   # the second of two fused pairs
 
 
@@ -781,14 +783,126 @@ def planks(px):
     return Image.fromarray(a, "RGB")
 
 
-TOUCHUPS["billie_payments"] = planks
+def mailroom(px):
+    """Floor 7, after planks: the screening board comes out wall-coloured with garbled tiles, so it is drawn again as
+    a dark panel in an ink frame with flat tiles (gen_floors.SCREENING, which flips them). The scanner arch was fused
+    with a door frame and a ghost arch: one steel arch now. The post box's envelope read as a "B"; the red tray
+    melted into the skirting. The floor is planked again, as on floor 5, across the lobby too."""
+    a = np.asarray(px).copy()
+    a[46:96, 400:456] = WALL                                               # the board, and painted light beside it
+    a[48:92, 412:452] = G.INK
+    a[49:91, 413:451] = G.c("steel", 1)
+    a[50:90, 414:450] = G.c("dark", 1)
+    a[52, 415:431] = G.c("cream", 3)                                       # its title
+    for x, y, flagged in G.SCREENING:
+        a[y:y + 4, x + 132:x + 139] = G.GLOW["red" if flagged else "green"]
+    a[34:98, 206:272] = WALL                                               # the arch: a steel tube, ink either side,
+    a[29:40, 231:250] = np.asarray(px)[29:40, 231:250]                     # under the lamp
+    cx, cy, r = 238.5, 72, 28.5
+    for y in range(41, 98):
+        for x in range(206, 272):
+            t = int(np.floor(r + 0.5 - np.hypot(x - cx, y - cy))) if y <= cy else x - 210 if x < cx else 267 - x
+            if 0 <= t <= 5:                                                # its depth into the tube, from outside
+                a[y, x] = G.INK if t in (0, 5) else G.c("steel", 4 if t < 3 else 3)
+    for y in range(118, 142):                                              # the tray: the wall and skirting behind
+        for x in range(152, 207):                                          # it first, but not the conveyor's feed
+            if not (x >= 193 and y < 128):
+                a[y, x] = a[y, 130]
+    a[124:142, 156:207] = G.INK
+    a[125:128, 157:206] = G.c("red", 1)                                    # inside
+    a[128, 157:206] = G.c("red", 5)                                        # the front's lit lip
+    a[129:141, 157:206] = G.c("red", 3)
+    a[129:141, 203:206] = G.c("red", 2)                                    # its side in shadow
+    a[133:136, 175:188] = G.INK                                            # the handle slot
+    floor = {G.c("amber", 1), G.c("amber", 2)}
+    h, w = a.shape[:2]
+    on = lambda y, x: y >= 142 or y >= 128 and x >= 216                    # behind the conveyor it shows from row 128
+    for _ in range(2):                                                     # specks and stray shadow strokes go first
+        for y in range(128, h):
+            for x in range(w):
+                if on(y, x) and tuple(a[y, x]) not in floor and sum(
+                        tuple(a[ny, nx]) in floor for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1))
+                        if 0 <= ny < h and 0 <= nx < w) >= 3:
+                    a[y, x] = G.c("amber", 2)
+    for y in range(128, h):                                                # then the planks, on the floor between things
+        for x in range(w):
+            if on(y, x) and tuple(a[y, x]) in floor:
+                a[y, x] = G.c("amber", 1 if (x + y + 5 * (y >= 148)) % 11 == 0 else 2)
+    a[80:89, 170:181] = G.c("coral", 4)                                    # the post box's envelope: flap down
+    a[81:86, 172:179] = G.c("cream", 5)
+    for i in range(4):
+        a[81 + i, 172 + i] = a[81 + i, 178 - i] = G.INK
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["billie_payments"] = lambda px: mailroom(planks(px))
 
 # --- Floor 8, writing ---
-LAMPS["writing"] = [(252, 0, 34, 19, 3), (292, 0, 34, 19, 3), (320, 0, 34, 17), (366, 0, 31, 17)]   # the board under
+LAMPS["writing"] = [(252, 0, 34, 19, 3), (292, 0, 34, 19, 3), (320, 0, 34, 17, 3), (366, 0, 31, 17)]   # the board under
 # the first two takes no light, and their sweep would wipe its clippings
 GONE["writing"] = [(397, 0, 402, 33), (304, 0, 309, 34)]   # a cord with no lamp on it; a painted shade's edge
-TOUCHUPS["writing"] = lambda px: shadows(px, 142)   # its bookcase and press stand on maroon feet
-KEEP["writing"] = [(236, 0, 392, 34)]   # the pale lamp shades, which read as light
+KEEP["writing"] = [(236, 0, 392, 34), (224, 38, 321, 80), (296, 78, 331, 100), (140, 17, 191, 140),
+                   (334, 26, 402, 135)]   # the pale lamp shades, which read as light; the corkboard and its
+# clippings, the typewriter's sheet, the two bookcases
+
+
+def paper(a, y, bundles, skip=(0, 0, 0, 0)):
+    """A stack of tied bundles of paper standing on row y, listed from the bottom as (x0, x1, rows), each sharing its
+    outline row with the one below: an ink outline, a page line every second row, the right side in shadow, the
+    twine down the middle. Pixels in `skip` (a box, half-open) are left alone: something standing in front."""
+    for x0, x1, rows in bundles:
+        for yy in range(y - rows + 1, y + 1):
+            for x in range(x0, x1 + 1):
+                if skip[0] <= x < skip[2] and skip[1] <= yy < skip[3]:
+                    continue
+                if x in (x0, x1) or yy in (y - rows + 1, y):
+                    a[yy, x] = G.INK
+                elif x == (x0 + x1) // 2:
+                    a[yy, x] = G.c("wood", 3)
+                else:
+                    a[yy, x] = G.c("cream", 2 if x >= x1 - 2 else 3 if (y - yy) % 2 else 5)
+        y -= rows - 1
+
+
+def newsroom(px):
+    """Floor 8: the paper stacks pixelate into black and white static, so they are drawn again as stacks of pages.
+    The cork's lamp-lit band and painted light go back to cork, as does the light pillar beside the typewriter. The
+    desk lamp's painted glow is a blob, so it gets a small cone of its own onto the press. The press's shadow is
+    a maroon wedge over the skirting, which runs on straight under it; the seam's skirting carries the room's band
+    on to the bookcase, and the halo on the bookcase's cornice goes."""
+    a = np.asarray(px).copy()
+    wall = np.array(WALL)
+    cork = a[41:78, 227:318]
+    for col in (G.c("amber", 3), CONE, WALL):
+        cork[(cork == col).all(-1)] = G.c("amber", 2)
+    a[80:100, 225:265] = WALL                                              # the desk's two stacks
+    paper(a, 99, [(225, 243, 7), (226, 242, 6), (225, 242, 6)])
+    paper(a, 99, [(244, 264, 8), (245, 263, 7), (244, 262, 7)])
+    for y in range(108, 142):                                              # the floor stack, behind the bin
+        for x in range(190, 222):
+            if y >= 112 and not (193 <= x < 203 and y >= 133) or tuple(a[y, x]) == G.c("plank", 5):
+                a[y, x] = WALL
+    paper(a, 141, [(191, 220, 9), (192, 219, 8), (191, 218, 8), (193, 219, 7)], skip=(193, 133, 203, 142))
+    for x0, y0, x1, y1 in ((190, 17, 192, 112), (400, 26, 403, 92), (132, 14, 162, 25)):   # pale halos by the
+        halo = a[y0:y1, x0:x1]                                                             # bookcases
+        for col in (G.c("plank", 4), G.c("plank", 5)):
+            halo[(halo == col).all(-1)] = WALL
+    side = a[77:100, 282:334]
+    side[(side == CONE).all(-1)] = WALL                                    # the light pillar around the typewriter
+    glow = a[79:98, 400:440]
+    glow[(glow == CONE).all(-1)] = WALL
+    for r in range(12):                                                    # the desk lamp's cone, down to the paper
+        y = 80 + r
+        for x in range(410 - r * 2 // 3, 421 + r // 3):
+            if (a[y, x] == wall).all() and (r < 5 or (r < 9 and (x + y) % 2 == 0) or (x % 2 == 0 and y % 2 == 0)):
+                a[y, x] = CONE
+    a[133:135, 442:464] = WALL                                             # the skirting behind the press
+    a[135:143, 442:464] = a[135:143, 460:461]
+    a[134:142, 122:140] = a[134:142, 112:113]                              # the seam's skirting
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["writing"] = lambda px: newsroom(shadows(px, 142))   # its bookcase and press stand on maroon feet
 
 
 # --- Roof ---
@@ -801,6 +915,63 @@ def sky(px):
         row[grey] = a[y - 1, 107:256][grey]
     a[:, 109:117] = a[:, 117:125]                                          # the dither repeats every 4
     return dither_bands(Image.fromarray(a, "RGB"), 84, 192)
+
+
+def line(a, x0, y0, x1, y1, col):
+    n = max(abs(x1 - x0), abs(y1 - y0))
+    for i in range(n + 1):
+        a[round(y0 + (y1 - y0) * i / n), round(x0 + (x1 - x0) * i / n)] = col
+
+
+def crane(px):
+    """The roof, after sky: the crane's lattice pixelated into a dark noisy bar, so its jib, mast and cat head are
+    drawn again as trusses (amber chords in ink, a zigzag of diagonals) with solid pendant cables, over the sky's
+    dither (which repeats every 4 columns, so the probe column's phase gives the sky behind anything). The hook is
+    taken down to be drawn by gen_floors, which lowers it. The ladder scaffold's translucent pole and braces become
+    ink, and the brown smear on the deck goes back to the deck's grey, its plate a solid bar."""
+    a = np.asarray(px).copy()
+    behind = lambda x, y, right: a[y, 192 + x % 4] if y < 84 else a[y, x + right]   # sky, or the city further right
+    clear = lambda x0, y0, x1, y1, right=16: [a.__setitem__((y, x), behind(x, y, right))
+                                              for y in range(y0, y1) for x in range(x0, x1)]
+    clear(232, 3, 411, 24)                                                 # the old cables, cat head and jib
+    clear(232, 24, 350, 34)
+    clear(346, 24, 369, 30)
+    clear(365, 24, 395, 34)                                                # the counter-jib
+    for y in range(36, 49):                                                # the cloud streak, on past the one sky()
+        for x in range(256, 464):                                          # mends
+            if tuple(a[y, x]) == G.c("sky", 4):
+                a[y, x] = behind(x, y, 0)
+    clear(309, 34, 326, 59)                                                # the hook
+    clear(351, 49, 366, 111)                                               # the mast
+    amber = (G.c("amber", 4), G.c("amber", 3))
+    for x in range(232, 395):                                              # the jib, through the cat head to the
+        for y, col in ((24, G.INK), (25, amber[0]), (26, G.INK), (30, G.INK), (31, amber[1]), (32, G.INK)):
+            a[y, x] = col                                                  # counterweight: chords and diagonals
+        a[29 - x % 4 if x % 4 < 3 else 28, x] = G.c("amber", 2)
+    a[24:33, 232] = G.INK                                                  # the jib's tip
+    for y in range(49, 111):                                               # the mast
+        a[y, 353:364] = [G.INK, amber[0], G.INK, *[behind(x, y, 16) for x in range(356, 361)], G.INK, amber[1], G.INK]
+        a[y, 356 + min(y % 8, 8 - y % 8)] = G.c("amber", 2)
+    line(a, 353, 29, 357, 5, G.INK)                                        # the cat head, an A frame on the cab
+    line(a, 362, 29, 358, 5, G.INK)
+    a[18, 355:361] = G.INK
+    a[5, 357:359] = G.INK
+    line(a, 357, 6, 250, 24, G.INK)                                        # the pendant cables
+    line(a, 358, 6, 392, 24, G.INK)
+    clear(151, 56, 176, 105, right=24)                                     # the ladder scaffold
+    for x, top in ((152, 60), (164, 60), (173, 62)):
+        a[top:105, x] = G.INK
+    a[[66, 68], 151:166] = G.INK
+    line(a, 163, 72, 153, 82, G.INK)
+    line(a, 153, 82, 163, 92, G.INK)
+    line(a, 163, 92, 153, 102, G.INK)
+    deck = a[118:141, 362:464]
+    deck[(deck == G.c("plank", 2)).all(-1)] = G.c("cream", 0)
+    a[132:134, 374:439] = G.c("cream", 4)                                  # the plate
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["roof"] = crane
 
 
 def mode(row):

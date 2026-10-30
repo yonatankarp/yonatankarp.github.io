@@ -343,38 +343,66 @@ BELT_INK = {"#": INK, "W": c("cream", 5), "w": c("cream", 4), "v": c("cream", 2)
             "g": c("steel", 4), "s": c("amber", 4), "-": c("steel", 2)}
 
 
+SCREENING = [(283 + 9 * i, 55 + 6 * j, (i, j) in {(2, 0), (0, 2), (3, 3), (1, 5)}) for j in range(6) for i in range(4)]
+# the screening board's tiles, 7 x 4 in room pixels, as (x, y, flagged): payments passed in green, a few flagged in red
+
+
 def billie_payments(room, f):
     for x in range(104, 198):                                              # lift the painted envelopes off the belt:
         room.rect(x, 96, x + 1, 98, room.get(x, 95))                       # the arch post and wall carry on down to it,
     for y, row in BELT.items():                                            # then the belt runs from the feed to the pile
         for x in range(102, 198):
             room.put(x, y, BELT_INK[row[(x - 2 * f) % len(row)]])
-    x = 60 + (f * 24) % 264                                                # a message travels the ceiling pipe
-    room.rect(x, 14, x + 6, 16, c("coral", 4))
-    room.blink((282, 50, 320, 90), greenish, c("plant", 1), f)             # the screening board's tiles
-    room.blink((282, 50, 320, 90), reddish, c("red", 1), f, every=7, lit=2)
+    x = 60 + f * 22                                                        # a message travels the ceiling pipe
+    if f:
+        room.rect(x - 12, 15, x, 16, c("coral", 2))                        # its trail
+    room.rect(x, 13, x + 10, 18, INK)
+    room.rect(x + 1, 14, x + 9, 17, c("coral", 4))
+    for k, (x, y, flagged) in enumerate(SCREENING):                       # the board re-screens two tiles a frame
+        if f and (k * 5 + f) % 12 == 0:
+            room.rect(x, y, x + 7, y + 4, GLOW["green" if flagged else "red"])
+
+
+CITY_LIGHTS = [(57, 99), (68, 99), (79, 99), (90, 100), (101, 100), (112, 100), (123, 100), (134, 101), (236, 100),
+               (247, 97), (258, 100), (269, 100), (280, 100), (304, 97), (315, 100), (326, 97)]   # windows, clear of
+# the scaffolds, each a 2 x 1 pair
 
 
 def roof(room, f):
-    dy = [0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 1, 1][f]                           # the crane lowers its hook and lifts it again
-    room.nudge((180, 40, 193, 58), 0, dy)
-    for i, x in enumerate(range(278, 298)):                                # the flag ripples
-        lift = (i // 3 + f) % 4 == 0
-        if lift:
+    dy = [0, 0, 1, 1, 2, 2, 3, 3, 2, 2, 1, 0][f]                           # the crane lowers its load and lifts it again:
+    room.rect(182, 33, 188, 35, INK)                                       # the trolley, its cable paying out,
+    room.rect(185, 35, 186, 45 + dy, INK)
+    room.rect(184, 45 + dy, 187, 48 + dy, INK)                             # the hook block,
+    room.put(185, 46 + dy, c("amber", 4))
+    for i in range(1, 6):                                                  # two slings
+        room.put(185 - i, 47 + dy + i * 4 // 5, INK)
+        room.put(185 + i, 47 + dy + i * 4 // 5, INK)
+    room.rect(178, 52 + dy, 193, 55 + dy, INK)                             # and a steel beam
+    room.rect(179, 53 + dy, 192, 54 + dy, c("steel", 3))
+    for i, x in enumerate(range(278, 295)):                                # the flag ripples
+        if (i // 3 + f) % 4 == 0:
             for y in range(55, 71):
-                room.put(x, y, room.get(x - 14, y) if y == 70 else room.get(x, y + 1))
-    room.twinkle((150, 86, 330, 100), f, count=12, dark_below=400, col=GLOW["amber"])   # the city switches on
+                room.put(x, y, room.get(x, y + 1))
+    for k, (x, y) in enumerate(CITY_LIGHTS):                               # the city switches on, window by window
+        if (k + f // 3) % 3:
+            room.rect(x, y, x + 2, y + 1, GLOW["amber"])
     if f % 4 < 2:
-        room.rect(232, 6, 234, 8, GLOW["red"])                              # the crane's warning light
+        room.rect(225, 3, 227, 5, GLOW["red"])                              # the warning light on the cat head
 
 
 # --- Writing, floor 8: the newsroom; a post being typed, then printed -------------------------------------------
+POST = (12, 12, 12, 6)   # the laptop's paragraph, line by line
+PLASTER = (195, 154, 92)   # the painted rooms' wall (install_picks.WALL)
+
+
 def writing(room, f):
-    for i, y in enumerate((86, 89, 92)):                                   # lines appear on the laptop
-        for x in range(142, 142 + max(0, min(12, (f - 3 * i) * 3))):
-            room.put(x, y, c("cream", 4))
-    room.nudge((160, 86, 197, 92), [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f], 0)   # the typewriter's carriage
-    room.nudge((256, 112, 282, 122), 0, [0, 0, 0, 1, 1, 2, 2, 3, 3, 3, 2, 1][f])  # a page eases out of the press
+    n = sum(POST) if f == 0 else (f - 1) * sum(POST) // 10                # the room rests on a finished paragraph;
+    for i, w in enumerate(POST):                                           # then a fresh page, typed out by f11
+        room.rect(142, 86 + 3 * i, 142 + max(0, min(w, n - sum(POST[:i]))), 87 + 3 * i, c("cream", 4))
+    room.nudge((164, 80, 199, 89), [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f], 0,   # the typewriter's carriage, its
+               mask=lambda col: col != PLASTER, bg=PLASTER)                          # sheet and roller, not the wall
+    room.nudge((256, 115, 280, 124), 0, [0, 0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0][f],  # a page eases out of the press
+               mask=lambda col: col in R["cream"], bg=c("cream", 5))
 
 
 # --- Parking: the side projects parked below the street; the games live in the arcade cabinet ----------------

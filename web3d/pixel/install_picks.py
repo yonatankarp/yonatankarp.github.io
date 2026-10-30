@@ -451,12 +451,123 @@ def chalk(px):
     return Image.fromarray(a, "RGB")
 
 
-TOUCHUPS["reichman"] = chalk
+SPINES = [(154, 27, "plant"), (157, 29, "blue"), (160, 26, "red"), (163, 28, "amber"), (166, 30, "steel")]   # x, top
+
+
+def certificate(a, x0, y0, x1, y1):
+    """A framed certificate (inclusive box): ink frame, a wood moulding, cream paper with a title, two lines of
+    text and a red seal, and its shadow on the wall."""
+    a[y0 + 1:y1 + 2, x0 + 1:x1 + 2] = (172, 129, 89)
+    a[y0:y1 + 1, x0:x1 + 1] = G.INK
+    a[y0 + 1:y1, x0 + 1:x1] = G.c("wood", 3)
+    a[y0 + 2:y1 - 1, x0 + 2:x1 - 1] = G.c("cream", 4)
+    a[y0 + 4, x0 + 5:x1 - 4] = G.INK
+    a[y0 + 7, x0 + 4:x1 - 3] = a[y0 + 9, x0 + 4:x1 - 6] = G.c("cream", 2)
+    a[y1 - 4:y1 - 2, x1 - 5:x1 - 3] = G.c("red", 3)
+
+
+def lecture(px):
+    """Floor 1, beside the board: the bookcase's top-right corner (lost under a lamp's light) and the books standing
+    on it, which melt into speckle, and the two certificates (one bleached to plaster, one a scribble) drawn again;
+    the cord left of them, which holds no lamp, taken down."""
+    a = np.asarray(px).copy()
+    col = a[:49, 400]
+    col[(col == G.INK).all(-1)] = WALL
+    a[22:38, 150:184] = WALL
+    for x, top, ramp in SPINES:                                            # books standing on the case
+        a[top:38, x - 1:x + 3] = G.INK
+        a[top + 1:38, x:x + 2] = G.c(ramp, 3)
+    for y0, x0, x1, ramp in ((31, 172, 183, "plant"), (34, 171, 182, "cream")):   # and a stack lying on it
+        a[y0:y0 + 4, x0:x1 + 1] = G.INK
+        a[y0 + 1:y0 + 3, x0 + 1:x1] = G.c(ramp, 4)
+    a[38:42, 145:190] = G.INK                                              # the case's top, out to its right edge
+    a[39:41, 146:189] = G.c("wood", 3)
+    a[42:46, 182:190] = a[46, 182:190]
+    a[38:100, 189] = G.INK
+    a[29:48, 402:428] = a[26:45, 428:457] = WALL                           # clear of the shelf below
+    certificate(a, 404, 31, 424, 46)
+    certificate(a, 431, 28, 451, 43)
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["reichman"] = lambda px: lecture(chalk(px))
 
 # --- Floor 2, inuitive ---
 LAMPS["inuitive"] = [(159, 0, 30, 19, 16), (192, 0, 30, 19, 16), (258, 0, 30, 19), (323, 0, 30, 19), (369, 0, 30, 19),
                      (430, 0, 30, 19)]   # the first two hang close: short cones, or they merge
-TOUCHUPS["inuitive"] = lambda px: shadows(px, 120)
+CHECKER = (376, 30, 434, 80)   # the calibration board, under the two lamps' shades
+KEEP["inuitive"] = [CHECKER]
+CAMERA = ["    ######        ",   # seen from behind, aimed at the board: its screen shows it
+          "    #4444#        ",
+          "##################",
+          "#4444444444444444#",
+          "#3########3333333#",
+          "#3#w.w.w.#3333##3#",
+          "#3#.w.w.w#3333##3#",
+          "#3########3333333#",
+          "#2222222222222222#",
+          "##################",
+          "       ####       ",
+          "       #33#       ",
+          "       ####       "]
+DRONE = ["444   444", " #bbbbb# ", "  #   #  "]   # its rotors a grey blur on the dark mat
+CARD, CARD_SIDE = (160, 100, 15), (106, 63, 12)   # the other boxes' cardboard
+
+
+def lab(px):
+    """Floor 2: the calibration checkerboard comes out irregular, half bleached to plaster, so it is drawn again with
+    a clean grid, and the camera on its tripod faces it. The scope's waveform, the drone on the mat and the tools on
+    the bench came out as speckle and are drawn again; the boxes' faces, the desk front and the wall under the bench
+    are flattened, and the drone rotor on the robot's shoulder and the jog in the skirting behind it painted out."""
+    a = np.asarray(px).copy()
+    a[25:30, 379:421] = a[80:84, 376:437] = WALL                           # the old board's edges, between the shades
+    x0, y0, x1, y1 = CHECKER
+    a[y0:y1, x0:x1] = G.INK
+    a[y0 + 1:y1 - 1, x0 + 1:x1 - 1] = G.c("cream", 5)
+    for j in range(7):
+        for i in range(0, 8, 2):
+            x = x0 + 5 + 6 * (i + j % 2)
+            a[y0 + 4 + 6 * j:y0 + 10 + 6 * j, x:x + 6] = G.INK
+    ink = {"#": G.INK, "2": G.c("steel", 1), "3": G.c("steel", 2), "4": G.c("steel", 3), "w": G.c("cream", 5),
+           ".": G.c("dark", 1), "b": G.c("blue", 4)}
+    for rows, x, y in ((CAMERA, 415, 71), (DRONE, 261, 85)):
+        for dy, row in enumerate(rows):
+            for dx, ch in enumerate(row):
+                if ch != " ":
+                    a[y + dy, x + dx] = ink[ch]
+    clip = a[84:88, 148:156].copy()                                        # the scope: a waveform and its chips
+    a[65:87, 139:178] = G.c("plant", 2)
+    a[84:88, 148:156] = clip
+    for x in range(149, 166):
+        a[69 + abs((x - 149) % 8 - 4), x] = G.GLOW["green"]
+    a[67:72, 141:146] = a[75:82, 141:145] = a[66:74, 168:175] = G.INK
+    a[92:97, 136:211] = G.c("plant", 5)                                    # the bench: tools with red handles
+    for x, y, handle in ((140, 93, 4), (157, 95, 4), (176, 92, 0), (192, 94, 0)):
+        a[y, x:x + 6] = G.INK
+        a[y, x + handle:x + handle + 2] = G.c("red", 4)
+    under = a[105:123, 141:216]                                            # the wall under it, in one shadow
+    for col in ((138, 100, 70), (172, 129, 89)):
+        under[(under == col).all(-1)] = (158, 116, 65)
+    box = a[112:139, 190:215]                                              # and the box under it, with its tape
+    for col in ((158, 116, 65), WALL, (122, 85, 48)):
+        box[(box == col).all(-1)] = CARD
+    a[112:139, 201:203] = G.c("cream", 3)
+    for bx0, by0, bx1, by1, col in ((373, 108, 386, 130, CARD), (387, 108, 397, 132, CARD), (407, 106, 437, 150, CARD)):
+        face = a[by0:by1, bx0:bx1]                                         # the boxes by the camera
+        face[(face == WALL).all(-1)] = col
+    front = a[96:123, 234:312]                                             # the desk front, in one tone
+    for col in ((158, 116, 65), (138, 100, 70)):
+        front[(front == col).all(-1)] = (172, 129, 89)
+    a[96, 234:312] = (106, 75, 53)
+    a[85:91, 338:361] = WALL                                               # the rotor off the robot's shoulder
+    a[80:84, 326:330] = G.c("steel", 3)                                    # its lens, a ring
+    a[81:83, 327:329] = G.c("blue", 2)
+    a[119:123, 355:372] = WALL                                             # the skirting runs on behind it
+    a[123, 355:372], a[124, 355:372] = (106, 75, 53), G.INK
+    return Image.fromarray(a, "RGB")
+
+
+TOUCHUPS["inuitive"] = lambda px: lab(shadows(px, 120))
 
 # --- Floor 3, nice ---
 LAMPS["nice"] = [(193, 0, 32, 17), (254, 0, 32, 15), (291, 0, 32, 15), (322, 0, 32, 15), (364, 0, 32, 15), (395, 0, 32, 15)]

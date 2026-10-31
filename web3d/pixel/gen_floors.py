@@ -432,8 +432,10 @@ def writing(room, f):
     n = sum(POST) if f == 0 else (f - 1) * sum(POST) // 10                # the room rests on a finished paragraph;
     for i, w in enumerate(POST):                                           # then a fresh page, typed out by f11
         room.rect(142, 86 + 3 * i, 142 + max(0, min(w, n - sum(POST[:i]))), 87 + 3 * i, c("cream", 4))
-    room.nudge((164, 80, 199, 89), [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f], 0,   # the typewriter's carriage, its
-               mask=lambda col: col != PLASTER, bg=PLASTER)                          # sheet and roller, not the wall
+    dx = [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f]                           # the typewriter's carriage: its sheet and
+    room.nudge((164, 80, 199, 86), dx, 0, mask=lambda col: col != PLASTER, bg=PLASTER)   # outline over the wall, and
+    room.nudge((163, 86, 177, 89), dx, 0, mask=lambda col: col in R["cream"], bg=INK)   # the paper curled under it
+    # over the machine's body, which stays put
     room.nudge((256, 115, 280, 124), 0, [0, 0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0][f],  # a page eases out of the press
                mask=lambda col: col in R["cream"], bg=c("cream", 5))
 

@@ -10,8 +10,6 @@ link: "https://github.com/ff4j/ff4j"
 caseStudy: true
 tech: ["Java", "Jakarta"]
 years: "2025"
-build:
-  list: local
 params:
     button:
         icon: "icon-arrow-right"

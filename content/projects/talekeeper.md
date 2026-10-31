@@ -11,8 +11,6 @@ link: "https://yonatankarp.github.io/TaleKeeper/"
 caseStudy: true
 tech: ["Python", "FastAPI", "Svelte"]
 years: "2026–present"
-build:
-  list: local
 params:
     button:
         icon: "icon-arrow-right"

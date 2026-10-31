@@ -84,7 +84,7 @@ proof:
       decision: "I co-designed the Risk Orchestrator, pushed OpenAPI-first contracts across risk services, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
       result: "Risk changes gained a clearer coordination model across providers, payment behavior, and service boundaries."
     - label: "Engineering leverage"
-      floor: "L"   # the building floor whose panel tells this story
+      floor: "7"   # the building floor whose panel tells this story
       title: "Turning repeated operational friction into shared tooling."
       context: "Platform work gets expensive when incidents, cronjobs, migrations, and service setup depend on private memory."
       decision: "I build Backstage tools, templates, migration plans, and upstream fixes when the reusable path beats another one-off patch."

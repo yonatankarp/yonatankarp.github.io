@@ -11,8 +11,6 @@ draft: false
 link: "https://github.com/yonatankarp/sse-mcp-server"
 tech: ["Kotlin", "Spring Boot", "MCP", "SSE", "Docker"]
 years: "2025"
-build:
-  list: local
 params:
     button:
         icon: "icon-arrow-right"

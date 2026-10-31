@@ -498,11 +498,14 @@ async function main() {
             });
           }, { once: true });
 
-          observer.observe(document.documentElement, {
+          observer.observe(document, {   // documentElement does not exist yet when init scripts run
             childList: true,
             subtree: true,
           });
         });
+
+        const pageErrors = [];
+        page.on("pageerror", (error) => pageErrors.push(error.message));
 
         const response = await page.goto(routeUrl(route.path), { waitUntil: "domcontentloaded" });
 
@@ -516,6 +519,10 @@ async function main() {
         await scrollThroughPage(page);
         await waitForPageImages(page);
         await assertPageBasics(page, route, viewport);
+
+        if (pageErrors.length > 0) {
+          fail(`${route.path} (${viewport.name}) threw uncaught page errors: ${pageErrors.join("; ")}`);
+        }
 
         await page.locator("body").screenshot({
           path: path.join(screenshotDir, screenshotFileName(route, viewport)),

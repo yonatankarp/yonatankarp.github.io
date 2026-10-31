@@ -54,8 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Copy-to-clipboard buttons on code blocks
-    document.querySelectorAll('.article__content pre').forEach((pre) => {
+    // Copy-to-clipboard buttons on code blocks; Mermaid reads its <pre> as diagram source, so skip those
+    document.querySelectorAll('.article__content pre:not(.mermaid)').forEach((pre) => {
       if (pre.querySelector('.code-copy')) return;
       const btn = document.createElement('button');
       btn.type = 'button';

@@ -6,8 +6,8 @@
     <p class="px-search__lede">A lightweight search across articles, projects, and pages on the site.</p>
   </header>
   <label class="px-search__label" for="site-search">Search the site</label>
-  <input id="site-search" name="q" class="search-input px-search__input" type="search" placeholder="{{ .Params.placeholder | default `Search...` }}">
-  <div id="search-results" class="search-results px-search__results">
+  <input id="site-search" name="q" class="search-input" type="search" placeholder="{{ .Params.placeholder | default `Search...` }}">
+  <div id="search-results" class="px-search__results">
     <article class="search-result search-result--empty">
       <span>Try a topic</span>
       <p>Kotlin, OpenAPI, observability, Kafka, payments, risk, architecture, or Spring Boot.</p>

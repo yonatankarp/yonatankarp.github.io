@@ -6,7 +6,8 @@
 - **Custom Hugo layouts** in `layouts/`
 - **GitHub Actions** for CI/CD to GitHub Pages
 - Site styles in `assets/css/custom.css`
-- Custom JS in `static/js/site.js`
+- Custom JS in `assets/js/site.js`
+- Pixel skin is `.px-skin` in `assets/css/custom.css`; the top bar is `layouts/partials/pixel-bar.html`
 - Static images and icons in `static/images/`
 
 ## Build & Run
@@ -42,7 +43,7 @@ The site is English-only. Do not create `.he.md` variants, translation keys, lan
 
 - Prefer editing the custom templates in `layouts/` directly instead of introducing third-party theme assumptions
 - Keep the design system centralized in `assets/css/custom.css`
-- Use `static/js/site.js` for the small amount of client-side behavior
+- Use `assets/js/site.js` for the small amount of client-side behavior
 
 ## Adding Content
 

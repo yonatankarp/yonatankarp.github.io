@@ -35,14 +35,17 @@ export function guide(api, root = document) {
     open.panel.classList.remove('is-open');
     open.button.setAttribute('aria-expanded', 'false');
     document.documentElement.classList.remove('panel-open');
-    if (refocus) open.button.focus();
+    if (refocus) {   // back on Step inside, with the card where the reader left it (focus would scroll it to the end)
+      open.button.focus({ preventScroll: true });
+      open.button.closest('.floor-card').scrollTop = open.top;
+    }
     open = null;
   };
   const openPanel = (button) => {
     const panel = document.getElementById(button.getAttribute('aria-controls'));
     if (!panel) return;
     closePanel(false);
-    open = { panel, button };
+    open = { panel, button, top: button.closest('.floor-card').scrollTop };
     panel.classList.add('is-open');
     button.setAttribute('aria-expanded', 'true');
     document.documentElement.classList.add('panel-open');
@@ -70,7 +73,7 @@ export function guide(api, root = document) {
   // Trackpads send long momentum tails: one gesture (wheel events without a 150 ms pause) is one floor.
   let acc = 0, lastWheel = -Infinity, spent = false;
   addEventListener('wheel', (e) => {
-    if (!roomy.matches) return;
+    if (!roomy.matches || e.ctrlKey) return;   // ctrl+wheel is a pinch or the browser's zoom, not a ride
     const now = performance.now();
     if (now - lastWheel > 150) { acc = 0; spent = false; }
     lastWheel = now;
@@ -131,23 +134,27 @@ export function guide(api, root = document) {
 
   const show = (index) => stops.forEach((s, i) => s.classList.toggle('is-here', i === index));
   document.addEventListener('building:floor', (e) => {
-    if (indicator) indicator.textContent = e.detail.key;
+    if (indicator) indicator.textContent = e.detail.key === 'E' ? '' : e.detail.key;   // outside, the lift shows no floor
   });
   const hint = root.querySelector('.building-hint');
   // After a ride, focus follows the reader to the new floor's heading, unless it is on the lift or the top bar.
   // null until the first ride: the load's own arrival neither moves focus nor speaks.
-  let follow = null, hinted = false;
+  let follow = null, hinted = false, leaving = null;
   document.addEventListener('building:depart', (e) => {
     const a = document.activeElement;
     follow = !a || a === document.body || !!a.closest('.building-stop, .exterior-windows');
+    // A card under an open panel leaves hidden: un-hidden, it would flash at full opacity while it fades out.
+    if (open) (leaving = open.button.closest('.floor-card')).style.visibility = 'hidden';
     closePanel(false);
     show(-1);
     document.documentElement.classList.remove('at-street');
     if (hint) hint.style.opacity = '0';
-    if (arrow) arrow.dataset.dir = e.detail.dir > 0 ? 'down' : 'up';
+    if (arrow) arrow.dataset.dir = e.detail.dir > 0 ? 'down' : e.detail.dir < 0 ? 'up' : '';   // a dissolve has no direction
     buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.goto === e.detail.key)));
   });
   document.addEventListener('building:arrive', (e) => {
+    leaving?.style.removeProperty('visibility');
+    leaving = null;
     show(e.detail.index);
     if (open && !stops[e.detail.index]?.contains(open.panel)) closePanel(false);
     document.documentElement.classList.toggle('at-street', e.detail.key === 'E');

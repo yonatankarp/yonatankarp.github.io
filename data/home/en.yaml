@@ -1,46 +1,11 @@
 hero:
-  eyebrow: "Staff Software Engineer · Payments, Risk & Compliance · Kotlin, Spring Boot, Kafka · openapi-generator contributor"
+  eyebrow: "Staff Software Engineer · Kotlin, Spring Boot, Kafka · openapi-generator contributor"
   title: "I turn messy backend domains into systems teams can own."
   lede: "I work where product rules, vendor integrations, event flows, and operational risk meet. Recently that has meant compliance services, risk orchestration, API contracts, internal tools, and migrations that leave teams with clearer ownership."
   availability: "Open to Staff+ backend roles in Tel Aviv and central Israel, on-site or hybrid."
   primaryAction:
     label: "Discuss Staff+ backend work"
     url: "#floor-R"   # the roof: contact
-  secondaryAction:
-    label: "View CV"
-    url: "/cv/"
-  proofSignals:
-    - label: "Role"
-      text: "Staff backend engineer"
-    - label: "Current scope"
-      text: "Payments and compliance platforms"
-    - label: "Evidence"
-      text: "Boundaries, contracts, tooling, and recovery paths"
-  multiplier:
-    title: "How I multiply a team"
-    steps:
-      - title: "Clarify the problem"
-        text: "Turn ambiguity into boundaries, contracts, examples, and failure modes."
-      - title: "Build the path"
-        text: "Ship the integration, migration plan, internal tool, or reference implementation."
-      - title: "Leave leverage"
-        text: "Leave specs, monitors, templates, and upstream fixes that outlive the handoff."
-    evidence:
-      - "Payments, risk, compliance"
-      - "Kotlin/JVM, Kafka, OpenAPI"
-      - "OSS, docs, templates"
-  notes:
-    - label: "Best fit"
-      text: "Teams facing complex backend work, unclear boundaries, or too much hidden context"
-    - label: "Value"
-      text: "Clearer decisions, reusable patterns, better explanations, and systems people can keep improving"
-    - label: "Tools"
-      text: "Kotlin, Java, Spring Boot, Kafka, OpenAPI, docs, examples, and small useful tooling"
-  links:
-    - label: "GitHub"
-      url: "https://github.com/yonatankarp"
-    - label: "LinkedIn"
-      url: "https://www.linkedin.com/in/yonatankarp/"
 
 about:
   kicker: "How I work"
@@ -55,12 +20,7 @@ about:
     - label: "Bias toward"
       text: "Shared understanding, small useful abstractions, boring reliability, and explanations that survive handoff"
 
-experience:
-  kicker: "Track record"
-  title: "Backend roles shaped by domain ownership and reusable engineering systems."
-
 education:
-  kicker: "Education"
   title: "Courses, degrees, and topics that keep showing up in the work."
 
 projects:
@@ -68,8 +28,6 @@ projects:
   title: "Public work that turns repeated problems into reusable material."
 
 proof:
-  kicker: "Proof"
-  title: "Examples of staff-level leverage beyond ticket delivery."
   items:
     - label: "Compliance platform"
       floor: "7"   # the building floor whose panel tells this story
@@ -81,7 +39,7 @@ proof:
       floor: "6"   # the building floor whose panel tells this story
       title: "Moving risk work toward explicit orchestration and contracts."
       context: "Risk decisions depended on multiple services, fraud providers, recurrent identification, tokenization, and direct debit behavior."
-      decision: "I co-designed the Risk Orchestrator, pushed OpenAPI-first contracts across risk services, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
+      decision: "I co-designed the Risk Orchestrator, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
       result: "Risk changes gained a clearer coordination model across providers, payment behavior, and service boundaries."
     - label: "Engineering leverage"
       floor: "7"   # the building floor whose panel tells this story
@@ -91,7 +49,6 @@ proof:
       result: "Engineers start from a known path and can challenge decisions through specs, dashboards, examples, and code."
 
 outcomes:
-  kicker: "Multiplier effect"
   title: "What good teams get from working with me."
   items:
     - title: "Shared understanding"
@@ -104,20 +61,18 @@ outcomes:
       text: "The system is easier to change because more people understand how and why it works."
 
 fit:
-  kicker: "When to call"
   title: "I am useful when the team needs clarity as much as code."
   items:
-    - "Important work with fuzzy ownership"
-    - "Backend systems carrying hidden context"
-    - "Repeated problems that need reusable tooling"
-    - "Teams that need a pathfinder and teacher"
+    - "Important work with fuzzy ownership."
+    - "Backend systems carrying hidden context."
+    - "Repeated problems that need reusable tooling."
+    - "Teams that need a pathfinder and teacher."
 
 writing:
   kicker: "Writing"
   title: "Writing is how I turn hard-won context into something other people can reuse."
 
 testimonials:
-  kicker: "Recommendations"
   title: "What people notice after working with me."
 
 contact:
@@ -125,9 +80,9 @@ contact:
   title: "If your backend domain needs an owner, let's talk."
   text: "The strongest fit is Staff+ backend work where product rules, vendors, event flows, and operational risk need to become one system the team can own."
   priorities:
-    - "Staff+ backend roles in central Israel, on-site or hybrid"
-    - "Payments, risk, compliance, or platform architecture"
-    - "OSS, technical writing, and teaching"
+    - "Staff+ backend roles in central Israel, on-site or hybrid."
+    - "Payments, risk, compliance, or platform architecture."
+    - "OSS, technical writing, and teaching."
   facts:
     - label: "Based in"
       text: "Tel Aviv, Israel"
@@ -144,3 +99,16 @@ contact:
     - label: "LinkedIn"
       text: "linkedin.com/in/yonatankarp"
       url: "https://www.linkedin.com/in/yonatankarp/"
+  social:   # the homepage's icon row; `icon` names its pixel drawing in layouts/index.html
+    - label: "LinkedIn"
+      url: "https://www.linkedin.com/in/yonatankarp/"
+      icon: "linkedin"
+    - label: "GitHub"
+      url: "https://github.com/yonatankarp"
+      icon: "github"
+    - label: "X (Twitter)"
+      url: "https://x.com/yonvata"
+      icon: "x"
+    - label: "The Reading Club podcast on Spotify"
+      url: "https://open.spotify.com/show/4pZG0kazNvz9wHriBv6ni0"
+      icon: "podcast"

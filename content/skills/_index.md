@@ -9,7 +9,7 @@ practice_areas:
     tools: ["Kotlin", "Java", "Spring Boot", "OpenAPI", "gRPC", "Protocol Buffers"]
   - name: "Distributed systems and data flows"
     summary: "Building event-driven services, real-time processing, and the infrastructure that keeps backend systems coherent under load."
-    tools: ["Kafka", "Flink", "Neo4j", "MySQL", "PostgreSQL"]
+    tools: ["Kafka", "Neo4j", "MySQL", "PostgreSQL"]
   - name: "Platform and developer experience"
     summary: "Improving the day-to-day engineering loop through templates, CI, internal tools, and shared libraries."
     tools: ["Gradle", "GitHub Actions", "Terraform", "Docker", "Kubernetes"]
@@ -21,10 +21,10 @@ practice_areas:
     tools: ["Kotlin", "Architecture notes", "Postmortem-style thinking"]
 working_set:
   - "Kotlin"
+  - "Java"
   - "Spring Boot"
   - "OpenAPI"
   - "Kafka"
-  - "Flink"
   - "Terraform"
   - "GitHub Actions"
   - "Docker"
@@ -41,6 +41,10 @@ familiar_with:
   - "Cassandra / Keyspaces"
   - "Mockito"
   - "Jenkins"
+  - "MCP"
+  - "Claude Code"
+  - "Ollama"
+  - "Whisper"
 ---
 
 A practical view of where Yonatan tends to have the most leverage: architecture, backend systems, distributed systems, platform work, and clear technical writing.

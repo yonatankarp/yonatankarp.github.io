@@ -4,6 +4,14 @@
 {{ $education := sort (where (where .Site.RegularPages "Type" "education") "Params.cv" true) "Date" "desc" }}   {{- /* only entries with cv: true; short courses stay on the site */ -}}
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
 {{ $accent := hugo.Data.floor_accents }}
+{{- /* Each role links to its floor and lists its highlights; a slip names its file here instead of failing deep in the page (#58). */}}
+{{ range $experience }}
+  {{ $f := .Params.floor }}
+  {{ if ne (printf "%T" $f) "string" }}{{ errorf "%s: set `floor` to a quoted storey, such as floor: \"5\" (got %v)." .File.Path $f }}
+  {{ else if not (index $accent $f) }}{{ errorf "%s: floor %q has no colour in data/floor_accents.yaml, so the building has no storey for it (ORDER in web3d/src/pixel.js)." .File.Path $f }}{{ end }}
+  {{ if not (and (reflect.IsSlice .Params.highlights) .Params.highlights) }}{{ errorf "%s: set `highlights` to a list of what you did there." .File.Path }}{{ end }}
+{{ end }}
+{{ $skills := site.GetPage "/skills" }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
 <head>
@@ -18,7 +26,7 @@
       <div class="cv-head__who">
         <p class="px-kicker">Curriculum vitae</p>
         <h1>Yonatan Karp-Rudin</h1>
-        <p class="cv-role">Staff Software Engineer, Payments · Tel Aviv, Israel (relocating from Berlin, Jan 2027)</p>
+        <p class="cv-role">Staff Software Engineer · Berlin, Germany (relocating to Tel Aviv, Jan 2027)</p>
         <ul class="cv-contact">
           <li><a class="px-chip" href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li>
           <li><a class="px-chip" href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
@@ -30,18 +38,26 @@
 
     <section class="px-section" aria-labelledby="cv-summary">
       <h2 id="cv-summary">Summary</h2>
-      <p>I'm a Staff Software Engineer. I've been writing software for 12 years: first C++ on vision processing chips at Inuitive, then backend services for SumUp's point-of-sale products, and for the last three years risk and compliance at Billie.</p>
-      <p>At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, Ravelin for graph-based fraud detection and ComplyAdvantage for transaction monitoring. I also started three services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
+      <p>I'm a Staff Software Engineer. I've been writing software for 12 years: first C++ on vision processing chips at Inuitive, then backend work at NICE, then backend services for SumUp's point-of-sale products, and for the last three years risk and compliance at Billie.</p>
+      <p>At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, Ravelin for graph-based fraud detection and ComplyAdvantage for transaction monitoring. I also started two services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
     </section>
 
     <section class="px-section" aria-labelledby="cv-focus">
       <h2 id="cv-focus">Staff+ Focus</h2>
       <ul class="cv-focus">
         <li>Defined compliance and risk service boundaries across vendor behavior, event flows, and product rules.</li>
-        <li>Drove API-first backend design with Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI, and Backstage.</li>
+        <li>Drove API-first backend design with Kotlin, Java, Spring Boot, Kafka, OpenAPI, and Backstage.</li>
         <li>Turned operational risk into recovery paths, monitoring, migration plans, and upstream fixes.</li>
       </ul>
     </section>
+
+    {{ with $skills }}
+    <section class="px-section" aria-labelledby="cv-skills">   {{- /* plain text on purpose: recruiters and ATS filters search the PDF for these */ -}}
+      <h2 id="cv-skills">Skills</h2>
+      <p><strong>Daily:</strong> {{ delimit .Params.working_set ", " }}</p>
+      <p><strong>Also:</strong> {{ delimit .Params.familiar_with ", " }}</p>
+    </section>
+    {{ end }}
 
     <section class="px-section" aria-labelledby="cv-experience">
       <h2 id="cv-experience">Experience</h2>
@@ -66,11 +82,13 @@
     </section>
 
     <section class="px-section" aria-labelledby="cv-open-source" style="--accent:{{ index $accent "P" }}">
-      <h2 id="cv-open-source">Open Source &amp; Writing</h2>
+      <h2 id="cv-open-source">Open Source, AI &amp; Writing</h2>
       <ul class="cv-bullets">
         <li>Added Spring Boot 4 and Jackson 3 support to the kotlin-spring generator in <a href="https://github.com/OpenAPITools/openapi-generator">openapi-generator</a> to unblock Billie's Payments move to Spring Boot 4, then fixed the regressions that followed (10 upstream PRs).</li>
+        <li>Built <a href="https://github.com/yonatankarp/sse-mcp-server">sse-mcp-server</a>, a Kotlin and Spring Boot MCP server that exposes typed backend tools to AI agents over Server-Sent Events.</li>
+        <li>Built <a href="https://yonatankarp.github.io/TaleKeeper/">TaleKeeper</a>, self-hosted session recording with Whisper transcription, speaker diarization, and local Ollama summaries.</li>
         <li>Wrote and maintain <a href="https://yonatankarp.github.io/ff4k/">ff4k</a>, a Kotlin Multiplatform feature flag library published on Maven Central.</li>
-        <li>{{ len (where .Site.RegularPages "Type" "blog") }} posts on Kotlin and backend engineering on <a href="{{ "blog/" | relURL }}">my blog</a>.</li>
+        <li>{{ len (where .Site.RegularPages "Type" "blog") }} posts on Kotlin, backend engineering, and AI coding agents on <a href="{{ "blog/" | relURL }}">my blog</a>, including giving Claude Code a long-term memory with hooks.</li>
         <li>Spoke at Kotlin User Group Berlin about JVM backend design patterns.</li>
       </ul>
     </section>
@@ -85,6 +103,7 @@
             <span>{{ .Params.year }}</span>
           </div>
           <p class="cv-sub">{{ .Params.degree }}{{ with .Params.link }} · <a href="{{ . }}">credential</a>{{ end }}</p>
+          {{ with .Params.teaching }}<ul class="cv-teaching">{{ range . }}<li>{{ .title }} <span>{{ replace .when " - " " – " }}</span></li>{{ end }}</ul>{{ end }}
         </article>
         {{ end }}
       </div>

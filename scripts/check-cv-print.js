@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-// Checks the CV PDF that scripts/generate-cv-pdf.js printed from /cv/ stays within two A4 pages.
+// Checks the CV PDF that scripts/generate-cv-pdf.js printed from /cv/ fits on one A4 page.
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 
 const pdfPath = path.join(path.resolve(__dirname, ".."), "public", "yonatan-karp-rudin-cv.pdf");
-const maxPages = 2;
+const maxPages = 1;
 
 function fail(message, details = []) {
   console.error(message);

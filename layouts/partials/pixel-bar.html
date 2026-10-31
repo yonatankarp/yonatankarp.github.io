@@ -12,7 +12,8 @@
       {{ end }}
     </nav>
   </div>
-  <a class="px-download" href="{{ "yonatan-karp-rudin-cv.pdf" | relURL }}" download aria-label="Download CV (PDF)">
+  {{- /* `npm run serve` never makes the PDF (`npm run build` does), so the dev server links the web CV instead. */}}
+  <a class="px-download" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} aria-label="Download CV (PDF)">
     <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
     <span>Download CV</span>
   </a>

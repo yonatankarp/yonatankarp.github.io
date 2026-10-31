@@ -33,3 +33,7 @@ web3d/pixel/paintings/candidates/*
 web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/*-px.png
 __pycache__/
+
+# Machine-specific Claude Code launch config and agent worktrees
+.claude/launch.json
+.claude/worktrees/

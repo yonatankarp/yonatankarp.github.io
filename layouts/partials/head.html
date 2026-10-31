@@ -23,8 +23,8 @@
 <meta property="og:image" content="{{ $image }}">
 {{ if $defaultImage }}<meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Yonatan Karp-Rudin, Staff Software Engineer, Payments, Tel Aviv, Israel, in front of the pixel-art building of his CV">
-<meta name="twitter:image:alt" content="Yonatan Karp-Rudin, Staff Software Engineer, Payments, Tel Aviv, Israel, in front of the pixel-art building of his CV">{{ end }}
+<meta property="og:image:alt" content="Yonatan Karp-Rudin, Staff Software Engineer, Tel Aviv, Israel, in front of the pixel-art building of his CV">
+<meta name="twitter:image:alt" content="Yonatan Karp-Rudin, Staff Software Engineer, Tel Aviv, Israel, in front of the pixel-art building of his CV">{{ end }}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ $title }}">
 <meta name="twitter:description" content="{{ $description }}">
@@ -38,10 +38,11 @@
 {{ end }}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Jersey+15&display=swap" rel="stylesheet">
+{{- /* JetBrains Mono only sets code in .prose, so only pages with code ask for it (#55). */}}
+<link href="https://fonts.googleapis.com/css2?family=Jersey+15&family=Outfit:wght@400;500;600;700;800{{ if strings.Contains .Content "<code" }}&family=JetBrains+Mono:wght@400;500;700{{ end }}&display=swap" rel="stylesheet">
 {{ $schema := dict "@context" "https://schema.org" "@type" "WebPage" "name" $title "description" $description "url" .Permalink }}
 {{ if .IsHome }}
-  {{ $schema = dict "@context" "https://schema.org" "@type" "Person" "name" "Yonatan Karp-Rudin" "jobTitle" "Staff Software Engineer, Payments" "url" .Site.BaseURL "sameAs" (slice "https://github.com/yonatankarp" "https://www.linkedin.com/in/yonatankarp/") "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" "Tel Aviv" "addressCountry" "IL") }}
+  {{ $schema = dict "@context" "https://schema.org" "@type" "Person" "name" "Yonatan Karp-Rudin" "jobTitle" "Staff Software Engineer" "url" .Site.BaseURL "sameAs" (slice "https://github.com/yonatankarp" "https://www.linkedin.com/in/yonatankarp/") "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" "Tel Aviv" "addressCountry" "IL") }}
 {{ else if and .IsPage (eq .Type "blog") }}
   {{ $schema = dict "@context" "https://schema.org" "@type" "Article" "headline" .Title "author" (dict "@type" "Person" "name" "Yonatan Karp-Rudin") "publisher" (dict "@type" "Person" "name" "Yonatan Karp-Rudin") "mainEntityOfPage" .Permalink }}
   {{ if not .Date.IsZero }}{{ $schema = merge $schema (dict "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00")) }}{{ end }}

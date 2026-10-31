@@ -60,7 +60,7 @@
       <h2 id="cv-experience">Experience</h2>
       {{ range $experience }}
       <article class="cv-role-item" style="--accent:{{ index $accent .Params.floor }}">
-        <a class="cv-floor" href="{{ $.Site.Home.RelPermalink }}#floor-{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }} in the building">{{ .Params.floor }}</a>
+        <a class="cv-floor" href="{{ $.Site.Home.RelPermalink }}#floor-{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }} in the building"><svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2 0h6v10H2zM3 2v1h1V2zM6 2v1h1V2zM3 5v1h1V5zM6 5v1h1V5zM4 8v2h2V8z"/></svg></a>
         <div class="cv-role-item__body">
           <div class="cv-role-item__top">
             <h3>{{ .Title }}</h3>

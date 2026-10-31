@@ -107,10 +107,10 @@ fit:
   kicker: "When to call"
   title: "I am useful when the team needs clarity as much as code."
   items:
-    - "Important work with fuzzy ownership"
-    - "Backend systems carrying hidden context"
-    - "Repeated problems that need reusable tooling"
-    - "Teams that need a pathfinder and teacher"
+    - "Important work with fuzzy ownership."
+    - "Backend systems carrying hidden context."
+    - "Repeated problems that need reusable tooling."
+    - "Teams that need a pathfinder and teacher."
 
 writing:
   kicker: "Writing"
@@ -125,9 +125,9 @@ contact:
   title: "If your backend domain needs an owner, let's talk."
   text: "The strongest fit is Staff+ backend work where product rules, vendors, event flows, and operational risk need to become one system the team can own."
   priorities:
-    - "Staff+ backend roles in central Israel, on-site or hybrid"
-    - "Payments, risk, compliance, or platform architecture"
-    - "OSS, technical writing, and teaching"
+    - "Staff+ backend roles in central Israel, on-site or hybrid."
+    - "Payments, risk, compliance, or platform architecture."
+    - "OSS, technical writing, and teaching."
   facts:
     - label: "Based in"
       text: "Tel Aviv, Israel"

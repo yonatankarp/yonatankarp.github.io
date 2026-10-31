@@ -207,11 +207,14 @@ def build(out):
                 px[x, y] = col
     wins = windows()
     strip = Image.new("RGB", (EW * G.FRAMES, EH))
-    floors = {k: Image.open(out / f"floor-{k}.png").convert("RGB") for k in LOOK if (out / f"floor-{k}.png").exists()}
+    missing = [f"floor-{k}.png" for k in LOOK if k != "R" and not (out / f"floor-{k}.png").exists()]
+    if missing:
+        sys.exit(f"missing floor strips in {out}: {', '.join(missing)} (build the floors first: gen_floors.py)")
+    floors = {k: Image.open(out / f"floor-{k}.png").convert("RGB") for k in LOOK if k != "R"}
     for f in range(G.FRAMES):
         img = art.copy()
         for key, (x0, y0, x1, y1) in wins.items():
-            if key == "R" or key not in floors:
+            if key == "R":
                 continue
             sx, sy = LOOK[key]
             img.paste(floors[key].crop((f * G.W + sx, sy, f * G.W + sx + x1 - x0, sy + y1 - y0)), (x0, y0))

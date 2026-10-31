@@ -2,32 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const root = document.documentElement;
 
   try {
-    const menuToggle = document.querySelector('.menu-toggle');
-    const nav = document.getElementById('primary-nav');
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    if (menuToggle && nav) {
-      const setMenuOpen = (open) => {
-        nav.classList.toggle('is-open', open);
-        menuToggle.setAttribute('aria-expanded', String(open));
-        menuToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
-      };
-
-      menuToggle.addEventListener('click', () => {
-        setMenuOpen(!nav.classList.contains('is-open'));
-      });
-
-      nav.querySelectorAll('a').forEach((link) => {
-        link.addEventListener('click', () => setMenuOpen(false));
-      });
-
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape' && nav.classList.contains('is-open')) {
-          setMenuOpen(false);
-          menuToggle.focus();
-        }
-      });
-    }
 
     const revealNodes = document.querySelectorAll('.reveal');
     if (revealNodes.length) {
@@ -54,8 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Copy-to-clipboard buttons on code blocks
-    document.querySelectorAll('.article__content pre').forEach((pre) => {
+    // Copy-to-clipboard buttons on code blocks; Mermaid reads its <pre> as diagram source, so skip those
+    document.querySelectorAll('.article__content pre:not(.mermaid)').forEach((pre) => {
       if (pre.querySelector('.code-copy')) return;
       const btn = document.createElement('button');
       btn.type = 'button';

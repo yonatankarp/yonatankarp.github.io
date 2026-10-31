@@ -1,5 +1,5 @@
 {{- /* The CV: the building's pixel skin over a plain document. A standalone page (no baseof), like the homepage:
-     its own top bar, no site header or footer. scripts/generate-cv-pdf.js prints it to the downloadable PDF,
+     the shared top bar, no site footer. scripts/generate-cv-pdf.js prints it to the downloadable PDF,
      where @media print in custom.css turns it into light paper with the same pixel accents. */ -}}
 {{ $education := sort (where (where .Site.RegularPages "Type" "education") "Params.cv" true) "Date" "desc" }}   {{- /* only entries with cv: true; short courses stay on the site */ -}}
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
@@ -11,51 +11,38 @@
   {{ else if not (index $accent $f) }}{{ errorf "%s: floor %q has no colour in data/floor_accents.yaml, so the building has no storey for it (ORDER in web3d/src/pixel.js)." .File.Path $f }}{{ end }}
   {{ if not (and (reflect.IsSlice .Params.highlights) .Params.highlights) }}{{ errorf "%s: set `highlights` to a list of what you did there." .File.Path }}{{ end }}
 {{ end }}
-{{- /* `npm run serve` never makes the PDF (`npm run build` does), so the dev server links the web CV instead. */}}
-{{ $pdf := cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}
 {{ $skills := site.GetPage "/skills" }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
 <head>
   {{ partial "head.html" . }}
 </head>
-<body class="cv-page" style="--scene: url({{ "building/pixel/exterior.png" | relURL }})">
+<body class="px-skin cv-page" style="--scene: url({{ "building/pixel/exterior.png" | relURL }})">
   <a class="skip-link" href="#cv">Skip to the CV</a>
-  <header class="cv-bar">
-    <a class="cv-bar__name" href="{{ .Site.Home.RelPermalink }}">Yonatan Karp-Rudin</a>
-    <nav class="cv-bar__links" aria-label="Site">
-      <a href="{{ .Site.Home.RelPermalink }}">Building</a>
-      <a href="{{ "blog/" | relURL }}">Blog</a>
-    </nav>
-    <a class="cv-download" href="{{ $pdf }}"{{ if not hugo.IsServer }} download{{ end }}>
-      <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
-      <span>Download PDF</span>
-    </a>
-  </header>
+  {{ partial "pixel-bar.html" . }}
 
-  <main class="cv" id="cv">
+  <main class="cv px-sheet" id="cv">
     <header class="cv-head">
       <div class="cv-head__who">
-        <p class="cv-kicker">Curriculum vitae</p>
+        <p class="px-kicker">Curriculum vitae</p>
         <h1>Yonatan Karp-Rudin</h1>
         <p class="cv-role">Staff Software Engineer · Berlin, Germany (relocating to Tel Aviv, Jan 2027)</p>
         <ul class="cv-contact">
-          <li><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li>
-          <li><a href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
-          <li><a href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a></li>
-          <li><a href="https://yonatankarp.com">yonatankarp.com</a></li>
+          <li><a class="px-chip" href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li>
+          <li><a class="px-chip" href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
+          <li><a class="px-chip" href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a></li>
+          <li><a class="px-chip" href="https://yonatankarp.com">yonatankarp.com</a></li>
         </ul>
       </div>
-      <div class="cv-head__art" aria-hidden="true"></div>
     </header>
 
-    <section class="cv-section" aria-labelledby="cv-summary">
+    <section class="px-section" aria-labelledby="cv-summary">
       <h2 id="cv-summary">Summary</h2>
       <p>I'm a Staff Software Engineer. I've been writing software for 12 years: first C++ on vision processing chips at Inuitive, then backend work at NICE, then backend services for SumUp's point-of-sale products, and for the last three years risk and compliance at Billie.</p>
       <p>At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, Ravelin for graph-based fraud detection and ComplyAdvantage for transaction monitoring. I also started two services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
     </section>
 
-    <section class="cv-section" aria-labelledby="cv-focus">
+    <section class="px-section" aria-labelledby="cv-focus">
       <h2 id="cv-focus">Staff+ Focus</h2>
       <ul class="cv-focus">
         <li>Defined compliance and risk service boundaries across vendor behavior, event flows, and product rules.</li>
@@ -65,14 +52,14 @@
     </section>
 
     {{ with $skills }}
-    <section class="cv-section" aria-labelledby="cv-skills">   {{- /* plain text on purpose: recruiters and ATS filters search the PDF for these */ -}}
+    <section class="px-section" aria-labelledby="cv-skills">   {{- /* plain text on purpose: recruiters and ATS filters search the PDF for these */ -}}
       <h2 id="cv-skills">Skills</h2>
       <p><strong>Daily:</strong> {{ delimit .Params.working_set ", " }}</p>
       <p><strong>Also:</strong> {{ delimit .Params.familiar_with ", " }}</p>
     </section>
     {{ end }}
 
-    <section class="cv-section" aria-labelledby="cv-experience">
+    <section class="px-section" aria-labelledby="cv-experience">
       <h2 id="cv-experience">Experience</h2>
       {{ range $experience }}
       <article class="cv-role-item" style="--accent:{{ index $accent .Params.floor }}">
@@ -94,7 +81,7 @@
       {{ end }}
     </section>
 
-    <section class="cv-section" aria-labelledby="cv-open-source" style="--accent:{{ index $accent "P" }}">
+    <section class="px-section" aria-labelledby="cv-open-source" style="--accent:{{ index $accent "P" }}">
       <h2 id="cv-open-source">Open Source, AI &amp; Writing</h2>
       <ul class="cv-bullets">
         <li>Added Spring Boot 4 and Jackson 3 support to the kotlin-spring generator in <a href="https://github.com/OpenAPITools/openapi-generator">openapi-generator</a> to unblock Billie's Payments move to Spring Boot 4, then fixed the regressions that followed (10 upstream PRs).</li>
@@ -106,7 +93,7 @@
       </ul>
     </section>
 
-    <section class="cv-section" aria-labelledby="cv-education">
+    <section class="px-section" aria-labelledby="cv-education">
       <h2 id="cv-education">Education</h2>
       <div class="cv-edu">
         {{ range $education }}

@@ -1,50 +1,41 @@
 {{ define "main" }}
-<section class="shell page-head reveal-group">
-  <div class="page-head__copy reveal">
-    <p class="section-kicker">Skills</p>
+<div class="px-sheet px-skills">
+  <header class="px-skills__head">
+    <p class="px-kicker">Skills</p>
     <h1>{{ .Title }}</h1>
-    <p>{{ .Description | default (.Content | plainify) }}</p>
-  </div>
-</section>
-<section class="shell skill-layout reveal-group">
-  <section class="skill-section skill-section--lead reveal">
-    <div class="skill-section__header">
-      <h2>Where he is strongest</h2>
-      <p>This is less a stack inventory, more a map of the work he tends to do best.</p>
-    </div>
-    <div class="practice-grid">
+    <p class="px-skills__lede">{{ .Description | default (.Content | plainify) }}</p>
+  </header>
+
+  <section class="px-section">
+    <h2>Where he is strongest</h2>
+    <p>This is less a stack inventory, more a map of the work he tends to do best.</p>
+    <div class="px-skills__areas">
       {{ range .Params.practice_areas }}
-      <article class="practice-card">
+      <article class="px-well px-skills__area">
         <h3>{{ .name }}</h3>
         <p>{{ .summary }}</p>
-        <div class="chip-row">
-          {{ range .tools }}<span class="chip">{{ . }}</span>{{ end }}
-        </div>
+        <ul class="px-skills__chips">
+          {{ range .tools }}<li class="px-chip">{{ . }}</li>{{ end }}
+        </ul>
       </article>
       {{ end }}
     </div>
   </section>
 
-  <div class="skill-columns">
-    <section class="skill-section reveal">
-      <div class="skill-section__header">
-        <h2>Current working set</h2>
-        <p>Tools and systems that show up repeatedly in current work.</p>
-      </div>
-      <div class="skill-pill-cloud">
-        {{ range .Params.working_set }}<span class="skill-pill skill-pill--strong">{{ . }}</span>{{ end }}
-      </div>
-    </section>
+  <section class="px-section">
+    <h2>Current working set</h2>
+    <p>Tools and systems that show up repeatedly in current work.</p>
+    <ul class="px-skills__chips">
+      {{ range .Params.working_set }}<li class="px-chip px-chip--strong">{{ . }}</li>{{ end }}
+    </ul>
+  </section>
 
-    <section class="skill-section reveal">
-      <div class="skill-section__header">
-        <h2>Also comfortable with</h2>
-        <p>Things he has worked with seriously, without pretending they are the center of gravity.</p>
-      </div>
-      <div class="skill-pill-cloud">
-        {{ range .Params.familiar_with }}<span class="skill-pill">{{ . }}</span>{{ end }}
-      </div>
-    </section>
-  </div>
-</section>
+  <section class="px-section">
+    <h2>Also comfortable with</h2>
+    <p>Things he has worked with seriously, without pretending they are the center of gravity.</p>
+    <ul class="px-skills__chips">
+      {{ range .Params.familiar_with }}<li class="px-chip">{{ . }}</li>{{ end }}
+    </ul>
+  </section>
+</div>
 {{ end }}

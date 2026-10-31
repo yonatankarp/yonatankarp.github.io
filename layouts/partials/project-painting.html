@@ -1,0 +1,11 @@
+{{- /* A project's pixel painting, shown only when assets/images/projects/pixel/<slug>.png exists. Called with
+     (dict "page" $p "max" 640): the image is scaled by the largest whole multiple that fits within "max", so the
+     pixels stay square; a source wider than "max" keeps its native size. */ -}}
+{{- $p := .page -}}
+{{- with resources.Get (printf "images/projects/pixel/%s.png" $p.File.BaseFileName) -}}
+  {{- $title := $p.Title | replaceRE `\s*\(contributor\)$` "" -}}
+  {{- $width := mul .Width (div $.max .Width) -}}
+  {{- $img := . -}}
+  {{- if gt $width 0 }}{{ $img = .Resize (printf "%dx NearestNeighbor" $width) }}{{ end -}}
+  <img class="px-painting" src="{{ $img.RelPermalink }}" width="{{ $img.Width }}" height="{{ $img.Height }}" alt="{{ $title }} painting" loading="lazy" decoding="async">
+{{- end -}}

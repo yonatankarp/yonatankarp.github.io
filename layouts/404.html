@@ -1,13 +1,11 @@
 {{ define "main" }}
-<section class="shell page-head reveal-group">
-  <div class="page-head__copy reveal">
-    <p class="section-kicker">404</p>
-    <h1>That page is not here</h1>
-    <p>Maybe the link is old, maybe the article moved, or maybe the address was typed wrong.</p>
-    <div class="hero__actions">
-      <a class="button button--primary" href="{{ .Site.Home.RelPermalink }}">Back to the homepage</a>
-      <a class="button button--ghost" href="/blog/">To the blog</a>
-    </div>
+<div class="px-sheet px-notfound">
+  <p class="px-kicker">404</p>
+  <h1>That page is not here</h1>
+  <p class="px-notfound__lede">Maybe the link is old, maybe the article moved, or maybe the address was typed wrong.</p>
+  <div class="px-notfound__links">
+    <a class="px-cta" href="{{ .Site.Home.RelPermalink }}">Back to the homepage</a>
+    <a class="px-cta px-cta--out" href="/blog/">To the blog</a>
   </div>
-</section>
+</div>
 {{ end }}

@@ -3,9 +3,10 @@
   <head>
     {{ partial "head.html" . }}
   </head>
-  <body class="page-{{ .Kind }}{{ if .IsHome }} page-home{{ end }}{{ with .Type }} type-{{ . }}{{ end }}">
+  {{ $pixel := or (eq .Type "projects") (eq .Layout "search") (eq .Type "skills") (eq .Kind "404") }}
+  <body class="page-{{ .Kind }}{{ if .IsHome }} page-home{{ end }}{{ with .Type }} type-{{ . }}{{ end }}{{ if $pixel }} px-skin px-page{{ end }}"{{ if $pixel }} style="--scene: url({{ "building/pixel/exterior.png" | relURL }})"{{ end }}>
     <a class="skip-link" href="#main-content">Skip to content</a>
-    {{ partial "site-header.html" . }}
+    {{ partial "pixel-bar.html" . }}
     <main id="main-content">
       {{ block "main" . }}{{ end }}
     </main>
@@ -14,7 +15,7 @@
     <script defer src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
     {{ if .Store.Get "hasMermaid" }}
     <script type="module">
-      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+      import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs';
       mermaid.initialize({
         startOnLoad: true,
         theme: 'base',
@@ -22,15 +23,17 @@
           fontFamily: 'Outfit, system-ui, sans-serif',
           fontSize: '15px',
           background: 'transparent',
-          primaryColor: '#3b3947',
-          primaryTextColor: '#f2f2f8',
-          primaryBorderColor: '#615f70',
-          secondaryColor: '#343240',
-          tertiaryColor: '#2c2a37',
-          lineColor: '#a6a6b6',
-          edgeLabelBackground: '#1b1a24',
+          primaryColor: '#2b3344',
+          primaryTextColor: '#f2ece0',
+          primaryBorderColor: '#0a0b10',
+          secondaryColor: '#151923',
+          tertiaryColor: '#151923',
+          lineColor: '#ffb547',
+          signalColor: '#ffb547',
+          textColor: '#f2ece0',
+          edgeLabelBackground: '#151923',
           clusterBkg: 'transparent',
-          clusterBorder: '#5c5a6b',
+          clusterBorder: '#2b3344',
         },
       });
     </script>

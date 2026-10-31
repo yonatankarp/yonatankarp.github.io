@@ -4,13 +4,20 @@
 {{ $education := sort (where (where .Site.RegularPages "Type" "education") "Params.cv" true) "Date" "desc" }}   {{- /* only entries with cv: true; short courses stay on the site */ -}}
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
 {{ $accent := hugo.Data.floor_accents }}
-{{ $pdf := "yonatan-karp-rudin-cv.pdf" | relURL }}
+{{- /* Each role links to its floor and lists its highlights; a slip names its file here instead of failing deep in the page (#58). */}}
+{{ range $experience }}
+  {{ $f := .Params.floor }}
+  {{ if ne (printf "%T" $f) "string" }}{{ errorf "%s: set `floor` to a quoted storey, such as floor: \"5\" (got %v)." .File.Path $f }}
+  {{ else if not (index $accent $f) }}{{ errorf "%s: floor %q has no colour in data/floor_accents.yaml, so the building has no storey for it (ORDER in web3d/src/pixel.js)." .File.Path $f }}{{ end }}
+  {{ if not (and (reflect.IsSlice .Params.highlights) .Params.highlights) }}{{ errorf "%s: set `highlights` to a list of what you did there." .File.Path }}{{ end }}
+{{ end }}
+{{- /* `npm run serve` never makes the PDF (`npm run build` does), so the dev server links the web CV instead. */}}
+{{ $pdf := cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}
 {{ $skills := site.GetPage "/skills" }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
 <head>
   {{ partial "head.html" . }}
-  <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
 </head>
 <body class="cv-page" style="--scene: url({{ "building/pixel/exterior.png" | relURL }})">
   <a class="skip-link" href="#cv">Skip to the CV</a>
@@ -20,7 +27,7 @@
       <a href="{{ .Site.Home.RelPermalink }}">Building</a>
       <a href="{{ "blog/" | relURL }}">Blog</a>
     </nav>
-    <a class="cv-download" href="{{ $pdf }}" download>
+    <a class="cv-download" href="{{ $pdf }}"{{ if not hugo.IsServer }} download{{ end }}>
       <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
       <span>Download PDF</span>
     </a>

@@ -6,41 +6,6 @@ hero:
   primaryAction:
     label: "Discuss Staff+ backend work"
     url: "#floor-R"   # the roof: contact
-  secondaryAction:
-    label: "View CV"
-    url: "/cv/"
-  proofSignals:
-    - label: "Role"
-      text: "Staff backend engineer"
-    - label: "Current scope"
-      text: "Payments and compliance platforms"
-    - label: "Evidence"
-      text: "Boundaries, contracts, tooling, and recovery paths"
-  multiplier:
-    title: "How I multiply a team"
-    steps:
-      - title: "Clarify the problem"
-        text: "Turn ambiguity into boundaries, contracts, examples, and failure modes."
-      - title: "Build the path"
-        text: "Ship the integration, migration plan, internal tool, or reference implementation."
-      - title: "Leave leverage"
-        text: "Leave specs, monitors, templates, and upstream fixes that outlive the handoff."
-    evidence:
-      - "Payments, risk, compliance"
-      - "Kotlin/JVM, Kafka, OpenAPI"
-      - "OSS, docs, templates"
-  notes:
-    - label: "Best fit"
-      text: "Teams facing complex backend work, unclear boundaries, or too much hidden context"
-    - label: "Value"
-      text: "Clearer decisions, reusable patterns, better explanations, and systems people can keep improving"
-    - label: "Tools"
-      text: "Kotlin, Java, Spring Boot, Kafka, OpenAPI, docs, examples, and small useful tooling"
-  links:
-    - label: "GitHub"
-      url: "https://github.com/yonatankarp"
-    - label: "LinkedIn"
-      url: "https://www.linkedin.com/in/yonatankarp/"
 
 about:
   kicker: "How I work"
@@ -55,12 +20,7 @@ about:
     - label: "Bias toward"
       text: "Shared understanding, small useful abstractions, boring reliability, and explanations that survive handoff"
 
-experience:
-  kicker: "Track record"
-  title: "Backend roles shaped by domain ownership and reusable engineering systems."
-
 education:
-  kicker: "Education"
   title: "Courses, degrees, and topics that keep showing up in the work."
 
 projects:
@@ -68,8 +28,6 @@ projects:
   title: "Public work that turns repeated problems into reusable material."
 
 proof:
-  kicker: "Proof"
-  title: "Examples of staff-level leverage beyond ticket delivery."
   items:
     - label: "Compliance platform"
       floor: "7"   # the building floor whose panel tells this story
@@ -91,7 +49,6 @@ proof:
       result: "Engineers start from a known path and can challenge decisions through specs, dashboards, examples, and code."
 
 outcomes:
-  kicker: "Multiplier effect"
   title: "What good teams get from working with me."
   items:
     - title: "Shared understanding"
@@ -104,7 +61,6 @@ outcomes:
       text: "The system is easier to change because more people understand how and why it works."
 
 fit:
-  kicker: "When to call"
   title: "I am useful when the team needs clarity as much as code."
   items:
     - "Important work with fuzzy ownership."
@@ -117,7 +73,6 @@ writing:
   title: "Writing is how I turn hard-won context into something other people can reuse."
 
 testimonials:
-  kicker: "Recommendations"
   title: "What people notice after working with me."
 
 contact:

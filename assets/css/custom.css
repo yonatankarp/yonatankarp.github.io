@@ -898,6 +898,7 @@ h4 a,
 
 .prose img {
   width: 100%;
+  height: auto;
   border-radius: var(--radius-lg);
 }
 

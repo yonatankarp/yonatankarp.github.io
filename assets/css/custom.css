@@ -1770,6 +1770,8 @@ h4 a,
 .px-page .search-input::placeholder { color: var(--px-soft); opacity: 1; }
 .px-page .search-input:hover { box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--amber); }
 .px-page .search-input:focus, .px-page .search-input:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
+.px-search__status { margin: 16px 0 0; font-size: 15px; color: var(--px-soft); }
+.px-search__status:empty { margin: 0; }
 .px-search__results { display: grid; gap: 12px; margin-top: 20px; }
 .px-search__results > p { margin: 0; color: var(--px-soft); }
 .px-page .search-result {
@@ -1784,6 +1786,7 @@ h4 a,
 .px-page .search-result p { max-width: none; margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--px-soft); }
 .px-page .search-result--empty { box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi); }
 .px-page .search-result--empty:hover { box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi); }
+.px-page .search-result__type { font-size: 13px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; color: var(--amber); }
 .px-page .search-result--empty span { font-size: 15px; font-weight: 500; color: var(--amber); }
 
 .px-skills__areas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }

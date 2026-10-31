@@ -3,9 +3,9 @@
   <head>
     {{ partial "head.html" . }}
   </head>
-  <body class="page-{{ .Kind }}{{ if .IsHome }} page-home{{ end }}{{ with .Type }} type-{{ . }}{{ end }}">
+  <body class="page-{{ .Kind }}{{ if .IsHome }} page-home{{ end }}{{ with .Type }} type-{{ . }}{{ end }}{{ if or (eq .Type "projects") (eq .Type "search") (eq .Type "skills") (eq .Kind "404") }} px-skin px-page{{ end }}">
     <a class="skip-link" href="#main-content">Skip to content</a>
-    {{ partial "site-header.html" . }}
+    {{ partial "pixel-bar.html" . }}
     <main id="main-content">
       {{ block "main" . }}{{ end }}
     </main>

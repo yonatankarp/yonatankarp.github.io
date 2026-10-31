@@ -25,7 +25,6 @@
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
 <head>
   {{ partial "head.html" . }}
-  <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   <style>html, body { margin: 0; background: #151923; }</style>
   {{- /* Guided from the first paint, not when the module runs (#39): the query is guide.js's roomy, and only where

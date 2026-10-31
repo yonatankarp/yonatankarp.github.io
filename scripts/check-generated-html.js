@@ -43,6 +43,59 @@ function countMatches(html, pattern) {
   return Array.from(html.matchAll(pattern)).length;
 }
 
+const barTabs = [["/projects/", "Projects"], ["/blog/", "Blog"], ["/cv/", "CV"]];
+
+function currentTab(route) {
+  if (route.startsWith("/projects/")) return "/projects/";
+  if (route.startsWith("/blog/") || route.startsWith("/tags/")) return "/blog/";
+  if (route === "/cv/") return "/cv/";
+  return null;
+}
+
+function checkTopBar(route, html) {
+  const bars = countMatches(html, /class=["']?px-bar["']?[\s>]/g);
+
+  if (bars !== 1) {
+    failures.push(`${route}: ${bars === 0 ? "missing px-bar" : `expected one px-bar, got ${bars}`}`);
+    return;
+  }
+
+  const tabs = html.match(/<nav\b[^>]*class=["']?px-bar__tabs["']?[^>]*>([\s\S]*?)<\/nav>/);
+  const links = tabs ? Array.from(tabs[1].matchAll(/<a\b[^>]*>/g)).map((match) => match[0]) : [];
+  const hrefs = links.map((tag) => collectAttribute(tag, "href"));
+
+  if (hrefs.join(" ") !== barTabs.map(([href]) => href).join(" ")) {
+    failures.push(`${route}: px-bar tabs are [${hrefs.join(", ")}], expected [${barTabs.map(([href]) => href).join(", ")}]`);
+  } else {
+    const expected = currentTab(route);
+    const current = links.map((tag, index) => (collectAttribute(tag, "aria-current") === "page" ? hrefs[index] : null)).filter(Boolean);
+
+    if (current.join(" ") !== (expected ?? "")) {
+      failures.push(`${route}: aria-current is on [${current.join(", ")}], expected ${expected ?? "no tab"}`);
+    }
+  }
+
+  const downloads = Array.from(html.matchAll(/<a\b[^>]*class=["']?px-download["']?(?=[\s>])[^>]*>/g)).map((match) => match[0]);
+
+  if (downloads.length !== 1 || collectAttribute(downloads[0], "href") !== "/yonatan-karp-rudin-cv.pdf") {
+    failures.push(`${route}: expected one px-download linking to /yonatan-karp-rudin-cv.pdf`);
+  }
+
+  if (/site-header|menu-toggle/.test(html)) {
+    failures.push(`${route}: still has the old site-header or menu-toggle`);
+  }
+
+  const jersey = countMatches(html, /<link\b[^>]*fonts\.googleapis\.com[^>]*Jersey\+15/g);
+
+  if (jersey !== 1) {
+    failures.push(`${route}: expected one Google Fonts link with Jersey+15, got ${jersey}`);
+  }
+
+  if (route === "/cv/" && /cv-head__art/.test(html)) {
+    failures.push(`${route}: still has cv-head__art`);
+  }
+}
+
 if (!fs.existsSync(publicDir)) {
   console.error("Generated HTML check requires a built public/ directory. Run npm run build first.");
   process.exit(1);
@@ -75,6 +128,10 @@ for (const filePath of htmlFiles) {
 
   if (placeholderPattern.test(html)) {
     failures.push(`${route}: contains placeholder text`);
+  }
+
+  if (!redirectPage && route !== "/" && !route.startsWith("/madeira-2026/")) {
+    checkTopBar(route, html);
   }
 
   if (/^\/blog(?:\/page\/\d+)?\/$/.test(route)) {

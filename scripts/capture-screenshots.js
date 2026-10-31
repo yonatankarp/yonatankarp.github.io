@@ -23,30 +23,48 @@ const routes = [
   {
     name: "home",
     path: "/",
-    requireMobileNav: false,
     requiredSelectors: [
       ["#pixel-canvas", 1, "building canvas"],
       ["section.building-stop", 12, "building floors"],
       [".building-window", 9, "street view windows"],
     ],
   },
-  { name: "projects", path: "/projects/" },
-  { name: "blog", path: "/blog/" },
+  {
+    name: "projects",
+    path: "/projects/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-download", 1, "CV download"],
+    ],
+  },
+  {
+    name: "blog",
+    path: "/blog/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-download", 1, "CV download"],
+    ],
+  },
   {
     name: "cv",
     path: "/cv/",
-    requireMobileNav: false,
     requiredSelectors: [
-      [".cv-bar__name", 1, "CV name plate"],
-      [".cv-download", 1, "PDF download"],
+      [".px-bar__name", 1, "name plate"],
+      [".px-download", 1, "CV download"],
       [".cv-role-item", 6, "CV roles"],
     ],
   },
-  { name: "post-self-compiling-second-brain", path: "/blog/self-compiling-second-brain/" },
+  {
+    name: "post-self-compiling-second-brain",
+    path: "/blog/self-compiling-second-brain/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-download", 1, "CV download"],
+    ],
+  },
   {
     name: "madeira-2026",
     path: "/madeira-2026/",
-    requireMobileNav: false,
     requiredSelectors: [
       [".route-guide .route-card", 2, "route guide cards"],
       [".day", 8, "daily itinerary sections"],
@@ -61,10 +79,9 @@ const assertions = [
   "Each page renders a visible h1 and at least 200 characters of body text.",
   "Mobile pages do not horizontally overflow the viewport.",
   "Visible images are loaded with non-zero natural dimensions.",
-  "Mobile header keeps Yonatan Karp-Rudin visible as the brand signal.",
-  "Mobile navigation button is visible, at least 36x36px, labeled, closed by default, and wired to #primary-nav.",
+  "Every page but the homepage renders the shared pixel top bar: name plate and CV download.",
   "Home page renders the building: its canvas, every floor and the street view's windows.",
-  "CV page renders its own pixel top bar (name plate and PDF download) and every role.",
+  "CV page renders every role.",
   "Blog index contains multiple article rows/cards.",
   "Standalone Madeira page contains route cards, daily itinerary sections, photos, and source panels.",
 ];
@@ -330,8 +347,6 @@ async function assertPageBasics(page, route, viewport) {
     const html = document.documentElement;
     const body = document.body;
     const h1 = document.querySelector("h1");
-    const brandEyebrow = document.querySelector(".brand__eyebrow");
-    const navToggle = document.querySelector(".menu-toggle");
     const visibleImages = Array.from(document.images).filter((image) => {
       const rect = image.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0;
@@ -344,24 +359,6 @@ async function assertPageBasics(page, route, viewport) {
       brokenVisibleImages: visibleImages
         .filter((image) => !image.complete || image.naturalWidth === 0 || image.naturalHeight === 0)
         .map((image) => image.currentSrc || image.src),
-      brandEyebrow: brandEyebrow
-        ? {
-            text: brandEyebrow.textContent.replace(/\s+/g, " ").trim(),
-            width: Math.round(brandEyebrow.getBoundingClientRect().width),
-            height: Math.round(brandEyebrow.getBoundingClientRect().height),
-            visible: getComputedStyle(brandEyebrow).display !== "none",
-          }
-        : null,
-      navToggle: navToggle
-        ? {
-            width: Math.round(navToggle.getBoundingClientRect().width),
-            height: Math.round(navToggle.getBoundingClientRect().height),
-            visible: getComputedStyle(navToggle).display !== "none",
-            ariaControls: navToggle.getAttribute("aria-controls") || "",
-            ariaExpanded: navToggle.getAttribute("aria-expanded") || "",
-            label: navToggle.getAttribute("aria-label") || "",
-          }
-        : null,
       blogCards: document.querySelectorAll(".post-row, .featured-article").length,
       requiredSelectorCounts: requiredSelectors.map(([selector, minimum, label]) => ({
         selector,
@@ -386,34 +383,6 @@ async function assertPageBasics(page, route, viewport) {
 
   if (checks.brokenVisibleImages.length > 0) {
     fail(`${route.path} (${viewport.name}) has broken visible images: ${checks.brokenVisibleImages.join(", ")}`);
-  }
-
-  if (viewport.name === "mobile" && route.requireMobileNav !== false) {
-    if (
-      !checks.brandEyebrow ||
-      checks.brandEyebrow.text !== "Yonatan Karp-Rudin" ||
-      !checks.brandEyebrow.visible ||
-      checks.brandEyebrow.width <= 0 ||
-      checks.brandEyebrow.height <= 0
-    ) {
-      fail(`${route.path} (${viewport.name}) does not expose Yonatan Karp-Rudin in the mobile header`);
-    }
-
-    if (!checks.navToggle) {
-      fail(`${route.path} (${viewport.name}) is missing the mobile menu button`);
-    }
-
-    if (!checks.navToggle.visible) {
-      fail(`${route.path} (${viewport.name}) has a hidden mobile menu button`);
-    }
-
-    if (checks.navToggle.width < 36 || checks.navToggle.height < 36) {
-      fail(`${route.path} (${viewport.name}) has an undersized mobile menu button`);
-    }
-
-    if (checks.navToggle.ariaControls !== "primary-nav" || !checks.navToggle.label || checks.navToggle.ariaExpanded !== "false") {
-      fail(`${route.path} (${viewport.name}) has incomplete mobile menu accessibility attributes`);
-    }
   }
 
   if (route.name === "blog" && checks.blogCards < 2) {

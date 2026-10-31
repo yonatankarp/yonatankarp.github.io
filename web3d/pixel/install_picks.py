@@ -28,6 +28,7 @@ HERE = Path(__file__).resolve().parent / "paintings"
 LOBBY_PX = (132, 154)
 FLOOR_PX = (464, 154)
 LIFT = (27, 0, 107, 142)   # the lift, its lamp and glow in the lobby pixels, down to the door sill (not the floor)
+FRAME = (37, 94)           # the lift's door frame in the lobby pixels, outer ink column to outer ink column (half-open)
 WHOLE = (0, 0, 1920, 640)
 PICKS = {  # name: (seed, crop (left, top, right, bottom), colours)
     "lobby": (100, (6, 6, 570, 634), 24),
@@ -1167,15 +1168,17 @@ def install(name):
             px = relight(px, LAMPS.get(name, ()), GONE.get(name, ()), keep=KEEP.get(name, ()), unlit=UNLIT.get(name, ()))
         if name in TOUCHUPS:
             px = TOUCHUPS[name](px)
-        side = np.asarray(px)[:, :LIFT[0]].copy()                          # the room's skirting beside the lift
         lift = (0, 0, LIFT[2], LOBBY_PX[1]) if name == "roof" else LIFT   # the roof's lift housing is all lobby, floor too
         px.paste(lobby.crop(lift), lift[:2])
-        if name != "roof":                                                 # under the lift, the skirting is the room's
-            a, ref = np.asarray(px).copy(), np.asarray(lobby)
-            for y in range(134, LIFT[3]):
-                run, was = a[y, LIFT[0]:LIFT[2]], mode(ref[y, :LIFT[0]])
-                if was != G.INK:                                           # its ink lines run through the door frame
-                    run[(run == was).all(-1)] = mode(side[y])
+        if name != "roof":                                                 # beside the door frame, the skirting under
+            a = np.asarray(px).copy()                                      # the lift is the room's own, row by row,
+            for y in range(134, LIFT[3]):                                  # on from each side (and over any of the
+                foot = int(y == 140)                                       # model's own lift left showing there)
+                left, right = a[y, LIFT[0] - 16:LIFT[0]], a[y, LIFT[2]:LIFT[2] + 16]
+                lc, rc = mode(left), mode(right)
+                x0 = LIFT[0] - next(i for i, col in enumerate(left[::-1]) if tuple(col) == lc)
+                x1 = LIFT[2] + next(i for i, col in enumerate(right) if tuple(col) == rc)
+                a[y, x0:FRAME[0] - foot], a[y, FRAME[1] - foot:x1] = lc, rc   # the frame flares at its foot
             px = Image.fromarray(a, "RGB")
     px.save(HERE / "picks" / f"{name}-px.png")
     print("installed", name, "seed", seed, crop.size, "->", px.size)

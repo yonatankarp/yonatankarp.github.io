@@ -3852,7 +3852,7 @@ h4 a,
   --cv-soft: #d3cabb;
   --amber: #ffb547;
   --px: 4px;
-  --pixel-font: 'Jersey 15', 'Pixelify Sans', system-ui, sans-serif;
+  --pixel-font: 'Jersey 15', system-ui, sans-serif;
   --stepped: polygon(
     var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
     100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%,

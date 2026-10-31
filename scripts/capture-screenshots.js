@@ -24,7 +24,12 @@ const routes = [
     name: "home",
     path: "/",
     pauseLabel: true,
+    ride: true,
     requiredSelectors: [
+      [".building-name[data-goto='E']", 1, "name plate"],
+      [".building-links nav a", 4, "top bar tabs"],
+      [".building-download", 1, "CV download"],
+      [".building-social a", 4, "social links"],
       ["#pixel-canvas", 1, "building canvas"],
       ["section.building-stop", 12, "building floors"],
       [".building-window", 9, "street view windows"],
@@ -35,6 +40,8 @@ const routes = [
     path: "/projects/",
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
       [".px-download", 1, "CV download"],
       [".px-grid", 2, "project grids"],
       [".px-card", 15, "project cards"],
@@ -46,6 +53,8 @@ const routes = [
     ctaFocus: true,
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
       [".px-prose", 1, "article body"],
     ],
   },
@@ -54,6 +63,8 @@ const routes = [
     path: "/blog/",
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
       [".px-download", 1, "CV download"],
     ],
   },
@@ -62,6 +73,8 @@ const routes = [
     path: "/cv/",
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
       [".px-download", 1, "CV download"],
       [".cv-role-item", 6, "CV roles"],
     ],
@@ -71,6 +84,8 @@ const routes = [
     path: "/blog/self-compiling-second-brain/",
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
       [".px-download", 1, "CV download"],
     ],
   },
@@ -79,6 +94,8 @@ const routes = [
     path: "/search/",
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
       [".px-sheet", 1, "sheet"],
       ["#site-search", 1, "search box"],
       ["#search-results", 1, "results list"],
@@ -89,6 +106,8 @@ const routes = [
     path: "/skills/",
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
       [".px-skills__area", 1, "practice areas"],
       [".px-chip", 1, "skill chips"],
     ],
@@ -110,8 +129,9 @@ const assertions = [
   "Each page renders a visible h1 and at least 200 characters of body text.",
   "Mobile pages do not horizontally overflow the viewport.",
   "Visible images are loaded with non-zero natural dimensions.",
-  "Every page but the homepage renders the shared pixel top bar: name plate and CV download.",
+  "Every page renders the shared top bar (layouts/partials/pixel-bar.html): name plate, four tabs, CV download and the social row.",
   "Home page renders the building: its canvas, every floor and the street view's windows.",
+  "Home page rides the lift: a floor button (the hero's CTA on mobile) rides to the roof or floor 8, the name plate rides back to the street.",
   "Home page pause button shows a Pause label that turns to Play on click on desktop, and stays at least 36x36px with the label hidden on mobile.",
   "CV page renders every role.",
   "Blog index contains multiple article rows/cards.",
@@ -442,6 +462,18 @@ async function assertCtaFocusRing(page, route, viewport) {
   await page.evaluate(() => document.activeElement.blur());
 }
 
+async function assertRide(page, route, viewport) {
+  const arrive = async (key, via) => {
+    await page.click(via);
+    await page
+      .waitForSelector(`section[data-floor="${key}"].is-here`, { timeout: 8000 })
+      .catch(() => fail(`${route.path} (${viewport.name}) clicking ${via} did not ride to floor ${key}`));
+  };
+
+  await arrive(viewport.name === "mobile" ? "R" : "8", viewport.name === "mobile" ? ".hero-cta" : ".building-floor-btn[data-goto='8']");
+  await arrive("E", ".building-name");
+}
+
 async function assertPauseLabel(page, route, viewport) {
   const read = () =>
     page.evaluate(() => {
@@ -588,6 +620,14 @@ async function main() {
         await page.locator("body").screenshot({
           path: path.join(screenshotDir, screenshotFileName(route, viewport)),
         });
+
+        if (route.ride) {   // after the capture, so the screenshot shows the street the page opened on
+          await assertRide(page, route, viewport);
+
+          if (pageErrors.length > 0) {
+            fail(`${route.path} (${viewport.name}) threw uncaught page errors while riding: ${pageErrors.join("; ")}`);
+          }
+        }
         await page.close();
       }
     }

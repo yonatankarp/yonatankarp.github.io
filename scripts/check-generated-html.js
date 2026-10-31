@@ -218,29 +218,37 @@ function checkPlainPixelPage(route, html) {
   }
 }
 
-const barTabs = [["/projects/", "Projects"], ["/blog/", "Blog"], ["/cv/", "CV"]];
+const barTabs = [["/projects/", "Projects"], ["/blog/", "Blog"], ["/cv/", "CV"], ["/search/", "Search"]];
+const socialHrefs = Array.from(
+  fs.readFileSync(path.join(rootDir, "data", "home", "en.yaml"), "utf8").match(/^  social:[^\n]*\n((?:    .*\n)+)/m)[1].matchAll(/url:\s*"([^"]+)"/g),
+).map((match) => match[1]);
 
 function currentTab(route) {
   if (route.startsWith("/projects/")) return "/projects/";
   if (route.startsWith("/blog/") || route.startsWith("/tags/")) return "/blog/";
   if (route === "/cv/") return "/cv/";
+  if (route === "/search/") return "/search/";
   return null;
 }
 
+// One bar per page from layouts/partials/pixel-bar.html: .px-bar, or on the homepage the building's .building-top.
 function checkTopBar(route, html) {
-  const bars = countMatches(html, /class=["']?px-bar["']?[\s>]/g);
+  const home = route === "/";
+  const barClass = home ? "building-top" : "px-bar";
+  const bars = Array.from(html.matchAll(new RegExp(`<header\\b[^>]*class=["']?${barClass}["']?[\\s>][\\s\\S]*?<\\/header>`, "g"))).map((match) => match[0]);
 
-  if (bars !== 1) {
-    failures.push(`${route}: ${bars === 0 ? "missing px-bar" : `expected one px-bar, got ${bars}`}`);
+  if (bars.length !== 1 || countMatches(html, /class=["']?(?:px-bar|building-top)["']?[\s>]/g) !== 1) {
+    failures.push(`${route}: expected one ${barClass} top bar`);
     return;
   }
 
-  const tabs = html.match(/<nav\b[^>]*class=["']?px-bar__tabs["']?[^>]*>([\s\S]*?)<\/nav>/);
+  const bar = bars[0];
+  const tabs = bar.match(/<nav\b[^>]*aria-label=["']?Site["']?[^>]*>([\s\S]*?)<\/nav>/);
   const links = tabs ? Array.from(tabs[1].matchAll(/<a\b[^>]*>/g)).map((match) => match[0]) : [];
   const hrefs = links.map((tag) => collectAttribute(tag, "href"));
 
   if (hrefs.join(" ") !== barTabs.map(([href]) => href).join(" ")) {
-    failures.push(`${route}: px-bar tabs are [${hrefs.join(", ")}], expected [${barTabs.map(([href]) => href).join(", ")}]`);
+    failures.push(`${route}: top bar tabs are [${hrefs.join(", ")}], expected [${barTabs.map(([href]) => href).join(", ")}]`);
   } else {
     const expected = currentTab(route);
     const current = links.map((tag, index) => (collectAttribute(tag, "aria-current") === "page" ? hrefs[index] : null)).filter(Boolean);
@@ -250,10 +258,33 @@ function checkTopBar(route, html) {
     }
   }
 
-  const downloads = Array.from(html.matchAll(/<a\b[^>]*class=["']?px-download["']?(?=[\s>])[^>]*>/g)).map((match) => match[0]);
+  const downloadClass = home ? "building-download" : "px-download";
+  const downloads = Array.from(bar.matchAll(new RegExp(`<a\\b[^>]*class=["']?${downloadClass}["']?(?=[\\s>])[^>]*>`, "g"))).map((match) => match[0]);
 
   if (downloads.length !== 1 || collectAttribute(downloads[0], "href") !== "/yonatan-karp-rudin-cv.pdf") {
-    failures.push(`${route}: expected one px-download linking to /yonatan-karp-rudin-cv.pdf`);
+    failures.push(`${route}: expected one ${downloadClass} linking to /yonatan-karp-rudin-cv.pdf`);
+  }
+
+  const social = bar.match(/<nav\b[^>]*aria-label=["']?Find me elsewhere["']?[^>]*>([\s\S]*?)<\/nav>/);
+  const socialLinks = social ? Array.from(social[1].matchAll(/<a\b[^>]*>/g)).map((match) => collectAttribute(match[0], "href")) : [];
+
+  if (socialHrefs.length === 0 || socialLinks.join(" ") !== socialHrefs.join(" ")) {
+    failures.push(`${route}: top bar social row is [${socialLinks.join(", ")}], expected [${socialHrefs.join(", ")}]`);
+  }
+
+  // The homepage's building scripts and styles read these (web3d/src/guide.js, pixel.js, pixel.css).
+  const homeHooks = [
+    /<a\b[^>]*class=["']?building-name["']?[^>]*data-goto=["']?E["']?[\s>]/,
+    /class=["']?building-links["']?[\s>]/,
+    /<button\b[^>]*class=["']?building-pause["']?[^>]*data-building-pause[\s>]/,
+    /data-building-pause-label[\s>]/,
+    /<nav\b[^>]*class=["']?building-social["']?[\s>]/,
+  ];
+
+  for (const hook of homeHooks) {
+    if (hook.test(bar) !== home) {
+      failures.push(`${route}: top bar ${home ? "is missing" : "should not have"} the homepage hook ${hook}`);
+    }
   }
 
   if (/site-header|menu-toggle/.test(html)) {
@@ -305,7 +336,7 @@ for (const filePath of htmlFiles) {
     failures.push(`${route}: contains placeholder text`);
   }
 
-  if (!redirectPage && route !== "/" && !route.startsWith("/madeira-2026/")) {
+  if (!redirectPage && !route.startsWith("/madeira-2026/")) {
     checkTopBar(route, html);
   }
 

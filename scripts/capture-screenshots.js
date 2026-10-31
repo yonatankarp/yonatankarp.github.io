@@ -43,6 +43,7 @@ const routes = [
   {
     name: "case-study",
     path: "/projects/ff4k/",
+    ctaFocus: true,
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-prose", 1, "article body"],
@@ -430,6 +431,17 @@ async function assertPageBasics(page, route, viewport) {
   }
 }
 
+async function assertCtaFocusRing(page, route, viewport) {
+  await page.focus("a.px-cta");
+  const shadow = await page.evaluate(() => getComputedStyle(document.activeElement).boxShadow);
+
+  if (!shadow || shadow === "none") {
+    fail(`${route.path} (${viewport.name}) focused a.px-cta has no visible focus ring (box-shadow ${shadow})`);
+  }
+
+  await page.evaluate(() => document.activeElement.blur());
+}
+
 async function assertPauseLabel(page, route, viewport) {
   const read = () =>
     page.evaluate(() => {
@@ -560,6 +572,10 @@ async function main() {
 
         if (route.pauseLabel) {
           await assertPauseLabel(page, route, viewport);
+        }
+
+        if (route.ctaFocus) {
+          await assertCtaFocusRing(page, route, viewport);
         }
 
         await page.locator("body").screenshot({

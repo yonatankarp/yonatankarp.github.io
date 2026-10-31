@@ -3334,7 +3334,7 @@ h4 a,
 .px-notfound .px-cta { margin-top: 0; padding: 10px 18px; font-size: 26px; text-decoration: none; }
 .px-notfound .px-cta:hover { background: #ffc46a; }
 .px-notfound .px-cta--out:hover { background: var(--panel-hi); }
-.px-notfound .px-cta:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--px-text), inset 0 0 0 6px var(--ink); }
+.px-cta:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--px-text), inset 0 0 0 6px var(--ink); }
 
 @media screen and (max-width: 760px) {
   .px-case h1, .px-search h1, .px-skills h1, .px-notfound h1 { font-size: 40px; }

@@ -140,8 +140,13 @@ weight = 9
 
 [imaging]
   resampleFilter = "Lanczos"
-  quality = 85
   anchor = "Smart"
+  [imaging.jpeg]
+    quality = 85
+  [imaging.webp]
+    quality = 85
+  [imaging.avif]
+    quality = 85
 
 [minify]
   disableCSS = false

@@ -256,9 +256,13 @@ html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card 
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* on the links' row, left of the pause */
   .pixel .building-social { right: calc(clamp(16px, 3vw, 36px) + 52px); }
 }
+/* Reduced motion has no pause: the icons close the gap it leaves. */
+@media (min-width: 761px) and (max-width: 919px) and (min-aspect-ratio: 1201/1000) { .pixel .building-top:has(.building-pause[hidden]) .building-social { right: calc(clamp(16px, 3vw, 36px) + 56px); } }
+@media (max-width: 760px), (max-aspect-ratio: 6/5) { .pixel .building-top:has(.building-pause[hidden]) .building-social { right: clamp(16px, 3vw, 36px); } }
 @media (max-width: 579px) {   /* phones: no room left on that row, so a row of its own under the pause; the street starts under it */
   .building.pixel { --street-top: 180px; }
   .pixel .building-social { top: 136px; right: clamp(16px, 3vw, 36px); }
+  .pixel .building-hint { top: max(calc(var(--card-top) - 72px), 216px); }   /* 500px tall: between the icons and the lift */
 }
 @media print { .pixel .building-social { display: none; } }
 /* Without JavaScript there is no lift to ride: the floors are a plain page, read top to bottom. */

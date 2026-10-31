@@ -3458,8 +3458,9 @@ h4 a,
 .px-prose a { color: var(--amber); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .px-prose a:hover { color: #ffd77a; }
 .px-prose a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
-.px-prose ul, .px-prose ol { padding-left: 1.4em; list-style: revert; }
+.px-prose ul, .px-prose ol { margin: 0 0 18px; padding-left: 1.4em; }
 .px-prose ul { list-style: square; }
+.px-prose ol { list-style: decimal; }
 .px-prose li::marker { color: var(--amber); }
 .px-prose li + li { margin-top: 6px; }
 .px-prose strong { color: var(--px-text); font-weight: 600; }

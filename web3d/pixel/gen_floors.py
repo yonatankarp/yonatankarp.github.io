@@ -181,8 +181,9 @@ def frame_base(key, room_name, accent):
                 cv.rect(x, 0, x + 1, H - 12, c("dark", 2) if x == HOUSING_X else INK)
                 continue
             if x >= W - 8:
-                for y in range(CEIL, H - 12):
-                    cv.put(x, y, painting.getpixel((x - LOBBY_X - 8, y - CEIL)))   # the dither repeats every 4
+                for y in range(CEIL, H - 12):                                # the dither repeats every 4; the railing
+                    sy = max(121, y - 2) if 121 <= y < 142 else y            # (rows 121-141) falls 2 rows in those 8
+                    cv.put(x, y, painting.getpixel((x - LOBBY_X - 8, sy - CEIL)))
     cv.rect(LOBBY_X + 58, CEIL + 41, LOBBY_X + 73, CEIL + 46, (26, 18, 8))          # the lift's floor display, bezel to bezel
     for y, row in enumerate(FONT[key]):
         for x, ch in enumerate(row):

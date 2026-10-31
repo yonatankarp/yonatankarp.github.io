@@ -12,6 +12,7 @@ floor-<key>.png, a horizontal strip of FRAMES animation frames. The browser (web
 lift doors itself, using DOOR below.
 """
 import sys
+from itertools import product
 from pathlib import Path
 
 from PIL import Image
@@ -161,6 +162,132 @@ def reddish(col):
     return r > 180 and g < 130
 
 
+# --- The edges: the room runs on past the strip (#64), and the lobby's planks run the room's way (#75) ----------------
+# On a wide screen pixel.js tiles a run of EDGE columns out from art x 8 to the screen's left edge and another from 472
+# to its right, over the facade posts; build() appends both after the frames. A run is a stack of row bands, each
+# repeating a block of the strip's own columns, (top, bottom, block x, block width[, rise]), so every row carries on
+# as the strip leaves it: plain wall and skirting from one bare column, dithered sky from a 4 px block (the dither's
+# period), the planks from a block one to three boards wide that starts where a board does. A band with a rise reads
+# its row from that many rows down and as many columns left: the "/" boards' top row, where the room's own is its
+# skirting's ink (or, rising by a negative number, bare wall from higher up, past a shadow).
+# The lobby's planks are the left run's: they fanned "\" and met the room's "/" in a V that read as a crack. So the
+# left run's floor bands are laid over the lobby up to x, and the right run's over the room from x, both stopping at
+# anything standing on the floor, and each meets the room's own boards where a board starts.
+EDGE = 240
+FLOOR = H - 24   # the floor's top row; the slab's ink is H - 12
+PLANKS = {c("amber", 1), c("amber", 2), c("amber", 3), c("coral", 2), INK}   # boards, seams, red flecks, inked seams
+WALL_L = [(0, FLOOR, 22, 1), (H - 12, H, 22, 1)]   # the lobby's wall and skirting: a column free of specks
+
+
+def wall(x):
+    return [(0, FLOOR, x, 4), (H - 12, H, x, 4)]
+
+
+def boards(x, w):
+    return [(FLOOR, H - 12, x, w)]
+
+
+EDGES = {  # key: (left bands, the lobby re-laid up to x), (right bands, the room re-laid from x)
+    "P": ((WALL_L + boards(149, 23), 149),   # outside the ramp the street: the ramp's wall and the beam run on level
+          ([(0, 36, W - 9, 1), (36, 110, 468, 4), (110, 142, W - 9, 1), (142, FLOOR, 468, 4), (H - 12, H, 468, 4)]
+           + boards(259, 35), 466)),
+    "L": ((WALL_L + boards(340, 23), 160), (wall(468) + boards(340, 23), 472)),
+    "1": ((WALL_L + boards(167, 11), 150), (WALL_L + boards(341, 12), 472)),
+    "2": ((WALL_L + boards(146, 23), 146), (WALL_L + boards(146, 23), 472)),
+    "3": ((WALL_L + boards(142, 11), 142), (wall(468) + boards(414, 11), 472)),
+    "4": ((WALL_L + [(FLOOR, FLOOR + 1, 150, 24, 1), (FLOOR + 1, H - 12, 150, 24)], 150),
+          (WALL_L + [(FLOOR, FLOOR + 1, 150, 24, 1), (FLOOR + 1, H - 12, 150, 24)], 472)),
+    "5": ((WALL_L + boards(203, 23), 150),
+          ([(0, 140, 22, 1), (140, 150, 22, 1, -10), (150, FLOOR, 468, 4), (H - 12, H, 468, 4)] + boards(203, 23),
+           472)),
+    "6": ((WALL_L + boards(145, 23), 145), (wall(468) + boards(430, 35), 466)),
+    "7": ((WALL_L + boards(130, 11), 130), (wall(468) + boards(130, 11), 472)),
+    "8": ((WALL_L + boards(363, 11), 155), (wall(468) + boards(352, 23), 468)),
+    "R": ((WALL_L + boards(363, 11), HOUSING_X),   # sky and roof; the railing levels off at the edge
+          ([(0, 121, 468, 4), (121, 138, W - 9, 1), (138, H, 468, 4)], 472)),
+}
+RECOLOUR = {"L": {c("amber", i): c("amber", i - 1) for i in (1, 2, 3)}}   # the lobby's boards from the reception's,
+# which its door lights a step brighter
+CLOSE = {  # key: things standing at the room's right edge end at x, outlined: the right run's rows y0..y1 are laid from
+    # x on, and column x - 1 is inked down to row ink where it is not that run's (a bookcase, desk, rack, leaf, plinth);
+    # from row slant on, a pixel further left each row: a shadow on the floor ends along the boards
+    "1": (464, 58, H - 12, 156),
+    "2": (469, 100, H - 12, 156, 164),
+    "4": (472, 59, H - 12, 161),
+    "5": (471, 100, FLOOR, 148),
+    "L": (466, 157, H - 12, 157),
+}
+
+
+def band_at(bands, y):
+    return next(b for b in bands if b[0] <= y < b[1])
+
+
+def edge_px(src, band, x, y, recolour=None):
+    """The colour a band puts at (x, y), read from src (x, y) -> colour."""
+    _, _, bx, bw, *rise = band
+    rise = rise[0] if rise else 0
+    col = src(bx + (x - rise - bx) % bw, y + rise)
+    return (recolour or {}).get(col, col)
+
+
+def standing(get, y, xs):
+    """The x in xs where something stands on the floor in row y: anything off the planks, 5 or more dark pixels in a
+    row (a shadow; a seam is at most 2 wide), and ink touching either (an outline)."""
+    off, run = set(), []
+    for x in [*xs, None]:
+        if x is not None and get(x, y) != c("amber", 2):
+            run.append(x)
+            continue
+        off |= {r for r in run if len(run) >= 5 or get(r, y) not in PLANKS}
+        run = []
+    return off | {x for x in xs if get(x, y) == INK and {x - 1, x + 1} & off}
+
+
+def relay(img, key):
+    """Lay the lobby's planks and the room's last boards before its right edge from the edge bands (see EDGES)."""
+    px, orig = img.load(), img.copy()
+    o = orig.load()
+    get = lambda x, y: o[x, y][:3]
+    src = get
+    if key == "R":   # the lift housing's floor is floor 8's lobby, so the ride up keeps the boards' direction
+        eight = Image.open(PICKS / f"{FLOORS['8'][0]}-px.png").convert("RGB")
+        src = lambda x, y: eight.getpixel((x - LOBBY_X, y - CEIL))
+    for x, y in product(range(LOBBY_X, 35), range(140, FLOOR)):   # the lobby's skirting up to the lift, free of the
+        px[x, y] = o[22, y]                                         # painting's specks where the left run meets it
+    (left, lx), (right, rx) = EDGES[key]
+    for bands, xs in ((left, range(LOBBY_X, lx)), (right, range(rx, W - 8))):
+        for y in range(FLOOR, H - 12):
+            band = band_at(bands, y)
+            off = standing(get, y, range(max(xs.start, 100), xs.stop)) if key != "R" else set()
+            for x in xs:
+                if x not in off:
+                    px[x, y] = (*edge_px(src, band, x, y, RECOLOUR.get(key) if bands is left else None), 255)
+    if key in CLOSE:
+        x0, y0, y1, ink, *slant = CLOSE[key]
+        for y in range(y0, y1):
+            band = band_at(right, y)
+            for x in range(x0 - max(0, y - slant[0] + 1) if slant else x0, W - 8):
+                px[x, y] = (*edge_px(get, band, x, y), 255)
+            if y < ink and get(x0 - 1, y) not in (edge_px(get, band, x0 - 1, y), INK):
+                px[x0 - 1, y] = (*INK, 255)
+
+
+def margins(img, key):
+    """The two runs build() appends: EDGE columns left of art x 8, then EDGE columns from 472."""
+    o = img.load()
+    get = lambda x, y: o[x, y][:3]
+    out = Image.new("RGBA", (2 * EDGE, H))
+    q = out.load()
+    (left, _), (right, _) = EDGES[key]
+    left = [(b[0], b[1], LOBBY_X, b[3]) if b[0] >= FLOOR else b for b in left]   # read the lobby's boards, as laid
+    for i in range(EDGE):
+        for y in range(H):
+            q[i, y] = (*edge_px(get, band_at(left, y), LOBBY_X - EDGE + i, y), 255)
+            q[EDGE + i, y] = (*edge_px(get, band_at(right, y), W - 8 + i, y), 255)
+    return out
+
+
 def frame_base(key, room_name, accent):
     """The static floor: slabs with the floor's colour band, facade edges, the lobby (with its number), the room."""
     img = Image.new("RGBA", (W, H), (*INK, 255))
@@ -184,6 +311,7 @@ def frame_base(key, room_name, accent):
                 for y in range(CEIL, H - 12):                                # the dither repeats every 4; the railing
                     sy = max(121, y - 2) if 121 <= y < 142 else y            # (rows 121-141) falls 2 rows in those 8
                     cv.put(x, y, painting.getpixel((x - LOBBY_X - 8, sy - CEIL)))
+    relay(img, key)
     cv.rect(LOBBY_X + 58, CEIL + 41, LOBBY_X + 73, CEIL + 46, (26, 18, 8))          # the lift's floor display, bezel to bezel
     for y, row in enumerate(FONT[key]):
         for x, ch in enumerate(row):
@@ -548,13 +676,19 @@ FLOORS = {  # key: (painting, accent ramp, animation), bottom to top
 def build(key, out):
     name, accent, animate = FLOORS[key]
     base = frame_base(key, name, accent)
-    strip = Image.new("RGBA", (W * FRAMES, H))
+    strip = Image.new("RGBA", (W * FRAMES + 2 * EDGE, H))
     for f in range(FRAMES):
         img = base.copy()
         room = Layer(img.crop((ROOM_X, CEIL, W - 8, H - 12)))
         animate(room, f)
         img.paste(room.img, (ROOM_X, CEIL))
         strip.paste(img, (f * W, 0))
+    edges = margins(strip.crop((0, 0, W, H)), key)    # from the rest frame: the runs carry on from every frame alike,
+    (left, _), (right, _) = EDGES[key]                 # as nothing they read from, or meet, moves
+    for y0, y1, bx, bw, *_ in left + right + [(0, H, LOBBY_X, 1), (0, H, W - 9, 1)]:
+        for f, x, y in product(range(1, FRAMES), range(bx, bx + bw), range(y0, y1)):
+            assert strip.getpixel((x, y)) == strip.getpixel((f * W + x, y)), (key, f, x, y)
+    strip.paste(edges, (W * FRAMES, 0))
     strip.save(out / f"floor-{key}.png")
     print("drew floor", key)
 

@@ -154,9 +154,17 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       if (!img) continue;
       ctx.globalAlpha = clamp01((now - img.since) / FADE_IN_MS);
       ctx.drawImage(img, f * FW, 0, FW, FH, x0, y, FW * s, FH * s);
-      // The slabs and walls run on to the screen's edges: the outermost art columns, stretched.
-      if (x0 > 0) ctx.drawImage(img, f * FW, 0, 1, FH, 0, y, x0, FH * s);
-      if (x0 + FW * s < w) ctx.drawImage(img, f * FW + FW - 1, 0, 1, FH, x0 + FW * s, y, w - x0 - FW * s, FH * s);
+      // The room runs on to the screen's edges over the facade posts: after its frames the strip holds a run of t
+      // columns that carries on left of art x 8 and another right of 472 (gen_floors.EDGES), tiled outwards.
+      // shortcut: past t art px (a screen over ~4.5:1) a run repeats with a step; give it longer runs if that matters.
+      const t = (img.width - FRAMES * FW) / 2;
+      if (wide && t > 0) {
+        for (let gx = x0 + (8 - t) * s; gx + t * s > 0; gx -= t * s) ctx.drawImage(img, FRAMES * FW, 0, t, FH, gx, y, t * s, FH * s);
+        for (let gx = x0 + 472 * s; gx < w; gx += t * s) ctx.drawImage(img, FRAMES * FW + t, 0, t, FH, gx, y, t * s, FH * s);
+      } else {   // a strip cached from before the runs: its outermost columns, stretched
+        if (x0 > 0) ctx.drawImage(img, f * FW, 0, 1, FH, 0, y, x0, FH * s);
+        if (x0 + FW * s < w) ctx.drawImage(img, f * FW + FW - 1, 0, 1, FH, x0 + FW * s, y, w - x0 - FW * s, FH * s);
+      }
       drawDoors(ctx, img, f, x0, y, s, open.get(key));
       ctx.globalAlpha = 1;
     }

@@ -21,6 +21,7 @@ practice_areas:
     tools: ["Kotlin", "Architecture notes", "Postmortem-style thinking"]
 working_set:
   - "Kotlin"
+  - "Java"
   - "Spring Boot"
   - "OpenAPI"
   - "Kafka"
@@ -41,6 +42,10 @@ familiar_with:
   - "Cassandra / Keyspaces"
   - "Mockito"
   - "Jenkins"
+  - "MCP"
+  - "Claude Code"
+  - "Ollama"
+  - "Whisper"
 ---
 
 A practical view of where Yonatan tends to have the most leverage: architecture, backend systems, distributed systems, platform work, and clear technical writing.

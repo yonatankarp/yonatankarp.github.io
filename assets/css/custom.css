@@ -1742,6 +1742,11 @@ h4 a,
 }
 .px-prose .code-copy:hover { background: #ffd77a; }
 .px-prose .code-copy:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--px-text), inset 0 0 0 6px var(--ink); }
+/* Touch screens have no hover to reveal Copy: show it in full, on its own row above the first code line. */
+@media (hover: none) {
+  .code-copy { opacity: 1; }
+  :is(.prose, .px-prose) pre:not(.mermaid) { padding-top: 48px; }   /* every pre site.js gives a button; set before it runs, so nothing shifts */
+}
 
 /* The footer on pixel pages: a panel as wide as the sheet, with square link buttons. Other pages keep the plain footer. */
 .px-page .site-footer { padding-bottom: 48px; }

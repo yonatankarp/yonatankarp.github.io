@@ -5,6 +5,7 @@
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
 {{ $accent := hugo.Data.floor_accents }}
 {{ $pdf := "yonatan-karp-rudin-cv.pdf" | relURL }}
+{{ $skills := site.GetPage "/skills" }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
 <head>
@@ -30,7 +31,7 @@
       <div class="cv-head__who">
         <p class="cv-kicker">Curriculum vitae</p>
         <h1>Yonatan Karp-Rudin</h1>
-        <p class="cv-role">Staff Software Engineer, Payments · Tel Aviv, Israel (relocating from Berlin, Jan 2027)</p>
+        <p class="cv-role">Staff Software Engineer · Tel Aviv, Israel (relocating from Berlin, Jan 2027)</p>
         <ul class="cv-contact">
           <li><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li>
           <li><a href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
@@ -55,6 +56,14 @@
         <li>Turned operational risk into recovery paths, monitoring, migration plans, and upstream fixes.</li>
       </ul>
     </section>
+
+    {{ with $skills }}
+    <section class="cv-section" aria-labelledby="cv-skills">   {{- /* plain text on purpose: recruiters and ATS filters search the PDF for these */ -}}
+      <h2 id="cv-skills">Skills</h2>
+      <p><strong>Daily:</strong> {{ delimit .Params.working_set ", " }}</p>
+      <p><strong>Also:</strong> {{ delimit .Params.familiar_with ", " }}</p>
+    </section>
+    {{ end }}
 
     <section class="cv-section" aria-labelledby="cv-experience">
       <h2 id="cv-experience">Experience</h2>

@@ -35,6 +35,8 @@ const routes = [
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-download", 1, "CV download"],
+      [".px-grid", 2, "project grids"],
+      [".px-card", 15, "project cards"],
     ],
   },
   {

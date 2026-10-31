@@ -68,8 +68,8 @@ const failures = [];
 const requiredHtmlMetadata = [
   { label: "canonical", pattern: /\brel=["']?canonical\b/i },
   { label: "og:url", pattern: /\bproperty=["']?og:url\b/i },
-  { label: "og:image", pattern: /\bproperty=["']?og:image\b/i },
-  { label: "twitter:image", pattern: /\bname=["']?twitter:image\b/i },
+  { label: "og:image", pattern: /\bproperty=["']?og:image(?![:\w])/i },
+  { label: "twitter:image", pattern: /\bname=["']?twitter:image(?![:\w])/i },
 ];
 
 for (const relativePath of routeFiles) {

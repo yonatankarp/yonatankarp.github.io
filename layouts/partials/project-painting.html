@@ -5,6 +5,7 @@
 {{- with resources.Get (printf "images/projects/pixel/%s.png" $p.File.BaseFileName) -}}
   {{- $title := $p.Title | replaceRE `\s*\(contributor\)$` "" -}}
   {{- $width := mul .Width (div $.max .Width) -}}
-  {{- $img := cond (gt $width 0) (.Resize (printf "%dx NearestNeighbor" $width)) . -}}
+  {{- $img := . -}}
+  {{- if gt $width 0 }}{{ $img = .Resize (printf "%dx NearestNeighbor" $width) }}{{ end -}}
   <img class="px-painting" src="{{ $img.RelPermalink }}" width="{{ $img.Width }}" height="{{ $img.Height }}" alt="{{ $title }} painting" loading="lazy" decoding="async">
 {{- end -}}

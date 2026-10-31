@@ -21,6 +21,7 @@ practice_areas:
     tools: ["Kotlin", "Architecture notes", "Postmortem-style thinking"]
 working_set:
   - "Kotlin"
+  - "Java"
   - "Spring Boot"
   - "OpenAPI"
   - "Kafka"

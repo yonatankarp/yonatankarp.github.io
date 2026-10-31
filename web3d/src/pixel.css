@@ -90,13 +90,14 @@
 .pixel .building-download:active { transform: translateY(4px); }
 .pixel .building-download svg { image-rendering: pixelated; shape-rendering: crispEdges; }
 
-/* Elevator: a steel plate in the top bar (it never covers the current room), the display first, floors upwards. */
+/* Elevator: a steel plate in the top bar (it never covers the current room), the display first, then the floors
+   top to bottom, in DOM order so Tab follows what the eye sees. */
 .pixel .elevator {
   top: 20px;
   right: auto;
   left: 50%;
   transform: translateX(-50%);
-  flex-direction: row-reverse;
+  flex-direction: row;
   width: auto;
   border: 0;
   border-radius: 0;
@@ -105,7 +106,7 @@
   padding: 10px 14px;
   gap: 8px;
 }
-.pixel .elevator-display { order: 1; margin: 0 4px 0 0; }
+.pixel .elevator-display { margin: 0 4px 0 0; }
 .pixel .elevator-display {
   border-radius: 0;
   width: 48px; height: 40px;
@@ -292,10 +293,6 @@ html:not(.building--guided) .pixel .floor-card { opacity: 1; transform: none; } 
 html:not(.building--guided) .pixel .step-in, html:not(.building--guided) .pixel .panel-back { display: none; }
 html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* clear of the fixed name and links */
 
-/* nav-a11y agent (#26 #28) */
-/* The lift's buttons are in reading order in the DOM (display, then P up to R), so they lay out left to right. */
-.pixel .elevator { flex-direction: row; }
-.pixel .elevator-display { order: 0; }
 /* The homepage loads no site CSS: its own screen-reader-only text (the live region) and skip link. */
 .pixel .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 /* Skip link: a pixel tab over the name, shown only while it has focus. */

@@ -11,8 +11,7 @@
 {{ $projects := (.Site.GetPage "/projects").RegularPages.ByWeight }}{{/* most are listed locally only, so not in .Site.RegularPages */}}
 {{ $skills := .Site.GetPage "/skills" }}
 {{ $posts := sort (where .Site.RegularPages "Type" "blog") "Date" "desc" }}
-{{/* The colour of each storey's accent band, as painted (web3d/pixel/gen_floors.py FLOORS). */}}
-{{ $accent := dict "E" "#F2B13B" "R" "#F2B13B" "8" "#C94F33" "7" "#FF6B5A" "6" "#9B7BFF" "5" "#3FC6CF" "4" "#F2B13B" "3" "#4F86C0" "2" "#62B08E" "1" "#62B08E" "L" "#C39A5C" "P" "#9499A0" }}
+{{ $accent := hugo.Data.floor_accents }}{{/* each storey's accent band, shared with the CV */}}
 {{ $js := resources.Get "building/building.js" }}
 {{ $css := resources.Get "building/building.css" }}
 {{ if and $js $css }}
@@ -63,14 +62,14 @@
 
   <nav class="elevator" aria-label="Floors">
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor>E</span></div>
-    <button class="building-floor-btn" type="button" data-goto="P" aria-label="Parking, projects" title="Parking, projects">P</button>
-    <button class="building-floor-btn" type="button" data-goto="L" aria-label="Lobby, recommendations and skills" title="Lobby, recommendations and skills">L</button>
-    {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</button>{{ end }}
-    {{ range sort $experience "Params.floor" "asc" }}
+    <button class="building-floor-btn" type="button" data-goto="R" aria-label="Roof, contact" title="Roof, contact">R</button>
+    <button class="building-floor-btn" type="button" data-goto="8" aria-label="Floor 8, writing" title="Floor 8, writing">8</button>
+    {{ range $experience }}
     <button class="building-floor-btn" type="button" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}" title="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</button>
     {{ end }}
-    <button class="building-floor-btn" type="button" data-goto="8" aria-label="Floor 8, writing" title="Floor 8, writing">8</button>
-    <button class="building-floor-btn" type="button" data-goto="R" aria-label="Roof, contact" title="Roof, contact">R</button>
+    {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</button>{{ end }}
+    <button class="building-floor-btn" type="button" data-goto="L" aria-label="Lobby, recommendations and skills" title="Lobby, recommendations and skills">L</button>
+    <button class="building-floor-btn" type="button" data-goto="P" aria-label="Parking, projects" title="Parking, projects">P</button>
   </nav>
 
   <p class="building-hint" style="opacity:0">Scroll, swipe or use the arrow keys to ride the elevator</p>

@@ -83,9 +83,10 @@ contact:
     - "Staff+ backend roles in central Israel, on-site or hybrid."
     - "Payments, risk, compliance, or platform architecture."
     - "OSS, technical writing, and teaching."
+  location: &location "Berlin, Germany"   # where Yonatan lives now: the roof, CV, footer, share alt and JSON-LD read it; hugo.toml's descriptions repeat it by hand
   facts:
     - label: "Based in"
-      text: "Tel Aviv, Israel"
+      text: *location
     - label: "Best for"
       text: "Teams turning messy backend domains into owned platforms"
   email:

@@ -26,9 +26,9 @@
       <div class="cv-head__who">
         <p class="px-kicker">Curriculum vitae</p>
         <h1>Yonatan Karp-Rudin</h1>
-        <p class="cv-role">Staff Software Engineer · Berlin, Germany (relocating to Tel Aviv, Jan 2027)</p>
+        <p class="cv-role">Staff Software Engineer · {{ hugo.Data.home.en.contact.location }} (relocating to Tel Aviv, Jan 2027)</p>
         <ul class="cv-contact">
-          <li><a class="px-chip" href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li>
+          {{ with hugo.Data.home.en.contact.email.address }}<li><a class="px-chip" href="mailto:{{ . }}">{{ . }}</a></li>{{ end }}
           <li><a class="px-chip" href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
           <li><a class="px-chip" href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a></li>
           <li><a class="px-chip" href="https://yonatankarp.com">yonatankarp.com</a></li>

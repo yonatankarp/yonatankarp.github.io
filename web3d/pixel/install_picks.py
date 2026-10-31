@@ -897,6 +897,9 @@ def glow(px):
                 a[y, x] = G.c("violet", 5) if x % 2 == 0 and y % 2 == 0 else WALL
             elif col in (G.c("sky", 5), G.c("sky", 4), G.c("wall", 3), G.c("wall", 4)):   # an eighth further out
                 a[y, x] = G.c("violet", 5) if (x + y // 2 * 2) % 4 == 0 and y % 2 == 0 else WALL
+    floor = a[126:, 197:366]                                               # the floor round the pool came out in the
+    for was, now in {**SHADE, G.c("red", 2): (106, 63, 12)}.items():       # skirting's maroons: the planks' shadow
+        floor[(floor == was).all(-1)] = now                                # instead, so the pool's edge dithers into it
     pool = {G.c("magenta", 1), G.c("magenta", 2)}                         # its dark floor, not the lit cables
     was = a.copy()
     for y in range(129, a.shape[0]):                                       # the pool's edge, two pixels deep

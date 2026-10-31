@@ -197,6 +197,7 @@
   .pixel .elevator { top: 78px; right: clamp(16px, 3vw, 36px); padding: 4px 10px; }   /* 52px tall: between the name and the card */
   /* Three links and the pause no longer fit beside it: pause goes up beside the download button, as tall. */
   html.building--guided .pixel .building-pause { position: fixed; top: 21px; right: calc(clamp(16px, 3vw, 36px) + 56px); width: 44px; height: 52px; justify-content: center; }
+  html.building--guided .pixel .building-pause span { display: none; }
 }
 html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card says it; the hint would cover the ground floor */
 
@@ -215,11 +216,13 @@ html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card 
 .pixel .building-pause:hover { background: var(--panel-hi); }
 .pixel .building-pause:focus-visible { outline: 4px solid var(--text); outline-offset: 4px; }
 .pixel .building-pause svg { shape-rendering: crispEdges; }
+.pixel .building-pause span { margin-left: 8px; font-size: 15px; font-weight: 500; }
 .pixel .building-pause[data-paused="true"] .i-pause, .pixel .building-pause:not([data-paused="true"]) .i-play { display: none; }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
   .pixel .building-links { top: 76px; } .pixel .building-links a { padding: 4px 10px; }
   /* Pause goes under the download button, a full-size target clear of the street's windows. */
   html.building--guided .pixel .building-pause { position: fixed; top: 80px; right: clamp(16px, 3vw, 36px); width: 44px; height: 44px; justify-content: center; }
+  html.building--guided .pixel .building-pause span { display: none; }
 }
 /* Without JavaScript there is no lift to ride: the floors are a plain page, read top to bottom. */
 html:not(.building--guided) .pixel .elevator, html:not(.building--guided) .pixel .exterior-windows { display: none; }

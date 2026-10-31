@@ -34,4 +34,16 @@ const pageCount = Number(match[1]);
 if (pageCount > maxPages) {
   fail(`CV print check failed: expected at most ${maxPages} A4 pages, got ${pageCount}.`);
 }
-console.log(`CV print check passed: ${pageCount} A4 pages (limit ${maxPages}).`);
+
+// The PDF is printed from a local server, so a relative link keeps that origin and is dead for anyone reading it (#113).
+let urls;
+try {
+  urls = execFileSync("pdfinfo", ["-url", pdfPath], { encoding: "utf8" });
+} catch (error) {
+  fail("CV print check could not list the generated PDF's links.", [error.message]);
+}
+const localLinks = urls.split("\n").filter((line) => /:\/\/(?:127\.|localhost\b|\[::1\])/i.test(line));
+if (localLinks.length > 0) {
+  fail("CV print check failed: the PDF links to the local server it was printed from. Use absURL in layouts/_default/cv.html.", localLinks.map((line) => line.trim()));
+}
+console.log(`CV print check passed: ${pageCount} A4 pages (limit ${maxPages}), no local links.`);

@@ -40,7 +40,7 @@ GLOW_WIN = G.GLOW["amber"]
 
 # Where each window looks into its floor's strip (x, y of the slice's top-left, in strip pixels): the room's
 # signature props. The window's size decides the slice's size.
-LOOK = {"1": (322, 76), "2": (316, 82), "3": (266, 56), "4": (314, 72), "5": (352, 60), "6": (230, 90),
+LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (314, 72), "5": (352, 60), "6": (230, 90),
         "7": (210, 102), "8": (250, 92), "R": (0, 0), "L": (304, 98), "P": (166, 78)}
 NEIGHBOURS = ((0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
               (314, 348, 196), (348, 398, 160), (398, 440, 206), (440, 480, 172))   # x0, x1, roof

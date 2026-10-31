@@ -1,4 +1,4 @@
-/* Career building: fixed 3D stage behind scrolling floor cards, elevator panel on the right. */
+/* Career building: scrolling floor cards over the pixel scene, elevator panel on the right. */
 .building {
   --ink: #f4f1ea;
   --ink-soft: #c9c4bb;
@@ -7,17 +7,7 @@
   --amber: #ffb547;
   --steel: #1c1f26;
   color: var(--ink);
-  font-family: 'Archivo', system-ui, sans-serif;
 }
-
-.building-stage {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  background: linear-gradient(#4a5574, #a9a6bb 55%, #e6b9a6 85%, #f0c7a0);
-}
-#building-canvas { width: 100%; height: 100%; display: block; }
-.no-webgl #building-canvas { display: none; }
 
 .building-top {
   position: fixed;
@@ -152,7 +142,6 @@ html:not(.building--guided) .building-hint { display: none; }
   border: 1.5px solid #59606d;
   background: radial-gradient(circle at 35% 30%, #3a404b, #22262e);
   color: #cfd3da;
-  font: 700 13px/1 'Archivo', system-ui, sans-serif;
   cursor: pointer;
 }
 .building-floor-btn:hover { border-color: #9aa3ae; }

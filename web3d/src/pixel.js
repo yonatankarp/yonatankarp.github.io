@@ -30,13 +30,18 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const open = new Map();           // key -> 0..1, lift doors
   let loads = 0, fading = 0;        // bumped by every image or file that arrives: the picture changes (and fades in)
   const loaded = () => { loads++; fading = performance.now() + FADE_IN_MS; wake(); };
-  const street = streetView(base, windowsBox, stops, loaded);   // first: the street is the first screen
-  for (const key of keys.filter((k) => k !== 'E')) {   // the street is exterior.png, not a strip
+  const started = new Set();
+  const load = (key) => {
+    if (key === 'E' || started.has(key)) return;   // the street is exterior.png, not a strip
+    started.add(key);
     const img = new Image();
     img.onload = () => { img.since = performance.now(); strips.set(key, img); loaded(); };
     img.onerror = () => { strips.set(key, null); loaded(); };
     img.src = `${base}pixel/floor-${key}.png`;
-  }
+  };
+  const loadAll = () => keys.forEach(load);
+  // The street is the first screen: the other floors wait until it has arrived (or failed), or the lift moves (#130).
+  const street = streetView(base, windowsBox, stops, loaded, loadAll);
 
   // ---- the ride ----
   // v: the speed carried over from a ride retargeted mid-way (floors per unit of u), so the cab never stops dead.
@@ -44,6 +49,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const eAt = keys.indexOf('E');                               // the street view's stop
   const fromHash = keys.indexOf(hashKey());
   ride.from = ride.to = Math.max(0, fromHash);
+  load(keys[ride.from]);   // a floor's own address shows that floor first, so it loads alongside the street
   if (fromHash >= 0 && location.hash !== `#floor-${keys[fromHash]}`) {   // a legacy or lowercased anchor: show the floor's own
     history.replaceState(null, '', `#floor-${keys[fromHash]}`);
     requestAnimationFrame(() => document.documentElement.classList.contains('building--guided') || stops[fromHash].scrollIntoView());
@@ -53,6 +59,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const pos = (u) => ride.from + (ride.to - ride.from) * (ride.v ? u * u * (3 - 2 * u) : easeInOut(u)) + ride.v * u * (1 - u) ** 2;
   const emit = (name, detail) => document.dispatchEvent(new CustomEvent(name, { detail }));
   function go(index) {
+    loadAll();
     const now = performance.now(), u = rideU(now);
     const to = Math.max(0, Math.min(keys.length - 1, index));
     if (to === ride.to || (ride.fade && u < 1)) return false;   // already on its way there; a dissolve runs to its end
@@ -199,10 +206,11 @@ function drawDoors(ctx, img, f, x0, y0, s, open) {
 
 // The street view: the whole building at dusk (web3d/pixel/gen_exterior.py), its windows live crops of the rooms.
 // Its windows are buttons laid over the canvas; the street left and right of the picture repeats its neighbours.
-function streetView(base, box, stops, loaded) {
+function streetView(base, box, stops, loaded, then) {
   const view = { img: null, since: 0, size: [480, 336], windows: {}, top: SKY, bottom: '#2a2226', at: null };
   const img = new Image();
   img.onload = () => {
+    then();
     const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
     c.canvas.width = 1; c.canvas.height = view.size[1];
     c.drawImage(img, 0, 0);
@@ -210,6 +218,7 @@ function streetView(base, box, stops, loaded) {
     Object.assign(view, { img, since: performance.now(), top: px(0), bottom: px(view.size[1] - 1) });
     loaded();
   };
+  img.onerror = then;
   img.src = `${base}pixel/exterior.png`;
   const buttons = [];
   fetch(`${base}pixel/exterior.json`).then((r) => r.json()).then((j) => {

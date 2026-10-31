@@ -1023,6 +1023,13 @@ KEEP["writing"] = [(236, 0, 392, 34), (224, 38, 321, 80), (296, 78, 331, 100), (
 # clippings, the typewriter's sheet, the two bookcases
 
 
+SHELVES = [  # the bookcases' top shelves: inside (half-open), the books standing (x, top) and lying (x0, y0, x1) on them
+    ((152, 26, 189, 42), [(153, 28), (156, 30), (159, 27), (162, 29), (165, 28), (168, 31)], [(173, 35, 186), (174, 38, 188)]),
+    ((337, 37, 389, 54), [(352 + 3 * i, top) for i, top in enumerate((39, 41, 38, 40, 42, 39, 38, 41, 40, 39, 42, 40))],
+     [(338, 44, 348), (339, 47, 350), (338, 50, 349)]),
+]
+
+
 def paper(a, y, bundles, skip=(0, 0, 0, 0)):
     """A stack of tied bundles of paper standing on row y, listed from the bottom as (x0, x1, rows), each sharing its
     outline row with the one below: an ink outline, a page line every second row, the right side in shadow, the
@@ -1073,6 +1080,14 @@ def newsroom(px):
         for x in range(410 - r * 2 // 3, 421 + r // 3):
             if (a[y, x] == wall).all() and (r < 5 or (r < 9 and (x + y) % 2 == 0) or (x % 2 == 0 and y % 2 == 0)):
                 a[y, x] = CONE
+    for (x0, y0, x1, y1), standing, lying in SHELVES:                    # the top shelves' books, bleached by the
+        a[y0:y1, x0:x1] = (82, 27, 24)                                     # painted lamp light, drawn again as floor
+        for i, (x, top) in enumerate(standing):                           # 1's are: spines in the shelves' own colours
+            a[top:y1, x - 1:x + 3] = G.INK
+            a[top + 1:y1, x:x + 2] = G.c(("red", "plant", "blue", "amber", "steel", "wood")[i % 6], 3)
+        for i, (bx0, by0, bx1) in enumerate(lying):
+            a[by0:by0 + 4, bx0:bx1 + 1] = G.INK
+            a[by0 + 1:by0 + 3, bx0 + 1:bx1] = G.c(("blue", "red", "amber")[i % 3], 4)
     a[133:135, 442:464] = WALL                                             # the skirting behind the press
     a[135:143, 442:464] = a[135:143, 460:461]
     a[134:142, 122:140] = a[134:142, 112:113]                              # the seam's skirting

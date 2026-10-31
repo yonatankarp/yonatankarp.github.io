@@ -3,12 +3,14 @@
 # ///
 """Turn a room painting into pixel art on the site's palette (no model). Adapted from Before Dark's pixelate.py.
 
-uv run web3d/pixel/pixelate.py SRC.png OUT.png [--size 376x154] [--colours 32]
+uv run web3d/pixel/pixelate.py SRC.png OUT.png [--size 376x154] [--colours 32] [--line-art]
 
 Pipeline: median (kill painterly grain) -> BOX downscale -> pick this picture's colour budget (k-means in Lab,
 snapped to the palette) -> nearest colour in Lab -> the painting's dark ink lines forced to the outline colour ->
 lone-pixel cleanup. The palette is gen_floors.R (the rooms' ramps) plus its outline, so painted rooms and
 code-drawn props share colours, and gen_floors' lighting pass can shift painted pixels along their ramps.
+
+--line-art swaps the median for a 5px min filter, so a diagram's thin lines thicken instead of vanishing in the box.
 """
 import argparse
 import sys
@@ -83,9 +85,9 @@ def cleanup(idx, pal):
     return out
 
 
-def pixelate(src, size, colours=32, keep=()):
+def pixelate(src, size, colours=32, keep=(), line_art=False):
     src = src.convert("RGB")
-    small = src.filter(ImageFilter.MedianFilter(5)).resize(size, Image.BOX)
+    small = src.filter(ImageFilter.MinFilter(5) if line_art else ImageFilter.MedianFilter(5)).resize(size, Image.BOX)
     pal = budget(small, palette(), colours, keep) if colours else palette()
     idx = nearest(small, pal)
     idx[ink_mask(src, size)] = int(np.argmin(((pal - np.array(G.INK)) ** 2).sum(-1)))
@@ -98,9 +100,10 @@ if __name__ == "__main__":
     ap.add_argument("out")
     ap.add_argument("--size", default="376x154")
     ap.add_argument("--colours", type=int, default=32)
+    ap.add_argument("--line-art", action="store_true", help="thin-line diagrams: thicken lines, no median")
     a = ap.parse_args()
     w, h = map(int, a.size.split("x"))
-    im = pixelate(Image.open(a.src), (w, h), a.colours)
+    im = pixelate(Image.open(a.src), (w, h), a.colours, line_art=a.line_art)
     im.save(a.out)
     print(a.out, im.size, "colours:", len({tuple(p) for p in np.asarray(im).reshape(-1, 3)}))
 

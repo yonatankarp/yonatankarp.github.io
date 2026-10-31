@@ -20,6 +20,7 @@
     "pdf": "node scripts/generate-cv-pdf.js"
   },
   "devDependencies": {
+    "pdf-lib": "^1.17.1",
     "playwright": "^1.64.1",
     "vite": "8.3.5"
   }

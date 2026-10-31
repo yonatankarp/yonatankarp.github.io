@@ -9,6 +9,17 @@ const publicDir = path.join(rootDir, "public");
 const cvPath = path.join(publicDir, "cv", "index.html");
 const pdfPath = path.join(publicDir, "yonatan-karp-rudin-cv.pdf");   // the homepage's Download CV
 
+// Chromium only writes Title, so Author, Subject and the rest are added after printing.
+async function setMetadata() {
+  const { PDFDocument } = require("pdf-lib");
+  const pdf = await PDFDocument.load(fs.readFileSync(pdfPath), { updateMetadata: false });   // keep Chromium's tags and outline, and don't let pdf-lib overwrite our fields
+  pdf.setAuthor("Yonatan Karp-Rudin");
+  pdf.setSubject("Curriculum vitae of Yonatan Karp-Rudin, Staff Software Engineer");
+  pdf.setKeywords(["Kotlin", "Java", "Spring Boot", "Kafka", "OpenAPI", "Backend", "Staff Engineer"]);
+  pdf.setCreator("yonatankarp.com");
+  fs.writeFileSync(pdfPath, await pdf.save());
+}
+
 function fail(message, details = []) {
   console.error(message);
   for (const detail of details) {
@@ -106,6 +117,8 @@ function createStaticServer() {
     await browser.close();
     server.close();
   }
+
+  await setMetadata();
 
   console.log(`Wrote ${path.relative(rootDir, pdfPath)}.`);
 })();

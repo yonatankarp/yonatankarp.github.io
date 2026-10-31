@@ -42,6 +42,10 @@ familiar_with:
   - "Cassandra / Keyspaces"
   - "Mockito"
   - "Jenkins"
+  - "MCP"
+  - "Claude Code"
+  - "Ollama"
+  - "Whisper"
 ---
 
 A practical view of where Yonatan tends to have the most leverage: architecture, backend systems, distributed systems, platform work, and clear technical writing.

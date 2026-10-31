@@ -11,7 +11,6 @@
       {{ range .Data.Terms.ByCount }}<a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>{{ .Count }}</span></a>{{ end }}
     </div>
     {{ end }}
-    <span class="page-head__art" aria-hidden="true"></span>
   </div>
 </section>
 {{ if eq .Kind "term" }}

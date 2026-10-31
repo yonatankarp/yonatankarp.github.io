@@ -1,0 +1,19 @@
+{{- /* The one top bar of every page but the homepage: name plate with the tabs under it, Download CV on the right.
+     The tags pages belong to the Blog tab. */ -}}
+{{ $here := .RelPermalink }}
+<header class="px-bar">
+  <div class="px-bar__left">
+    <a class="px-bar__name" href="{{ .Site.Home.RelPermalink }}">Yonatan Karp-Rudin</a>
+    <nav class="px-bar__tabs" aria-label="Site">
+      {{ range slice (slice "Projects" "projects/") (slice "Blog" "blog/") (slice "CV" "cv/") }}
+      {{ $url := index . 1 | relURL }}
+      {{ $current := or (hasPrefix $here $url) (and (eq (index . 0) "Blog") (hasPrefix $here ("tags/" | relURL))) }}
+      <a href="{{ $url }}"{{ if $current }} aria-current="page"{{ end }}>{{ index . 0 }}</a>
+      {{ end }}
+    </nav>
+  </div>
+  <a class="px-download" href="{{ "yonatan-karp-rudin-cv.pdf" | relURL }}" download aria-label="Download CV (PDF)">
+    <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
+    <span>Download CV</span>
+  </a>
+</header>

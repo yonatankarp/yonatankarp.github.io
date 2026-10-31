@@ -54,7 +54,7 @@
 .pixel .floor-card::-webkit-scrollbar, .pixel .floor-panel::-webkit-scrollbar { width: 8px; background: var(--ink); }   /* Safari */
 .pixel .floor-card::-webkit-scrollbar-thumb, .pixel .floor-panel::-webkit-scrollbar-thumb { background: var(--steel-hi); }
 .pixel .floor-card {
-  transform: translateY(16px); transition: opacity 240ms steps(4), transform 240ms steps(4);   /* whole 4px steps */
+  transform: translateY(16px); transition: opacity 180ms steps(4), transform 180ms steps(4);   /* whole 4px steps */
   background: var(--panel);
   width: min(400px, 30vw);       /* ends over the lift lobby, clear of the room */
   padding: 22px 22px 20px 34px;
@@ -63,8 +63,6 @@
   overflow: auto; overscroll-behavior: contain;
   scroll-padding: 12px 0 72px;   /* a link tabbed to stops clear of the pinned Step inside and keeps its focus ring */
 }
-/* On wide screens the card covers the lift doors: it arrives once they have opened. The street has no doors. */
-@media (min-width: 761px) and (min-aspect-ratio: 1201/1000) { html.building--guided .pixel .building-stop.is-here:not(.building-stop--hero) .floor-card { transition-delay: 450ms; } }
 @media (prefers-reduced-motion: reduce) { .pixel .floor-card, html.building--guided .pixel .building-stop.is-here .floor-card { transition: none; } }
 .pixel .floor-card h2 { font-family: var(--display); font-weight: 400; font-stretch: normal; font-size: 30px; line-height: 1; letter-spacing: 0.01em; }
 .pixel .floor-company { font-size: 15px; font-weight: 500; }

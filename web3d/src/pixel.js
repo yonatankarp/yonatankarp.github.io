@@ -13,6 +13,7 @@ const GROUND = ['#33231a', '#1f1610'];                        // under the garag
 const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted lift doors; mirrors gen_floors.DOOR
 const FOCUS = { 2: 330, 3: 250 };                               // on narrow screens, the art x kept mid-screen (else 300)
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
+const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
 // The phone layout: the same query as every phone rule in pixel.css, so the canvas and the cards always agree (#46).
 const narrow = matchMedia('(max-width: 760px), (max-aspect-ratio: 6/5)');
@@ -66,9 +67,11 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const here = pos(u), vel = u < 1 ? (here - pos(rideU(now - 16))) / 16 : 0;   // floors per ms
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: a dissolve, not a ride
     const still = reduceMotion.matches;
-    const dur = fade ? 900 : Math.min(2600, 1150 + 380 * Math.max(0, Math.abs(to - here) - 1));
-    const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / 2.2) * 1000;   // the doors shut, then it moves
-    Object.assign(ride, { from: here, to, start: now + closeMs, fade, dur: still ? 1 : dur, v: fade || still ? 0 : vel * dur });
+    const dist = Math.abs(to - here), dur = fade ? 900 : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
+    const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000;   // the doors shut, then it moves
+    // The eased start moves the camera less than half an art pixel at first: that stretch runs as the doors finish.
+    const hidden = vel || fade ? 0 : dur * Math.cbrt(1 / (1440 * Math.max(dist, 1e-3)));
+    Object.assign(ride, { from: here, to, start: now + Math.max(0, closeMs - hidden), fade, dur: still ? 1 : dur, v: fade || still ? 0 : vel * dur });
     history.replaceState(null, '', `#floor-${keys[to]}`);
     arrived = -1;   // a ride redirected back to the floor it left still arrives there (#31)
     emit('building:depart', { index: to, key: keys[to], dir: fade ? 0 : Math.sign(to - here) });
@@ -126,14 +129,16 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const camY = Math.round(lerpAt(at, level));                // whole art pixels: no shimmer
     const near = Math.round(p);
     if (near !== passing) { passing = near; emit('building:floor', { index: near, key: keys[near] }); }
-    if (u === 1 && arrived !== ride.to) { arrived = ride.to; emit('building:arrive', { index: ride.to, key: keys[ride.to] }); }
+    // Arrived on the last pixel the camera moves: the eased tail after it changes nothing on screen.
+    const landed = u === 1 || (!ride.fade && u > 0.5 && camY === level(keys[ride.to]));
+    if (landed && arrived !== ride.to) { arrived = ride.to; emit('building:arrive', { index: ride.to, key: keys[ride.to] }); }
 
     const loopMs = (FRAMES * 1000) / FPS;
     const phase = now % (loopMs + REST_MS);
     const f = paused || still || phase >= loopMs ? 0 : Math.floor(phase / (1000 / FPS));
     for (const key of ORDER) {
-      const here = u === 1 && keys[ride.to] === key;
-      open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : 2.2)));
+      const here = arrived === ride.to && keys[ride.to] === key;
+      open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
     }
     const streetA = ride.fade ? (ride.to === eAt ? easeInOut(u) : 1 - easeInOut(u)) : street.alpha(p, eAt);
     const sig = [f, camY, streetA, loads, now < fading && now, ...open.values()].join();
@@ -181,7 +186,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   wake();
   // e.g. the site menu's About; a pick the lift ignores (it is already going there, or mid-dissolve) keeps its hash
   addEventListener('hashchange', () => { const i = keys.indexOf(hashKey()); if (i >= 0 && !go(i)) history.replaceState(null, '', `#floor-${keys[ride.to]}`); });
-  return { go, index: () => ride.to, moving: () => rideU(performance.now()) < 1 || arrived !== ride.to };
+  return { go, index: () => ride.to, moving: () => arrived !== ride.to };
 }
 
 // The painted door halves slide apart over a lit cab, a whole pixel at a time.

@@ -3,7 +3,8 @@
   <head>
     {{ partial "head.html" . }}
   </head>
-  <body class="page-{{ .Kind }}{{ if .IsHome }} page-home{{ end }}{{ with .Type }} type-{{ . }}{{ end }}{{ if or (eq .Type "projects") (eq .Type "search") (eq .Type "skills") (eq .Kind "404") }} px-skin px-page{{ end }}">
+  {{ $pixel := or (eq .Type "projects") (eq .Type "search") (eq .Type "skills") (eq .Kind "404") }}
+  <body class="page-{{ .Kind }}{{ if .IsHome }} page-home{{ end }}{{ with .Type }} type-{{ . }}{{ end }}{{ if $pixel }} px-skin px-page{{ end }}"{{ if $pixel }} style="--scene: url({{ "building/pixel/exterior.png" | relURL }})"{{ end }}>
     <a class="skip-link" href="#main-content">Skip to content</a>
     {{ partial "pixel-bar.html" . }}
     <main id="main-content">

@@ -3428,3 +3428,78 @@ h4 a,
 .px-cta--out { background: var(--panel); color: var(--px-text); box-shadow: inset 0 0 0 3px var(--panel-hi); }
 @media screen and (max-width: 1000px) { .px-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media screen and (max-width: 640px) { .px-grid { grid-template-columns: 1fr; } .px-projects h1 { font-size: 44px; } }
+
+/* Case study (/projects/<slug>/, layouts/projects/single.html): a sheet with the title block, the painting when one
+   exists, and the article body in .px-prose. */
+.px-case__head { display: grid; justify-items: start; gap: 14px; padding-bottom: 28px; border-bottom: 4px solid var(--panel-hi); }
+.px-case__head > * { margin: 0; }
+.px-case h1 { font-size: 60px; overflow-wrap: anywhere; }
+.px-case__lede { max-width: 70ch; font-size: 17px; color: var(--px-soft); }
+.px-case__meta { display: flex; flex-wrap: wrap; gap: 6px; }
+.px-chip--year { color: var(--amber); }
+.px-case .px-cta { text-decoration: none; }
+.px-case__art { margin-top: 28px; background: var(--well); clip-path: var(--stepped); box-shadow: inset 0 0 0 4px var(--ink); }
+.px-case__art .px-painting { border-bottom: 0; }
+.px-case__art + .px-prose { margin-top: 8px; }
+
+/* The reusable article body: Jersey 15 headings, Outfit text, amber links, code and tables in well frames. */
+.px-well, .px-prose pre, .px-prose table {
+  background: var(--well); clip-path: var(--stepped);
+  box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi);
+}
+.px-prose { font-size: 17px; line-height: 1.7; color: var(--px-text); }
+.px-prose > * { margin-top: 0; margin-bottom: 18px; }
+.px-prose h2, .px-prose h3, .px-prose h4 { margin: 40px 0 12px; font-family: var(--pixel-font); font-weight: 400; line-height: 1; color: var(--px-text); }
+.px-prose h2 { display: flex; align-items: center; gap: 14px; font-size: 34px; }
+.px-prose h2::before { content: ''; flex: none; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
+.px-prose h2::after { content: ''; flex: 1; height: 4px; background: var(--panel-hi); }
+.px-prose h3 { font-size: 28px; color: var(--amber); }
+.px-prose h4 { font-size: 24px; }
+.px-prose a { color: var(--amber); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.px-prose a:hover { color: #ffd77a; }
+.px-prose a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.px-prose ul, .px-prose ol { padding-left: 1.4em; list-style: revert; }
+.px-prose ul { list-style: square; }
+.px-prose li::marker { color: var(--amber); }
+.px-prose li + li { margin-top: 6px; }
+.px-prose strong { color: var(--px-text); font-weight: 600; }
+.px-prose blockquote { margin-inline: 0; padding: 4px 0 4px 20px; border-left: 4px solid var(--amber); color: var(--px-soft); font-family: inherit; font-size: inherit; line-height: inherit; }
+.px-prose code { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88em; }
+.px-prose :not(pre) > code { padding: 2px 6px; color: var(--px-text); background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi); }
+.px-prose pre { position: relative; padding: 20px 22px; overflow: auto; color: var(--px-text); line-height: 1.55; }
+.px-prose pre code { padding: 0; background: none; box-shadow: none; font-size: 14px; }
+.px-prose table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; padding: 6px; font-size: 15px; line-height: 1.5; }
+.px-prose th, .px-prose td { padding: 10px 14px; border-bottom: 2px solid var(--panel-hi); text-align: start; vertical-align: top; }
+.px-prose th { font-weight: 600; color: var(--amber); }
+.px-prose tr:last-child td { border-bottom: 0; }
+.px-prose img { max-width: 100%; height: auto; }
+.px-prose hr { height: 4px; border: 0; background: var(--panel-hi); }
+.px-prose .code-copy {
+  top: 10px; right: 12px; padding: 4px 10px; border: 0; border-radius: 0; clip-path: var(--stepped);
+  font: 400 18px/1 var(--pixel-font); color: var(--ink); background: var(--amber); opacity: 1;
+}
+.px-prose .code-copy:hover { background: #ffd77a; }
+.px-prose .code-copy:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--px-text), inset 0 0 0 6px var(--ink); }
+
+/* The footer on pixel pages: a panel as wide as the sheet, with square link buttons. Other pages keep the plain footer. */
+.px-page .site-footer { padding-bottom: 48px; }
+.px-page .site-footer__inner {
+  width: min(1000px, calc(100% - 2 * clamp(16px, 3vw, 36px))); padding: 28px 48px; align-items: center; border-top: 0;
+  background: var(--panel); clip-path: var(--stepped); box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--panel-hi);
+}
+.px-page .site-footer__title { margin: 0 0 4px; font: 400 28px/1 var(--pixel-font); }
+.px-page .site-footer__copy { font-size: 15px; color: var(--px-soft); }
+.px-page .share-btn {
+  width: 44px; height: 44px; border: 0; border-radius: 0; clip-path: var(--stepped);
+  background: var(--well); color: var(--px-text); box-shadow: inset 0 0 0 4px var(--ink);
+}
+.px-page .share-btn:hover { color: var(--ink); background: var(--amber); transform: none; }
+.px-page .share-btn:focus-visible { outline: none; color: var(--px-text); background: var(--well); box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
+
+@media screen and (max-width: 760px) {
+  .px-case h1 { font-size: 40px; }
+  .px-prose { font-size: 16.5px; }
+  .px-prose h2 { font-size: 28px; }
+  .px-prose pre { padding: 16px; }
+  .px-page .site-footer__inner { width: calc(100% - 24px); padding: 22px 20px; }
+}

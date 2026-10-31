@@ -40,6 +40,14 @@ const routes = [
     ],
   },
   {
+    name: "case-study",
+    path: "/projects/ff4k/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-prose", 1, "article body"],
+    ],
+  },
+  {
     name: "blog",
     path: "/blog/",
     requiredSelectors: [

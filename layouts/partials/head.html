@@ -6,7 +6,8 @@
 {{ $description := .Description | default .Summary | plainify | default $homeDescription }}
 {{ $image := "" }}
 {{ with .Params.images }}{{ with .featured_image }}{{ $image = . | absURL }}{{ end }}{{ end }}
-{{ if not $image }}{{ $image = (printf "%simages/og-default.svg" .Site.BaseURL) }}{{ end }}
+{{ $defaultImage := not $image }}
+{{ if $defaultImage }}{{ $image = (printf "%simages/og-default.png" .Site.BaseURL) }}{{ end }}
 {{ $css := resources.Get "css/custom.css" | minify | fingerprint }}
 {{ $chroma := resources.Get "css/chroma.css" | minify | fingerprint }}
 <meta charset="utf-8">
@@ -20,6 +21,10 @@
 <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
 <meta property="og:url" content="{{ .Permalink }}">
 <meta property="og:image" content="{{ $image }}">
+{{ if $defaultImage }}<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Yonatan Karp-Rudin, Staff Software Engineer, Payments, Tel Aviv, Israel, in front of the pixel-art building of his CV">
+<meta name="twitter:image:alt" content="Yonatan Karp-Rudin, Staff Software Engineer, Payments, Tel Aviv, Israel, in front of the pixel-art building of his CV">{{ end }}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ $title }}">
 <meta name="twitter:description" content="{{ $description }}">

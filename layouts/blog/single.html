@@ -1,11 +1,10 @@
 {{ define "main" }}
+<div class="blog-px" style="--scene: url({{ "building/pixel/exterior.png" | relURL }})">
 <div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
 {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
-{{ with .Params.images.featured_image }}
-<div class="article-hero-bg" style="--cover: url('{{ . | relURL }}');" aria-hidden="true"></div>
-{{ end }}
-<section class="shell article-shell{{ with .Params.images.featured_image }} has-hero-bg{{ end }}">
-  <article class="article">
+{{ $art := partial "blog-art.html" . }}
+<section class="shell article-shell">
+  <article class="article" style="--post: {{ $art.accent | safeCSS }}">
     <header class="article__header">
       <p class="section-kicker">Article</p>
       <h1>{{ .Title }}</h1>
@@ -19,6 +18,7 @@
         {{ range .GetTerms "tags" }}<a class="chip" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
       </div>
     </header>
+    {{ with $art.cover }}<img class="px-cover article__cover" src="{{ . }}" alt="{{ $.Title }}" width="192" height="108" decoding="async">{{ end }}
 
     {{ if and (ge .WordCount 600) (strings.Contains .TableOfContents "<li") }}
     <details class="article-toc" open>
@@ -69,7 +69,9 @@
   <h2 id="keep-reading" class="related-posts__title">Keep reading</h2>
   <div class="related-grid">
     {{ range . }}
-    <a class="related-card reveal{{ with .Params.images.featured_image }} has-cover{{ end }}" href="{{ .RelPermalink }}"{{ with .Params.images.featured_image }} style="--cover: url('{{ . | relURL }}');"{{ end }}>
+    {{ $art := partial "blog-art.html" . }}
+    <a class="related-card reveal" href="{{ .RelPermalink }}" style="--post: {{ $art.accent | safeCSS }}">
+      {{ if $art.cover }}<img class="px-cover" src="{{ $art.cover }}" alt="{{ .Title }}" width="192" height="108" loading="lazy" decoding="async">{{ end }}
       <span class="related-card__date">{{ .Date.Format "Jan 2, 2006" }}</span>
       <h3>{{ .Title }}</h3>
     </a>
@@ -77,4 +79,5 @@
   </div>
 </section>
 {{ end }}
+</div>
 {{ end }}

@@ -1,0 +1,23 @@
+{{/* A taxonomy (/tags/) and each of its terms' pages (Hugo renders both with this template), in the blog's pixel skin. */}}
+{{ define "main" }}
+<div class="blog-px" style="--scene: url({{ "building/pixel/exterior.png" | relURL }})">
+<section class="shell page-head reveal-group">
+  <div class="page-head__copy reveal">
+    <h1>{{ .Title }}</h1>
+    {{ if eq .Kind "term" }}
+    <p>{{ len .Pages }} {{ cond (eq (len .Pages) 1) "post" "posts" }}. <a class="text-link" href="{{ .Parent.RelPermalink }}">All {{ lower .Parent.Title }}</a></p>
+    {{ else }}
+    <div class="chip-row">
+      {{ range .Data.Terms.ByCount }}<a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>{{ .Count }}</span></a>{{ end }}
+    </div>
+    {{ end }}
+    <span class="page-head__art" aria-hidden="true"></span>
+  </div>
+</section>
+{{ if eq .Kind "term" }}
+<section class="shell post-list reveal-group">
+  {{ range .Pages }}{{ partial "blog-row.html" . }}{{ end }}
+</section>
+{{ end }}
+</div>
+{{ end }}

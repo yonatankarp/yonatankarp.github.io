@@ -6,7 +6,7 @@
 - **Custom Hugo layouts** in `layouts/`
 - **GitHub Actions** for CI/CD to GitHub Pages
 - Site styles in `assets/css/custom.css`
-- Custom JS in `static/js/site.js`
+- Custom JS in `assets/js/site.js`
 - Static images and icons in `static/images/`
 
 ## Build & Run
@@ -26,7 +26,7 @@ front matter places it in the building; testimonials need a `pullQuote` that is 
 
 - `content/experience/` — job entries (one .md per role)
 - `content/education/` — education entries
-- `content/projects/` — project cards shown on homepage grid
+- `content/projects/` — projects listed on the homepage's Parking floor and on `/projects/`
 - `content/contributions/` — NOT used (contributions are in projects/)
 - `content/blog/` — blog posts
 - `content/testimonial/` — recommendation quotes with photos
@@ -42,7 +42,7 @@ The site is English-only. Do not create `.he.md` variants, translation keys, lan
 
 - Prefer editing the custom templates in `layouts/` directly instead of introducing third-party theme assumptions
 - Keep the design system centralized in `assets/css/custom.css`
-- Use `static/js/site.js` for the small amount of client-side behavior
+- Use `assets/js/site.js` for the small amount of client-side behavior
 
 ## Adding Content
 
@@ -59,14 +59,20 @@ tags: [kotlin, spring-boot]
 ```
 
 ### New project
-Create `content/projects/name.md`. Projects render via the custom homepage project list and can expose their CTA through `params.button`.
+Create `content/projects/name.md` with a `link` (the build fails without one). Projects render via the custom homepage project list and can expose their CTA through `params.button`.
 
 ### New experience
-Create `content/experience/name.md` with jobTitle, company, location, duration fields.
+Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `duration`, `summary`, and:
+- `floor`: a quoted storey, such as `floor: "5"`, that no other entry uses. Floors 2 to 7 are the roles;
+  `8`, `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey needs art: a key in
+  `data/floor_accents.yaml`, a place in `ORDER` in `web3d/src/pixel.js`, and its painting in `web3d/pixel/`.
+- `highlights`: a list; the first three show on the floor's card, the rest inside it.
+
+`layouts/index.html` fails the build naming the file when `floor` or `highlights` is wrong.
 
 ## Images
 
-- Profile photos: `assets/images/showcase/` and `assets/images/about/`
+- Profile photo: `assets/images/showcase/`
 - Testimonial photos: `assets/images/testimonials/`
 - Blog images: `static/images/blog/`
 - All blog images are stored locally — no external CDN dependencies

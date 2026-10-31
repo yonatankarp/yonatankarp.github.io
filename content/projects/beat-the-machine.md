@@ -3,7 +3,7 @@ date: 2022-10-01T00:00:00+01:00
 title: "Beat The Machine"
 weight: 90
 group: "project"
-projectKind: "University project"
+projectKind: "Side project"
 draft: false
 link: "https://github.com/yonatankarp/beat-the-machine-ddd"
 tech: ["Kotlin", "Spring Boot", "DDD"]
@@ -17,4 +17,4 @@ params:
         URL: "https://github.com/yonatankarp/beat-the-machine-ddd"
 ---
 
-AI-powered guessing game where players identify prompts used to generate images. Built as a university project, later rewritten with DDD.
+AI-powered guessing game where players identify prompts used to generate images, rewritten with DDD.

@@ -9,7 +9,7 @@ practice_areas:
     tools: ["Kotlin", "Java", "Spring Boot", "OpenAPI", "gRPC", "Protocol Buffers"]
   - name: "Distributed systems and data flows"
     summary: "Building event-driven services, real-time processing, and the infrastructure that keeps backend systems coherent under load."
-    tools: ["Kafka", "Flink", "Neo4j", "MySQL", "PostgreSQL"]
+    tools: ["Kafka", "Neo4j", "MySQL", "PostgreSQL"]
   - name: "Platform and developer experience"
     summary: "Improving the day-to-day engineering loop through templates, CI, internal tools, and shared libraries."
     tools: ["Gradle", "GitHub Actions", "Terraform", "Docker", "Kubernetes"]
@@ -25,7 +25,6 @@ working_set:
   - "Spring Boot"
   - "OpenAPI"
   - "Kafka"
-  - "Flink"
   - "Terraform"
   - "GitHub Actions"
   - "Docker"

@@ -3950,6 +3950,9 @@ h4 a,
 .cv-edu__item h3 { font-size: 17px; }
 .cv-edu__item .cv-sub { margin: 2px 0 0; color: var(--cv-soft); font-weight: 400; }
 .cv-edu__item .cv-sub a { color: var(--amber); text-underline-offset: 4px; }
+.cv-teaching { margin: 8px 0 0; padding: 0; list-style: none; font-size: 14px; line-height: 1.45; color: var(--cv-soft); }
+.cv-teaching li + li { margin-top: 6px; }
+.cv-teaching span { display: block; font-size: 13px; }
 
 @media screen and (max-width: 760px) {
   .cv-bar { padding: 16px; gap: 10px; }
@@ -4008,6 +4011,7 @@ h4 a,
   section:has(> #cv-focus),
   .cv-role-item__body > p:not(.cv-sub),
   .cv-role-item:nth-last-of-type(-n+2) .cv-bullets li + li,
+  .cv-teaching,
   section:has(> #cv-open-source) .cv-bullets li:nth-child(n+6) { display: none; }
   .cv-bullets { grid-template-columns: 1fr; }   /* side-by-side bullets come out of the PDF as interleaved lines for ATS parsers */
 }

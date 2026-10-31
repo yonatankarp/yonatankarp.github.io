@@ -243,7 +243,7 @@ components:
 ```
 
 
-![Hello API Swagger display](/images/blog/kb-005-hello-openapi-spec-1024x287.png)Hello API Swagger Display
+![Hello API Swagger display](/images/blog/kb-005-hello-openapi-spec-1024x287.webp)Hello API Swagger Display
 
 
 #### Goodbye Service
@@ -298,7 +298,7 @@ components:
 ```
 
 
-![Goodbye API Swagger display](/images/blog/kb-006-goodbye-openapi-spec-1024x286.png)Goodbye API Swagger Display
+![Goodbye API Swagger display](/images/blog/kb-006-goodbye-openapi-spec-1024x286.webp)Goodbye API Swagger Display
 
 
 #### Domain Gateway Service
@@ -389,7 +389,7 @@ components:
 ```
 
 
-![Greeting API Swagger display for the domain gateway](/images/blog/kb-007-domain-gateway-openapi-spec-1024x390.png)Greetings API Swagger Display
+![Greeting API Swagger display for the domain gateway](/images/blog/kb-007-domain-gateway-openapi-spec-1024x390.webp)Greetings API Swagger Display
 
 
 ### Generating Multiple Specs
@@ -513,7 +513,7 @@ val supportedApis = listOf(
 You might notice that all of our specs are generated into the same output directory. This is because OpenAPI generates some infrastructure classes that are used by the generated code. If we do not generate them in the same directory, the `sourceDir` will include duplications of classes in the same packages, and the code will not compile. You can see that we are still separating our APIs by package name in the generated code:
 
 
-![Generated OpenAPI code structure in the project tree](/images/blog/kb-008-domain-gateway-generated-code.png)OpenAPI Generated Code Structure
+![Generated OpenAPI code structure in the project tree](/images/blog/kb-008-domain-gateway-generated-code.webp)OpenAPI Generated Code Structure
 
 
 ### Add Generated Code To Project

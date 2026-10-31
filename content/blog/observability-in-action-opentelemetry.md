@@ -548,19 +548,19 @@ Once Spring notifies you that the service is operational, access it via your bro
 If executed correctly, the response should resemble:
 
 
-![Cat Facts API response in the browser](/images/blog/catfacts-api-response.png)
+![Cat Facts API response in the browser](/images/blog/catfacts-api-response.webp)
 
 
 To retrieve a custom number of facts, use the `max` query parameter. For ten facts, navigate to [http://localhost:8080/api/v1/cat/facts?max=10](http://localhost:8080/api/v1/cat/facts?max=10).
 
 
-![Cat Facts API response using the max query parameter](/images/blog/catfacts-api-response-max10.png)
+![Cat Facts API response using the max query parameter](/images/blog/catfacts-api-response-max10.webp)
 
 
 Inspecting the database will confirm the successful storage of facts.
 
 
-![facts stored inside Postgres database](/images/blog/catfacts-postgres-rows.png)
+![facts stored inside Postgres database](/images/blog/catfacts-postgres-rows.webp)
 
 
 Our service logic is ready!
@@ -638,25 +638,25 @@ For this article, we will use the default `test` environment, but you can create
 After setting up, you should land on a page that looks like this:
 
 
-![Honeycomb send data setup screen](/images/blog/honeycomb-send-data.png)
+![Honeycomb send data setup screen](/images/blog/honeycomb-send-data.webp)
 
 
 Next, we'll create a new API key for our service to send data to HoneyComb. To do this, click on `Account` ➡️ `Team settings`. On the following page
 
 
-![Honeycomb account menu with team settings](/images/blog/honeycomb-account-menu.png)
+![Honeycomb account menu with team settings](/images/blog/honeycomb-account-menu.webp)
 
 
 Under the `Environments and API Keys` section, click the `Manage` button.
 
 
-![Honeycomb team settings page with API key management](/images/blog/honeycomb-team-settings.png)
+![Honeycomb team settings page with API key management](/images/blog/honeycomb-team-settings.webp)
 
 
 On the next page, click the `Create API Key` button and name it. For this tutorial, let's call it `local` (indicating local execution). We want to limit our key's scope to the minimum required, so the key should have only the `Send events` and `Create datasets` permissions.
 
 
-![Honeycomb create API key form](/images/blog/honeycomb-create-api-key.png)
+![Honeycomb create API key form](/images/blog/honeycomb-create-api-key.webp)
 
 
 Once you've made these selections, click the `Save` button. You should now see the key displayed on your screen. We'll use this key later when configuring our service.
@@ -815,19 +815,19 @@ $ curl http://localhost:8080/api/v1/cat/facts
 Go to the HoneyComb UI and click on the `Query` button. You can click the `Run Query` button to see the data being sent to HoneyComb. You can see for example our `github.repository` attribute being sent:
 
 
-![Honeycomb query showing raw telemetry attributes](/images/blog/honeycomb-query-raw-data.png)
+![Honeycomb query showing raw telemetry attributes](/images/blog/honeycomb-query-raw-data.webp)
 
 
 We can also create a graph to visualize the data by selecting anything under `VISUALIZE` box. For example:
 
 
-![Honeycomb count-over-time visualization](/images/blog/honeycomb-count-over-time.png)
+![Honeycomb count-over-time visualization](/images/blog/honeycomb-count-over-time.webp)
 
 
 Lastly, we can drill down into a specific trace by clicking on the traces, and see the execution path of the request:
 
 
-![Honeycomb trace waterfall view](/images/blog/honeycomb-trace-waterfall.png)
+![Honeycomb trace waterfall view](/images/blog/honeycomb-trace-waterfall.webp)
 
 
 ##### Modifying the Dockerfile

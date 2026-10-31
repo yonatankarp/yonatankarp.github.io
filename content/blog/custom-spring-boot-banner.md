@@ -21,23 +21,23 @@ Today, I'd like to share a fun feature of Spring with you. It's not new or cruci
 
 Normally, when you launch your Spring Boot app, you see a standard banner in the logs like this:
 
-![Spring Boot Banner](/images/blog/default-spring-boot-banner.png)
+![Spring Boot Banner](/images/blog/default-spring-boot-banner.webp)
 
 But have you ever thought about replacing that Spring banner with your own custom banner? If you have, then this article is for you!
 
 To begin, let's visit [https://patorjk.com/](https://patorjk.com/), a website that helps us create custom text. You can enter the desired text for your log and choose from a variety of fonts. For example:
 
-![Custom Text](/images/blog/patorjk-ascii-generator.png)
+![Custom Text](/images/blog/patorjk-ascii-generator.webp)
 
 You can also click the **Test All** button to explore all the available options.
 
 Now, let's copy our text and place it inside the application under `/resources/banner.txt`, as shown below:
 
-![Copy Custom Text](/images/blog/banner-txt-in-intellij.png)
+![Copy Custom Text](/images/blog/banner-txt-in-intellij.webp)
 
 Next, let's relaunch our app:
 
-![Custom Banner](/images/blog/custom-ascii-banner-output.png)
+![Custom Banner](/images/blog/custom-ascii-banner-output.webp)
 
 As you can see, our custom banner has been successfully replaced! Great job! :)
 
@@ -48,7 +48,7 @@ To convert images into ASCII art, follow these steps:
 * Add your image to the resources directory. For this article, we'll use the following logo:
     
 
-<img src="/images/blog/sumup-logo.png" alt="Logo" width="220" height="220" style="display:block;width:220px;max-width:100%;height:auto;margin-inline:auto;">
+<img src="/images/blog/sumup-logo.webp" alt="Logo" width="220" height="220" style="display:block;width:220px;max-width:100%;height:auto;margin-inline:auto;">
 
 
 * Add the following configuration to your [`application.properties`](http://application.properties) or `application.yml` file to specify the location of your image:
@@ -67,7 +67,7 @@ spring:
 
 Let's run our app again...
 
-![Custom Logo](/images/blog/sumup-ascii-banner-output.png)
+![Custom Logo](/images/blog/sumup-ascii-banner-output.webp)
 
 As you can see, our new logo magically appears!
 

@@ -58,7 +58,7 @@ In this article, I will demonstrate an example of a short and simple API and wal
 ## Step 1: Use OpenAPI Editor to Design Our API
 
 
-![Swagger editor showing an OpenAPI specification](/images/blog/kb-002-swagger-editor-1024x452.png)OpenAPI (Swagger) editor
+![Swagger editor showing an OpenAPI specification](/images/blog/kb-002-swagger-editor-1024x452.webp)OpenAPI (Swagger) editor
 
 
 We will begin with designing the API. Our API will have a single endpoint: `/greet`. This endpoint would accept a name as a query parameter (for example: `/greet?name=Yonatan`). It will respond with a greeting **"Hello"** followed by the provided name.

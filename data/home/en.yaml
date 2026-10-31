@@ -81,7 +81,7 @@ proof:
       floor: "6"   # the building floor whose panel tells this story
       title: "Moving risk work toward explicit orchestration and contracts."
       context: "Risk decisions depended on multiple services, fraud providers, recurrent identification, tokenization, and direct debit behavior."
-      decision: "I co-designed the Risk Orchestrator, pushed OpenAPI-first contracts across risk services, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
+      decision: "I co-designed the Risk Orchestrator, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
       result: "Risk changes gained a clearer coordination model across providers, payment behavior, and service boundaries."
     - label: "Engineering leverage"
       floor: "7"   # the building floor whose panel tells this story

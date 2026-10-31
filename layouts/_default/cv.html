@@ -44,15 +44,15 @@
 
     <section class="cv-section" aria-labelledby="cv-summary">
       <h2 id="cv-summary">Summary</h2>
-      <p>I'm a Staff Software Engineer. I've been writing software for 12 years: first C++ on vision processing chips at Inuitive, then backend services for SumUp's point-of-sale products, and for the last three years risk and compliance at Billie.</p>
-      <p>At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, Ravelin for graph-based fraud detection and ComplyAdvantage for transaction monitoring. I also started three services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
+      <p>I'm a Staff Software Engineer. I've been writing software for 12 years: first C++ on vision processing chips at Inuitive, then backend work at NICE, then backend services for SumUp's point-of-sale products, and for the last three years risk and compliance at Billie.</p>
+      <p>At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, Ravelin for graph-based fraud detection and ComplyAdvantage for transaction monitoring. I also started two services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
     </section>
 
     <section class="cv-section" aria-labelledby="cv-focus">
       <h2 id="cv-focus">Staff+ Focus</h2>
       <ul class="cv-focus">
         <li>Defined compliance and risk service boundaries across vendor behavior, event flows, and product rules.</li>
-        <li>Drove API-first backend design with Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI, and Backstage.</li>
+        <li>Drove API-first backend design with Kotlin, Java, Spring Boot, Kafka, OpenAPI, and Backstage.</li>
         <li>Turned operational risk into recovery paths, monitoring, migration plans, and upstream fixes.</li>
       </ul>
     </section>
@@ -109,6 +109,7 @@
             <span>{{ .Params.year }}</span>
           </div>
           <p class="cv-sub">{{ .Params.degree }}{{ with .Params.link }} · <a href="{{ . }}">credential</a>{{ end }}</p>
+          {{ with .Params.teaching }}<ul class="cv-teaching">{{ range . }}<li>{{ .title }} <span>{{ replace .when " - " " – " }}</span></li>{{ end }}</ul>{{ end }}
         </article>
         {{ end }}
       </div>

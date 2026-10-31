@@ -1,0 +1,13 @@
+{{/* A post's pixel cover (static/images/blog/covers/pixel/, drawn from its photo by web3d/pixel/pixelate.py) and
+     its accent, one of the job floors' colours (data/floor_accents.yaml), picked by the title so a post keeps it everywhere. */}}
+{{ $cover := "" }}
+{{ with .Params.images.featured_image }}
+  {{ $px := replaceRE `^/?images/blog/covers/([^/]+)\.\w+$` "images/blog/covers/pixel/$1.png" . }}
+  {{ if not (fileExists (path.Join "static" $px)) }}
+    {{ errorf "%s: no pixel cover at static/%s. Make it with: uv run web3d/pixel/pixelate.py static/%s static/%s --size 192x108 --colours 24" $.File.Path $px (strings.TrimPrefix "/" .) $px }}
+  {{ end }}
+  {{ $cover = $px | relURL }}
+{{ end }}
+{{ $floors := slice "7" "6" "5" "4" "3" "2" }}
+{{ $accent := index site.Data.floor_accents (index $floors (mod (len .Title) (len $floors))) }}
+{{ return dict "cover" $cover "accent" $accent }}

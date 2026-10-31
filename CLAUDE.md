@@ -58,6 +58,8 @@ type: "blog"
 tags: [kotlin, spring-boot]
 ---
 ```
+A cover (`images.featured_image`, a photo in `static/images/blog/covers/`) also needs its pixel-art version in
+`static/images/blog/covers/pixel/`, which the blog shows; the build fails with the `pixelate.py` command to make it.
 
 ### New project
 Create `content/projects/name.md` with a `link` (the build fails without one). Projects render via the custom homepage project list and can expose their CTA through `params.button`.

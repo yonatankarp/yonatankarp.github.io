@@ -166,48 +166,133 @@ section[id] {
   box-shadow: var(--shadow);
 }
 
-/* Blog post: cover photo as a full-bleed hero behind the title, fading to dark. */
-.type-blog {
-  position: relative;
+/* Blog (layouts/blog/ and layouts/_default/taxonomy.html, inside .blog-px): the blog's own pieces on the pixel skin.
+   <body> wears .px-skin .px-page (layouts/_default/baseof.html), which brings the tokens, the street, the headings,
+   the footer and, through .px-prose, the article body. Dark stepped panels with a stripe in the post's floor colour
+   (layouts/partials/blog-art.html). The older shared rules the blog still leans on (chips, pagination, post rows)
+   read the site's tokens, so those point at the skin's here. */
+.blog-px {
+  --post: var(--amber);
+  --text: var(--px-text);
+  --muted: var(--px-soft);
+  --hero-soft: var(--px-soft);
+  --border: var(--panel-hi);
+  --surface: var(--panel);
+  --surface-muted: var(--well);
+  --accent: var(--amber);
+  --accent-strong: var(--amber);
+  --radius-xl: 0; --radius-lg: 0; --radius-md: 0; --radius-sm: 0;
+  --shadow: none; --shadow-soft: none;
+  padding-bottom: 64px;
+}
+.blog-px .px-cover { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; image-rendering: pixelated; border: 4px solid var(--ink); box-sizing: border-box; }
+
+/* Panels: the floor card's frame. */
+.blog-px :is(.page-head__copy, .featured-article, .post-row, .blog-sidebar, .article, .related-card) {
+  border: 0; border-radius: 0; background: var(--panel); clip-path: var(--stepped); transition: none;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 16px 0 0 0 var(--post), inset 4px 4px 0 4px var(--panel-hi);
+}
+.blog-px :is(.featured-article, .post-row):is(:hover, :focus-within) {
+  transform: none; background: var(--panel);
+  box-shadow: inset 0 0 0 4px var(--post), inset 16px 0 0 0 var(--post), inset 4px 4px 0 4px var(--panel-hi);
 }
 
-.article-hero-bg {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 100vw;
-  transform: translateX(-50%);
-  height: min(820px, 86vh);
-  z-index: -1;
-  background-image:
-    linear-gradient(to bottom,
-      color-mix(in srgb, var(--bg) 8% , transparent) 0%,
-      color-mix(in srgb, var(--bg) 26% , transparent) 50%,
-      color-mix(in srgb, var(--bg) 58% , transparent) 80%,
-      var(--bg) 100%),
-    var(--cover);
-  background-size: cover;
-  background-position: center;
-  pointer-events: none;
-}
+/* Head: the title plate, one column. */
+.blog-px .page-head { padding-top: 24px; }
+.blog-px .page-head__copy { display: grid; gap: 12px; max-width: none; padding: 32px 32px 32px 48px; }
+.blog-px .page-head__copy h1 { font-size: 60px; }
+.blog-px .page-head__copy p { margin: 0; font-size: 17px; color: var(--muted); }
 
-/* With a hero photo, the title block sits low on the faded photo and the
-   article body drops its card chrome so it reads on the dark page. */
-.article-shell.has-hero-bg {
-  padding-top: clamp(9rem, 24vh, 17rem);
-}
+.blog-px .blog-layout { padding-top: 16px; gap: 16px; }
+.blog-px .post-list { gap: 16px; }
+.blog-px .post-row { margin-top: 0; }
+.blog-px .featured-article { margin-bottom: 16px; padding: 32px 32px 32px 48px; align-items: center; }
+.blog-px .post-row { padding: 24px 24px 24px 40px; grid-template-columns: minmax(0, 1fr) 288px; }
+.blog-px .featured-article h2 { font-size: 45px; }   /* on Jersey 15's 15px grid; 60px wraps to five lines beside the cover */
+.blog-px .post-row h2 { font-size: 30px; }
+.blog-px :is(.featured-article, .post-row) h2 a { color: var(--text); }
+.blog-px :is(.featured-article, .post-row) h2 a:hover { color: var(--post); }
+.blog-px .eyebrow, .blog-px .section-kicker { margin: 0 0 12px; font-size: 15px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--post); }
+.blog-px :is(.featured-article__meta, .post-row__meta, .article__meta) { font-size: 15px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.blog-px :is(.featured-article, .post-row) p { font-size: 16px; color: var(--muted); }
+.blog-px .featured-article img { min-height: 0; border-radius: 0; }
+.blog-px .post-row__thumb, .blog-px .post-row__thumb--fallback { aspect-ratio: auto; min-height: 0; border: 0; border-radius: 0; box-shadow: none; background: none; padding: 0; }
+.blog-px .post-row__thumb::after { content: none; }
+.blog-px .post-row:is(:hover, :focus-within) .post-row__thumb img { transform: none; filter: none; }
+.blog-px .post-row__thumb--fallback { min-height: 162px; padding: 16px; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
 
-.type-blog .article {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
+/* Buttons and tabs: the homepage's amber Download button, and its steel tabs. */
+.blog-px .button--primary {
+  min-height: 52px; padding: 0 20px; border: 0; border-radius: 0; clip-path: var(--stepped);
+  background: var(--amber); color: var(--ink); font: 400 30px/1 var(--pixel-font);
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a, inset -4px -4px 0 4px #d38f1b;
 }
+.blog-px .button--primary:hover { background: #ffc46a; color: var(--ink); }
+.blog-px .button--primary:active { transform: translateY(4px); }
+.blog-px .post-row__cta { min-height: 0; padding: 0; border: 0; color: var(--post); font-size: 15px; font-weight: 500; }
+.blog-px .post-row__cta:is(:hover, :focus-visible) { background: none; color: var(--text); }
+.blog-px :is(.chip, .pagination__btn, .pagination__page) {
+  border: 0; border-radius: 0; background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi); color: var(--muted); transition: none;
+}
+.blog-px .chip { padding: 4px 8px; font-size: 14px; }
+.blog-px .chip span { color: var(--post); }
+.blog-px :is(.chip, .pagination__btn:not(.is-disabled), .pagination__page):is(:hover, :focus-visible) {
+  transform: none; background: var(--well); box-shadow: inset 0 0 0 2px var(--post); color: var(--text);
+}
+.blog-px :is(.pagination__btn, .pagination__page) { min-width: 44px; height: 44px; box-shadow: inset 0 0 0 4px var(--ink); background: var(--panel-hi); color: var(--text); }
+.blog-px .pagination__page.is-current { background: var(--amber); color: var(--ink); box-shadow: inset 0 0 0 4px var(--ink); }
+.blog-px .share-btn--copy.is-copied { color: var(--ink); background: var(--amber); }
+.blog-px .share-btn--copy.is-copied::after { border: 0; background: var(--amber); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+/* Square corners, so the site's focus ring needs no rounding; the stepped button gets an inner ring (clip-path cuts outlines). */
+.blog-px :focus-visible { border-radius: 0; }
+.blog-px .button--primary:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--text), inset 0 0 0 8px var(--ink); }
 
-/* Keep the title legible now that more of the photo shows through. */
-.article-shell.has-hero-bg .article__header h1,
-.article-shell.has-hero-bg .article__meta,
-.article-shell.has-hero-bg .article__summary {
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.55);
+/* Sidebar */
+.blog-px .blog-sidebar { padding: 24px 24px 24px 40px; top: 112px; }
+.blog-px .blog-sidebar h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font: 400 30px/1 var(--pixel-font); }
+.blog-px .blog-sidebar h3::before { content: ''; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
+.blog-px .text-link { color: var(--amber); font-size: 14px; }
+
+/* Post: one sheet, like the CV's. */
+.blog-px .reading-progress { height: 4px; background: var(--amber); box-shadow: 0 4px 0 var(--ink); }
+.blog-px .article-shell { padding-top: 24px; }
+.blog-px .article { width: min(1000px, 100%); box-sizing: border-box; padding: 48px 48px 48px 64px; }
+.blog-px .article__header { gap: 16px; margin-bottom: 24px; }
+.blog-px .article__header h1 { font-size: 60px; overflow-wrap: anywhere; }
+.blog-px .article__meta { gap: 4px 20px; }
+.blog-px .article__summary { margin: 0; font-size: 17px; line-height: 1.6; color: var(--muted); }
+.blog-px .article__header .chip-row { margin-top: 0; }
+.blog-px .article__cover { max-width: 768px; margin: 0 0 32px; }
+.blog-px .article-toc { padding: 16px 20px; border: 0; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
+.blog-px .article-toc > summary { font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--amber); }
+.blog-px .article-toc ul ul { padding-left: 18px; }   /* the skin flattens lists; keep the TOC's nesting */
+.blog-px .article-toc a { color: var(--muted); }
+.blog-px .article-toc a:hover { color: var(--text); }
+
+.blog-px .article-share { max-width: none; border-top: 4px solid var(--panel-hi); }
+.blog-px .article-share__label { font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--amber); }
+.blog-px .article__footer { border-top: 4px solid var(--panel-hi); }
+
+/* Keep reading */
+.blog-px .related-posts { max-width: 1000px; margin-top: 32px; padding-top: 0; border: 0; }   /* lined up with the sheet and the footer */
+.blog-px .related-posts__title { display: flex; align-items: center; gap: 14px; margin: 0 0 16px; font-size: 30px; }
+.blog-px .related-posts__title::before { content: ''; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
+.blog-px .related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.blog-px .related-card { display: flex; flex-direction: column; gap: 8px; padding: 20px 20px 20px 36px; text-decoration: none; color: var(--text); }
+.blog-px .related-card .px-cover { margin-bottom: 8px; }
+.blog-px .related-card__date { font-size: 14px; color: var(--muted); }
+.blog-px .related-card h3 { margin: 0; font-size: 17px; }
+.blog-px .related-card:is(:hover, :focus-visible) { outline: none; box-shadow: inset 0 0 0 4px var(--post), inset 16px 0 0 0 var(--post), inset 4px 4px 0 4px var(--panel-hi); }
+.blog-px .related-card:is(:hover, :focus-visible) h3 { color: var(--post); }
+
+@media (max-width: 760px) {
+  .blog-px .page-head__copy { padding: 24px 20px 24px 36px; }
+  .blog-px .page-head__copy h1, .blog-px .featured-article h2 { font-size: 40px; }
+  .blog-px :is(.featured-article, .post-row) { padding: 20px 20px 20px 36px; grid-template-columns: 1fr; }
+  .blog-px .post-row__aside { order: -1; width: 100%; }
+  .blog-px .post-row__cta { display: none; }   /* the cover and title already link to the post */
+  .blog-px .article { padding: 28px 20px 28px 36px; }
+  .blog-px .article__header h1 { font-size: 40px; }
 }
 
 .hero .eyebrow {
@@ -402,114 +487,6 @@ h4 a,
   text-transform: uppercase;
 }
 
-/* The cover image layer — dimmed at rest, clear on hover. */
-.has-cover::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image: var(--cover);
-  background-size: cover;
-  background-position: center;
-  opacity: 0.62;
-  transition: opacity 320ms cubic-bezier(0.22, 1, 0.36, 1), transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.has-cover:hover::before,
-.has-cover:focus-within::before {
-  opacity: 1;
-  transform: scale(1.03);
-}
-
-/* Readability scrim: keeps the text legible at the bottom in either state. */
-.has-cover::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(to top,
-    color-mix(in srgb, var(--bg) 88%, transparent) 0%,
-    color-mix(in srgb, var(--bg) 45%, transparent) 52%,
-    transparent 100%);
-}
-
-.has-cover > * {
-  position: relative;
-  z-index: 2;
-}
-
-.has-cover h3 a {
-  color: var(--hero-text);
-}
-
-.has-cover h3 a:hover,
-.has-cover h3 a:focus-visible {
-  color: var(--accent-strong);
-}
-
-.has-cover p {
-  color: var(--hero-soft);
-}
-
-.has-cover h3,
-.has-cover > p {
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.55);
-}
-
-/* "Keep reading" related-posts widget at the end of each blog post. */
-.related-posts {
-  margin-top: clamp(2.5rem, 6vw, 4rem);
-  padding-top: clamp(2rem, 4vw, 3rem);
-  border-top: 1px solid var(--border);
-}
-
-.related-posts__title {
-  margin: 0 0 1.25rem;
-  font-size: clamp(1.4rem, 3vw, 2rem);
-}
-
-.related-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
-.related-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  min-height: 12rem;
-  padding: 1.1rem;
-  overflow: hidden;
-  isolation: isolate;
-  border-radius: var(--radius-lg);
-  background: var(--surface-muted);
-  text-decoration: none;
-  transition: transform var(--transition);
-}
-
-.related-card:hover {
-  transform: translateY(-3px);
-}
-
-.related-card__date {
-  color: var(--hero-soft);
-  font-size: 0.8rem;
-}
-
-.related-card h3 {
-  margin: 0.35rem 0 0;
-  font-size: 1.05rem;
-  line-height: 1.25;
-  color: var(--hero-text);
-}
-
-.related-card:hover h3 {
-  color: var(--accent-strong);
-}
-
 .post-row h2 a,
 .featured-article h2 a,
 .article h1 {
@@ -520,29 +497,7 @@ h4 a,
   max-width: 54rem;
 }
 
-.type-blog .page-head__copy {
-  max-width: none;
-  display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(280px, 0.55fr);
-  gap: 1rem 2rem;
-  align-items: end;
-}
-
-.type-blog .page-head__copy .section-kicker,
-.type-blog .page-head__copy h1 {
-  grid-column: 1;
-}
-
-.type-blog .page-head__copy p {
-  grid-column: 2;
-  margin: 0;
-}
-
-.type-blog .page-head {
-  padding-top: clamp(2.25rem, 5vw, 4.25rem);
-}
-
-.type-blog .blog-layout {
+.blog-layout {
   padding-top: clamp(1.75rem, 3vw, 2.75rem);
 }
 
@@ -1366,22 +1321,6 @@ h4 a,
     padding-top: clamp(2rem, 9vw, 3.25rem);
   }
 
-  .type-blog .page-head__copy {
-    grid-template-columns: 1fr;
-    gap: 0.8rem;
-  }
-
-  .type-blog .page-head__copy .section-kicker,
-  .type-blog .page-head__copy h1,
-  .type-blog .page-head__copy p {
-    grid-column: 1;
-  }
-
-  .type-blog .page-head__copy h1 {
-    font-size: clamp(3.25rem, 20vw, 4.75rem);
-    line-height: 0.9;
-  }
-
   .hero {
     width: min(100vw - 1rem, 1460px);
     min-height: auto;
@@ -1762,7 +1701,7 @@ h4 a,
   background: var(--well); clip-path: var(--stepped);
   box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi);
 }
-.px-prose { font-size: 17px; line-height: 1.7; color: var(--px-text); }
+.px-prose { font-size: 17px; line-height: 1.7; color: var(--px-text); overflow-wrap: break-word; }   /* long URLs wrap on phones */
 .px-prose > * { margin-top: 0; margin-bottom: 18px; }
 .px-prose h2, .px-prose h3, .px-prose h4 { margin: 40px 0 12px; font-family: var(--pixel-font); font-weight: 400; line-height: 1; color: var(--px-text); }
 .px-prose h2 { display: flex; align-items: center; gap: 14px; font-size: 34px; }
@@ -1785,6 +1724,10 @@ h4 a,
 .px-prose pre { position: relative; padding: 20px 22px; overflow: auto; color: var(--px-text); line-height: 1.55; }
 .px-prose pre code { padding: 0; background: none; box-shadow: none; font-size: 14px; }
 .px-prose table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; padding: 6px; font-size: 15px; line-height: 1.5; }
+/* Code and tables scroll sideways, and scrolled content paints over inset shadows: draw their frame as a border and
+   an inset outline instead (outlines paint above the content). Focus turns it into the skin's cream-then-ink ring. */
+.px-prose :is(pre, table) { border: 4px solid var(--ink); box-shadow: none; outline: 2px solid var(--panel-hi); outline-offset: -6px; }
+.px-prose :is(pre, table):focus-visible { border-color: var(--px-text); outline: 4px solid var(--ink); outline-offset: -8px; border-radius: 0; }
 .px-prose th, .px-prose td { padding: 10px 14px; border-bottom: 2px solid var(--panel-hi); text-align: start; vertical-align: top; }
 .px-prose th { font-weight: 600; color: var(--amber); }
 .px-prose tr:last-child td { border-bottom: 0; }
@@ -1813,7 +1756,7 @@ h4 a,
 .px-page .share-btn:focus-visible { outline: none; color: var(--px-text); background: var(--well); box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
 
 /* Search, skills and 404 (layouts/_default/search.html, layouts/skills/list.html, layouts/404.html): sheets over the street.
-   The search script writes .search-result cards itself, so they are styled here. The blog's search box keeps the base look. */
+   The search script writes .search-result cards itself, so they are styled here. The blog sidebar's search box takes these rules too. */
 .px-search__head, .px-skills__head { padding-bottom: 28px; margin-bottom: 24px; border-bottom: 4px solid var(--panel-hi); }
 .px-search h1, .px-skills h1, .px-notfound h1 { margin: 0 0 12px; font-size: 60px; overflow-wrap: anywhere; }
 .px-search__lede, .px-skills__lede, .px-notfound__lede { max-width: 70ch; margin: 0; font-size: 17px; color: var(--px-soft); }

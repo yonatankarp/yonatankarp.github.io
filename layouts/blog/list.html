@@ -3,6 +3,7 @@
 {{ $featured := first 1 $posts }}
 {{ $others := after 1 $posts }}
 {{ $paginator := .Paginate $others }}
+<div class="blog-px">
 <section class="shell page-head reveal-group">
   <div class="page-head__copy reveal">
     <h1>{{ .Title }}</h1>
@@ -13,9 +14,9 @@
 <section class="shell blog-layout reveal-group">
   <div>
     {{ range $featured }}
-    {{ $post := . }}
+    {{ $art := partial "blog-art.html" . }}
     {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
-    <article class="featured-article reveal">
+    <article class="featured-article reveal" style="--post: {{ $art.accent | safeCSS }}">
       <div class="featured-article__body">
         <p class="eyebrow">Latest article</p>
         <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
@@ -23,40 +24,15 @@
         <p>{{ .Description | default (.Summary | plainify) }}</p>
         <a class="button button--primary" href="{{ .RelPermalink }}">Read article</a>
       </div>
-      {{ with .Params.images.featured_image }}
-      <img src="{{ . | relURL }}" alt="{{ $post.Title }}" loading="lazy" decoding="async">
+      {{ if $art.cover }}
+      <img class="px-cover" src="{{ $art.cover }}" alt="{{ .Title }}" width="192" height="108" decoding="async">
       {{ end }}
     </article>
     {{ end }}
 
     <div class="post-list">
       {{ range $paginator.Pages }}
-      {{ $post := . }}
-      {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
-      <article class="post-row reveal">
-        <div class="post-row__body">
-          <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ $readingTime }} min read · {{ .WordCount }} words</p>
-          <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
-          <p>{{ .Description | default (.Summary | plainify) }}</p>
-          <div class="chip-row">
-            {{ range .GetTerms "tags" }}<a class="chip" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
-          </div>
-        </div>
-        <div class="post-row__aside">
-          {{ $fallbackLabel := "Article" }}
-          {{ with index (.GetTerms "tags") 0 }}{{ $fallbackLabel = .LinkTitle }}{{ end }}
-          <a class="post-row__thumb{{ with .Params.images.featured_image }} has-image{{ else }} post-row__thumb--fallback{{ end }}" href="{{ $post.RelPermalink }}" aria-label="Read {{ .Title }}">
-          {{ with .Params.images.featured_image }}
-            <img src="{{ . | relURL }}" alt="{{ $post.Title }}" loading="lazy" decoding="async">
-          {{ else }}
-            <span class="post-row__fallback-kicker">{{ $fallbackLabel }}</span>
-            <span class="post-row__fallback-title">{{ .Title }}</span>
-            <span class="post-row__fallback-mark" aria-hidden="true"></span>
-          {{ end }}
-          </a>
-          <a class="post-row__cta" href="{{ .RelPermalink }}" aria-label="Read {{ .Title }}">Read article <span aria-hidden="true">&rarr;</span></a>
-        </div>
-      </article>
+      {{ partial "blog-row.html" . }}
       {{ end }}
     </div>
 
@@ -106,4 +82,5 @@
     </section>
   </aside>
 </section>
+</div>
 {{ end }}

@@ -20,7 +20,20 @@
 {{ else }}
   {{ errorf "The homepage needs the pixel building bundle in assets/building/: run `npm run build:building` first." }}
 {{ end }}
-{{ $cv := "yonatan-karp-rudin-cv.pdf" | relURL }}
+{{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
+{{ $taken := slice "E" "R" "8" "1" "L" "P" }}{{/* storeys the template draws itself */}}
+{{ range $experience }}
+  {{ $f := .Params.floor }}
+  {{ if ne (printf "%T" $f) "string" }}{{ errorf "%s: set `floor` to a quoted storey, such as floor: \"5\" (got %v)." .File.Path $f }}
+  {{ else if not (index $accent $f) }}{{ errorf "%s: floor %q has no colour in data/floor_accents.yaml, so the building has no storey for it (ORDER in web3d/src/pixel.js)." .File.Path $f }}
+  {{ else if in $taken $f }}{{ errorf "%s: floor %q is already taken; every experience needs its own storey." .File.Path $f }}
+  {{ else }}{{ $taken = $taken | append $f }}{{ end }}
+  {{ if not .Params.highlights }}{{ errorf "%s: add `highlights`, a list of what you did there." .File.Path }}{{ end }}
+{{ end }}
+{{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
+{{ range $projects }}{{ if not .Params.link }}{{ errorf "%s: add `link`, where the parking panel sends the reader." .File.Path }}{{ end }}{{ end }}
+{{- /* `npm run serve` never makes the PDF (`npm run build` does), so the dev server offers the web CV instead. */}}
+{{ $cv := cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
 <head>
@@ -51,7 +64,7 @@
         <svg width="14" height="14" viewBox="0 0 7 7" aria-hidden="true"><path class="i-pause" fill="currentColor" d="M1 1h2v5H1zM4 1h2v5H4z"/><path class="i-play" fill="currentColor" d="M2 0h1v7H2zM3 1h1v5H3zM4 2h1v3H4zM5 3h1v1H5z"/></svg>
       </button>
     </div>
-    <a class="building-download" href="{{ $cv }}" download aria-label="Download CV (PDF)">
+    <a class="building-download" href="{{ $cv }}"{{ if not hugo.IsServer }} download{{ end }} aria-label="Download CV (PDF)">
       <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
       <span>Download CV</span>
     </a>
@@ -93,7 +106,7 @@
         <h2 id="fR" tabindex="-1">{{ $home.contact.title }}</h2>
         <p class="floor-lead">{{ $home.contact.text }}</p>
         <ul>{{ range $home.contact.priorities }}<li>{{ . }}</li>{{ end }}</ul>
-        <p class="floor-skills"><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>, <a href="https://github.com/yonatankarp">GitHub</a>, <a href="https://www.linkedin.com/in/yonatankarp/">LinkedIn</a></p>
+        <p class="floor-skills">{{ with $home.contact.email.address }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}{{ range $home.contact.links }}, <a href="{{ .url }}">{{ .label }}</a>{{ end }}</p>
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Step inside</button></div>
       </article>
       <div class="floor-panel" id="panel-R" style="--accent:{{ index $accent "R" }}" tabindex="-1" role="region" aria-labelledby="ptR">
@@ -107,7 +120,7 @@
         <h3>{{ strings.TrimSuffix "." $home.outcomes.title }}</h3>
         <div class="panel-grid">{{ range $home.outcomes.items }}<div><b>{{ .title }}</b><span>{{ .text }}</span></div>{{ end }}</div>
         <h3>Get in touch</h3>
-        <ul><li><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li><li><a href="https://github.com/yonatankarp">github.com/yonatankarp</a></li><li><a href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a></li></ul>
+        <ul>{{ with $home.contact.email.address }}<li><a href="mailto:{{ . }}">{{ . }}</a></li>{{ end }}{{ range $home.contact.links }}<li><a href="{{ .url }}">{{ .text }}</a></li>{{ end }}</ul>
       </div>
     </section>
 
@@ -125,7 +138,7 @@
         <ul class="panel-projects">
           {{ range first 8 $posts }}
           <li><a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (replace .Title " - " " – ") }}</a> <span class="panel-soft">· {{ .Date.Format "Jan 2006" }}</span>
-            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 180 "…" }}</span></li>
+            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 240 "…" }}</span></li>
           {{ end }}
         </ul>
         <p><a href="{{ "blog/" | relURL }}">All posts</a></p>
@@ -175,7 +188,8 @@
         <header><span class="floor-badge">1</span><span class="floor-company">{{ .Params.university }}</span><span class="floor-when">{{ replace .Params.year "-" " – " }}</span></header>
         <h2 id="f1" tabindex="-1">{{ .Params.degree }}</h2>
         <p class="floor-lead">{{ $home.education.title }}</p>
-        <ul>{{ range first 4 $courses }}<li>{{ .Title }} ({{ .Params.year }})</li>{{ end }}</ul>
+        <p class="panel-soft">Courses and workshops:</p>
+        <ul>{{ range first 4 $courses }}<li>{{ .Title }} <span class="panel-soft">· {{ .Params.degree }}, {{ .Params.year }}</span></li>{{ end }}</ul>
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-1" aria-expanded="false">Step inside</button></div>
       </article>
       <div class="floor-panel" id="panel-1" style="--accent:{{ index $accent "1" }}" tabindex="-1" role="region" aria-labelledby="pt1">
@@ -261,7 +275,7 @@
           {{- /* A case study's own page first, its repository or docs second (#33). */}}
           {{ $name := partial "nobreak.html" (replace .Title " (contributor)" "") }}
           <li>{{ if .Params.caseStudy }}{{ $name }}{{ else }}<a href="{{ .Params.link }}">{{ $name }}</a>{{ end }} <span class="panel-soft">· {{ .Params.projectKind }}</span>
-            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 180 "…" }}</span>
+            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 240 "…" }}</span>
             {{ if .Params.caseStudy }}<span class="panel-desc"><a href="{{ .RelPermalink }}">Case study</a> · <a href="{{ .Params.link }}">{{ .Params.button.btnText }}</a></span>{{ end }}
             {{ with .Params.tech }}<span class="panel-chips">{{ range . }}<i>{{ . }}</i>{{ end }}</span>{{ end }}</li>
           {{ end }}

@@ -1680,6 +1680,8 @@ h4 a,
 .px-cta { align-self: flex-start; margin-top: 4px; padding: 6px 12px; font: 400 22px/1 var(--pixel-font); background: var(--amber); color: var(--ink);
   clip-path: var(--stepped); box-shadow: inset 0 0 0 3px var(--ink); }
 .px-cta--out { background: var(--panel); color: var(--px-text); box-shadow: inset 0 0 0 3px var(--panel-hi); }
+.px-skin .px-cta, .px-skin .px-cta:hover { color: var(--ink); }   /* beats .px-skin a { color: inherit }, or an a.px-cta reads cream on amber (#114) */
+.px-skin .px-cta--out, .px-skin .px-cta--out:hover { color: var(--px-text); }
 @media screen and (max-width: 1000px) { .px-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media screen and (max-width: 640px) { .px-grid { grid-template-columns: 1fr; } .px-projects h1 { font-size: 44px; } }
 

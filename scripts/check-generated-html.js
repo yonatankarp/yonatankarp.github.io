@@ -364,6 +364,23 @@ for (const filePath of htmlFiles) {
   }
 }
 
+// One current location, contact.location in data/home/en.yaml: the roof's "Based in", the CV's role line and the
+// homepage description (hugo.toml, by hand) must all say it (#115).
+{
+  const home = fs.readFileSync(path.join(publicDir, "index.html"), "utf8");
+  const cv = fs.readFileSync(path.join(publicDir, "cv", "index.html"), "utf8");
+  const basedIn = home.match(/<dt>Based in<\/dt>\s*<dd>([\s\S]*?)<\/dd>/)?.[1];
+  const role = cv.match(/<p\b[^>]*class=["']?cv-role(?=["'\s>])[^>]*>([\s\S]*?)<\/p>/)?.[1];
+  const cvLocation = role && decodeEntities(stripTags(role)).match(/·\s*(.+?)(?:\s*\(|$)/)?.[1];
+  const description = collectAttribute(home.match(/<meta\b[^>]*name=["']?description["'\s>][^>]*>/)?.[0] ?? "", "content");
+
+  if (!basedIn || !cvLocation || decodeEntities(stripTags(basedIn)) !== cvLocation) {
+    failures.push(`location: the homepage roof says "${basedIn}" and the CV says "${cvLocation}"; both should read contact.location`);
+  } else if (!description?.includes(cvLocation)) {
+    failures.push(`location: the homepage description "${description}" does not say "${cvLocation}"; update description in hugo.toml`);
+  }
+}
+
 if (failures.length > 0) {
   console.error("Generated HTML check failed:");
   for (const failure of failures) {

@@ -493,7 +493,7 @@ section[id] {
 .blog-px .post-row { margin-top: 0; }
 .blog-px .featured-article { margin-bottom: 16px; padding: 32px 32px 32px 48px; align-items: center; }
 .blog-px .post-row { padding: 24px 24px 24px 40px; grid-template-columns: minmax(0, 1fr) 288px; }
-.blog-px .featured-article h2 { font-size: 60px; }
+.blog-px .featured-article h2 { font-size: 45px; }   /* on Jersey 15's 15px grid; 60px wraps to five lines beside the cover */
 .blog-px .post-row h2 { font-size: 30px; }
 .blog-px :is(.featured-article, .post-row) h2 a { color: var(--text); }
 .blog-px :is(.featured-article, .post-row) h2 a:hover { color: var(--post); }
@@ -568,7 +568,7 @@ section[id] {
 .blog-px .prose ul > li { position: relative; padding-left: 20px; }
 .blog-px .prose ul > li::before { content: ''; position: absolute; left: 0; top: 0.65em; width: 8px; height: 8px; background: var(--post); }
 .blog-px .prose blockquote {
-  padding: 12px 16px 12px 32px; border: 0; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink), inset 16px 0 0 0 var(--post);
+  margin-inline: 0; padding: 12px 16px 12px 32px; border: 0; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink), inset 16px 0 0 0 var(--post);
   font: 400 17px/1.7 'Outfit', system-ui, sans-serif;
 }
 .blog-px .prose blockquote > :last-child { margin-bottom: 0; }

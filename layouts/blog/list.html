@@ -3,7 +3,7 @@
 {{ $featured := first 1 $posts }}
 {{ $others := after 1 $posts }}
 {{ $paginator := .Paginate $others }}
-<div class="blog-px" style="--scene: url({{ "building/pixel/exterior.png" | relURL }})">
+<div class="blog-px">
 <section class="shell page-head reveal-group">
   <div class="page-head__copy reveal">
     <h1>{{ .Title }}</h1>

@@ -166,42 +166,25 @@ section[id] {
   box-shadow: var(--shadow);
 }
 
-/* Blog (layouts/blog/, inside .blog-px): the building's pixel skin, as on the CV. The street at dusk behind, dark
-   stepped panels with a hard ink frame and a stripe in the post's floor colour (layouts/partials/blog-art.html),
-   Jersey 15 for display at 30 or 60px, Outfit for reading. The site's tokens are re-pointed here, so the shared
-   rules further down (chips, pagination, prose) take the palette and lose their rounded corners. */
+/* Blog (layouts/blog/ and layouts/_default/taxonomy.html, inside .blog-px): the blog's own pieces on the pixel skin.
+   <body> wears .px-skin .px-page (layouts/_default/baseof.html), which brings the tokens, the street, the headings,
+   the footer and, through .px-prose, the article body. Dark stepped panels with a stripe in the post's floor colour
+   (layouts/partials/blog-art.html). The older shared rules the blog still leans on (chips, pagination, post rows)
+   read the site's tokens, so those point at the skin's here. */
 .blog-px {
-  --ink: #0a0b10;
-  --panel: #151923;
-  --panel-hi: #2b3344;
-  --well: #10131b;
-  --amber: #ffb547;
   --post: var(--amber);
-  --pixel-font: 'Jersey 15', system-ui, sans-serif;
-  --stepped: polygon(4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px),
-    calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px), 0 4px, 4px 4px);
-  --text: #f2ece0;
-  --muted: #d3cabb;
-  --hero-soft: #d3cabb;
+  --text: var(--px-text);
+  --muted: var(--px-soft);
+  --hero-soft: var(--px-soft);
   --border: var(--panel-hi);
   --surface: var(--panel);
   --surface-muted: var(--well);
   --accent: var(--amber);
-  --accent-strong: #ffc46a;
-  --code-bg: var(--well);
+  --accent-strong: var(--amber);
   --radius-xl: 0; --radius-lg: 0; --radius-md: 0; --radius-sm: 0;
   --shadow: none; --shadow-soft: none;
   padding-bottom: 64px;
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
 }
-/* The street from the homepage, dimmed: first frame of its strip (12 frames of 480x336). */
-.blog-px::before {
-  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; image-rendering: pixelated;
-  background: linear-gradient(rgba(12, 14, 20, 0.62), rgba(12, 14, 20, 0.62)), var(--scene) 0 100% / 1200% auto no-repeat;
-}
-.blog-px :where(h1, h2) { font-family: var(--pixel-font); font-weight: 400; letter-spacing: 0.01em; line-height: 1; text-wrap: initial; }
-.blog-px h3 { font-family: 'Outfit', system-ui, sans-serif; font-weight: 600; letter-spacing: 0; line-height: 1.3; }
 .blog-px .px-cover { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; image-rendering: pixelated; border: 4px solid var(--ink); box-sizing: border-box; }
 
 /* Panels: the floor card's frame. */
@@ -248,17 +231,16 @@ section[id] {
 .blog-px .button--primary:active { transform: translateY(4px); }
 .blog-px .post-row__cta { min-height: 0; padding: 0; border: 0; color: var(--post); font-size: 15px; font-weight: 500; }
 .blog-px .post-row__cta:is(:hover, :focus-visible) { background: none; color: var(--text); }
-.blog-px :is(.chip, .pagination__btn, .pagination__page, .share-btn) {
+.blog-px :is(.chip, .pagination__btn, .pagination__page) {
   border: 0; border-radius: 0; background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi); color: var(--muted); transition: none;
 }
 .blog-px .chip { padding: 4px 8px; font-size: 14px; }
 .blog-px .chip span { color: var(--post); }
-.blog-px :is(.chip, .pagination__btn:not(.is-disabled), .pagination__page, .share-btn):is(:hover, :focus-visible) {
+.blog-px :is(.chip, .pagination__btn:not(.is-disabled), .pagination__page):is(:hover, :focus-visible) {
   transform: none; background: var(--well); box-shadow: inset 0 0 0 2px var(--post); color: var(--text);
 }
-.blog-px :is(.pagination__btn, .pagination__page, .share-btn) { min-width: 44px; height: 44px; box-shadow: inset 0 0 0 4px var(--ink); background: var(--panel-hi); color: var(--text); }
+.blog-px :is(.pagination__btn, .pagination__page) { min-width: 44px; height: 44px; box-shadow: inset 0 0 0 4px var(--ink); background: var(--panel-hi); color: var(--text); }
 .blog-px .pagination__page.is-current { background: var(--amber); color: var(--ink); box-shadow: inset 0 0 0 4px var(--ink); }
-.blog-px .share-btn { width: 44px; }
 .blog-px .share-btn--copy.is-copied { color: var(--ink); background: var(--amber); }
 .blog-px .share-btn--copy.is-copied::after { border: 0; background: var(--amber); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
 /* Square corners, so the site's focus ring needs no rounding; the stepped button gets an inner ring (clip-path cuts outlines). */
@@ -269,56 +251,30 @@ section[id] {
 .blog-px .blog-sidebar { padding: 24px 24px 24px 40px; top: 112px; }
 .blog-px .blog-sidebar h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font: 400 30px/1 var(--pixel-font); }
 .blog-px .blog-sidebar h3::before { content: ''; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
-.blog-px .search-input { border: 0; border-radius: 0; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); color: var(--text); }
-.blog-px .search-input:focus { box-shadow: inset 0 0 0 4px var(--amber); outline: none; }
 .blog-px .text-link { color: var(--amber); font-size: 14px; }
 
 /* Post: one sheet, like the CV's. */
 .blog-px .reading-progress { height: 4px; background: var(--amber); box-shadow: 0 4px 0 var(--ink); }
 .blog-px .article-shell { padding-top: 24px; }
-.blog-px .article { width: min(960px, 100%); box-sizing: border-box; padding: 48px 48px 48px 64px; }
+.blog-px .article { width: min(1000px, 100%); box-sizing: border-box; padding: 48px 48px 48px 64px; }
 .blog-px .article__header { gap: 16px; margin-bottom: 24px; }
-.blog-px .article__header h1 { font-size: 60px; }
+.blog-px .article__header h1 { font-size: 60px; overflow-wrap: anywhere; }
 .blog-px .article__meta { gap: 4px 20px; }
 .blog-px .article__summary { margin: 0; font-size: 17px; line-height: 1.6; color: var(--muted); }
 .blog-px .article__header .chip-row { margin-top: 0; }
 .blog-px .article__cover { max-width: 768px; margin: 0 0 32px; }
 .blog-px .article-toc { padding: 16px 20px; border: 0; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
 .blog-px .article-toc > summary { font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--amber); }
+.blog-px .article-toc ul ul { padding-left: 18px; }   /* the skin flattens lists; keep the TOC's nesting */
 .blog-px .article-toc a { color: var(--muted); }
 .blog-px .article-toc a:hover { color: var(--text); }
 
-.blog-px .prose { font-size: 17px; line-height: 1.7; }
-.blog-px .prose :is(p, li) { font-size: 17px; }
-.blog-px .prose h2 { display: flex; align-items: center; gap: 14px; margin-top: 48px; font-size: 30px; }
-.blog-px .prose h2::before { content: ''; flex: none; width: 12px; height: 12px; background: var(--post); box-shadow: 4px 4px 0 var(--ink); }
-.blog-px .prose h3 { margin-top: 32px; font-size: 20px; }
-.blog-px .prose h4 { margin-top: 24px; font: 600 17px/1.3 'Outfit', system-ui, sans-serif; letter-spacing: 0; }
-.blog-px .prose a { text-decoration-color: var(--amber); text-underline-offset: 4px; }
-.blog-px .prose a:hover { color: var(--amber); }
-.blog-px .prose ul { list-style: none; padding-inline-start: 0; }
-.blog-px .prose ul > li { position: relative; padding-left: 20px; }
-.blog-px .prose ul > li::before { content: ''; position: absolute; left: 0; top: 0.65em; width: 8px; height: 8px; background: var(--post); }
-.blog-px .prose blockquote {
-  margin-inline: 0; padding: 12px 16px 12px 32px; border: 0; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink), inset 16px 0 0 0 var(--post);
-  font: 400 17px/1.7 'Outfit', system-ui, sans-serif;
-}
-.blog-px .prose blockquote > :last-child { margin-bottom: 0; }
-.blog-px .prose img { border: 4px solid var(--ink); box-sizing: border-box; }
-/* A border, not an inset shadow, so code scrolling sideways never paints over the frame. */
-.blog-px .prose pre { border: 4px solid var(--ink); background: var(--well); font-size: 15px; line-height: 1.6; }
-.blog-px .highlight pre { background-color: var(--well) !important; }   /* over the darcula style's inline background */
-.blog-px .prose :not(pre) > code { padding: 1px 6px; background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi); }
-.blog-px .code-copy { border: 0; border-radius: 0; background: var(--panel-hi); box-shadow: inset 0 0 0 2px var(--ink); color: var(--text); }
-.blog-px .code-copy:hover { background: var(--amber); color: var(--ink); }
-.blog-px .prose th { background: var(--panel-hi); }
-.blog-px .prose :is(th, td) { border-bottom: 2px solid var(--panel-hi); }
 .blog-px .article-share { max-width: none; border-top: 4px solid var(--panel-hi); }
 .blog-px .article-share__label { font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--amber); }
 .blog-px .article__footer { border-top: 4px solid var(--panel-hi); }
 
 /* Keep reading */
-.blog-px .related-posts { max-width: 960px; margin-top: 32px; padding-top: 0; border: 0; }   /* lined up with the sheet */
+.blog-px .related-posts { max-width: 1000px; margin-top: 32px; padding-top: 0; border: 0; }   /* lined up with the sheet and the footer */
 .blog-px .related-posts__title { display: flex; align-items: center; gap: 14px; margin: 0 0 16px; font-size: 30px; }
 .blog-px .related-posts__title::before { content: ''; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
 .blog-px .related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
@@ -335,10 +291,8 @@ section[id] {
   .blog-px :is(.featured-article, .post-row) { padding: 20px 20px 20px 36px; grid-template-columns: 1fr; }
   .blog-px .post-row__aside { order: -1; width: 100%; }
   .blog-px .post-row__cta { display: none; }   /* the cover and title already link to the post */
-  .blog-px .prose pre { font-size: 13px; }
   .blog-px .article { padding: 28px 20px 28px 36px; }
   .blog-px .article__header h1 { font-size: 40px; }
-  .blog-px .prose h2 { font-size: 30px; }
 }
 
 .hero .eyebrow {
@@ -1367,22 +1321,6 @@ h4 a,
     padding-top: clamp(2rem, 9vw, 3.25rem);
   }
 
-  .type-blog .page-head__copy {
-    grid-template-columns: 1fr;
-    gap: 0.8rem;
-  }
-
-  .type-blog .page-head__copy .section-kicker,
-  .type-blog .page-head__copy h1,
-  .type-blog .page-head__copy p {
-    grid-column: 1;
-  }
-
-  .type-blog .page-head__copy h1 {
-    font-size: clamp(3.25rem, 20vw, 4.75rem);
-    line-height: 0.9;
-  }
-
   .hero {
     width: min(100vw - 1rem, 1460px);
     min-height: auto;
@@ -1763,7 +1701,7 @@ h4 a,
   background: var(--well); clip-path: var(--stepped);
   box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi);
 }
-.px-prose { font-size: 17px; line-height: 1.7; color: var(--px-text); }
+.px-prose { font-size: 17px; line-height: 1.7; color: var(--px-text); overflow-wrap: break-word; }   /* long URLs wrap on phones */
 .px-prose > * { margin-top: 0; margin-bottom: 18px; }
 .px-prose h2, .px-prose h3, .px-prose h4 { margin: 40px 0 12px; font-family: var(--pixel-font); font-weight: 400; line-height: 1; color: var(--px-text); }
 .px-prose h2 { display: flex; align-items: center; gap: 14px; font-size: 34px; }
@@ -1786,6 +1724,10 @@ h4 a,
 .px-prose pre { position: relative; padding: 20px 22px; overflow: auto; color: var(--px-text); line-height: 1.55; }
 .px-prose pre code { padding: 0; background: none; box-shadow: none; font-size: 14px; }
 .px-prose table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; padding: 6px; font-size: 15px; line-height: 1.5; }
+/* Code and tables scroll sideways, and scrolled content paints over inset shadows: draw their frame as a border and
+   an inset outline instead (outlines paint above the content). Focus turns it into the skin's cream-then-ink ring. */
+.px-prose :is(pre, table) { border: 4px solid var(--ink); box-shadow: none; outline: 2px solid var(--panel-hi); outline-offset: -6px; }
+.px-prose :is(pre, table):focus-visible { border-color: var(--px-text); outline: 4px solid var(--ink); outline-offset: -8px; border-radius: 0; }
 .px-prose th, .px-prose td { padding: 10px 14px; border-bottom: 2px solid var(--panel-hi); text-align: start; vertical-align: top; }
 .px-prose th { font-weight: 600; color: var(--amber); }
 .px-prose tr:last-child td { border-bottom: 0; }
@@ -1814,7 +1756,7 @@ h4 a,
 .px-page .share-btn:focus-visible { outline: none; color: var(--px-text); background: var(--well); box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
 
 /* Search, skills and 404 (layouts/_default/search.html, layouts/skills/list.html, layouts/404.html): sheets over the street.
-   The search script writes .search-result cards itself, so they are styled here. The blog's search box keeps the base look. */
+   The search script writes .search-result cards itself, so they are styled here. The blog sidebar's search box takes these rules too. */
 .px-search__head, .px-skills__head { padding-bottom: 28px; margin-bottom: 24px; border-bottom: 4px solid var(--panel-hi); }
 .px-search h1, .px-skills h1, .px-notfound h1 { margin: 0 0 12px; font-size: 60px; overflow-wrap: anywhere; }
 .px-search__lede, .px-skills__lede, .px-notfound__lede { max-width: 70ch; margin: 0; font-size: 17px; color: var(--px-soft); }

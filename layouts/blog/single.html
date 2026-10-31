@@ -1,5 +1,5 @@
 {{ define "main" }}
-<div class="blog-px" style="--scene: url({{ "building/pixel/exterior.png" | relURL }})">
+<div class="blog-px">
 <div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
 {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
 {{ $art := partial "blog-art.html" . }}
@@ -27,7 +27,7 @@
     </details>
     {{ end }}
 
-    <div class="article__content prose">
+    <div class="article__content px-prose">
       {{ .Content }}
     </div>
 

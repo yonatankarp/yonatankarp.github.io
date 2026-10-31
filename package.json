@@ -16,7 +16,7 @@
     "serve": "npm run build:building && node scripts/run-hugo.js server --renderToMemory",
     "serve:local": "npm run build:building && node scripts/run-hugo.js server --renderToMemory",
     "visual:compare": "node scripts/compare-visual-captures.js",
-    "build:building": "vite build --config web3d/vite.config.js",
+    "build:building": "vite build --config web3d/vite.config.mjs",
     "pdf": "node scripts/generate-cv-pdf.js"
   },
   "devDependencies": {

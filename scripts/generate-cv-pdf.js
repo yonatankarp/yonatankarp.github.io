@@ -99,6 +99,8 @@ function createStaticServer() {
       format: "A4",
       printBackground: true,
       preferCSSPageSize: false,
+      tagged: true,    // headings, lists and reading order for screen readers and ATS parsers
+      outline: true,   // bookmarks from the headings
     });
   } finally {
     await browser.close();

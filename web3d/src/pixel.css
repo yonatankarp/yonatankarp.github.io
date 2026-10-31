@@ -27,7 +27,7 @@
 .pixel .px-box, .pixel .floor-card, .pixel .floor-badge, .pixel .building-download, .pixel .building-name,
 .pixel .elevator, .pixel .building-floor-btn, .pixel .elevator-display, .pixel .building-hint, .pixel .step-in,
 .pixel .panel-back, .pixel .building-links a, .pixel .panel-case, .pixel .panel-chips i, .pixel .panel-quote img,
-.pixel .floor-card .hero-cta, .pixel .floor-panel {
+.pixel .floor-card .hero-cta, .pixel .floor-panel, .pixel .building-pause, .pixel .floor-case, .pixel .floor-end {
   border-radius: 0;
   clip-path: polygon(
     var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
@@ -146,7 +146,7 @@
 /* The stepped clip-path cuts any outline away, so focus is a ring drawn inside the box: cream, then ink. */
 .pixel .building-name:focus-visible, .pixel .building-floor-btn:focus-visible, .pixel .building-download:focus-visible,
 .pixel .floor-card .step-in:focus-visible, .pixel .panel-back:focus-visible, .pixel .building-links a:focus-visible,
-.pixel .floor-card .hero-cta:focus-visible {
+.pixel .floor-card .hero-cta:focus-visible, .pixel .building-pause:focus-visible {
   outline: none; box-shadow: inset 0 0 0 4px var(--text), inset 0 0 0 8px var(--ink);
 }
 .pixel .building-hint { left: calc(50% + 12px + min(200px, 15vw)); white-space: nowrap; border-radius: 0; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; }
@@ -213,11 +213,12 @@
 }
 @media (min-width: 761px) and (max-width: 1279px) and (min-aspect-ratio: 1201/1000) {   /* the panel moves beside the download button, clear of the name */
   .pixel .elevator { left: auto; right: 96px; transform: none; padding: 8px 10px; gap: 4px; }
-  .pixel .building-floor-btn { width: 36px; height: 44px; }
+  .pixel .building-floor-btn { width: 36px; height: 40px; }   /* 56px tall like the name and download, the plate's bevel showing as on desktop */
 }
 @media (min-width: 761px) and (max-width: 919px) and (min-aspect-ratio: 1201/1000) {   /* no room beside the name either: under the download button, on the links' row (#42) */
   .building.pixel { --street-top: 134px; }
   .pixel .elevator { top: 78px; right: clamp(16px, 3vw, 36px); padding: 4px 10px; }   /* 52px tall: between the name and the card */
+  .pixel .building-floor-btn { height: 44px; }
   /* Three links and the pause no longer fit beside it: pause goes up beside the download button, as tall. */
   html.building--guided .pixel .building-pause { position: fixed; top: 21px; right: calc(clamp(16px, 3vw, 36px) + 56px); width: 44px; height: 52px; justify-content: center; }
 }
@@ -235,7 +236,6 @@ html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card 
 .pixel .building-pause { display: flex; align-items: center; padding: 0 10px; border: 0; cursor: pointer; color: var(--text); background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .building-pause[hidden] { display: none; }
 .pixel .building-pause:hover { background: var(--panel-hi); }
-.pixel .building-pause:focus-visible { outline: 4px solid var(--text); outline-offset: 4px; }
 .pixel .building-pause svg { shape-rendering: crispEdges; }
 .pixel .building-pause[data-paused="true"] .i-pause, .pixel .building-pause:not([data-paused="true"]) .i-play { display: none; }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
@@ -355,17 +355,21 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
 .pixel .floor-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: 0 0 16px; font-size: 15px; }
 .pixel .floor-card .hero-cta {
   display: inline-flex; padding: 10px 16px; color: var(--ink); text-decoration: none;
-  background: var(--accent, var(--amber)); font: 400 24px/1 var(--display);
+  background: var(--accent, var(--amber)); font: 400 30px/1 var(--display); text-wrap: balance;
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px rgba(255, 255, 255, 0.35);
 }
 /* A floor with a case study says so before its summary; the button opens it (#34). */
 .pixel .floor-case { margin: 0 0 14px; padding: 10px 14px; font-size: 15px; line-height: 1.45; background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .floor-case b { display: block; font-weight: 500; color: var(--accent-text, var(--accent, var(--amber))); }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* the phone's short card: the case study's name, its title inside */
-  .pixel .floor-case { margin-bottom: 6px; padding: 0; background: none; box-shadow: none; }   /* text, not a box that looks tappable */
+  .pixel .floor-case { margin-bottom: 6px; padding: 0; background: none; box-shadow: none; clip-path: none; }   /* text, not a box that looks tappable */
   .pixel .floor-case span { display: none; }
 }
-@media (max-width: 1279px) { .pixel .floor-card .step-in { font-size: 20px; } }   /* "Read the case studies" on one line in a narrow card */
+/* "Read the case studies" needs a 310px button at 30px: the 30vw cards under 1280px and phones under 390px take 15px. */
+@media (min-width: 761px) and (max-width: 1279px) and (min-aspect-ratio: 1201/1000), (max-width: 389px) {
+  .pixel .floor-card .step-in { font-size: 15px; min-height: 44px; }
+  .pixel .floor-card .step-in::after { width: 10px; height: 10px; margin-left: 8px; mask-size: 10px 10px; }   /* the arrow at 1x, like the text */
+}
 /* P: the bottom of the line says so. */
 .pixel .floor-end { margin: 16px 0 0; padding: 10px 14px; font-size: 15px; color: var(--text-soft); background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* the street leaves the card ~38svh: keep the how-to, the title and the way to get in touch in view */
@@ -374,8 +378,9 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
   .pixel .building-stop--hero .floor-card h1 { margin-bottom: 10px; }
   .pixel .floor-open { margin-bottom: 8px; font-size: 15px; }
   .pixel .floor-cta { margin-bottom: 0; gap: 6px 16px; }
-  .pixel .floor-card .hero-cta { font-size: 20px; padding: 8px 12px; white-space: nowrap; }
+  .pixel .floor-card .hero-cta { padding: 8px 12px; white-space: nowrap; }   /* one line in a portrait tablet's wide card */
 }
+@media (max-width: 760px) { .pixel .floor-card .hero-cta { font-size: 15px; min-height: 36px; box-sizing: border-box; align-items: center; } }   /* a phone's row is too narrow for 30px; as tall as before, so the card still fits */
 @media (max-width: 760px) and (max-height: 740px), (max-aspect-ratio: 6/5) and (max-height: 740px) {   /* short phones: the way to get in touch first, the availability under it */
   html.building--guided .pixel .building-stop--hero .floor-card { display: flex; flex-direction: column; }
   html.building--guided .pixel .building-stop--hero .floor-card > * { flex-shrink: 0; }

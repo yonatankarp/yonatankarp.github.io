@@ -1563,18 +1563,28 @@ h4 a,
 .px-skin ul { margin: 0; padding: 0; list-style: none; }
 .px-skin .skip-link { background: var(--amber); color: var(--ink); border-radius: 0; font: 400 24px/1 var(--pixel-font); box-shadow: inset 0 0 0 4px var(--ink); }
 
-/* Top bar: the homepage's name plate with the tabs under it, and the Download button on the right. */
-.px-bar { display: flex; align-items: flex-start; gap: 12px 16px; padding: 20px clamp(16px, 3vw, 36px); }
+/* Top bar (layouts/partials/pixel-bar.html), laid out as on the homepage: the name plate with the tabs under it,
+   the Download button on the right with the social row under it. */
+.px-bar {
+  display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "name . download" "links . social";
+  align-items: start; gap: 8px 16px; padding: 20px clamp(16px, 3vw, 36px);
+}
 .px-bar a { color: var(--px-text); text-decoration: none; }
-.px-bar__left { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
-.px-bar__name, .px-download { clip-path: var(--stepped); }
-.px-bar__name { padding: 12px 18px; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); font: 400 30px/1 var(--pixel-font); }
-.px-bar__tabs { display: flex; gap: 8px; }
-.px-bar__tabs a { padding: 6px 12px; font-size: 15px; font-weight: 500; line-height: 1.6; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); }
+.px-bar__name { grid-area: name; justify-self: start; }
+.px-bar__links { grid-area: links; }
+.px-bar__social { grid-area: social; justify-self: end; display: flex; gap: 8px; }
+.px-bar__name, .px-download, .px-bar__tabs a, .px-bar__social a { clip-path: var(--stepped); }
+.px-bar__name { display: flex; align-items: center; box-sizing: border-box; height: 56px; padding: 0 18px; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); font: 400 30px/1 var(--pixel-font); }
+.px-bar__tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.px-bar__tabs a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; font-size: 15px; font-weight: 500; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); }
 .px-bar__tabs a:hover { background: var(--panel-hi); }
 .px-bar__tabs a[aria-current] { background: var(--amber); color: var(--ink); }
+.px-bar__social a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); }
+.px-bar__social a:hover { color: var(--amber); background: var(--panel-hi); }
+.px-bar__social svg { shape-rendering: crispEdges; }
 .px-download {
-  display: inline-flex; align-items: center; gap: 10px; margin-left: auto; padding: 0 20px; min-height: 52px;
+  grid-area: download; justify-self: end;
+  display: inline-flex; align-items: center; gap: 10px; padding: 0 20px; min-height: 56px;
   background: var(--amber); color: var(--ink) !important; font: 400 30px/1 var(--pixel-font);
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a, inset -4px -4px 0 4px #d38f1b;
 }
@@ -1640,16 +1650,22 @@ h4 a,
 .cv-teaching span { display: block; font-size: 13px; }
 
 @media screen and (max-width: 760px) {
-  .px-bar { flex-wrap: nowrap; padding: 16px; gap: 10px; }
-  .px-bar__name { padding: 10px 14px; font-size: 24px; }
-  .px-download { min-height: 44px; padding: 0 14px; font-size: 24px; }
+  .px-bar { padding: 16px; gap: 8px 10px; }
+  .px-bar__name { height: 44px; padding: 0 14px; font-size: 24px; }
+  /* A short label under the icon instead, as on the homepage; the link's aria-label still names it. */
+  .px-download { flex-direction: column; justify-content: center; gap: 5px; min-height: 52px; padding: 0 14px; }
   .px-download span { display: none; }
+  .px-download::after { content: 'PDF'; font-size: 15px; line-height: 15px; }
   .px-sheet { width: calc(100% - 24px); padding: 26px 20px 30px; }
   .px-skin::before { display: none; }
   .cv-page h1 { font-size: 36px; }   /* the whole name on one line at 375px */
   .cv-focus, .cv-bullets, .cv-edu { grid-template-columns: 1fr; }
   .cv-role-item { grid-template-columns: 36px minmax(0, 1fr); gap: 14px; }
   .cv-floor { width: 36px; height: 36px; }
+}
+
+@media screen and (max-width: 579px) {   /* phones: the tabs take the row, the social row gets its own under them */
+  .px-bar { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; }
 }
 
 @media print {

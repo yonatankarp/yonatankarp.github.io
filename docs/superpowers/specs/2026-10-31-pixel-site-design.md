@@ -33,18 +33,19 @@ The goal is one visual language and one menu across the whole site. No animation
 
 ### Shared top bar
 
-One partial used by every page except the homepage, which keeps its own markup but must show the same items in the same places.
+One partial, `layouts/partials/pixel-bar.html`, used by every page including the homepage, so the two can never drift (Yonatan's decision, 2026-10-31). It follows the homepage bar that main shipped in 133cfdb.
 
-- Top-left: the name plate "Yonatan Karp-Rudin", linking to the homepage.
-- Under the name: tabs **Projects · Blog · CV**. The current section's tab is amber with `aria-current="page"`. There is no "Building" or "Home" tab; the name is the way home.
-- Top-right: the amber **Download CV** button (the PDF). On phones (760px and below) it shrinks to its icon, as on the homepage.
-- The homepage keeps its lift buttons and the pause button, because only that page animates.
+- Top-left: the name plate "Yonatan Karp-Rudin", linking to the homepage. On the homepage it rides the lift to the street instead (`data-goto="E"`).
+- Under the name: tabs **Projects · Blog · CV · Search**. The current section's tab is amber with `aria-current="page"`; Search is current on `/search/`. There is no "Building" or "Home" tab; the name is the way home.
+- Top-right: the amber **Download CV** button (the PDF). On phones (760px and below) the text gives way to its icon with a short "PDF" label under it, as on the homepage.
+- Under the Download button: the social row, pixel icon tabs for LinkedIn, GitHub, X and The Reading Club podcast (`data/home/en.yaml` `contact.social`). Below 580px it gets a row of its own under the tabs.
+- On the homepage the partial wears the building's classes (`building-top`, `building-name`, `building-links`, `building-download`, `building-social`), which `web3d/src/pixel.css` places over the canvas, and adds the pause button beside the tabs. The lift and the pause button stay homepage-only, because only that page animates.
 
 The CV page drops its own bar (which had "Building", "Blog" and "Download PDF") for the shared one.
 
 ### Search
 
-Search stays out of the top bar. The search index (`layouts/index.json.json`) covers every page on the site, not just the blog, but with about 15 posts and 15 projects every list is short enough to browse, and a fourth tab would crowd the homepage bar on phones. The existing search box in the blog list sidebar stays where it is until the blog project. The old `menus.header` entries in `hugo.toml` (Home, About, Projects, Blog, CV, Search) are removed if nothing reads them any more. (Claude's recommendation, approved by Yonatan.)
+Search is the fourth tab on every page, as main's homepage has it since 133cfdb. The search index (`layouts/index.json.json`) covers every page on the site, not just the blog. The existing search box in the blog list sidebar stays where it is until the blog project. The old `menus.header` entries in `hugo.toml` (Home, About, Projects, Blog, CV, Search) are removed if nothing reads them any more.
 
 ### Pause button (homepage)
 

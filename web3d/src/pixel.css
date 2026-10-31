@@ -204,7 +204,9 @@
 }
 @media (max-width: 1279px) {   /* eleven lift buttons leave no room for the label between the name and the panel */
   .pixel .building-download span { display: none; }
-  .pixel .building-download { padding: 0 14px; }
+  /* A short label under the icon instead (#62), on the font's 15px grid; the link's aria-label still names it. */
+  .pixel .building-download { padding: 0 14px; flex-direction: column; justify-content: center; gap: 5px; }
+  .pixel .building-download::after { content: 'PDF'; font-size: 15px; line-height: 15px; }
 }
 .pixel .elevator-arrow:not([data-dir="up"]):not([data-dir="down"]) { display: none; }
 @media (min-width: 761px) and (max-width: 1279px) and (min-aspect-ratio: 1201/1000) {   /* tablets: a wider hero card with a smaller title, so it is not six lines */

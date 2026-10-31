@@ -73,7 +73,7 @@ export function guide(api, root = document) {
   // Trackpads send long momentum tails: one gesture (wheel events without a 150 ms pause) is one floor.
   let acc = 0, lastWheel = -Infinity, spent = false;
   addEventListener('wheel', (e) => {
-    if (!roomy.matches) return;
+    if (!roomy.matches || e.ctrlKey) return;   // ctrl+wheel is a pinch or the browser's zoom, not a ride
     const now = performance.now();
     if (now - lastWheel > 150) { acc = 0; spent = false; }
     lastWheel = now;

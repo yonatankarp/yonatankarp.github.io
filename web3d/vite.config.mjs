@@ -13,5 +13,6 @@ export default defineConfig({
     emptyOutDir: false,   // overwrite the two files in place: a running hugo server never sees the folder empty
     target: 'es2022',
     lib: { entry: here('src/pixel.js'), formats: ['es'], fileName: () => 'building.js', cssFileName: 'building' },
+    rolldownOptions: { output: { minify: true } },   // lib mode keeps an ES bundle's whitespace for other bundlers; this one goes straight to the browser
   },
 });

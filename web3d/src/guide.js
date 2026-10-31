@@ -16,6 +16,7 @@ export function guide(api, root = document) {
   }).observe(windows, { childList: true });
   // Short or narrow (zoomed) screens have no room for a room, a card and the lift at once: they get the plain,
   // scrolling page of the no-JS layout. Zooming crosses the line both ways, so it is followed live (#24).
+  // layouts/index.html sets the first mode with the same query in <head>, before the first paint (#39).
   const roomy = matchMedia('(min-height: 500px) and (min-width: 360px)');
 
   // Inside, stops are in page order, top to bottom: scrolling down (+1) rides down a floor. The street (E) sits
@@ -58,21 +59,25 @@ export function guide(api, root = document) {
   roomy.addEventListener('change', setMode);
   setMode();
 
-  let lockUntil = 0;
+  // api.index() is where the lift is heading: a step during a ride carries it one floor further, so quick swipes
+  // and presses add up into one longer ride instead of being dropped (#41).
   const step = (dir) => {
-    if (open || api.moving() || performance.now() < lockUntil) return;
+    if (open) return;
     const to = neighbour(keys[api.index()], dir);
     if (to >= 0) api.go(to);
   };
 
-  // Trackpads send long momentum tails: one gesture is one floor, so wait for the tail after each ride.
-  let acc = 0;
+  // Trackpads send long momentum tails: one gesture (wheel events without a 150 ms pause) is one floor.
+  let acc = 0, lastWheel = -Infinity, spent = false;
   addEventListener('wheel', (e) => {
     if (!roomy.matches) return;
-    if (scrollsInside(e.target, Math.sign(e.deltaY))) return;
-    if (api.moving() || performance.now() < lockUntil) { acc = 0; return; }
+    const now = performance.now();
+    if (now - lastWheel > 150) { acc = 0; spent = false; }
+    lastWheel = now;
+    if (scrollsInside(e.target, Math.sign(e.deltaY))) { spent = true; return; }   // the card's scroll, not a ride
+    if (spent) return;
     acc += e.deltaY;
-    if (Math.abs(acc) > 24) { step(Math.sign(acc)); acc = 0; }
+    if (Math.abs(acc) > 24) { step(Math.sign(acc)); spent = true; }
   }, { passive: true });
 
   let touchY = null;
@@ -86,10 +91,21 @@ export function guide(api, root = document) {
 
   addEventListener('keydown', (e) => {
     if (!roomy.matches || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
-    if (open) { if (e.key === 'Escape') closePanel(); return; }   // the panel scrolls with the keys
-    if (e.key === ' ' && e.target.closest?.('button')) return;   // Space presses the focused button, not the lift
+    if (open) {   // the panel scrolls with the keys, and Tab goes round inside it until it is closed (#37)
+      if (e.key === 'Escape') closePanel();
+      if (e.key === 'Tab') {
+        const ring = [...open.panel.querySelectorAll('a[href], button')], a = document.activeElement;
+        const [first, last] = e.shiftKey ? [ring.at(-1), ring[0]] : [ring[0], ring.at(-1)];
+        if (a === last || !open.panel.contains(a) || (e.shiftKey && a === open.panel)) { e.preventDefault(); first?.focus(); }
+      }
+      return;
+    }
+    if (e.key === ' ' && e.target.closest?.('button, a, [role=button], summary')) return;   // Space presses the control
     const next = { ArrowDown: 1, PageDown: 1, ' ': e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
-    if (next) { e.preventDefault(); step(next); }
+    if (next && !scrollsInside(document.activeElement, next)) {   // a long card scrolls first, as with the wheel
+      e.preventDefault();
+      if (!(e.repeat && api.moving())) step(next);   // a held key rides floor by floor
+    }
     if (e.key === 'Home') { e.preventDefault(); api.go(0); }
     if (e.key === 'End') { e.preventDefault(); api.go(keys.length - 1); }
   });
@@ -102,7 +118,10 @@ export function guide(api, root = document) {
       return;
     }
     const inside = e.target.closest?.('.step-in');
-    if (inside) { openPanel(inside); return; }
+    if (inside) {   // only on the floor the lift stands at: the departing card is still clickable as it fades
+      if (!api.moving() && inside.closest('.is-here')) openPanel(inside);
+      return;
+    }
     if (e.target.closest?.('.panel-back')) { closePanel(); return; }
     const b = e.target.closest?.('[data-goto]');
     if (!b) return;
@@ -117,7 +136,7 @@ export function guide(api, root = document) {
   const hint = root.querySelector('.building-hint');
   // After a ride, focus follows the reader to the new floor's heading, unless it is on the lift or the top bar.
   // null until the first ride: the load's own arrival neither moves focus nor speaks.
-  let follow = null;
+  let follow = null, hinted = false;
   document.addEventListener('building:depart', (e) => {
     const a = document.activeElement;
     follow = !a || a === document.body || !!a.closest('.building-stop, .exterior-windows');
@@ -130,9 +149,10 @@ export function guide(api, root = document) {
   });
   document.addEventListener('building:arrive', (e) => {
     show(e.detail.index);
+    if (open && !stops[e.detail.index]?.contains(open.panel)) closePanel(false);
     document.documentElement.classList.toggle('at-street', e.detail.key === 'E');
     if (arrow) arrow.dataset.dir = '';   // standing still: no arrow, like a real lift display
-    lockUntil = performance.now() + 450;
+    if (hint && !hinted && e.detail.key !== 'E') { hinted = true; hint.style.opacity = ''; }   // once, on the first floor inside
     if (follow !== null) {
       if (follow) document.getElementById(`f${e.detail.key}`)?.focus({ preventScroll: true });
       const label = buttons.find((b) => b.dataset.goto === e.detail.key)?.getAttribute('aria-label') ?? 'Street, outside the building';

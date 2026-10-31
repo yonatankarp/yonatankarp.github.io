@@ -82,19 +82,19 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   // sleeps: until the next frame of the loop, or for good while held, until a ride, a resize or a load wakes it (#36).
   let paused = false, raf = 0, timer = 0, drawn = '';
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
-  if (pauseButton && !reduceMotion.matches) {   // reduced motion has nothing to pause
-    const label = () => {
-      pauseButton.dataset.paused = paused;
-      pauseButton.setAttribute('aria-label', paused ? 'Play the animation' : 'Pause the animation');
-      pauseButton.title = pauseButton.getAttribute('aria-label');
-      pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
-    };
-    label();
-    pauseButton.hidden = false;
-    pauseButton.addEventListener('click', () => { paused = !paused; label(); wake(); });
-  }
+  // Reduced motion has nothing to pause: the button hides, and shows again if it is turned off after load (#128).
+  const label = () => {
+    if (!pauseButton) return;
+    pauseButton.hidden = reduceMotion.matches;
+    pauseButton.dataset.paused = paused;
+    pauseButton.setAttribute('aria-label', paused ? 'Play the animation' : 'Pause the animation');
+    pauseButton.title = pauseButton.getAttribute('aria-label');
+    pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
+  };
+  label();
+  pauseButton?.addEventListener('click', () => { paused = !paused; label(); wake(); });
   addEventListener('resize', wake);
-  reduceMotion.addEventListener('change', wake);
+  reduceMotion.addEventListener('change', () => { label(); wake(); });
 
   let passing = -1, arrived = -1, last = performance.now();
   function frame(now) {

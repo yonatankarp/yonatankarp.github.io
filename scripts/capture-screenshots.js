@@ -73,6 +73,25 @@ const routes = [
     ],
   },
   {
+    name: "search",
+    path: "/search/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-sheet", 1, "sheet"],
+      ["#site-search", 1, "search box"],
+      ["#search-results", 1, "results list"],
+    ],
+  },
+  {
+    name: "skills",
+    path: "/skills/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-skills__area", 1, "practice areas"],
+      [".px-chip", 1, "skill chips"],
+    ],
+  },
+  {
     name: "madeira-2026",
     path: "/madeira-2026/",
     requiredSelectors: [

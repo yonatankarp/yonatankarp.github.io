@@ -23,6 +23,7 @@ const routes = [
   {
     name: "home",
     path: "/",
+    pauseLabel: true,
     requiredSelectors: [
       ["#pixel-canvas", 1, "building canvas"],
       ["section.building-stop", 12, "building floors"],
@@ -110,6 +111,7 @@ const assertions = [
   "Visible images are loaded with non-zero natural dimensions.",
   "Every page but the homepage renders the shared pixel top bar: name plate and CV download.",
   "Home page renders the building: its canvas, every floor and the street view's windows.",
+  "Home page pause button shows a Pause label that turns to Play on click on desktop, and stays at least 36x36px with the label hidden on mobile.",
   "CV page renders every role.",
   "Blog index contains multiple article rows/cards.",
   "Standalone Madeira page contains route cards, daily itinerary sections, photos, and source panels.",
@@ -428,6 +430,47 @@ async function assertPageBasics(page, route, viewport) {
   }
 }
 
+async function assertPauseLabel(page, route, viewport) {
+  const read = () =>
+    page.evaluate(() => {
+      const button = document.querySelector(".building-pause");
+      const label = document.querySelector("[data-building-pause-label]");
+      const box = button ? button.getBoundingClientRect() : { width: 0, height: 0 };
+      return {
+        text: label ? label.textContent.trim() : null,
+        labelVisible: Boolean(label && label.getBoundingClientRect().width > 0),
+        width: box.width,
+        height: box.height,
+      };
+    });
+  const state = await read();
+
+  if (viewport.name === "mobile") {
+    if (state.labelVisible) {
+      fail(`${route.path} (${viewport.name}) shows the pause label`);
+    }
+
+    if (state.width < 36 || state.height < 36) {
+      fail(`${route.path} (${viewport.name}) pause button is ${state.width}x${state.height}, under 36x36`);
+    }
+
+    return;
+  }
+
+  if (!state.labelVisible || state.text !== "Pause") {
+    fail(`${route.path} (${viewport.name}) pause label is ${state.labelVisible ? "visible" : "hidden"} with text ${state.text}, expected visible "Pause"`);
+  }
+
+  await page.click(".building-pause");
+  const clicked = await read();
+
+  if (clicked.text !== "Play") {
+    fail(`${route.path} (${viewport.name}) pause label reads ${clicked.text} after a click, expected "Play"`);
+  }
+
+  await page.click(".building-pause");
+}
+
 async function main() {
   const { chromium } = await loadPlaywright();
   let server = null;
@@ -514,6 +557,10 @@ async function main() {
         await scrollThroughPage(page);
         await waitForPageImages(page);
         await assertPageBasics(page, route, viewport);
+
+        if (route.pauseLabel) {
+          await assertPauseLabel(page, route, viewport);
+        }
 
         await page.locator("body").screenshot({
           path: path.join(screenshotDir, screenshotFileName(route, viewport)),

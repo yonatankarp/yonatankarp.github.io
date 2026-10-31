@@ -5,6 +5,7 @@
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
 {{ $accent := hugo.Data.floor_accents }}
 {{ $pdf := "yonatan-karp-rudin-cv.pdf" | relURL }}
+{{ $skills := site.GetPage "/skills" }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
 <head>
@@ -30,7 +31,7 @@
       <div class="cv-head__who">
         <p class="cv-kicker">Curriculum vitae</p>
         <h1>Yonatan Karp-Rudin</h1>
-        <p class="cv-role">Staff Software Engineer, Payments · Tel Aviv, Israel (relocating from Berlin, Jan 2027)</p>
+        <p class="cv-role">Staff Software Engineer · Berlin, Germany (relocating to Tel Aviv, Jan 2027)</p>
         <ul class="cv-contact">
           <li><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li>
           <li><a href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
@@ -56,6 +57,14 @@
       </ul>
     </section>
 
+    {{ with $skills }}
+    <section class="cv-section" aria-labelledby="cv-skills">   {{- /* plain text on purpose: recruiters and ATS filters search the PDF for these */ -}}
+      <h2 id="cv-skills">Skills</h2>
+      <p><strong>Daily:</strong> {{ delimit .Params.working_set ", " }}</p>
+      <p><strong>Also:</strong> {{ delimit .Params.familiar_with ", " }}</p>
+    </section>
+    {{ end }}
+
     <section class="cv-section" aria-labelledby="cv-experience">
       <h2 id="cv-experience">Experience</h2>
       {{ range $experience }}
@@ -79,11 +88,13 @@
     </section>
 
     <section class="cv-section" aria-labelledby="cv-open-source" style="--accent:{{ index $accent "P" }}">
-      <h2 id="cv-open-source">Open Source &amp; Writing</h2>
+      <h2 id="cv-open-source">Open Source, AI &amp; Writing</h2>
       <ul class="cv-bullets">
         <li>Added Spring Boot 4 and Jackson 3 support to the kotlin-spring generator in <a href="https://github.com/OpenAPITools/openapi-generator">openapi-generator</a> to unblock Billie's Payments move to Spring Boot 4, then fixed the regressions that followed (10 upstream PRs).</li>
+        <li>Built <a href="https://github.com/yonatankarp/sse-mcp-server">sse-mcp-server</a>, a Kotlin and Spring Boot MCP server that exposes typed backend tools to AI agents over Server-Sent Events.</li>
+        <li>Built <a href="https://yonatankarp.github.io/TaleKeeper/">TaleKeeper</a>, self-hosted session recording with Whisper transcription, speaker diarization, and local Ollama summaries.</li>
         <li>Wrote and maintain <a href="https://yonatankarp.github.io/ff4k/">ff4k</a>, a Kotlin Multiplatform feature flag library published on Maven Central.</li>
-        <li>{{ len (where .Site.RegularPages "Type" "blog") }} posts on Kotlin and backend engineering on <a href="{{ "blog/" | relURL }}">my blog</a>.</li>
+        <li>{{ len (where .Site.RegularPages "Type" "blog") }} posts on Kotlin, backend engineering, and AI coding agents on <a href="{{ "blog/" | relURL }}">my blog</a>, including giving Claude Code a long-term memory with hooks.</li>
         <li>Spoke at Kotlin User Group Berlin about JVM backend design patterns.</li>
       </ul>
     </section>

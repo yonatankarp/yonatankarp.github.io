@@ -54,7 +54,7 @@ source = "static"
 target = "static"
 
 [params]
-title = "Yonatan Karp-Rudin - Staff Software Engineer, Payments"
+title = "Yonatan Karp-Rudin - Staff Software Engineer"
 description = "Staff Software Engineer based in Tel Aviv, Israel. Building payment, compliance, and platform systems at Billie. Open source contributor."
 
 [params.seo]

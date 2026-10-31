@@ -1,5 +1,6 @@
 ---
 title: "I Stopped Being My AI Agent's Memory: Building a Self-Compiling Second Brain"
+seoTitle: "Building a Self-Compiling Second Brain for AI Agents"
 date: 2026-06-11T00:00:00+01:00
 draft: false
 type: "blog"

@@ -93,7 +93,7 @@
   {{ $sameAs := .Site.Params.seo.person.sameAs }}
   {{ with .Site.Params.social.twitter }}{{ $sameAs = $sameAs | append (printf "https://x.com/%s" .) }}{{ end }}
   {{ $person := merge $author (dict "@context" "https://schema.org" "jobTitle" "Staff Software Engineer" "sameAs" $sameAs "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" (index $place 0) "addressCountry" (index $place 1))) }}
-  {{ with resources.Get "images/showcase/showcase.png" }}{{ $person = merge $person (dict "image" .Permalink) }}{{ end }}
+  {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $person = merge $person (dict "image" .Permalink) }}{{ end }}
   {{ $schemas = slice $person }}
 {{ else if $isPost }}
   {{ $post := dict "@context" "https://schema.org" "@type" "BlogPosting" "headline" .Title "description" $description "image" $image "author" $author "publisher" $author "mainEntityOfPage" .Permalink "url" .Permalink }}

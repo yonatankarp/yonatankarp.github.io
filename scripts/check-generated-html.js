@@ -462,6 +462,48 @@ for (const filePath of htmlFiles) {
   if (homeFeed.length === 0 || homeFeed.some((url) => !url.startsWith(`${origin}/blog/`)) || homeFeed.join() !== feedLinks("blog/index.xml").join()) fail("index.xml", "should list the blog posts only, as /blog/index.xml does");
 }
 
+// Post media (#137, #138, #139) and the search page and index (#134).
+for (const filePath of htmlFiles) {
+  const html = fs.readFileSync(filePath, "utf8");
+  const route = `/${path.relative(publicDir, filePath).replace(/index\.html$/, "")}`;
+  if (!route.startsWith("/blog/")) continue;
+
+  for (const [tag] of html.matchAll(/<img\b[^>]*>/gi)) {
+    const src = collectAttribute(tag, "src") ?? "";
+    if (/\.gif(?:[?#]|$)/i.test(src)) failures.push(`${route}: animated GIF ${src}; use the video shortcode`);
+    if (/class=["']?article__content/.test(html) && src.startsWith("/images/blog/") && !src.endsWith(".svg") && (collectAttribute(tag, "width") === null || collectAttribute(tag, "height") === null)) {
+      failures.push(`${route}: ${src} needs width and height`);
+    }
+  }
+  for (const [tag] of html.matchAll(/<video\b[^>]*>/gi)) {
+    if (!/\bcontrols\b/.test(tag) || !collectAttribute(tag, "aria-label") || /\bautoplay\b/.test(tag)) failures.push(`${route}: videos need controls and aria-label, and no autoplay`);
+  }
+  const diagrams = Array.from(html.matchAll(/<pre\b[^>]*class=["']?mermaid\b[^>]*>/g)).map((match) => match[0]);
+  if (diagrams.some((tag) => collectAttribute(tag, "tabindex") !== "0" || collectAttribute(tag, "role") !== "region" || !collectAttribute(tag, "aria-label"))) {
+    failures.push(`${route}: a Mermaid diagram needs tabindex=0, role=region and an aria-label`);
+  }
+  if (diagrams.length && (/import mermaid from/.test(html) || !/useMaxWidth:\s*!?(?:false|1)/.test(html))) failures.push(`${route}: Mermaid should load lazily with useMaxWidth false`);
+  if (!diagrams.length && /mermaid\.esm/.test(html)) failures.push(`${route}: loads Mermaid without a diagram`);
+}
+
+{
+  const search = fs.readFileSync(path.join(publicDir, "search", "index.html"), "utf8");
+  if (!/<form\b[^>]*action=["']?\/search\/[^>]*>[\s\S]*?<input\b[^>]*name=["']?q\b/.test(search)) failures.push("/search/: needs a GET form with an input named q");
+  if (!/id=["']?search-status["']?[^>]*role=["']?status/.test(search)) failures.push("/search/: needs the #search-status live region");
+
+  const index = JSON.parse(fs.readFileSync(path.join(publicDir, "index.json"), "utf8"));
+  const home = fs.readFileSync(path.join(publicDir, "index.html"), "utf8");
+  const projects = fs.readdirSync(projectsDir).filter((file) => file.endsWith(".md") && file !== "_index.md").length;
+  if (index.filter((page) => ["Project", "Contribution"].includes(page.type)).length !== projects) failures.push(`index.json: should list all ${projects} projects`);
+  for (const page of index) {
+    if (!page.type) failures.push(`index.json: ${page.permalink} has no type`);
+    if (/\/(?:search|experience|education|testimonial)\//.test(page.permalink)) failures.push(`index.json: should not link to ${page.permalink}`);
+    if (/\(contributor\)/i.test(page.title)) failures.push(`index.json: "${page.title}" keeps "(contributor)"`);
+    const floor = page.permalink.match(/#(floor-[^/]+)$/)?.[1];
+    if (floor && !new RegExp(`id=["']?${floor}["'\\s>]`).test(home)) failures.push(`index.json: ${page.permalink} has no matching floor on the homepage`);
+  }
+}
+
 if (failures.length > 0) {
   console.error("Generated HTML check failed:");
   for (const failure of failures) {

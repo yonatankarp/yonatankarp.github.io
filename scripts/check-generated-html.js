@@ -107,8 +107,8 @@ function checkProjectsPage(route, html) {
       failures.push(`${route}: ${title} has an image but no assets/images/projects/pixel/${project.slug}.png`);
     }
 
-    if (hasPainting && (images.length !== 1 || !/class=["']?px-painting[\s"'>]/.test(images[0]))) {
-      failures.push(`${route}: ${title} should have exactly one img.px-painting`);
+    if (hasPainting && (images.length !== 1 || !/class=["']?px-painting[\s"'>]/.test(images[0]) || !stripTags(collectAttribute(images[0], "alt") ?? ""))) {
+      failures.push(`${route}: ${title} should have exactly one img.px-painting with alt text`);
     }
   }
 

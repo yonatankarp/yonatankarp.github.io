@@ -10,6 +10,7 @@ duration: "Dec 2017 - May 2019"
 summary: "Backend development on a distributed product, focused on cache performance and reliability."
 highlights:
   - "Refactored a product's cache system for performance and reliability."
+  - "Built Jira-integrated release tooling in Python."
 ---
 
-Refactored a product's cache system for performance and reliability.
+Refactored a product's cache system for performance and reliability. Built Jira-integrated release tooling in Python.

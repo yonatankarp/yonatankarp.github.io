@@ -1,76 +1,107 @@
-{{ define "main" }}
-{{ $education := sort (where .Site.RegularPages "Type" "education") "Date" "desc" }}
+{{- /* The CV: the building's pixel skin over a plain document. A standalone page (no baseof), like the homepage:
+     its own top bar, no site header or footer. scripts/generate-cv-pdf.js prints it to the downloadable PDF,
+     where @media print in custom.css turns it into light paper with the same pixel accents. */ -}}
+{{ $education := sort (where (where .Site.RegularPages "Type" "education") "Params.cv" true) "Date" "desc" }}   {{- /* only entries with cv: true; short courses stay on the site */ -}}
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
-<section class="shell cv-sheet reveal-group">
-  <header class="cv-header reveal">
-    <div>
-      <p class="section-kicker">Curriculum vitae</p>
-      <h1>Yonatan Karp-Rudin</h1>
-      <p>Staff Software Engineer, Payments · Tel Aviv District, Israel</p>
-    </div>
-    <div class="cv-contact">
-      <a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>
-      <a href="https://github.com/yonatankarp">github.com/yonatankarp</a>
-      <a href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a>
-    </div>
+{{ $accent := hugo.Data.floor_accents }}
+{{ $pdf := "yonatan-karp-rudin-cv.pdf" | relURL }}
+<!DOCTYPE html>
+<html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
+<head>
+  {{ partial "head.html" . }}
+  <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
+</head>
+<body class="cv-page" style="--scene: url({{ "building/pixel/exterior.png" | relURL }})">
+  <a class="skip-link" href="#cv">Skip to the CV</a>
+  <header class="cv-bar">
+    <a class="cv-bar__name" href="{{ .Site.Home.RelPermalink }}">Yonatan Karp-Rudin</a>
+    <nav class="cv-bar__links" aria-label="Site">
+      <a href="{{ .Site.Home.RelPermalink }}">Building</a>
+      <a href="{{ "blog/" | relURL }}">Blog</a>
+    </nav>
+    <a class="cv-download" href="{{ $pdf }}" download>
+      <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
+      <span>Download PDF</span>
+    </a>
   </header>
 
-  <section class="cv-section reveal">
-    <h2>Summary</h2>
-    <p>I'm a Staff Software Engineer. I've been writing software for 12 years: first C++ on vision processing chips at Inuitive, then backend payment systems at SumUp, and for the last three years risk and compliance at Billie.</p>
-    <p>At Billie I took two vendor integrations from an RFC to production, Ravelin for graph-based fraud detection and ComplyAdvantage for transaction monitoring. I also started three services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
-    <p>Outside work I contribute to open source (I added Spring Boot 4 and Jackson 3 support to openapi-generator) and write about Kotlin and backend engineering.</p>
-  </section>
-
-  <section class="cv-section cv-section--proof reveal">
-    <h2>Staff+ Focus</h2>
-    <ul class="cv-proof-list">
-      
-      <li>Defined compliance and risk service boundaries across vendor behavior, event flows, and product rules.</li>
-      <li>Drove API-first backend design with Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI, and Backstage.</li>
-      <li>Turned operational risk into recovery paths, monitoring tools, migration plans, upstream fixes, and team-owned documentation.</li>
-      
-    </ul>
-  </section>
-
-  <section class="cv-section reveal">
-    <h2>Experience</h2>
-    <div class="cv-list">
-      {{ range $experience }}
-      <article class="cv-item">
-        <div class="cv-item__top">
-          <h3>{{ .Title }}</h3>
-          <span>{{ .Params.duration }}</span>
-        </div>
-        <p class="cv-item__sub">{{ .Params.company }}, {{ .Params.location }}</p>
-        {{ with .Params.summary }}<p>{{ . }}</p>{{ else }}<p>{{ .Content | plainify }}</p>{{ end }}
-        {{ with .Params.highlights }}
-        <ul class="cv-highlights">
-          {{ range . }}
-          <li>{{ . }}</li>
-          {{ end }}
+  <main class="cv" id="cv">
+    <header class="cv-head">
+      <div class="cv-head__who">
+        <p class="cv-kicker">Curriculum vitae</p>
+        <h1>Yonatan Karp-Rudin</h1>
+        <p class="cv-role">Staff Software Engineer, Payments · Tel Aviv District, Israel</p>
+        <ul class="cv-contact">
+          <li><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li>
+          <li><a href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
+          <li><a href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a></li>
+          <li><a href="https://yonatankarp.com">yonatankarp.com</a></li>
         </ul>
-        {{ end }}
-      </article>
-      {{ end }}
-    </div>
-  </section>
+      </div>
+      <div class="cv-head__art" aria-hidden="true"></div>
+    </header>
 
-  <section class="cv-section reveal">
-    <h2>Education</h2>
-    <div class="cv-list">
-      {{ range $education }}
-      <article class="cv-item">
-        <div class="cv-item__top">
-          <h3>{{ .Params.university }}</h3>
-          <span>{{ .Params.year }}</span>
+    <section class="cv-section" aria-labelledby="cv-summary">
+      <h2 id="cv-summary">Summary</h2>
+      <p>I'm a Staff Software Engineer. I've been writing software for 12 years: first C++ on vision processing chips at Inuitive, then backend payment systems at SumUp, and for the last three years risk and compliance at Billie.</p>
+      <p>At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, Ravelin for graph-based fraud detection and ComplyAdvantage for transaction monitoring. I also started three services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
+    </section>
+
+    <section class="cv-section" aria-labelledby="cv-focus">
+      <h2 id="cv-focus">Staff+ Focus</h2>
+      <ul class="cv-focus">
+        <li>Defined compliance and risk service boundaries across vendor behavior, event flows, and product rules.</li>
+        <li>Drove API-first backend design with Kotlin, Java, Spring Boot, Kafka, Flink, OpenAPI, and Backstage.</li>
+        <li>Turned operational risk into recovery paths, monitoring, migration plans, and upstream fixes.</li>
+      </ul>
+    </section>
+
+    <section class="cv-section" aria-labelledby="cv-experience">
+      <h2 id="cv-experience">Experience</h2>
+      {{ range $experience }}
+      <article class="cv-role-item" style="--accent:{{ index $accent .Params.floor }}">
+        <a class="cv-floor" href="{{ $.Site.Home.RelPermalink }}#floor-{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }} in the building">{{ .Params.floor }}</a>
+        <div class="cv-role-item__body">
+          <div class="cv-role-item__top">
+            <h3>{{ .Title }}</h3>
+            <span>{{ .Params.duration }}</span>
+          </div>
+          <p class="cv-sub">{{ .Params.company }}, {{ .Params.location }}</p>
+          {{ with .Params.summary }}<p>{{ . }}</p>{{ else }}<p>{{ .Content | plainify }}</p>{{ end }}
+          {{ with .Params.highlights }}
+          <ul class="cv-bullets">
+            {{ range . }}<li>{{ . }}</li>{{ end }}
+          </ul>
+          {{ end }}
         </div>
-        <p class="cv-item__sub">{{ .Params.degree }}</p>
-        {{ if ne .Title .Params.university }}<p>{{ .Title }}</p>{{ end }}
-        {{ with .Params.link }}<p><a class="text-link" href="{{ . }}">View credential</a></p>{{ end }}
       </article>
       {{ end }}
-    </div>
-  </section>
-</section>
-{{ end }}
+    </section>
+
+    <section class="cv-section" aria-labelledby="cv-open-source" style="--accent:{{ index $accent "P" }}">
+      <h2 id="cv-open-source">Open Source &amp; Writing</h2>
+      <ul class="cv-bullets">
+        <li>Added Spring Boot 4 and Jackson 3 support to the kotlin-spring generator in <a href="https://github.com/OpenAPITools/openapi-generator">openapi-generator</a> to unblock Billie's Payments move to Spring Boot 4, then fixed the regressions that followed (10 upstream PRs).</li>
+        <li>Wrote and maintain <a href="https://yonatankarp.github.io/ff4k/">ff4k</a>, a Kotlin Multiplatform feature flag library published on Maven Central.</li>
+        <li>{{ len (where .Site.RegularPages "Type" "blog") }} posts on Kotlin and backend engineering on <a href="{{ "blog/" | relURL }}">my blog</a>.</li>
+        <li>Spoke at Kotlin User Group Berlin about JVM backend design patterns.</li>
+      </ul>
+    </section>
+
+    <section class="cv-section" aria-labelledby="cv-education">
+      <h2 id="cv-education">Education</h2>
+      <div class="cv-edu">
+        {{ range $education }}
+        <article class="cv-edu__item" style="--accent:{{ with .Params.floor }}{{ index $accent . }}{{ else }}{{ index $accent "P" }}{{ end }}">
+          <div class="cv-role-item__top">
+            <h3>{{ .Params.university }}</h3>
+            <span>{{ .Params.year }}</span>
+          </div>
+          <p class="cv-sub">{{ .Params.degree }}{{ with .Params.link }} · <a href="{{ . }}">credential</a>{{ end }}</p>
+        </article>
+        {{ end }}
+      </div>
+    </section>
+  </main>
+</body>
+</html>

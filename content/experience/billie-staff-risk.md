@@ -11,7 +11,7 @@ summary: "Led Staff-level risk work: moving risk decisions into a Risk-owned orc
 highlights:
   - "Moved risk decisions from Purchases to a Risk-owned orchestrator, from RFC to production."
   - "Led the Ravelin graph fraud integration to production."
-  - "Authored the Buyer Risk Assessment target architecture."
+  - "Authored the Buyer Risk Assessment target architecture and the tokenization specification."
 ---
 
-Moved risk decisions from Purchases to a Risk-owned orchestrator, from RFC to production. Led the Ravelin graph fraud integration to production. Authored the Buyer Risk Assessment target architecture.
+Moved risk decisions from Purchases to a Risk-owned orchestrator, from RFC to production. Led the Ravelin graph fraud integration to production. Authored the Buyer Risk Assessment target architecture and the tokenization specification.

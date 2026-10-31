@@ -12,7 +12,7 @@ highlights:
   - "Built a credit limit service and a fraud-labelling service from scratch."
   - "Replaced synchronous calls between Risk and Refinancing with an event-driven credit score for Pan-European refinancing."
   - "Moved real-time fraud features from Data Science to Engineering."
-  - "Led EDA 2.0 and set shared CI and code standards for the Risk team."
+  - "Led EDA 2.0 across 12 repositories and set shared CI and code standards for the Risk team."
 ---
 
-Built a credit limit service and a fraud-labelling service from scratch. Replaced synchronous calls between Risk and Refinancing with an event-driven credit score for Pan-European refinancing. Moved real-time fraud features from Data Science to Engineering. Led EDA 2.0 and set shared CI and code standards for the Risk team.
+Built a credit limit service and a fraud-labelling service from scratch. Replaced synchronous calls between Risk and Refinancing with an event-driven credit score for Pan-European refinancing. Moved real-time fraud features from Data Science to Engineering. Led EDA 2.0 across 12 repositories and set shared CI and code standards for the Risk team.

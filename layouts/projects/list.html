@@ -30,7 +30,7 @@
         <li class="px-card">
           {{ partial "project-painting.html" (dict "page" . "max" 640) }}
           <div class="px-card__body">
-            <p class="px-card__meta"><b>{{ .Params.projectKind }}</b><span>{{ .Params.years | default (.Date.Format "2006") }}</span></p>
+            <p class="px-card__meta">{{ with .Params.projectKind }}<b>{{ . }}</b>{{ end }}<span>{{ .Params.years | default (.Date.Format "2006") }}</span></p>
             <h3><a href="{{ $href }}"{{ if not $case }} target="_blank" rel="noopener"{{ end }}>{{ $title }}</a></h3>
             <p class="px-card__desc">{{ .Params.description | default (.Summary | plainify) }}</p>
             {{ with .Params.tech }}<ul class="px-card__tags">{{ range . }}<li class="px-chip">{{ . }}</li>{{ end }}</ul>{{ end }}

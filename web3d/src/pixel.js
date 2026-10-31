@@ -106,7 +106,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   addEventListener('resize', wake);
   reduceMotion.addEventListener('change', () => { label(); wake(); });
 
-  let passing = -1, arrived = -1, last = performance.now();
+  let passing = -1, arrived = -1, last = performance.now(), cardTop = 0;
   function frame(now) {
     raf = requestAnimationFrame(frame);   // first, so a frame that throws cannot stop the loop
     const dt = Math.min(0.05, (now - last) / 1000);
@@ -114,7 +114,10 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     // Drawn in device pixels, so every art pixel is the same whole number of them; laid out in CSS pixels.
     const dpr = devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
     const w = Math.round(W * dpr), h = Math.round(H * dpr);
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; drawn = ''; }
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w; canvas.height = h; drawn = '';
+      cardTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--card-top')) || 0;   // CSS px; 0 where it is unset
+    }
     ctx.imageSmoothingEnabled = false;
     const wide = !narrow.matches, still = reduceMotion.matches;
 
@@ -122,10 +125,14 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const p = ride.fade ? (u < 0.5 ? ride.from : ride.to) : Math.min(keys.length - 1, Math.max(0, pos(u)));
     const inner = ride.fade ? (ride.to === eAt ? ride.from : ride.to) : -1;   // the floor seen through the dissolve
     const at = inner >= 0 ? inner : p;                                        // held still through a dissolve
-    const s = Math.round(dpr * Math.max(2, Math.floor(wide ? Math.min(W / FW, H / (FH * 1.15)) : H / (FH * 2.2))));
+    let s = Math.round(dpr * Math.max(2, Math.floor(wide ? Math.min(W / FW, H / (FH * 1.15)) : H / (FH * 2.2))));
+    // Phones: the room's floor sits behind the elevator, above the card (pixel.css --card-top). On a short phone
+    // the room is drawn smaller, down to 4/3 CSS px an art pixel, still a whole number of device pixels (#127).
+    const floorAt = cardTop - 28;
+    if (!wide && cardTop) s = Math.min(s, Math.max(Math.ceil(dpr * 4 / 3), Math.floor(dpr * floorAt / FH)));
     const focus = Math.round(lerpAt(at, (k) => FOCUS[k] ?? 300));
     const x0 = wide ? Math.round((w - FW * s) / 2) : Math.min(0, Math.max(w - FW * s, Math.round(w / 2 - focus * s)));
-    const cy = wide ? h / 2 : h * 0.3;                         // phones keep the room above the card
+    const cy = wide ? h / 2 : cardTop ? floorAt * dpr - FH * s / 2 : h * 0.3;   // phones keep the room above the card
     const camY = Math.round(lerpAt(at, level));                // whole art pixels: no shimmer
     const near = Math.round(p);
     if (near !== passing) { passing = near; emit('building:floor', { index: near, key: keys[near] }); }

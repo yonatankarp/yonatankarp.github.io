@@ -149,12 +149,14 @@
 }
 .pixel .building-hint { left: calc(50% + 12px + min(200px, 15vw)); white-space: nowrap; border-radius: 0; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; }
 
-/* Phones, and portrait tablets (the same query as pixel.js, #46), stack the room (centred at 30% of the height,
-   360px tall), the elevator just under it, then the card, which scrolls inside itself before the lift moves. */
+/* Registered as a length so pixel.js reads it in pixels: the room's floor sits behind the elevator, above the card. */
+@property --card-top { syntax: '<length>'; inherits: true; initial-value: 0px; }
+/* Phones, and portrait tablets (the same query as pixel.js, #46), stack the room (its floor behind the elevator),
+   the elevator, then the card, which scrolls inside itself before the lift moves. */
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
-  /* The card keeps at least 200px to read (more on tall phones), rising over the room's floor on short ones,
-     never above the links; the elevator rides just above it. */
-  .building.pixel { --card-top: clamp(116px, calc(100svh - 216px), calc(30svh + 260px)); --street-top: 132px; }   /* the street: under the name and its 44px links */
+  /* The card keeps 400px, enough for any floor's title, summary and Step inside without scrolling (#127), rising
+     over the room on short phones, never above the links; the elevator rides just above it. */
+  .building.pixel { --card-top: clamp(116px, calc(100svh - 416px), calc(30svh + 260px)); --street-top: 132px; }   /* the street: under the name and its 44px links */
   .pixel .building-stop { align-items: flex-end; padding: var(--card-top) 12px 16px; }
   .pixel .floor-card { width: 100%; max-width: 720px; padding: 16px 16px 14px 26px; }   /* a portrait monitor still reads in short lines */
   .pixel .elevator { top: calc(var(--card-top) - 64px); padding: 8px; gap: 4px; }
@@ -386,7 +388,8 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
 /* A floor with a case study says so before its summary; the button opens it (#34). */
 .pixel .floor-case { margin: 0 0 14px; padding: 10px 14px; font-size: 15px; line-height: 1.45; background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .floor-case b { display: block; font-weight: 500; color: var(--accent-text, var(--accent, var(--amber))); }
-@media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* the phone's short card: the case study's name, its title inside */
+/* The phone's short card, and any screen under 920px tall (#127): the case study's name, its title inside. */
+@media (max-width: 760px), (max-aspect-ratio: 6/5), (max-height: 920px) {
   .pixel .floor-case { margin-bottom: 6px; padding: 0; background: none; box-shadow: none; clip-path: none; }   /* text, not a box that looks tappable */
   .pixel .floor-case span { display: none; }
 }
@@ -422,3 +425,25 @@ html:not(.building--guided) .pixel .floor-card, html:not(.building--guided) .pix
 html:not(.building--guided) .pixel .floor-how { display: none; }
 /* Each panel follows its own card there: not its head and title again (the lobby's title is its own). */
 html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pixel .floor-panel:not(#panel-L) .panel-title { display: none; }
+/* Short phones: the same card set tighter, so the room keeps a band between the icons and the elevator (#127). */
+@media (max-width: 760px) and (max-height: 740px), (max-aspect-ratio: 6/5) and (max-height: 740px) {
+  .building.pixel { --card-top: clamp(280px, calc(100svh - 356px), calc(30svh + 260px)); }   /* the elevator and the hint stay under the icons */
+  html.building--guided .pixel .floor-card:not(.floor-card--hero) { padding: 12px 14px 10px 26px; }
+  html.building--guided .pixel .floor-card header { margin-bottom: 10px; }
+  html.building--guided .pixel .floor-card .floor-badge { width: 40px; height: 40px; }
+  html.building--guided .pixel .floor-card h2 { margin-bottom: 8px; }
+  html.building--guided .pixel .floor-case { margin-bottom: 2px; line-height: 20px; }
+  html.building--guided .pixel .floor-lead { margin-bottom: 10px; font-size: 15px; line-height: 22px; }
+  html.building--guided .pixel .floor-card :is(ul, .floor-skills) { line-height: 22px; }
+  html.building--guided .pixel .step-in-bar { margin-top: 8px; bottom: -6px; }
+  html.building--guided .pixel .floor-card:not(.floor-card--hero, :has(.step-in-bar))::after { bottom: -10px; }
+}
+/* Short desktops (1280x720): the card widens over the lift lobby and sets its text tighter, so none scrolls (#127). */
+@media (min-width: 1280px) and (min-aspect-ratio: 1201/1000) and (max-height: 800px) {
+  .pixel .floor-card, .pixel .building-stop--hero .floor-card { width: min(440px, 34vw); }
+  .pixel .floor-card :is(.floor-lead, ul, .floor-skills) { line-height: 22px; }
+  .pixel .floor-card header { margin-bottom: 12px; }
+  .pixel .floor-card h2 { margin-bottom: 8px; }
+  .pixel .floor-quotes li { margin-bottom: 8px; }
+  .pixel .step-in-bar { margin-top: 12px; }
+}

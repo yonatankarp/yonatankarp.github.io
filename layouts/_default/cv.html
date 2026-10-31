@@ -11,7 +11,8 @@
   {{ else if not (index $accent $f) }}{{ errorf "%s: floor %q has no colour in data/floor_accents.yaml, so the building has no storey for it (ORDER in web3d/src/pixel.js)." .File.Path $f }}{{ end }}
   {{ if not (and (reflect.IsSlice .Params.highlights) .Params.highlights) }}{{ errorf "%s: set `highlights` to a list of what you did there." .File.Path }}{{ end }}
 {{ end }}
-{{ $pdf := "yonatan-karp-rudin-cv.pdf" | relURL }}
+{{- /* `npm run serve` never makes the PDF (`npm run build` does), so the dev server links the web CV instead. */}}
+{{ $pdf := cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}
 {{ $skills := site.GetPage "/skills" }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
@@ -26,7 +27,7 @@
       <a href="{{ .Site.Home.RelPermalink }}">Building</a>
       <a href="{{ "blog/" | relURL }}">Blog</a>
     </nav>
-    <a class="cv-download" href="{{ $pdf }}" download>
+    <a class="cv-download" href="{{ $pdf }}"{{ if not hugo.IsServer }} download{{ end }}>
       <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
       <span>Download PDF</span>
     </a>

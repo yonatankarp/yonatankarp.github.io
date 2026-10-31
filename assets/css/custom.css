@@ -290,6 +290,103 @@ textarea {
   text-shadow: 0 0 24px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
+/* The shared header in the homepage building's pixel skin (web3d/src/pixel.css): a dark plate with a hard ink
+   outline and stepped corners, the role in Jersey 15, the links as pixel tabs (the current one lit amber). */
+.site-header {
+  --px-ink: #0a0b10;
+  --px-panel: #151923;
+  --px-panel-hi: #2b3344;
+  --px-text: #f2ece0;
+  --px-amber: #ffb547;
+  --px-steps: polygon(4px 0, calc(100% - 4px) 0, calc(100% - 4px) 4px, 100% 4px, 100% calc(100% - 4px),
+    calc(100% - 4px) calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 4px calc(100% - 4px), 0 calc(100% - 4px), 0 4px, 4px 4px);
+}
+
+.site-header__inner {
+  border: 0;
+  border-radius: 0;
+  background: var(--px-panel);
+  backdrop-filter: none;
+  box-shadow: inset 0 0 0 4px var(--px-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.site-header .brand__name {   /* over the shared heading rule further down */
+  font-family: "Jersey 15", system-ui, sans-serif;
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+  color: var(--px-text);
+}
+
+.primary-nav ul {
+  gap: 8px;
+}
+
+.primary-nav a,
+.menu-toggle {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--px-panel-hi);
+  box-shadow: inset 0 0 0 4px var(--px-ink);
+  color: var(--px-text);
+  font-weight: 500;
+  clip-path: var(--px-steps);
+  transition: none;
+}
+
+.primary-nav a::after {
+  content: none;
+}
+
+.primary-nav a:hover,
+.menu-toggle:hover {
+  background: #3c434c;
+  color: var(--px-text);
+}
+
+.primary-nav a.is-active {
+  background: var(--px-amber);
+  color: var(--px-ink);
+  text-shadow: none;
+}
+
+.primary-nav a:focus-visible,
+.menu-toggle:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--px-ink);
+}
+
+.menu-toggle:active {
+  transform: none;
+}
+
+@media (min-width: 821px) {
+  .site-header__inner {
+    clip-path: var(--px-steps);
+  }
+}
+
+@media (max-width: 820px) {
+  .site-header__controls {
+    border: 0;
+    border-radius: 0;
+    background: var(--px-panel);
+    box-shadow: inset 0 0 0 4px var(--px-ink);
+  }
+
+  .primary-nav a {
+    display: flex;
+  }
+
+  .site-header .brand__name {
+    font-size: 15px;
+  }
+}
+
 .utility-controls {
   display: flex;
   align-items: center;
@@ -3212,7 +3309,6 @@ h4 a,
   }
 
   .brand__name {
-    font-size: 0.98rem;
     padding-inline-start: 0;
   }
 
@@ -3229,10 +3325,6 @@ h4 a,
     flex-direction: column;
     align-items: stretch;
     padding: 1rem;
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border);
-    background: var(--surface-strong);
-    box-shadow: var(--shadow);
   }
 
   .site-header__controls.is-open {
@@ -3760,7 +3852,7 @@ h4 a,
   --cv-soft: #d3cabb;
   --amber: #ffb547;
   --px: 4px;
-  --pixel-font: 'Jersey 15', 'Pixelify Sans', system-ui, sans-serif;
+  --pixel-font: 'Jersey 15', system-ui, sans-serif;
   --stepped: polygon(
     var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
     100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%,

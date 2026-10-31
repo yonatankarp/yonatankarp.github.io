@@ -25,7 +25,6 @@
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
 <head>
   {{ partial "head.html" . }}
-  <link href="https://fonts.googleapis.com/css2?family=Jersey+15&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   <style>html, body { margin: 0; background: #151923; }</style>
   {{- /* Guided from the first paint, not when the module runs (#39): the query is guide.js's roomy, and only where
@@ -72,13 +71,13 @@
     <button class="building-floor-btn" type="button" data-goto="P" aria-label="Parking, projects" title="Parking, projects">P</button>
   </nav>
 
-  <p class="building-hint" style="opacity:0">Scroll, swipe or use the arrow keys to ride the elevator</p>
+  <p class="building-hint" style="opacity:0">Scroll, swipe or use the arrow keys to ride the lift</p>
 
   <main class="building-stops" id="building-stops">
     <section class="building-stop building-stop--hero is-here" id="floor-E" data-floor="E" aria-labelledby="fE">
       <article class="floor-card floor-card--hero" style="--accent:{{ index $accent "E" }}">
         <p class="floor-how">Every floor is a chapter of my CV. Scroll to go inside, or pick a window.</p>
-        <p class="floor-eyebrow">{{ $home.hero.eyebrow }}</p>
+        <p class="floor-eyebrow">{{ partial "nobreak.html" $home.hero.eyebrow }}</p>
         <h1 id="fE" tabindex="-1">{{ $home.hero.title }}</h1>
         <p class="floor-open">{{ $home.hero.availability }}</p>
         <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <a href="mailto:{{ $home.contact.email.address }}">{{ $home.contact.email.address }}</a></p>
@@ -95,7 +94,7 @@
         <p class="floor-lead">{{ $home.contact.text }}</p>
         <ul>{{ range $home.contact.priorities }}<li>{{ . }}</li>{{ end }}</ul>
         <p class="floor-skills"><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a>, <a href="https://github.com/yonatankarp">GitHub</a>, <a href="https://www.linkedin.com/in/yonatankarp/">LinkedIn</a></p>
-        <button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Step inside</button>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Step inside</button></div>
       </article>
       <div class="floor-panel" id="panel-R" style="--accent:{{ index $accent "R" }}" tabindex="-1" role="region" aria-labelledby="ptR">
         <button class="panel-back" type="button">Back to the lift</button>
@@ -103,9 +102,9 @@
         <h2 class="panel-title" id="ptR">{{ $home.contact.title }}</h2>
         <p>{{ $home.contact.text }}</p>
         <dl class="panel-facts">{{ range $home.contact.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
-        <h3>{{ $home.fit.title }}</h3>
+        <h3>{{ strings.TrimSuffix "." $home.fit.title }}</h3>
         <ul>{{ range $home.fit.items }}<li>{{ . }}</li>{{ end }}</ul>
-        <h3>{{ $home.outcomes.title }}</h3>
+        <h3>{{ strings.TrimSuffix "." $home.outcomes.title }}</h3>
         <div class="panel-grid">{{ range $home.outcomes.items }}<div><b>{{ .title }}</b><span>{{ .text }}</span></div>{{ end }}</div>
         <h3>Get in touch</h3>
         <ul><li><a href="mailto:yonvata@gmail.com">yonvata@gmail.com</a></li><li><a href="https://github.com/yonatankarp">github.com/yonatankarp</a></li><li><a href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a></li></ul>
@@ -115,18 +114,18 @@
     <section class="building-stop" id="floor-8" data-floor="8" aria-labelledby="f8">
       <article class="floor-card" style="--accent:{{ index $accent "8" }};--accent-text:#E0664A">
         <header><span class="floor-badge">8</span><span class="floor-company">Newsroom</span><span class="floor-when">{{ $home.writing.kicker }}</span></header>
-        <h2 id="f8" tabindex="-1">{{ $home.writing.title }}</h2>
-        <ul>{{ range first 3 $posts }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <span class="panel-soft">· {{ .Date.Format "Jan 2006" }}</span></li>{{ end }}</ul>
-        <button class="step-in" type="button" aria-controls="panel-8" aria-expanded="false">Step inside</button>
+        <h2 id="f8" tabindex="-1">{{ partial "nobreak.html" $home.writing.title }}</h2>
+        <ul>{{ range first 3 $posts }}<li><a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (replace .Title " - " " – ") }}</a> <span class="panel-soft">· {{ .Date.Format "Jan 2006" }}</span></li>{{ end }}</ul>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-8" aria-expanded="false">Step inside</button></div>
       </article>
       <div class="floor-panel" id="panel-8" style="--accent:{{ index $accent "8" }};--accent-text:#E0664A" tabindex="-1" role="region" aria-labelledby="pt8">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">8</span><p><b>Newsroom</b><span>{{ $home.writing.kicker }}</span></p></div>
-        <h2 class="panel-title" id="pt8">{{ $home.writing.title }}</h2>
+        <h2 class="panel-title" id="pt8">{{ partial "nobreak.html" $home.writing.title }}</h2>
         <ul class="panel-projects">
           {{ range first 8 $posts }}
-          <li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <span class="panel-soft">· {{ .Date.Format "Jan 2006" }}</span>
-            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 180 }}</span></li>
+          <li><a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (replace .Title " - " " – ") }}</a> <span class="panel-soft">· {{ .Date.Format "Jan 2006" }}</span>
+            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 180 "…" }}</span></li>
           {{ end }}
         </ul>
         <p><a href="{{ "blog/" | relURL }}">All posts</a></p>
@@ -136,6 +135,7 @@
     {{ range $experience }}
     {{ $floor := .Params.floor }}
     {{ $cases := where $home.proof.items "floor" $floor }}
+    {{ $more := or (gt (len .Params.highlights) 3) (gt (len $cases) 0) }}
     <section class="building-stop" id="floor-{{ $floor }}" data-floor="{{ $floor }}" aria-labelledby="f{{ $floor }}">
       <article class="floor-card" style="--accent:{{ index $accent $floor }}">
         <header><span class="floor-badge">{{ $floor }}</span><span class="floor-company">{{ .Params.company }}, {{ index (split .Params.location ",") 0 }}</span><span class="floor-when">{{ replace .Params.duration " - " " – " }}</span></header>
@@ -143,16 +143,17 @@
         {{- /* Above the summary, so a reader riding past sees the floor has a case study, even on a phone (#34). */}}
         {{ range $cases }}<p class="floor-case"><b>Case study · {{ .label }}</b> <span>{{ .title }}</span></p>{{ end }}
         <p class="floor-lead">{{ .Params.summary }}</p>
-        <ul>{{ range first 3 .Params.highlights }}<li>{{ . }}</li>{{ end }}</ul>
-        <button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">{{ if not $cases }}Step inside{{ else if eq (len $cases) 1 }}Read the case study{{ else }}Read the case studies{{ end }}</button>
+        <ul>{{ range first 3 .Params.highlights }}<li>{{ partial "nobreak.html" . }}</li>{{ end }}</ul>
+        {{ if $more }}<div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">{{ if not $cases }}Step inside{{ else if eq (len $cases) 1 }}Read the case study{{ else }}Read the case studies{{ end }}</button></div>{{ end }}
       </article>
+      {{ if $more }}
       <div class="floor-panel" id="panel-{{ $floor }}" style="--accent:{{ index $accent $floor }}" tabindex="-1" role="region" aria-labelledby="pt{{ $floor }}">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">{{ $floor }}</span><p><b>{{ .Params.company }}, {{ .Params.location }}</b><span>{{ replace .Params.duration " - " " – " }}</span></p></div>
         <h2 class="panel-title" id="pt{{ $floor }}">{{ replace .Title " - " ", " }}</h2>
         <p>{{ .Params.summary }}</p>
         <h3>What I did</h3>
-        <ul>{{ range .Params.highlights }}<li>{{ . }}</li>{{ end }}</ul>
+        <ul>{{ range .Params.highlights }}<li>{{ partial "nobreak.html" . }}</li>{{ end }}</ul>
         {{ range $cases }}
         <h3>Case study</h3>
         <div class="panel-case">
@@ -164,6 +165,7 @@
         </div>
         {{ end }}
       </div>
+      {{ end }}
     </section>
     {{ end }}
 
@@ -174,7 +176,7 @@
         <h2 id="f1" tabindex="-1">{{ .Params.degree }}</h2>
         <p class="floor-lead">{{ $home.education.title }}</p>
         <ul>{{ range first 4 $courses }}<li>{{ .Title }} ({{ .Params.year }})</li>{{ end }}</ul>
-        <button class="step-in" type="button" aria-controls="panel-1" aria-expanded="false">Step inside</button>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-1" aria-expanded="false">Step inside</button></div>
       </article>
       <div class="floor-panel" id="panel-1" style="--accent:{{ index $accent "1" }}" tabindex="-1" role="region" aria-labelledby="pt1">
         <button class="panel-back" type="button">Back to the lift</button>
@@ -193,16 +195,16 @@
 
     <section class="building-stop" id="floor-L" data-floor="L" aria-labelledby="fL">
       <article class="floor-card" style="--accent:{{ index $accent "L" }}">
-        <header><span class="floor-badge">L</span><span class="floor-company">Lobby</span><span class="floor-when">{{ $home.testimonials.kicker }}</span></header>
+        <header><span class="floor-badge">L</span><span class="floor-company">Lobby</span><span class="floor-when">{{ $home.about.kicker }}</span></header>
         {{ with resources.Get "images/showcase/showcase.png" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
         <h2 id="fL" tabindex="-1">{{ $home.testimonials.title }}</h2>
         <ul class="floor-quotes">
           {{ range $testimonials }}
-          <li><q>{{ .Params.pullQuote }}</q> <cite>{{ .Params.name }}, {{ .Params.position }}</cite></li>
+          <li><q>{{ strings.TrimSuffix "." .Params.pullQuote }}</q> <cite>{{ .Params.name }}, {{ .Params.position }}</cite></li>
           {{ end }}
         </ul>
-        {{ with $skills }}<p class="floor-skills">{{ delimit .Params.working_set ", " }}</p>{{ end }}
-        <button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">Step inside</button>
+        {{ with $skills }}<p class="floor-skills">Stack: {{ delimit .Params.working_set ", " }}</p>{{ end }}
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">Step inside</button></div>
       </article>
       <div class="floor-panel" id="panel-L" style="--accent:{{ index $accent "L" }}" tabindex="-1" role="region" aria-labelledby="ptL">
         <button class="panel-back" type="button">Back to the lift</button>
@@ -214,19 +216,19 @@
         {{ range $testimonials }}
         {{ $t := . }}
         <figure class="panel-quote">
-          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "120x120 Center" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
+          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "30x30 Center" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
           <blockquote>{{ .Plain | htmlUnescape }}<cite>{{ .Params.name }}, {{ .Params.position }}</cite></blockquote>
         </figure>
         {{ end }}
         {{ with $skills }}
-        <h3>{{ .Title }}</h3>
+        <h3>Practice areas</h3>
         <div class="panel-grid">{{ range .Params.practice_areas }}<div><b>{{ .name }}</b><span>{{ .summary }}</span><span class="panel-chips">{{ range .tools }}<i>{{ . }}</i>{{ end }}</span></div>{{ end }}</div>
         {{ end }}
       </div>
     </section>
 
     <section class="building-stop" id="floor-P" data-floor="P" aria-labelledby="fP">
-      <article class="floor-card" style="--accent:{{ index $accent "P" }}">
+      <article class="floor-card" style="--accent:{{ index $accent "P" }};--accent-text:#FFD77A">
         <header><span class="floor-badge">P</span><span class="floor-company">Parking</span><span class="floor-when">{{ $home.projects.kicker }}</span></header>
         <h2 id="fP" tabindex="-1">{{ $home.projects.title }}</h2>
         {{ $upstream := slice }}{{ $tools := slice }}{{ $games := slice }}
@@ -236,15 +238,15 @@
           {{ else }}{{ $tools = $tools | append .Title }}{{ end }}
         {{ end }}
         <ul>
-          <li>Upstream: {{ delimit $upstream ", " }}.</li>
-          <li>Libraries and tools: {{ delimit (first 5 $tools) ", " }}.</li>
-          <li>Games: {{ delimit $games ", " }}.</li>
+          <li>Upstream: {{ partial "nobreak.html" (delimit $upstream ", ") }}.</li>
+          <li>Libraries and tools: {{ partial "nobreak.html" (delimit (first 5 $tools) ", ") }}.</li>
+          <li>Games: {{ partial "nobreak.html" (delimit $games ", ") }}.</li>
         </ul>
         <p class="floor-skills"><a href="{{ "projects/" | relURL }}">All projects</a></p>
-        <button class="step-in" type="button" aria-controls="panel-P" aria-expanded="false">Step inside</button>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-P" aria-expanded="false">Step inside</button></div>
         <p class="floor-end">Bottom of the building: the lift goes no lower. Scroll up, or <a href="#floor-R" data-goto="R">ride to the roof</a> to get in touch.</p>
       </article>
-      <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }}" tabindex="-1" role="region" aria-labelledby="ptP">
+      <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }};--accent-text:#FFD77A" tabindex="-1" role="region" aria-labelledby="ptP">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">P</span><p><b>Parking</b><span>{{ $home.projects.kicker }}</span></p></div>
         <h2 class="panel-title" id="ptP">{{ $home.projects.title }}</h2>
@@ -257,8 +259,9 @@
           {{ $group := cond (eq .Params.group "contribution") "contribution" (cond $isGame "game" "tool") }}
           {{ if eq $group $kind }}
           {{- /* A case study's own page first, its repository or docs second (#33). */}}
-          <li>{{ if .Params.caseStudy }}{{ replace .Title " (contributor)" "" }}{{ else }}<a href="{{ .Params.link }}">{{ replace .Title " (contributor)" "" }}</a>{{ end }} <span class="panel-soft">· {{ .Params.projectKind }}</span>
-            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 180 }}</span>
+          {{ $name := partial "nobreak.html" (replace .Title " (contributor)" "") }}
+          <li>{{ if .Params.caseStudy }}{{ $name }}{{ else }}<a href="{{ .Params.link }}">{{ $name }}</a>{{ end }} <span class="panel-soft">· {{ .Params.projectKind }}</span>
+            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 180 "…" }}</span>
             {{ if .Params.caseStudy }}<span class="panel-desc"><a href="{{ .RelPermalink }}">Case study</a> · <a href="{{ .Params.link }}">{{ .Params.button.btnText }}</a></span>{{ end }}
             {{ with .Params.tech }}<span class="panel-chips">{{ range . }}<i>{{ . }}</i>{{ end }}</span>{{ end }}</li>
           {{ end }}

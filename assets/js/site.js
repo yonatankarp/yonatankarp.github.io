@@ -81,31 +81,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const searchInput = document.getElementById('site-search');
     const searchResults = document.getElementById('search-results');
-    if (searchInput && searchResults) {
-      const indexPath = '/index.json';
-      fetch(indexPath)
-        .then((response) => response.json())
+    const searchStatus = document.getElementById('search-status');
+    if (searchInput && searchResults && searchStatus) {
+      const hint = searchResults.cloneNode(true).childNodes;
+      const initialQuery = new URLSearchParams(window.location.search).get('q');
+      if (initialQuery) searchInput.value = initialQuery;
+      searchInput.form?.addEventListener('submit', (event) => event.preventDefault());
+      fetch('/index.json')
+        .then((response) => {
+          if (!response.ok) throw new Error(`index.json: HTTP ${response.status}`);
+          return response.json();
+        })
         .then((pages) => {
-          const clearResults = () => {
-            searchResults.replaceChildren();
-          };
-
-          const renderMessage = (message) => {
-            clearResults();
-            const node = document.createElement('p');
-            node.textContent = message;
-            searchResults.append(node);
-          };
+          pages.forEach((page) => {
+            page.haystack = [page.title, page.type, page.summary, page.content].join(' ').toLowerCase();
+          });
 
           const render = (items) => {
-            if (!items.length) {
-              renderMessage('No results found.');
-              return;
-            }
-            clearResults();
-            items.forEach((item) => {
+            searchResults.replaceChildren(...items.map((item) => {
               const article = document.createElement('article');
               article.className = 'search-result';
+
+              const type = document.createElement('span');
+              type.className = 'search-result__type';
+              type.textContent = item.type;
 
               const link = document.createElement('a');
               link.href = item.permalink;
@@ -114,37 +113,39 @@ document.addEventListener('DOMContentLoaded', () => {
               const summary = document.createElement('p');
               summary.textContent = item.summary || '';
 
-              article.append(link, summary);
-              searchResults.append(article);
-            });
+              article.append(type, link, summary);
+              return article;
+            }));
           };
 
-          const runSearch = (pages, query) => {
-            const q = query.trim().toLowerCase();
-            if (!q) {
-              clearResults();
+          const runSearch = (query) => {
+            const url = new URL(window.location.href);
+            if (query.trim()) url.searchParams.set('q', query);
+            else url.searchParams.delete('q');
+            history.replaceState(null, '', url);
+
+            const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+            if (!terms.length) {
+              searchResults.replaceChildren(...[...hint].map((node) => node.cloneNode(true)));
+              searchStatus.textContent = '';
               return;
             }
-            const filtered = pages.filter((page) => {
-              return [page.title, page.summary, page.content].join(' ').toLowerCase().includes(q);
-            }).slice(0, 10);
-            render(filtered);
+            const matches = pages.filter((page) => terms.every((term) => page.haystack.includes(term)));
+            const shown = matches.slice(0, 10);
+            render(shown);
+            const quoted = `\u201c${query.trim()}\u201d`;
+            const noun = matches.length === 1 ? 'result' : 'results';
+            searchStatus.textContent = !matches.length ? `No results for ${quoted}.`
+              : shown.length < matches.length ? `Showing ${shown.length} of ${matches.length} results for ${quoted}.`
+              : `${matches.length} ${noun} for ${quoted}.`;
           };
 
-          searchInput.addEventListener('input', () => {
-            runSearch(pages, searchInput.value);
-          });
-
-          const initialQuery = new URLSearchParams(window.location.search).get('q') || '';
-          if (initialQuery) {
-            searchInput.value = initialQuery;
-            runSearch(pages, initialQuery);
-          }
+          searchInput.addEventListener('input', () => runSearch(searchInput.value));
+          if (searchInput.value.trim()) runSearch(searchInput.value);
         })
         .catch(() => {
-          const node = document.createElement('p');
-          node.textContent = 'Search is unavailable right now.';
-          searchResults.replaceChildren(node);
+          searchResults.replaceChildren();
+          searchStatus.textContent = 'Search is unavailable right now. Browse the blog or the projects instead.';
         });
     }
   } catch {

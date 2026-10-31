@@ -5,8 +5,12 @@
     <h1>{{ .Title }}</h1>
     <p class="px-search__lede">A lightweight search across articles, projects, and pages on the site.</p>
   </header>
-  <label class="px-search__label" for="site-search">Search the site</label>
-  <input id="site-search" name="q" class="search-input" type="search" placeholder="{{ .Params.placeholder | default `Search...` }}">
+  <form class="px-search__form" role="search" action="{{ "search/" | relURL }}" method="get">
+    <label class="px-search__label" for="site-search">Search the site</label>
+    <input id="site-search" name="q" class="search-input" type="search" placeholder="{{ .Params.placeholder | default `Search...` }}">
+  </form>
+  <noscript><p class="px-search__status">Search needs JavaScript. Browse the <a href="{{ "blog/" | relURL }}">blog</a> or the <a href="{{ "projects/" | relURL }}">projects</a> instead.</p></noscript>
+  <p id="search-status" class="px-search__status" role="status"></p>
   <div id="search-results" class="px-search__results">
     <article class="search-result search-result--empty">
       <span>Try a topic</span>

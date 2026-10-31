@@ -181,6 +181,43 @@ function checkCaseStudyPage(route, html, slug) {
   }
 }
 
+function checkPlainPixelPage(route, html) {
+  const body = html.match(/<body\b[^>]*>/)?.[0] ?? "";
+  const fail = (message) => failures.push(`${route}: ${message}`);
+
+  if (!/class=["']?[^"'>]*\bpx-skin\b[^"'>]*\bpx-page\b/.test(body)) {
+    fail("body should have px-skin px-page");
+  }
+
+  const sheets = countMatches(html, /class=["']?[^"'>]*\bpx-sheet\b/g);
+
+  if (sheets !== 1) {
+    fail(`expected one px-sheet, got ${sheets}`);
+  }
+
+  if (/class=["']?[^"'>]*\breveal\b/.test(html)) {
+    fail("still has reveal classes");
+  }
+
+  if (route === "/search/") {
+    for (const id of ["site-search", "search-results"]) {
+      if (!new RegExp(`\\bid=["']?${id}[\\s"'>]`).test(html)) {
+        fail(`missing #${id}`);
+      }
+    }
+  }
+
+  if (route === "/404.html") {
+    const hrefs = Array.from(html.matchAll(/<main\b[\s\S]*?<\/main>/g)).flatMap((main) => Array.from(main[0].matchAll(/<a\b[^>]*>/g)).map((tag) => collectAttribute(tag[0], "href")));
+
+    for (const href of ["/", "/blog/"]) {
+      if (!hrefs.includes(href)) {
+        fail(`should link to ${href}`);
+      }
+    }
+  }
+}
+
 const barTabs = [["/projects/", "Projects"], ["/blog/", "Blog"], ["/cv/", "CV"]];
 
 function currentTab(route) {
@@ -274,6 +311,10 @@ for (const filePath of htmlFiles) {
 
   if (route === "/projects/") {
     checkProjectsPage(route, html);
+  }
+
+  if (["/search/", "/skills/", "/404.html"].includes(route)) {
+    checkPlainPixelPage(route, html);
   }
 
   const caseStudy = route.match(/^\/projects\/([^/]+)\/$/);

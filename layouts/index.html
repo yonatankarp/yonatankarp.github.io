@@ -228,7 +228,7 @@
     </section>
 
     <section class="building-stop" id="floor-P" data-floor="P" aria-labelledby="fP">
-      <article class="floor-card" style="--accent:{{ index $accent "P" }}">
+      <article class="floor-card" style="--accent:{{ index $accent "P" }};--accent-text:#FFD77A">
         <header><span class="floor-badge">P</span><span class="floor-company">Parking</span><span class="floor-when">{{ $home.projects.kicker }}</span></header>
         <h2 id="fP" tabindex="-1">{{ $home.projects.title }}</h2>
         {{ $upstream := slice }}{{ $tools := slice }}{{ $games := slice }}
@@ -246,7 +246,7 @@
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-P" aria-expanded="false">Step inside</button></div>
         <p class="floor-end">Bottom of the building: the lift goes no lower. Scroll up, or <a href="#floor-R" data-goto="R">ride to the roof</a> to get in touch.</p>
       </article>
-      <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }}" tabindex="-1" role="region" aria-labelledby="ptP">
+      <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }};--accent-text:#FFD77A" tabindex="-1" role="region" aria-labelledby="ptP">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">P</span><p><b>Parking</b><span>{{ $home.projects.kicker }}</span></p></div>
         <h2 class="panel-title" id="ptP">{{ $home.projects.title }}</h2>

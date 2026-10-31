@@ -28,6 +28,7 @@ HERE = Path(__file__).resolve().parent / "paintings"
 LOBBY_PX = (132, 154)
 FLOOR_PX = (464, 154)
 LIFT = (27, 0, 107, 142)   # the lift, its lamp and glow in the lobby pixels, down to the door sill (not the floor)
+FRAME = (37, 94)           # the lift's door frame in the lobby pixels, outer ink column to outer ink column (half-open)
 WHOLE = (0, 0, 1920, 640)
 PICKS = {  # name: (seed, crop (left, top, right, bottom), colours)
     "lobby": (100, (6, 6, 570, 634), 24),
@@ -896,6 +897,9 @@ def glow(px):
                 a[y, x] = G.c("violet", 5) if x % 2 == 0 and y % 2 == 0 else WALL
             elif col in (G.c("sky", 5), G.c("sky", 4), G.c("wall", 3), G.c("wall", 4)):   # an eighth further out
                 a[y, x] = G.c("violet", 5) if (x + y // 2 * 2) % 4 == 0 and y % 2 == 0 else WALL
+    floor = a[126:, 197:366]                                               # the floor round the pool came out in the
+    for was, now in {**SHADE, G.c("red", 2): (106, 63, 12)}.items():       # skirting's maroons: the planks' shadow
+        floor[(floor == was).all(-1)] = now                                # instead, so the pool's edge dithers into it
     pool = {G.c("magenta", 1), G.c("magenta", 2)}                         # its dark floor, not the lit cables
     was = a.copy()
     for y in range(129, a.shape[0]):                                       # the pool's edge, two pixels deep
@@ -1019,6 +1023,13 @@ KEEP["writing"] = [(236, 0, 392, 34), (224, 38, 321, 80), (296, 78, 331, 100), (
 # clippings, the typewriter's sheet, the two bookcases
 
 
+SHELVES = [  # the bookcases' top shelves: inside (half-open), the books standing (x, top) and lying (x0, y0, x1) on them
+    ((152, 26, 189, 42), [(153, 28), (156, 30), (159, 27), (162, 29), (165, 28), (168, 31)], [(173, 35, 186), (174, 38, 188)]),
+    ((337, 37, 389, 54), [(352 + 3 * i, top) for i, top in enumerate((39, 41, 38, 40, 42, 39, 38, 41, 40, 39, 42, 40))],
+     [(338, 44, 348), (339, 47, 350), (338, 50, 349)]),
+]
+
+
 def paper(a, y, bundles, skip=(0, 0, 0, 0)):
     """A stack of tied bundles of paper standing on row y, listed from the bottom as (x0, x1, rows), each sharing its
     outline row with the one below: an ink outline, a page line every second row, the right side in shadow, the
@@ -1069,6 +1080,14 @@ def newsroom(px):
         for x in range(410 - r * 2 // 3, 421 + r // 3):
             if (a[y, x] == wall).all() and (r < 5 or (r < 9 and (x + y) % 2 == 0) or (x % 2 == 0 and y % 2 == 0)):
                 a[y, x] = CONE
+    for (x0, y0, x1, y1), standing, lying in SHELVES:                    # the top shelves' books, bleached by the
+        a[y0:y1, x0:x1] = (82, 27, 24)                                     # painted lamp light, drawn again as floor
+        for i, (x, top) in enumerate(standing):                           # 1's are: spines in the shelves' own colours
+            a[top:y1, x - 1:x + 3] = G.INK
+            a[top + 1:y1, x:x + 2] = G.c(("red", "plant", "blue", "amber", "steel", "wood")[i % 6], 3)
+        for i, (bx0, by0, bx1) in enumerate(lying):
+            a[by0:by0 + 4, bx0:bx1 + 1] = G.INK
+            a[by0 + 1:by0 + 3, bx0 + 1:bx1] = G.c(("blue", "red", "amber")[i % 3], 4)
     a[133:135, 442:464] = WALL                                             # the skirting behind the press
     a[135:143, 442:464] = a[135:143, 460:461]
     a[134:142, 122:140] = a[134:142, 112:113]                              # the seam's skirting
@@ -1167,15 +1186,17 @@ def install(name):
             px = relight(px, LAMPS.get(name, ()), GONE.get(name, ()), keep=KEEP.get(name, ()), unlit=UNLIT.get(name, ()))
         if name in TOUCHUPS:
             px = TOUCHUPS[name](px)
-        side = np.asarray(px)[:, :LIFT[0]].copy()                          # the room's skirting beside the lift
         lift = (0, 0, LIFT[2], LOBBY_PX[1]) if name == "roof" else LIFT   # the roof's lift housing is all lobby, floor too
         px.paste(lobby.crop(lift), lift[:2])
-        if name != "roof":                                                 # under the lift, the skirting is the room's
-            a, ref = np.asarray(px).copy(), np.asarray(lobby)
-            for y in range(134, LIFT[3]):
-                run, was = a[y, LIFT[0]:LIFT[2]], mode(ref[y, :LIFT[0]])
-                if was != G.INK:                                           # its ink lines run through the door frame
-                    run[(run == was).all(-1)] = mode(side[y])
+        if name != "roof":                                                 # beside the door frame, the skirting under
+            a = np.asarray(px).copy()                                      # the lift is the room's own, row by row,
+            for y in range(134, LIFT[3]):                                  # on from each side (and over any of the
+                foot = int(y == 140)                                       # model's own lift left showing there)
+                left, right = a[y, LIFT[0] - 16:LIFT[0]], a[y, LIFT[2]:LIFT[2] + 16]
+                lc, rc = mode(left), mode(right)
+                x0 = LIFT[0] - next(i for i, col in enumerate(left[::-1]) if tuple(col) == lc)
+                x1 = LIFT[2] + next(i for i, col in enumerate(right) if tuple(col) == rc)
+                a[y, x0:FRAME[0] - foot], a[y, FRAME[1] - foot:x1] = lc, rc   # the frame flares at its foot
             px = Image.fromarray(a, "RGB")
     px.save(HERE / "picks" / f"{name}-px.png")
     print("installed", name, "seed", seed, crop.size, "->", px.size)

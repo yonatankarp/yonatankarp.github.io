@@ -181,8 +181,9 @@ def frame_base(key, room_name, accent):
                 cv.rect(x, 0, x + 1, H - 12, c("dark", 2) if x == HOUSING_X else INK)
                 continue
             if x >= W - 8:
-                for y in range(CEIL, H - 12):
-                    cv.put(x, y, painting.getpixel((x - LOBBY_X - 8, y - CEIL)))   # the dither repeats every 4
+                for y in range(CEIL, H - 12):                                # the dither repeats every 4; the railing
+                    sy = max(121, y - 2) if 121 <= y < 142 else y            # (rows 121-141) falls 2 rows in those 8
+                    cv.put(x, y, painting.getpixel((x - LOBBY_X - 8, sy - CEIL)))
     cv.rect(LOBBY_X + 58, CEIL + 41, LOBBY_X + 73, CEIL + 46, (26, 18, 8))          # the lift's floor display, bezel to bezel
     for y, row in enumerate(FONT[key]):
         for x, ch in enumerate(row):
@@ -432,8 +433,10 @@ def writing(room, f):
     n = sum(POST) if f == 0 else (f - 1) * sum(POST) // 10                # the room rests on a finished paragraph;
     for i, w in enumerate(POST):                                           # then a fresh page, typed out by f11
         room.rect(142, 86 + 3 * i, 142 + max(0, min(w, n - sum(POST[:i]))), 87 + 3 * i, c("cream", 4))
-    room.nudge((164, 80, 199, 89), [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f], 0,   # the typewriter's carriage, its
-               mask=lambda col: col != PLASTER, bg=PLASTER)                          # sheet and roller, not the wall
+    dx = [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f]                           # the typewriter's carriage: its sheet and
+    room.nudge((164, 80, 199, 86), dx, 0, mask=lambda col: col != PLASTER, bg=PLASTER)   # outline over the wall, and
+    room.nudge((163, 86, 177, 89), dx, 0, mask=lambda col: col in R["cream"], bg=INK)   # the paper curled under it
+    # over the machine's body, which stays put
     room.nudge((256, 115, 280, 124), 0, [0, 0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0][f],  # a page eases out of the press
                mask=lambda col: col in R["cream"], bg=c("cream", 5))
 

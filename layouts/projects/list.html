@@ -1,32 +1,46 @@
-{{ define "main" }}
-<section class="shell page-head reveal-group">
-  <div class="page-head__copy reveal">
-    <p class="section-kicker">Projects</p>
-    <h1>{{ .Title }}</h1>
-    {{ with .Content }}<p>{{ . | plainify }}</p>{{ end }}
-  </div>
-</section>
+{{- /* The projects page in the pixel skin: a standalone page (no baseof), like cv.html. */ -}}
+{{ $pages := .Pages.ByWeight }}
+{{ $mine := where $pages "Params.group" "!=" "contribution" }}
+{{ $contributions := where $pages "Params.group" "contribution" }}
+<!DOCTYPE html>
+<html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
+<head>
+  {{ partial "head.html" . }}
+</head>
+<body class="px-skin px-projects" style="--scene: url({{ "building/pixel/exterior.png" | relURL }})">
+  <a class="skip-link" href="#projects">Skip to the projects</a>
+  {{ partial "pixel-bar.html" . }}
 
-<section class="shell projects-page reveal-group">
-  {{ $mine := where .Pages "Params.group" "!=" "contribution" }}
-  {{ $contributions := where .Pages "Params.group" "contribution" }}
+  <main class="px-sheet" id="projects">
+    <header class="px-projects__head">
+      <p class="px-kicker">Parking · Projects</p>
+      <h1>{{ .Title }}</h1>
+      {{ with .Content }}<p class="px-projects__lede">{{ . | plainify }}</p>{{ end }}
+    </header>
 
-  {{ with $mine }}
-  <h2 class="project-group__title">My projects</h2>
-  <ol class="project-list">
-    {{ range sort . "Weight" "asc" }}
-    {{ partial "project-entry.html" (dict "page" . "media" true) }}
+    {{ range slice (slice "My projects" $mine) (slice "Open-source contributions" $contributions) }}
+    <section class="px-section">
+      <h2>{{ index . 0 }}</h2>
+      <ol class="px-grid">
+        {{ range index . 1 }}
+        {{ $title := .Title | replaceRE `\s*\(contributor\)$` "" }}
+        {{ $case := .Params.caseStudy }}
+        {{ $href := cond $case .RelPermalink .Params.link }}
+        {{ $label := cond $case "Case study" (.Params.button.btnText | default "View") }}
+        <li class="px-card">
+          {{ partial "project-painting.html" (dict "page" . "max" 640) }}
+          <div class="px-card__body">
+            <p class="px-card__meta">{{ with .Params.projectKind }}<b>{{ . }}</b>{{ end }}<span>{{ .Params.years | default (.Date.Format "2006") }}</span></p>
+            <h3><a href="{{ $href }}"{{ if not $case }} target="_blank" rel="noopener"{{ end }}>{{ $title }}</a></h3>
+            <p class="px-card__desc">{{ .Params.description | default (.Summary | plainify) }}</p>
+            {{ with .Params.tech }}<ul class="px-card__tags">{{ range . }}<li class="px-chip">{{ . }}</li>{{ end }}</ul>{{ end }}
+            <span class="px-cta{{ if not $case }} px-cta--out{{ end }}" aria-hidden="true">{{ $label }} {{ if $case }}&#8594;{{ else }}&#8599;{{ end }}</span>
+          </div>
+        </li>
+        {{ end }}
+      </ol>
+    </section>
     {{ end }}
-  </ol>
-  {{ end }}
-
-  {{ with $contributions }}
-  <h2 class="project-group__title">Open-source contributions</h2>
-  <ol class="project-list project-list--compact">
-    {{ range sort . "Weight" "asc" }}
-    {{ partial "project-entry.html" (dict "page" . "media" true) }}
-    {{ end }}
-  </ol>
-  {{ end }}
-</section>
-{{ end }}
+  </main>
+</body>
+</html>

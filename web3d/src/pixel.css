@@ -223,6 +223,7 @@
   .pixel .building-floor-btn { width: 30px; height: 44px; }   /* 30px wide as on phones: the four links need the room (#50) */
   /* Four links and the pause no longer fit beside it: pause goes up beside the download button, as tall. */
   html.building--guided .pixel .building-pause { position: fixed; top: 21px; right: calc(clamp(16px, 3vw, 36px) + 56px); width: 44px; height: 52px; justify-content: center; }
+  html.building--guided .pixel .building-pause span { display: none; }
 }
 html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card says it; the hint would cover the ground floor */
 
@@ -239,10 +240,12 @@ html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card 
 .pixel .building-pause[hidden] { display: none; }
 .pixel .building-pause:hover { background: var(--panel-hi); }
 .pixel .building-pause svg { shape-rendering: crispEdges; }
+.pixel .building-pause span { margin-left: 8px; font-size: 15px; font-weight: 500; }
 .pixel .building-pause[data-paused="true"] .i-pause, .pixel .building-pause:not([data-paused="true"]) .i-play { display: none; }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
   /* Pause goes under the download button, a full-size target clear of the street's windows. */
   html.building--guided .pixel .building-pause { position: fixed; top: 84px; right: clamp(16px, 3vw, 36px); width: 44px; height: 44px; justify-content: center; }
+  html.building--guided .pixel .building-pause span { display: none; }
 }
 /* Elsewhere: LinkedIn, GitHub, X and the podcast, pixel icon tabs in the column under the download button (#50). */
 .pixel .building-social { position: fixed; top: 84px; right: clamp(16px, 3vw, 36px); display: flex; gap: 8px; }

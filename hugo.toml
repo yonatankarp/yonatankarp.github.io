@@ -94,35 +94,6 @@ direction = "ltr"
 label = "English"
 weight = 1
 
-# --- Menus ---
-
-[menus]
-[[menus.header]]
-name = "Home"
-URL = "/"
-weight = 1
-[[menus.header]]
-name = "About"
-URL = "/#floor-L"
-weight = 2
-[[menus.header]]
-name = "Projects"
-URL = "/projects/"
-weight = 5
-[[menus.header]]
-name = "Blog"
-URL = "/blog"
-weight = 6
-[[menus.header]]
-name = "CV"
-URL = "/cv/"
-weight = 7
-[[menus.header]]
-pre = "search"
-name = "Search"
-URL = "/search"
-weight = 9
-
 # --- Markup & Performance ---
 
 [markup]

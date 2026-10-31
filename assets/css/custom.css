@@ -2146,17 +2146,6 @@ h4 a,
   hyphens: none;
 }
 
-.article__cover {
-  margin: 0 0 2rem;
-}
-
-.article__cover img {
-  width: 100%;
-  max-height: 460px;
-  object-fit: cover;
-  border-radius: var(--radius-xl);
-}
-
 .article__content {
   font-size: 1.05rem;
   color: var(--text);

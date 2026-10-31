@@ -87,6 +87,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       pauseButton.dataset.paused = paused;
       pauseButton.setAttribute('aria-label', paused ? 'Play the animation' : 'Pause the animation');
       pauseButton.title = pauseButton.getAttribute('aria-label');
+      pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
     };
     label();
     pauseButton.hidden = false;

@@ -23,30 +23,98 @@ const routes = [
   {
     name: "home",
     path: "/",
-    requireMobileNav: false,
+    pauseLabel: true,
+    ride: true,
     requiredSelectors: [
+      [".building-name[data-goto='E']", 1, "name plate"],
+      [".building-links nav a", 4, "top bar tabs"],
+      [".building-download", 1, "CV download"],
+      [".building-social a", 4, "social links"],
       ["#pixel-canvas", 1, "building canvas"],
       ["section.building-stop", 12, "building floors"],
       [".building-window", 9, "street view windows"],
     ],
   },
-  { name: "projects", path: "/projects/" },
-  { name: "blog", path: "/blog/" },
+  {
+    name: "projects",
+    path: "/projects/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
+      [".px-download", 1, "CV download"],
+      [".px-grid", 2, "project grids"],
+      [".px-card", 15, "project cards"],
+    ],
+  },
+  {
+    name: "case-study",
+    path: "/projects/ff4k/",
+    ctaFocus: true,
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
+      [".px-prose", 1, "article body"],
+    ],
+  },
+  {
+    name: "blog",
+    path: "/blog/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
+      [".px-download", 1, "CV download"],
+    ],
+  },
   {
     name: "cv",
     path: "/cv/",
-    requireMobileNav: false,
     requiredSelectors: [
-      [".cv-bar__name", 1, "CV name plate"],
-      [".cv-download", 1, "PDF download"],
+      [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
+      [".px-download", 1, "CV download"],
       [".cv-role-item", 6, "CV roles"],
     ],
   },
-  { name: "post-self-compiling-second-brain", path: "/blog/self-compiling-second-brain/" },
+  {
+    name: "post-self-compiling-second-brain",
+    path: "/blog/self-compiling-second-brain/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
+      [".px-download", 1, "CV download"],
+    ],
+  },
+  {
+    name: "search",
+    path: "/search/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
+      [".px-sheet", 1, "sheet"],
+      ["#site-search", 1, "search box"],
+      ["#search-results", 1, "results list"],
+    ],
+  },
+  {
+    name: "skills",
+    path: "/skills/",
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-bar__tabs a", 4, "top bar tabs"],
+      [".px-bar__social a", 4, "social links"],
+      [".px-skills__area", 1, "practice areas"],
+      [".px-chip", 1, "skill chips"],
+    ],
+  },
   {
     name: "madeira-2026",
     path: "/madeira-2026/",
-    requireMobileNav: false,
     requiredSelectors: [
       [".route-guide .route-card", 2, "route guide cards"],
       [".day", 8, "daily itinerary sections"],
@@ -61,10 +129,11 @@ const assertions = [
   "Each page renders a visible h1 and at least 200 characters of body text.",
   "Mobile pages do not horizontally overflow the viewport.",
   "Visible images are loaded with non-zero natural dimensions.",
-  "Mobile header keeps Yonatan Karp-Rudin visible as the brand signal.",
-  "Mobile navigation button is visible, at least 36x36px, labeled, closed by default, and wired to #primary-nav.",
+  "Every page renders the shared top bar (layouts/partials/pixel-bar.html): name plate, four tabs, CV download and the social row.",
   "Home page renders the building: its canvas, every floor and the street view's windows.",
-  "CV page renders its own pixel top bar (name plate and PDF download) and every role.",
+  "Home page rides the lift: a floor button (the hero's CTA on mobile) rides to the roof or floor 8, the name plate rides back to the street.",
+  "Home page pause button shows a Pause label that turns to Play on click on desktop, and stays at least 36x36px with the label hidden on mobile.",
+  "CV page renders every role.",
   "Blog index contains multiple article rows/cards.",
   "Standalone Madeira page contains route cards, daily itinerary sections, photos, and source panels.",
 ];
@@ -330,8 +399,6 @@ async function assertPageBasics(page, route, viewport) {
     const html = document.documentElement;
     const body = document.body;
     const h1 = document.querySelector("h1");
-    const brandEyebrow = document.querySelector(".brand__eyebrow");
-    const navToggle = document.querySelector(".menu-toggle");
     const visibleImages = Array.from(document.images).filter((image) => {
       const rect = image.getBoundingClientRect();
       return rect.width > 0 && rect.height > 0;
@@ -344,24 +411,6 @@ async function assertPageBasics(page, route, viewport) {
       brokenVisibleImages: visibleImages
         .filter((image) => !image.complete || image.naturalWidth === 0 || image.naturalHeight === 0)
         .map((image) => image.currentSrc || image.src),
-      brandEyebrow: brandEyebrow
-        ? {
-            text: brandEyebrow.textContent.replace(/\s+/g, " ").trim(),
-            width: Math.round(brandEyebrow.getBoundingClientRect().width),
-            height: Math.round(brandEyebrow.getBoundingClientRect().height),
-            visible: getComputedStyle(brandEyebrow).display !== "none",
-          }
-        : null,
-      navToggle: navToggle
-        ? {
-            width: Math.round(navToggle.getBoundingClientRect().width),
-            height: Math.round(navToggle.getBoundingClientRect().height),
-            visible: getComputedStyle(navToggle).display !== "none",
-            ariaControls: navToggle.getAttribute("aria-controls") || "",
-            ariaExpanded: navToggle.getAttribute("aria-expanded") || "",
-            label: navToggle.getAttribute("aria-label") || "",
-          }
-        : null,
       blogCards: document.querySelectorAll(".post-row, .featured-article").length,
       requiredSelectorCounts: requiredSelectors.map(([selector, minimum, label]) => ({
         selector,
@@ -388,34 +437,6 @@ async function assertPageBasics(page, route, viewport) {
     fail(`${route.path} (${viewport.name}) has broken visible images: ${checks.brokenVisibleImages.join(", ")}`);
   }
 
-  if (viewport.name === "mobile" && route.requireMobileNav !== false) {
-    if (
-      !checks.brandEyebrow ||
-      checks.brandEyebrow.text !== "Yonatan Karp-Rudin" ||
-      !checks.brandEyebrow.visible ||
-      checks.brandEyebrow.width <= 0 ||
-      checks.brandEyebrow.height <= 0
-    ) {
-      fail(`${route.path} (${viewport.name}) does not expose Yonatan Karp-Rudin in the mobile header`);
-    }
-
-    if (!checks.navToggle) {
-      fail(`${route.path} (${viewport.name}) is missing the mobile menu button`);
-    }
-
-    if (!checks.navToggle.visible) {
-      fail(`${route.path} (${viewport.name}) has a hidden mobile menu button`);
-    }
-
-    if (checks.navToggle.width < 36 || checks.navToggle.height < 36) {
-      fail(`${route.path} (${viewport.name}) has an undersized mobile menu button`);
-    }
-
-    if (checks.navToggle.ariaControls !== "primary-nav" || !checks.navToggle.label || checks.navToggle.ariaExpanded !== "false") {
-      fail(`${route.path} (${viewport.name}) has incomplete mobile menu accessibility attributes`);
-    }
-  }
-
   if (route.name === "blog" && checks.blogCards < 2) {
     fail(`${route.path} (${viewport.name}) has too few blog cards`);
   }
@@ -428,6 +449,70 @@ async function assertPageBasics(page, route, viewport) {
       );
     }
   }
+}
+
+async function assertCtaFocusRing(page, route, viewport) {
+  await page.focus("a.px-cta");
+  const shadow = await page.evaluate(() => getComputedStyle(document.activeElement).boxShadow);
+
+  if (!shadow || shadow === "none") {
+    fail(`${route.path} (${viewport.name}) focused a.px-cta has no visible focus ring (box-shadow ${shadow})`);
+  }
+
+  await page.evaluate(() => document.activeElement.blur());
+}
+
+async function assertRide(page, route, viewport) {
+  const arrive = async (key, via) => {
+    await page.click(via);
+    await page
+      .waitForSelector(`section[data-floor="${key}"].is-here`, { timeout: 8000 })
+      .catch(() => fail(`${route.path} (${viewport.name}) clicking ${via} did not ride to floor ${key}`));
+  };
+
+  await arrive(viewport.name === "mobile" ? "R" : "8", viewport.name === "mobile" ? ".hero-cta" : ".building-floor-btn[data-goto='8']");
+  await arrive("E", ".building-name");
+}
+
+async function assertPauseLabel(page, route, viewport) {
+  const read = () =>
+    page.evaluate(() => {
+      const button = document.querySelector(".building-pause");
+      const label = document.querySelector("[data-building-pause-label]");
+      const box = button ? button.getBoundingClientRect() : { width: 0, height: 0 };
+      return {
+        text: label ? label.textContent.trim() : null,
+        labelVisible: Boolean(label && label.getBoundingClientRect().width > 0),
+        width: box.width,
+        height: box.height,
+      };
+    });
+  const state = await read();
+
+  if (viewport.name === "mobile") {
+    if (state.labelVisible) {
+      fail(`${route.path} (${viewport.name}) shows the pause label`);
+    }
+
+    if (state.width < 36 || state.height < 36) {
+      fail(`${route.path} (${viewport.name}) pause button is ${state.width}x${state.height}, under 36x36`);
+    }
+
+    return;
+  }
+
+  if (!state.labelVisible || state.text !== "Pause") {
+    fail(`${route.path} (${viewport.name}) pause label is ${state.labelVisible ? "visible" : "hidden"} with text ${state.text}, expected visible "Pause"`);
+  }
+
+  await page.click(".building-pause");
+  const clicked = await read();
+
+  if (clicked.text !== "Play") {
+    fail(`${route.path} (${viewport.name}) pause label reads ${clicked.text} after a click, expected "Play"`);
+  }
+
+  await page.click(".building-pause");
 }
 
 async function main() {
@@ -524,9 +609,25 @@ async function main() {
           fail(`${route.path} (${viewport.name}) threw uncaught page errors: ${pageErrors.join("; ")}`);
         }
 
+        if (route.pauseLabel) {
+          await assertPauseLabel(page, route, viewport);
+        }
+
+        if (route.ctaFocus) {
+          await assertCtaFocusRing(page, route, viewport);
+        }
+
         await page.locator("body").screenshot({
           path: path.join(screenshotDir, screenshotFileName(route, viewport)),
         });
+
+        if (route.ride) {   // after the capture, so the screenshot shows the street the page opened on
+          await assertRide(page, route, viewport);
+
+          if (pageErrors.length > 0) {
+            fail(`${route.path} (${viewport.name}) threw uncaught page errors while riding: ${pageErrors.join("; ")}`);
+          }
+        }
         await page.close();
       }
     }

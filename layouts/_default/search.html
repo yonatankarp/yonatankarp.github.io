@@ -1,20 +1,17 @@
 {{ define "main" }}
-<section class="shell page-head reveal-group">
-  <div class="page-head__copy reveal">
-    <p class="section-kicker">Search</p>
+<div class="px-sheet px-search">
+  <header class="px-search__head">
+    <p class="px-kicker">Search</p>
     <h1>{{ .Title }}</h1>
-    <p>A lightweight search across articles, projects, and pages on the site.</p>
+    <p class="px-search__lede">A lightweight search across articles, projects, and pages on the site.</p>
+  </header>
+  <label class="px-search__label" for="site-search">Search the site</label>
+  <input id="site-search" name="q" class="search-input" type="search" placeholder="{{ .Params.placeholder | default `Search...` }}">
+  <div id="search-results" class="px-search__results">
+    <article class="search-result search-result--empty">
+      <span>Try a topic</span>
+      <p>Kotlin, OpenAPI, observability, Kafka, payments, risk, architecture, or Spring Boot.</p>
+    </article>
   </div>
-</section>
-<section class="shell search-view reveal-group">
-  <div class="reveal">
-    <input id="site-search" name="q" class="search-input search-input--large" type="search" placeholder="{{ .Params.placeholder | default `Search...` }}">
-    <div id="search-results" class="search-results">
-      <article class="search-result search-result--empty">
-        <span>Try a topic</span>
-        <p>Kotlin, OpenAPI, observability, Kafka, payments, risk, architecture, or Spring Boot.</p>
-      </article>
-    </div>
-  </div>
-</section>
+</div>
 {{ end }}

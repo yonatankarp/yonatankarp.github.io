@@ -10,7 +10,6 @@
     "check:links": "node scripts/check-links.js",
     "check:links:external": "node scripts/check-links.js --external",
     "check:site-metadata": "node scripts/check-site-metadata.js",
-    "project-thumbnails:generate": "node scripts/generate-project-thumbnails.js",
     "visual:capture": "node scripts/capture-screenshots.js",
     "visual:capture:live": "SITE_URL=https://yonatankarp.com/ node scripts/capture-screenshots.js",
     "serve": "npm run build:building && node scripts/run-hugo.js server --renderToMemory",

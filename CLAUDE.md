@@ -7,6 +7,7 @@
 - **GitHub Actions** for CI/CD to GitHub Pages
 - Site styles in `assets/css/custom.css`
 - Custom JS in `assets/js/site.js`
+- Pixel skin is `.px-skin` in `assets/css/custom.css`; the top bar is `layouts/partials/pixel-bar.html`
 - Static images and icons in `static/images/`
 
 ## Build & Run

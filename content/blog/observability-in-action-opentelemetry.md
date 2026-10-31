@@ -748,13 +748,13 @@ tasks {
 You can refresh Gradle and see that the new task appears:
 
 
-![Gradle task list showing the OpenTelemetry agent task](/images/blog/kb-open-telemetry-agent-task.gif)
+{{< video src="/images/blog/kb-open-telemetry-agent-task.mp4" alt="Gradle task list showing the OpenTelemetry agent task" >}}
 
 
 We can run the `build` task and see that the OpenTelemetry agent is copied to the `build/output/libs` directory:
 
 
-![OpenTelemetry agent JAR copied into the build output directory](/images/blog/kb-otel-jar-location.gif)
+{{< video src="/images/blog/kb-otel-jar-location.mp4" alt="OpenTelemetry agent JAR copied into the build output directory" >}}
 
 
 ##### Modifying the bootRun Task

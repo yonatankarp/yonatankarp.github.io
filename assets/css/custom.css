@@ -1733,7 +1733,7 @@ h4 a,
 .px-prose th, .px-prose td { padding: 10px 14px; border-bottom: 2px solid var(--panel-hi); text-align: start; vertical-align: top; }
 .px-prose th { font-weight: 600; color: var(--amber); }
 .px-prose tr:last-child td { border-bottom: 0; }
-.px-prose img { max-width: 100%; height: auto; }
+.px-prose :is(img, video) { max-width: 100%; height: auto; }
 .px-prose hr { height: 4px; border: 0; background: var(--panel-hi); }
 .px-prose .code-copy {
   top: 10px; right: 12px; padding: 4px 10px; border: 0; border-radius: 0; clip-path: var(--stepped);

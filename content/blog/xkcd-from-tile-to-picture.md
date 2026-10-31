@@ -47,7 +47,7 @@ I had never seen this specific comic before (see [https://xkcd.com/1110](https:/
 The catch is, the last frame is actually interactive and allows the reader to move inside it:
 
 
-![Animated view of dragging through the XKCD comic](/images/blog/kb-xkcd-110-animated.gif)
+{{< video src="/images/blog/kb-xkcd-110-animated.mp4" alt="Animated view of dragging through the XKCD comic" >}}
 
 
 With that knowledge in hand, the task was clear: to download the entire image within the last frame of the comic!

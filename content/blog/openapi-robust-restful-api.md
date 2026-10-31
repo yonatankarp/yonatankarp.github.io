@@ -174,7 +174,7 @@ In the `components` section, we define the API models. In our case, we define a 
 To generate our code, we will use the OpenAPI Generator, specifically the OpenAPI Generator Gradle plugin [[link](https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin)]. First, we will create an API specification for our project. We will start by creating a `api` directory at the project root and save the specification in a `spec.yml` file. Your project structure should resemble this:
 
 
-![Adding an OpenAPI spec file to the project tree](/images/blog/kb-add-spec.gif)OpenAPI spec location in the project tree
+{{< video src="/images/blog/kb-add-spec.mp4" alt="Adding an OpenAPI spec file to the project tree" >}}OpenAPI spec location in the project tree
 
 
 ### Setting Up OpenAPI Generator with Gradle Plugin
@@ -301,7 +301,7 @@ sourceSets.main {
 Running the `build` command in Gradle should generate the code in your project files, similar to the following:
 
 
-![Generated API code location in the project tree](/images/blog/kb-generated-code.gif)Generated code location in the project tree
+{{< video src="/images/blog/kb-generated-code.mp4" alt="Generated API code location in the project tree" >}}Generated code location in the project tree
 
 
 ## Step 3: Implementation of the API! 🎉
@@ -337,7 +337,7 @@ class GreetingApiController : GreetingApi {
 We can now run our server and test it by requesting the browser:
 
 
-![Calling the API endpoint and receiving the expected response](/images/blog/kb-call-endpoint.gif)Calling the endpoint and getting the correct response
+{{< video src="/images/blog/kb-call-endpoint.mp4" alt="Calling the API endpoint and receiving the expected response" >}}Calling the endpoint and getting the correct response
 
 
 ## Step 4: Writing Tests
@@ -404,7 +404,7 @@ class GreetingApiControllerTest(context: WebApplicationContext) {
 If you have followed the instructions correctly, running the test should result in two passing tests! 🎉
 
 
-![Gradle test run showing all tests passing](/images/blog/kb-passing-tests.gif)All tests are passing
+{{< video src="/images/blog/kb-passing-tests.mp4" alt="Gradle test run showing all tests passing" >}}All tests are passing
 
 
 You can find the complete code for this project on my GitHub repository. Feel free to explore it [here](https://github.com/yonatankarp/openapi-usage-example).

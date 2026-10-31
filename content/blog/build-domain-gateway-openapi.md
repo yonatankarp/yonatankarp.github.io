@@ -774,7 +774,7 @@ class HelloController : HelloApi {
 Once we have all 3 services implemented, we can call each of the services individually,  or call the combined API via our domain gateway. As you can see in the illustration below:
 
 
-![Calling all three service endpoints from a terminal](/images/blog/kb-call-endpoints.gif)Calling all endpoints
+{{< video src="/images/blog/kb-call-endpoints.mp4" alt="Calling all three service endpoints from a terminal" >}}Calling all endpoints
 
 
 Alternatively, you can use `springdoc` library to publish an HTML version of your spec that is interactable from your service, but that's a story for another article.

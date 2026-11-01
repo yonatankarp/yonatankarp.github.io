@@ -464,7 +464,7 @@ async function assertRide(page, route, viewport) {
       .catch(() => fail(`${route.path} (${viewport.name}) ${via} did not ride to floor ${key}`));
   };
 
-  await arrive(viewport.name === "mobile" ? "R" : "8", viewport.name === "mobile" ? ".hero-cta" : ".building-floor-btn[data-goto='8']");
+  await arrive("R", viewport.name === "mobile" ? ".hero-cta" : ".building-floor-btn[data-goto='R']");
   await arrive("E", ".building-name");
   await arrive("L", "ArrowDown");   // the way in from the street is the lobby (web3d/src/guide.js)
   await arrive("1", "ArrowDown");

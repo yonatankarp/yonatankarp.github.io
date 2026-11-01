@@ -108,12 +108,6 @@ ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come 
         "vintage camper van, a compact hatchback car and a scooter, an arcade game cabinet with a glowing screen "
         "against the wall, a workbench under a pegboard of tools, and on the far right a ramp rising toward daylight."
     ),
-    "writing": (
-        "a writer's newsroom: a big wooden desk with a vintage typewriter and an open laptop, tall stacks of printed "
-        "articles and newspapers, a cork board on the wall covered in pinned pages joined by red string, a tall "
-        "bookshelf of technical books, a small hand-cranked printing press in the corner with fresh pages coming out, "
-        "a green banker's lamp, a coffee mug."
-    ),
     "reichman": (
         "a university lecture room: rows of wooden benches with fold-down desks, a large dark green chalkboard covered "
         "in white chalk diagrams of trees, graphs and boxes joined by arrows, a wooden lectern with an open laptop, a "

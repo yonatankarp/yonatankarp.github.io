@@ -186,8 +186,7 @@ EDGES = {  # key: (left bands, the lobby re-laid up to x), (right bands, the roo
     "5": ((WALL_L + boards(226, 23), 150), (WALL_L + boards(226, 23), 472)),
     "6": ((WALL_L + boards(191, 23), 145), (wall(468) + boards(191, 23), 466)),
     "7": ((WALL_L + boards(130, 11), 130), (wall(468) + boards(130, 11), 472)),
-    "8": ((WALL_L + boards(363, 11), 155), (wall(468) + boards(352, 23), 468)),
-    "R": ((WALL_L + boards(363, 11), HOUSING_X),   # sky and roof; the railing levels off at the edge
+    "R": ((WALL_L + boards(130, 11), HOUSING_X),   # sky and roof; the railing levels off at the edge
           ([(0, 121, 468, 4), (121, 138, W - 9, 1), (138, H, 468, 4)], 472)),
 }
 RECOLOUR = {"L": {c("amber", i): c("amber", i - 1) for i in (1, 2, 3)}}   # the lobby's boards from the reception's,
@@ -234,9 +233,9 @@ def relay(img, key):
     o = orig.load()
     get = lambda x, y: o[x, y][:3]
     src = get
-    if key == "R":   # the lift housing's floor is floor 8's lobby, so the ride up keeps the boards' direction
-        eight = Image.open(PICKS / f"{FLOORS['8'][0]}-px.png").convert("RGB")
-        src = lambda x, y: eight.getpixel((x - LOBBY_X, y - CEIL))
+    if key == "R":   # the lift housing's floor is floor 7's lobby, so the ride up keeps the boards' direction
+        seven = Image.open(PICKS / f"{FLOORS['7'][0]}-px.png").convert("RGB")
+        src = lambda x, y: seven.getpixel((x - LOBBY_X, y - CEIL))
     for x, y in product(range(LOBBY_X, 35), range(140, FLOOR)):   # the lobby's skirting up to the lift, free of the
         px[x, y] = o[22, y]                                         # painting's specks where the left run meets it
     (left, lx), (right, rx) = EDGES[key]
@@ -530,22 +529,6 @@ def roof(room, f):
         room.rect(225, 3, 227, 5, GLOW["red"])                              # the warning light on the cat head
 
 
-# --- Writing, floor 8: the newsroom; a post being typed, then printed -------------------------------------------
-POST = (12, 12, 12, 6)   # the laptop's paragraph, line by line
-
-
-def writing(room, f):
-    n = sum(POST) if f == 0 else (f - 1) * sum(POST) // 10                # the room rests on a finished paragraph;
-    for i, w in enumerate(POST):                                           # then a fresh page, typed out by f11
-        room.rect(142, 86 + 3 * i, 142 + max(0, min(w, n - sum(POST[:i]))), 87 + 3 * i, c("cream", 4))
-    dx = [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f]                           # the typewriter's carriage: its sheet and
-    room.nudge((164, 80, 199, 86), dx, 0, mask=lambda col: col != PLASTER, bg=PLASTER)   # outline over the wall, and
-    room.nudge((163, 86, 177, 89), dx, 0, mask=lambda col: col in R["cream"], bg=INK)   # the paper curled under it
-    # over the machine's body, which stays put
-    room.nudge((256, 115, 280, 124), 0, [0, 0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0][f],  # a page eases out of the press
-               mask=lambda col: col in R["cream"], bg=c("cream", 5))
-
-
 # --- Parking: the side projects parked below the street; the games live in the arcade cabinet ----------------
 INVADER = ([".###.", "#.#.#", "#####", "#...#"], [".###.", "#.#.#", "#####", ".#.#."])   # legs out, legs in
 
@@ -645,7 +628,6 @@ FLOORS = {  # key: (painting, accent ramp, animation), bottom to top
     "5": ("billie_risk", "cyan", billie_risk),
     "6": ("billie_orchestrator", "violet", billie_orchestrator),
     "7": ("billie_payments", "coral", billie_payments),
-    "8": ("writing", "red", writing),
     "R": ("roof", "amber", roof),
 }
 

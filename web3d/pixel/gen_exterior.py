@@ -30,19 +30,20 @@ from pixelate import dither_bands, pixelate  # noqa: E402
 HERE = Path(__file__).resolve().parent / "paintings"
 EW, EH = 480, 336               # art pixels: 2x on a 1440x900 screen, 1x on a phone (cropped to the building)
 PAINT = 4                        # painting pixels per art pixel
-PICK = 634                       # the picked candidate's seed, or None to build from the blockout
+PICK = 634                       # the picked candidate's seed, or None to build from the blockout; it was painted
+                                 # with nine storeys, and street() cuts the top one (the newsroom's) out
 GROUND = 310                     # the pavement line
 BX0, BX1 = 170, 310              # the building, in the middle of the street
 STOREY = 28
-STOREYS = ["L", "1", "2", "3", "4", "5", "6", "7", "8"]   # bottom to top above ground; P is below the street
+STOREYS = ["L", "1", "2", "3", "4", "5", "6", "7"]   # bottom to top above ground; P is below the street
 WIN_X0, WIN_X1 = 180, 300        # each storey's ribbon window
 c, INK = G.c, G.INK
 GLOW_WIN = G.GLOW["amber"]
 
 # Where each window looks into its floor's strip (x, y of the slice's top-left, in strip pixels): the room's
 # signature props. The window's size decides the slice's size.
-LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (314, 72), "5": (352, 60), "6": (230, 90),
-        "7": (210, 102), "8": (250, 92), "R": (0, 0), "L": (304, 98), "P": (166, 78)}
+LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (250, 64), "5": (222, 54), "6": (230, 96),
+        "7": (205, 86), "R": (0, 0), "L": (246, 122), "P": (166, 78)}
 NEIGHBOURS = ((0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
               (314, 348, 196), (348, 398, 160), (398, 440, 206), (440, 480, 172))   # x0, x1, roof
 LAMPS = (40, 142, 338, 440)
@@ -130,7 +131,7 @@ def paint(count, start, host):
     buf = io.BytesIO()
     base.save(buf, "PNG")
     prompt = ("Edit this picture. Repaint it as a detailed flat 2D side-view video game background in clean cel "
-              "shading with bold dark outlines: a nine-storey brick and plaster city building at dusk in the middle "
+              "shading with bold dark outlines: an eight-storey brick and plaster city building at dusk in the middle "
               "of a street of older neighbouring buildings. Keep every shape exactly where it is: the same storeys, the same long window on every storey, "
               "the same lobby shop front with its awning, the same garage door, the same crane on the roof, the same "
               "neighbouring buildings, street lamps, pavement and road, and the same sunset sky. Add brick texture, "
@@ -138,7 +139,7 @@ def paint(count, start, host):
               "no text, no letters, no logos.")
     for k in range(count):
         seed = start + 17 * k
-        path = CANDIDATES / f"street9_{seed}.png"
+        path = CANDIDATES / f"street{len(STOREYS)}_{seed}.png"
         if path.exists():
             print("kept", path.name)
             continue
@@ -156,6 +157,10 @@ def street(tower=True):
     else:
         art = pixelate(Image.open(CANDIDATES / f"street9_{PICK}.png").convert("RGB"), (EW, EH), 40)
         art = dither_bands(art, 150, 4)                                  # the sky above the neighbours
+        px, top = art.load(), GROUND - STOREY * len(STOREYS)
+        for x in range(BX0 - 4, BX1 + 4):                                # the painting's top storey goes: its cornice
+            for y in range(top + 3, -1, -1):                             # comes down a storey, sky where it stood
+                px[x, y] = px[x, y - STOREY] if y >= top - 5 else px[76 + x % 4, y]
         boxes = [(x0 - 2, y0 - 2, x1 + 2, y1 + 2) for key, (x0, y0, x1, y1) in windows().items() if key != "R"]
         boxes += [(BX0 + 2, GROUND - STOREY * (i + 1) + 10, BX0 + 7, GROUND - STOREY * (i + 1) + 17)
                   for i in range(len(STOREYS))]                          # and the floor numbers beside them
@@ -197,7 +202,7 @@ def street(tower=True):
             art.paste(blk.crop((x, GROUND - 40, x + 1, GROUND)), (x, GROUND - 40))
             art.paste(blk.crop((x - 1, GROUND - 45, x + 2, GROUND - 40)), (x - 1, GROUND - 45))
         for x in range(196, 322):                                        # the crane, on the painting's own sky
-            for y in range(6, 53):                                       # (its dither repeats every 4 px)
+            for y in range(6, GROUND - STOREY * len(STOREYS) - 5):       # (its dither repeats every 4 px)
                 col = blk.getpixel((x, y))
                 px[x, y] = col if tower and col != blk.getpixel((0, y)) else px[x % 4, y]
         for x0, y0 in ((166, 272), (311, 280)) if tower else ():         # the slots beside the ground floor

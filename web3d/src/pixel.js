@@ -8,13 +8,13 @@ import './pixel.css';
 
 const FW = 480, FH = 180, FRAMES = 12, FPS = 8;
 const REST_MS = 2600;   // after each action loop the room holds still, so the text keeps the reader's attention
-const ORDER = ['P', 'L', '1', '2', '3', '4', '5', '6', '7', '8', 'R'];   // bottom to top
+const ORDER = ['P', 'L', '1', '2', '3', '4', '5', '6', '7', 'R'];   // bottom to top
 const SKY = '#74228a';                                        // the roof painting's top row
 const GROUND = ['#33231a', '#1f1610'];                        // under the garage: the earth's top line, then soil
 const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted lift doors; mirrors gen_floors.DOOR
 // Where each street window looks into its room, in strip pixels: mirrors gen_exterior.LOOK. The roof's is painted,
 // not a slice, so going up there is the plain dissolve.
-const LOOK = { L: [304, 98], 1: [322, 76], 2: [328, 82], 3: [266, 56], 4: [314, 72], 5: [352, 60], 6: [230, 90], 7: [210, 102], 8: [250, 92], P: [166, 78] };
+const LOOK = { L: [246, 122], 1: [322, 76], 2: [328, 82], 3: [266, 56], 4: [250, 64], 5: [222, 54], 6: [230, 96], 7: [205, 86], P: [166, 78] };
 const FOCUS = { 2: 330, 3: 250 };                               // on narrow screens, the art x kept mid-screen (else 300)
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
@@ -23,8 +23,9 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read l
 const narrow = matchMedia('(max-width: 760px), (max-aspect-ratio: 6/5)');
 const easeInOut = (u) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
-// The old one-page site's anchors, still linked from elsewhere, land on the floor that took their place (#29).
-const LEGACY = { about: 'L', testimonial: 'L', contact: 'R', experience: '7', proof: '7', 'client-and-work-section': 'P' };
+// The old one-page site's anchors, still linked from elsewhere, land on the floor that took their place (#29); the
+// closed newsroom's (floor 8) on the lobby, whose newsstand has the writing now.
+const LEGACY = { about: 'L', testimonial: 'L', contact: 'R', experience: '7', proof: '7', 'client-and-work-section': 'P', 'floor-8': 'L' };
 // Hugo lowercases menu URLs, so the site menu's About arrives as #floor-l.
 const hashKey = () => { const h = location.hash.slice(1); return LEGACY[h] ?? (h.match(/^floor-(\w+)$/) || [])[1]?.toUpperCase(); };
 

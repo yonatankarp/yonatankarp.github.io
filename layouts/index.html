@@ -193,7 +193,6 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
           <li><q>{{ strings.TrimSuffix "." .Params.pullQuote }}</q> <cite>{{ .Params.name }}, {{ .Params.position }}</cite></li>
           {{ end }}
         </ul>
-        {{ with $skills }}<p class="floor-skills">Stack: {{ delimit .Params.working_set ", " }}</p>{{ end }}
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">Step inside</button></div>
       </article>
       <div class="floor-panel" id="panel-L" style="--accent:{{ index $accent "L" }}" tabindex="-1" role="region" aria-labelledby="ptL">
@@ -213,6 +212,8 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
         {{ with $skills }}
         <h3>Practice areas</h3>
         <div class="panel-grid">{{ range .Params.practice_areas }}<div><b>{{ .name }}</b><span>{{ .summary }}</span><span class="panel-chips">{{ range .tools }}<i>{{ . }}</i>{{ end }}</span></div>{{ end }}</div>
+        <h3>Stack</h3>
+        <p>{{ delimit .Params.working_set ", " }}</p>
         {{ end }}
       </div>
     </section>

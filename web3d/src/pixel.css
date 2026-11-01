@@ -203,8 +203,8 @@ html:not(.building--guided) .building-hint { display: none; }
    the elevator, then the card, which scrolls inside itself before the lift moves. */
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
   /* The card keeps 400px, enough for any floor's title, summary and Step inside without scrolling (#127), rising
-     over the room on short phones, never above the links; the elevator rides just above it. */
-  .building.pixel { --card-top: clamp(116px, calc(100svh - 416px), calc(30svh + 260px)); --street-top: 132px; }   /* the street: under the name and its 44px links */
+     over the room on short phones, never above the top bar; the elevator rides just above it. */
+  .building.pixel { --card-top: clamp(116px, calc(100svh - 416px), calc(30svh + 260px)); --street-top: 132px; }   /* the street: under the name and its 44px links, where the Popover API is missing (below) */
   .pixel .building-stop { align-items: flex-end; padding: var(--card-top) 12px 16px; }
   .pixel .floor-card { width: 100%; max-width: 720px; padding: 16px 16px 14px 26px; }   /* a portrait monitor still reads in short lines */
   .pixel .elevator { top: calc(var(--card-top) - 64px); padding: 8px; gap: 4px; }
@@ -464,6 +464,7 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
   .pixel .with-copy { display: flex; width: 100%; align-items: center; justify-content: space-between; }
   /* Tap areas of 44px over the 28px row: into the gap above it and the how-to's rule below. */
   .pixel .with-copy > * { position: relative; }
+  .pixel .with-copy > a { display: flex; align-items: center; min-height: 28px; }
   .pixel .with-copy > :is(a, button)::after { content: ''; position: absolute; inset: -8px 0; }
   .pixel .floor-how { order: 1; margin: 8px 0 0; padding: 8px 0 0; border-bottom: 0; border-top: 4px solid var(--panel-hi); font-size: 13px; line-height: 20px; }
   /* The "more" shading is the card's bottom padding, so at rest it lies over no text. */

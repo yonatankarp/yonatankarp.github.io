@@ -7,7 +7,7 @@ aliases:
   - /he/blog/interview-questions-concurrency-parallelism/
 draft: false
 type: "blog"
-description: "A clear explanation of the difference between concurrency and parallelism, illustrated with practical JVM-based examples commonly asked about in technical interviews."
+description: "The difference between concurrency and parallelism, illustrated with practical JVM-based examples commonly asked about in technical interviews."
 tags:
   - java
   - kotlin

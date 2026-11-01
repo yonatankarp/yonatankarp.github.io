@@ -507,6 +507,7 @@ for (const filePath of htmlFiles) {
   const home = fs.readFileSync(path.join(publicDir, "index.html"), "utf8");
   const projects = fs.readdirSync(projectsDir).filter((file) => file.endsWith(".md") && file !== "_index.md").length;
   if (index.filter((page) => ["Project", "Contribution"].includes(page.type)).length !== projects) failures.push(`index.json: should list all ${projects} projects`);
+  if (!index.some((page) => page.type === "Post" && /\bkafka\b/i.test(page.content))) failures.push("index.json: posts should carry their full text, so \"kafka\" finds a post");
   for (const page of index) {
     if (!page.type) failures.push(`index.json: ${page.permalink} has no type`);
     if (/\/(?:search|experience|education|testimonial)\//.test(page.permalink)) failures.push(`index.json: should not link to ${page.permalink}`);

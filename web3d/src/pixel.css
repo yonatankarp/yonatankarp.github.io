@@ -542,7 +542,7 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
     .pixel .building-menu { border: 0; cursor: pointer; color: var(--text); background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); font: 400 15px/15px var(--display); }
     .pixel .building-menu svg { shape-rendering: crispEdges; }
     .pixel .building-menu:hover, .pixel .building-top:has(:popover-open) .building-menu { background: var(--panel-hi); }
-    /* Under an open menu the page dims and takes the tap that shuts it, so that tap presses nothing else. */
+    /* Under an open menu the page dims; assets/js/site-menu.js keeps the tap that shuts it from pressing anything. */
     .pixel .building-top:has(:popover-open) { z-index: 4; }
     .pixel .building-top:has(:popover-open)::before { content: ''; position: fixed; inset: 0; z-index: -1; cursor: pointer; pointer-events: auto; background: rgba(10, 11, 16, 0.6); }
     html .pixel .building-links:not(:popover-open) { display: none; }

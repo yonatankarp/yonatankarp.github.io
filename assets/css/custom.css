@@ -818,3 +818,25 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   .px-prose pre { padding: 16px; }
   .px-page .site-footer__inner { width: calc(100% - 24px); padding: 22px 20px; }
 }
+
+/* Moving between pages (the opt-in is in partials/head.html): the new page wipes down over the old in whole rows, a band
+   of ordered dither (75%, 50%, 25%) on its edge, like the building's dither; no alpha, so two pages never ghost. The
+   top bar is the same size and place on every page, so it stands still: it is its own group, shown at once. Rows are
+   whole multiples of the dither tile, so the pattern stays on its grid at any viewport height. Gradients, not an image:
+   the new page would have to fetch one mid-wipe, and data: URLs are outside the CSP's img-src. The root's group keeps
+   its default animation: with `none`, Chromium 156 paints nothing of the old page when Back lands partway down.
+   In web3d/src/pixel.css too, since the homepage does not load this file: keep the two the same. */
+.px-bar, .building-top { view-transition-name: px-bar; }
+::view-transition-group(px-bar), ::view-transition-old(root), ::view-transition-new(px-bar) { animation: none; }
+::view-transition-old(px-bar) { display: none; }
+::view-transition-new(root) {
+  --cell: 16px; --tile: calc(2 * var(--cell)); --wiped: calc(14 * round(up, 100vh / 14, var(--tile)));
+  mix-blend-mode: normal;
+  mask-image: linear-gradient(#000 0 0), conic-gradient(at var(--cell) var(--cell), #000 75%, #0000 0), conic-gradient(#000 25%, #0000 0 50%, #000 0 75%, #0000 0), conic-gradient(at var(--cell) var(--cell), #0000 75%, #000 0);
+  mask-repeat: no-repeat, repeat-x, repeat-x, repeat-x;
+  animation: px-wipe 350ms steps(14) both;
+}
+@keyframes px-wipe {
+  from { mask-size: 100% 0, var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile); mask-position: 0 0, 0 0, 0 var(--tile), 0 calc(2 * var(--tile)); }
+  to { mask-size: 100% var(--wiped), var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile); mask-position: 0 0, 0 var(--wiped), 0 calc(var(--wiped) + var(--tile)), 0 calc(var(--wiped) + 2 * var(--tile)); }
+}

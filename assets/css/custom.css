@@ -852,7 +852,8 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-page .search-result a::after { content: ''; position: absolute; inset: 0; }
 .px-page .search-result a:focus-visible { outline: none; }
 .px-page .search-result a:focus-visible::after { box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
-.px-page .search-result p { max-width: none; margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--px-soft); }
+.px-page .search-result p { max-width: none; margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--px-soft); overflow-wrap: anywhere; }
+.px-page .search-result mark { background: none; color: var(--px-text); font-weight: 600; }
 .px-page .search-result--empty { box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi); }
 .px-page .search-result--empty:hover { box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi); }
 .px-page .search-result__type { font-size: 13px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; color: var(--amber); }

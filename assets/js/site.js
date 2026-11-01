@@ -67,10 +67,31 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then((pages) => {
           pages.forEach((page) => {
-            page.haystack = [page.title, page.type, page.summary, page.content].join(' ').toLowerCase();
+            page.haystack = [page.title, page.type, page.summary, page.content].join(' ');
           });
 
-          const render = (items) => {
+          // Matches from the start of a word: in full text, "ai" should not find "email". $2 is the term itself.
+          const finder = (terms) => new RegExp(
+            `(^|[^\\p{L}\\p{N}])(${terms.map((term) => term.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&')).join('|')})`, 'giu');
+
+          // The summary, unless a term is only in the body: then the words around that match.
+          const excerpt = (item, finders) => {
+            const hit = finders.find((find) => item.summary.search(find) < 0 && item.content.search(find) >= 0);
+            if (!hit) return item.summary;
+            const at = item.content.search(hit);
+            const from = at > 70 ? item.content.indexOf(' ', at - 70) + 1 : 0;
+            const cut = item.content.indexOf(' ', at + 130);
+            const to = cut < 0 ? item.content.length : cut;
+            return `${from ? '\u2026 ' : ''}${item.content.slice(from, to)}${to < item.content.length ? ' \u2026' : ''}`;
+          };
+
+          const score = (page, finders) => finders.reduce((sum, find) => sum
+            + (page.title.search(find) >= 0 ? 100 : 0)
+            + (page.summary.search(find) >= 0 ? 10 : 0)
+            + Math.min((page.content.match(find) || []).length, 9), 0);
+
+          const render = (items, terms, finders) => {
+            const any = finder(terms);
             searchResults.replaceChildren(...items.map((item) => {
               const article = document.createElement('article');
               article.className = 'search-result';
@@ -84,7 +105,16 @@ document.addEventListener('DOMContentLoaded', () => {
               link.textContent = item.title;
 
               const summary = document.createElement('p');
-              summary.textContent = item.summary || '';
+              const text = excerpt(item, finders);
+              let last = 0;
+              for (const match of text.matchAll(any)) {
+                const at = match.index + match[1].length;
+                const mark = document.createElement('mark');
+                mark.textContent = match[2];
+                summary.append(text.slice(last, at), mark);
+                last = at + match[2].length;
+              }
+              summary.append(text.slice(last));
 
               article.append(type, link, summary);
               return article;
@@ -97,15 +127,19 @@ document.addEventListener('DOMContentLoaded', () => {
             else url.searchParams.delete('q');
             history.replaceState(null, '', url);
 
-            const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+            const terms = query.split(/\s+/).filter(Boolean);
             if (!terms.length) {
               searchResults.replaceChildren(...[...hint].map((node) => node.cloneNode(true)));
               searchStatus.textContent = '';
               return;
             }
-            const matches = pages.filter((page) => terms.every((term) => page.haystack.includes(term)));
+            const finders = terms.map((term) => finder([term]));
+            const matches = pages.filter((page) => finders.every((find) => page.haystack.search(find) >= 0))
+              .map((page) => [score(page, finders), page])
+              .sort((a, b) => b[0] - a[0])
+              .map(([, page]) => page);
             const shown = matches.slice(0, 10);
-            render(shown);
+            render(shown, terms, finders);
             const quoted = `\u201c${query.trim()}\u201d`;
             const noun = matches.length === 1 ? 'result' : 'results';
             searchStatus.textContent = !matches.length ? `No results for ${quoted}.`

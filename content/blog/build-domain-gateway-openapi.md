@@ -13,8 +13,6 @@ tags:
   - openapi
   - api-gateway
   - rest-api
-categories:
-  - Backend
 images:
   featured_image: "/images/blog/covers/build-domain-gateway-openapi.jpg"
 ---

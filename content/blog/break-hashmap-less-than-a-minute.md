@@ -13,9 +13,6 @@ tags:
   - hashmap
   - data-structures
   - gotchas
-categories:
-  - Backend
-  - Java
 images:
   featured_image: "/images/blog/covers/break-hashmap-less-than-a-minute.jpg"
 ---

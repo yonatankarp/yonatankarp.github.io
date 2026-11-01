@@ -21,6 +21,18 @@
 {{ else }}
   {{ errorf "The homepage needs the pixel building bundle in assets/building/: run `npm run build:building` first." }}
 {{ end }}
+{{- /* The two pre-paint scripts stay inline, as a file would be one more request before the street draws (#130), and the
+     CSP allows exactly these bytes by their sha256 (head.html reads them from .Store, #149). Minified here, so that
+     minifyOutput finds nothing left to change; scripts/check-generated-html.js checks the built bytes still match. The
+     error listener replaces the module tag's onerror attribute, which the CSP would block: capture phase, as a script's
+     error event does not bubble, and registered before the tag, so no failure comes too early for it. */}}
+{{ $guided := resources.FromString "js/home-guided.js" `
+addEventListener('error', function (e) { if (e.target.type === 'module') document.documentElement.classList.remove('building--guided'); }, true);
+if ('noModule' in HTMLScriptElement.prototype && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
+if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.add('at-street');
+` | minify | fingerprint "sha256" }}
+{{ $street := resources.FromString "js/home-street.js" `document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');` | minify | fingerprint "sha256" }}
+{{ .Store.Set "inlineScripts" (slice $guided $street) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
@@ -34,13 +46,13 @@
        URLs are pixel.js's own, from the canvas's data-base; the JSON is a fetch(), so it is preloaded with CORS. */}}
   <link rel="preload" as="image" href="{{ $base }}pixel/exterior.png" fetchpriority="high">
   <link rel="preload" as="fetch" href="{{ $base }}pixel/exterior.json" crossorigin>
+  {{- /* A CSP with hash sources stops Chrome's preload scanner from fetching the module early: it then waited for the
+       parser, 1717 ms in, and the street drew 400 ms later (Fast 3G, #149). So the module is preloaded by hand. */}}
+  <link rel="modulepreload" href="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}">
   <style>html, body { margin: 0; background: #151923; }</style>
   {{- /* Guided from the first paint, not when the module runs (#39): the query is guide.js's roomy, and only where
-       a module can run. The street's look too, unless the address names a floor. */}}
-  <script>
-    if ('noModule' in HTMLScriptElement.prototype && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
-    if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.add('at-street');
-  </script>
+       a module can run; unguided again if the module fails to load. The street's look too, unless the address names a floor. */}}
+  <script>{{ $guided.Content | safeJS }}</script>
 </head>
 <body class="building pixel">
   <a class="skip-link" href="#building-stops">Skip to the current floor</a>
@@ -77,7 +89,7 @@
       </article>
     </section>
     {{- /* The street is where the lift starts, so its card is there at the first paint; not under a floor's address. */}}
-    <script>document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');</script>
+    <script>{{ $street.Content | safeJS }}</script>
 
     <section class="building-stop" id="floor-R" data-floor="R" aria-labelledby="fR">
       <article class="floor-card" style="--accent:{{ index $accent "R" }}">
@@ -265,6 +277,6 @@
       </div>
     </section>
   </main>
-  <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" onerror="document.documentElement.classList.remove('building--guided')"></script>
+  <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
 </body>
 </html>

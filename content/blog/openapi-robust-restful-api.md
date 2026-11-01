@@ -14,8 +14,6 @@ tags:
   - spring-boot
   - openapi
   - rest-api
-categories:
-  - Backend
 images:
   featured_image: "/images/blog/covers/openapi-robust-restful-api.jpg"
 ---

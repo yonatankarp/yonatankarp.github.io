@@ -12,7 +12,7 @@
 {{ $name := .Params.seoTitle | default .Title }}
 {{ $description := .Description | default .Summary | plainify | default $homeDescription }}
 {{ if eq .Kind "term" }}
-  {{ $name = printf (cond (eq .Data.Plural "tags") "Posts tagged %s" "Posts in %s") .Title }}
+  {{ $name = printf "Posts tagged %s" .Title }}
   {{ $titles := slice }}{{ range first 3 .Pages }}{{ $titles = $titles | append .Title }}{{ end }}
   {{ $description = printf "%s on %s's blog: %s." $name $siteName (delimit $titles ", ") }}
 {{ else if eq .Kind "taxonomy" }}
@@ -47,10 +47,12 @@
 {{ $chroma := resources.Get "css/chroma.css" | minify | fingerprint }}
 <meta charset="utf-8">
 {{- /* GitHub Pages sets no headers, so the policy is a meta tag (#149). A meta CSP has no report-only mode, so after
-     changing it load every built page in a browser and watch for securitypolicyviolation events. No inline scripts:
-     move them into assets/js. Mermaid's version is pinned in js/mermaid-loader.js too. The homepage has no policy
-     yet: layouts/index.html runs two inline scripts and an onerror handler. */}}
-{{ if not .IsHome }}<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://gc.zgo.at https://cdn.jsdelivr.net/npm/mermaid@11.17.2/; style-src 'self' 'unsafe-inline'; img-src 'self' https://yonatankarp.goatcounter.com; connect-src 'self' https://yonatankarp.goatcounter.com; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">{{ end }}
+     changing it load every built page in a browser and watch for securitypolicyviolation events. No inline scripts or
+     on* attributes: move them into assets/js, or, for one that must run before the first paint, put its resource in
+     .Store "inlineScripts" and it is allowed by its hash (layouts/index.html does). Mermaid's version is pinned in
+     js/mermaid-loader.js too. */}}
+{{ $hashes := "" }}{{ range .Store.Get "inlineScripts" }}{{ $hashes = printf "%s '%s'" $hashes .Data.Integrity }}{{ end }}
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'{{ $hashes }} https://gc.zgo.at https://cdn.jsdelivr.net/npm/mermaid@11.17.2/; style-src 'self' 'unsafe-inline'; img-src 'self' https://yonatankarp.goatcounter.com; connect-src 'self' https://yonatankarp.goatcounter.com; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $title }}</title>
 <meta name="description" content="{{ $description }}">

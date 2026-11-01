@@ -100,7 +100,7 @@ contact:
     - label: "LinkedIn"
       text: "linkedin.com/in/yonatankarp"
       url: "https://www.linkedin.com/in/yonatankarp/"
-  social:   # the top bar's icon row; `icon` names its pixel drawing in layouts/partials/pixel-bar.html
+  social:   # the top bar's icon row; `icon` names its pixel drawing in layouts/partials/pixel-icon.html
     - label: "LinkedIn"
       url: "https://www.linkedin.com/in/yonatankarp/"
       icon: "linkedin"

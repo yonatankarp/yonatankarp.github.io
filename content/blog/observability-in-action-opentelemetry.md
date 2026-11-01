@@ -16,9 +16,6 @@ tags:
   - observability
   - opentelemetry
   - monitoring
-categories:
-  - Backend
-  - Observability
 images:
   featured_image: "/images/blog/covers/observability-in-action-opentelemetry.jpg"
 ---

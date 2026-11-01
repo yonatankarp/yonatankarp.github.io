@@ -12,9 +12,6 @@ tags:
   - kotlin
   - spring-boot
   - customization
-categories:
-  - Backend
-  - Kotlin
 images:
   featured_image: "/images/blog/covers/custom-spring-boot-banner.jpg"
 ---

@@ -14,9 +14,6 @@ tags:
   - amazon-keyspaces
   - databases
   - cloud
-categories:
-  - Backend
-  - Cloud
 images:
   featured_image: "/images/blog/covers/amazon-keyspaces-problematic.jpg"
 ---

@@ -13,8 +13,6 @@ tags:
   - software-engineering
   - best-practices
   - problem-solving
-categories:
-  - Engineering
 images:
   featured_image: "/images/blog/covers/real-life-problem-solving-engineering-principles.jpg"
 ---

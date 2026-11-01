@@ -1,0 +1,18 @@
+{{- /* The old /experience/, /education/ and /testimonial/ pages (#133), now a redirect to where the homepage shows
+     them, so old links still land on the site. Set by the cascade in hugo.toml; the content still feeds the
+     homepage, the CV and the search index. No script, so the CSP has nothing to allow. */ -}}
+{{- $target := site.Home.Permalink -}}
+{{- if .IsPage }}{{ $target = printf "%s#floor-%s" $target (index (dict "experience" .Params.floor "education" "1" "testimonial" "L") .Section) }}{{ end -}}
+<!DOCTYPE html>
+<html lang="{{ site.Language.Lang }}">
+<head>
+  <meta charset="utf-8">
+  <title>{{ .Title }} | {{ site.Title }}</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="{{ site.Home.Permalink }}">
+  <meta http-equiv="refresh" content="0; url={{ $target }}">
+</head>
+<body>
+  <p><a href="{{ $target }}">{{ .Title }} is now on the homepage.</a></p>
+</body>
+</html>

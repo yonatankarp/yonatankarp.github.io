@@ -44,7 +44,7 @@ const routes = [
       [".px-bar__social a", 4, "social links"],
       [".px-download", 1, "CV download"],
       [".px-grid", 2, "project grids"],
-      [".px-card", 15, "project cards"],
+      [".px-card", 14, "project cards"],
     ],
   },
   {
@@ -112,16 +112,6 @@ const routes = [
       [".px-chip", 1, "skill chips"],
     ],
   },
-  {
-    name: "madeira-2026",
-    path: "/madeira-2026/",
-    requiredSelectors: [
-      [".route-guide .route-card", 2, "route guide cards"],
-      [".day", 8, "daily itinerary sections"],
-      [".photo-card img", 8, "itinerary photos"],
-      [".sources .panel", 4, "source panels"],
-    ],
-  },
 ];
 
 const assertions = [
@@ -135,7 +125,6 @@ const assertions = [
   "Home page pause button shows a Pause label that turns to Play on click on desktop, and stays at least 36x36px with the label hidden on mobile.",
   "CV page renders every role.",
   "Blog index contains multiple article rows/cards.",
-  "Standalone Madeira page contains route cards, daily itinerary sections, photos, and source panels.",
 ];
 
 function parseArgs(args) {

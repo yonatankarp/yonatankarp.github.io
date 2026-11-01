@@ -11,9 +11,6 @@ tags:
   - agents
   - automation
   - knowledge-base
-categories:
-  - AI
-  - Engineering
 images:
   featured_image: "/images/blog/covers/self-compiling-second-brain.jpg"
 ---

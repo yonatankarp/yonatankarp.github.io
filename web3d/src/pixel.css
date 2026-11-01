@@ -303,9 +303,9 @@ html:not(.building--guided) .pixel .elevator, html:not(.building--guided) .pixel
 }
 /* Ink on floor 8's #C94F33 is 4.35:1, short of AA for its 15px label on smaller screens; this red is 5.77:1 (#131). */
 .pixel [data-floor="8"] .floor-card .step-in { background: #E0664A; }
-.pixel .floor-card .step-in::after {   /* a 10x10 pixel arrow, drawn at 2x */
+.pixel .floor-card .step-in::after {   /* a 10x10 pixel arrow, drawn at 2x; a clip-path, as the CSP's img-src blocks a data: mask (#149) */
   content: ''; width: 20px; height: 20px; margin-left: 10px; background: currentColor;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' shape-rendering='crispEdges'%3E%3Cpath d='M0 4h5V2h1v1h1v1h1v2H7v1H6v1H5V6H0z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;
+  clip-path: polygon(0 40%, 50% 40%, 50% 20%, 60% 20%, 60% 30%, 70% 30%, 70% 40%, 80% 40%, 80% 60%, 70% 60%, 70% 70%, 60% 70%, 60% 80%, 50% 80%, 50% 60%, 0 60%);
 }
 .pixel .floor-card .step-in:hover { filter: brightness(1.12); }
 .pixel .floor-card .step-in:active, .pixel .panel-back:active { transform: translateY(4px); }

@@ -5,7 +5,8 @@ name: Pin staleness
 # updates npm and the action refs and never sees it. Left alone, the site
 # keeps being built by whatever Hugo was current on the day somebody typed the
 # pin. This reports that, and reports the two copies of the pin disagreeing,
-# which is the other failure keeping it in two files allows.
+# which is the other failure keeping it in two files allows. It also fails, and
+# reports, when HUGO_SHA256 is not the release's published checksum of the .deb.
 
 on:
   schedule:
@@ -48,7 +49,8 @@ jobs:
         run: node scripts/check-hugo-pin.js --github-output
 
       - name: Open or update the one issue
-        if: steps.check.outputs.status == 'stale'
+        # The check exits non-zero on a wrong checksum after writing the issue; report it anyway.
+        if: ${{ !cancelled() && steps.check.outputs.status == 'stale' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TITLE: ${{ steps.check.outputs.title }}

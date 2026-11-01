@@ -12,9 +12,6 @@ tags:
   - kotlin
   - hashmap
   - data-structures
-categories:
-  - Backend
-  - Java
 images:
   featured_image: "/images/blog/covers/how-hashmap-works-java.jpg"
 ---

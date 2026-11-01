@@ -12,9 +12,6 @@ tags:
   - xkcd
   - image-processing
   - hacking
-categories:
-  - Backend
-  - Hacking
 images:
   featured_image: "/images/blog/covers/xkcd-from-tile-to-picture.jpg"
 ---

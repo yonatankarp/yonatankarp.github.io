@@ -5,7 +5,8 @@
 
 Run: uv run web3d/pixel/gen_exterior.py blockout            # the code blockout, for a look
      uv run web3d/pixel/gen_exterior.py paint [--count N]   # Draw Things repaints the blockout (port 7860)
-     uv run web3d/pixel/gen_exterior.py build OUT           # OUT/exterior.png (12 frames) + exterior.json
+     uv run web3d/pixel/gen_exterior.py build OUT           # OUT/exterior.png (12 frames) + exterior.json,
+                                                            # and backdrop.png: the street without the tower
 
 The blockout fixes what the model must not move: the number of storeys, the window grid, the entrance, the garage
 and the crane. The model repaints it into the rooms' style; the picked painting is pixelated with the floors'
@@ -45,6 +46,9 @@ LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (314, 72), "5": (35
 NEIGHBOURS = ((0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
               (314, 348, 196), (348, 398, 160), (398, 440, 206), (440, 480, 172))   # x0, x1, roof
 LAMPS = (40, 142, 338, 440)
+INFILL = ((166, 216, 6), (216, 274, 5), (274, 314, 3))   # the backdrop's blocks in the tower's lot: x0, x1, the
+                                                          # neighbour each copies, a window column (8 px) wider or narrower;
+                                                          # the last drops the column under the lamp at 142, drawn into it
 
 
 def windows():
@@ -144,7 +148,8 @@ def paint(count, start, host):
         print("painted", path.name, flush=True)
 
 
-def build(out):
+def street(tower=True):
+    """The street without its windows' rooms; without the tower, its lot is built up with the neighbours' blocks."""
     blk = blockout()
     if PICK is None:
         art = blk.copy()
@@ -165,13 +170,25 @@ def build(out):
             boxes += [(x, y, x + 4, y + 5) for y in range(top + 8, GROUND - 6, 10) for x in range(x0 + 4, x1 - 4, 8)]
         for box in boxes:                                                # the blockout's frames stay exactly put
             art.paste(blk.crop(box), box[:2])
-
+    px = art.load()
+    infill = () if tower else tuple((x0, x1, NEIGHBOURS[n][2]) for x0, x1, n in INFILL)
+    for x0, x1, n in () if tower else INFILL:
+        sx0, sx1, top = NEIGHBOURS[n]
+        seam = x0 + (x1 - x0) // 16 * 8                                  # on a wall column, so the window grid runs on
+        for x in range(x0, x1):
+            sx = sx0 + x - x0 if x < seam else sx1 - x1 + x
+            for y in range(GROUND + 1):
+                if y >= top - 3:
+                    px[x, y] = px[sx, y]
+                elif BX0 - 2 <= x < BX1 + 2 or y < 150:                  # sky where the tower stood, from a clear
+                    px[x, y] = px[76 + x % 4, y]                         # column down to the lowest roof
+    if PICK is not None:
         def glow(x, y, col, cy, r):                                      # a 3-step Bayer ramp toward the lamp light
             d = min(((x - lx) ** 2 + (y - cy) ** 2) ** 0.5 for lx in LAMPS)
             lv = min(3, int((1 - d / r) * 3 + G.BAYER[y % 4][x % 4] / 16))
             return col if lv <= 0 else tuple(round(v + (g - v) * (0, 0.35, 0.65, 0.95)[lv]) for v, g in zip(col, c("amber", 5)))
 
-        for x0, x1, top in NEIGHBOURS:                                   # the lamps' halos, on wall pixels only
+        for x0, x1, top in NEIGHBOURS + infill:                          # the lamps' halos, on wall pixels only
             for y in range(top + 3, GROUND):
                 for x in range(x0, x1):
                     if px[x, y] not in (INK, GLOW_WIN, c("sky", 0)):
@@ -182,8 +199,8 @@ def build(out):
         for x in range(196, 322):                                        # the crane, on the painting's own sky
             for y in range(6, 53):                                       # (its dither repeats every 4 px)
                 col = blk.getpixel((x, y))
-                px[x, y] = col if col != blk.getpixel((0, y)) else px[x % 4, y]
-        for x0, y0 in ((166, 272), (311, 280)):                          # the slots beside the ground floor
+                px[x, y] = col if tower and col != blk.getpixel((0, y)) else px[x % 4, y]
+        for x0, y0 in ((166, 272), (311, 280)) if tower else ():         # the slots beside the ground floor
             for y in range(y0 + 1, GROUND):
                 for x in range(x0, x0 + 3):
                     px[x, y] = px[x, y0]
@@ -205,6 +222,11 @@ def build(out):
                 else:
                     col = c("dark", 2)
                 px[x, y] = col
+    return art
+
+
+def build(out):
+    art = street()
     wins = windows()
     strip = Image.new("RGB", (EW * G.FRAMES, EH))
     missing = [f"floor-{k}.png" for k in LOOK if k != "R" and not (out / f"floor-{k}.png").exists()]
@@ -221,6 +243,7 @@ def build(out):
         strip.paste(img, (f * EW, 0))
     strip.save(out / "exterior.png")
     (out / "exterior.json").write_text(json.dumps({"size": [EW, EH], "windows": wins}))
+    street(tower=False).save(out / "backdrop.png")                       # the other pages' scene: one still frame
     print("drew exterior", "from blockout" if PICK is None else f"from seed {PICK}")
 
 

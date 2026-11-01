@@ -230,9 +230,3 @@ The following branches are available:
 
 
 When setting up a Redis client, make sure to configure your key and value serializers to avoid unexpected problems when reading from your cache. The problem might not appear during your tests, but it can suddenly start in production. It’s always better to be explicit when configuring your persistence layer.
-
-
-## Credits
-
-
-- Photos by [Johannes Plenio](https://unsplash.com/@niko_photos) on [Unsplash](https://unsplash.com/).

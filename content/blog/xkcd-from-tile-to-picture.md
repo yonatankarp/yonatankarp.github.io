@@ -271,9 +271,3 @@ I encourage you to take on your own challenges, whether they are in software pro
 
 
 Thank you for following along with my adventure. If you're interested in the details or want to try it yourself, feel free to visit the GitHub repository and explore further. Happy coding!
-
-
-## Credits
-
-
-- Photos by [GR Stocks](https://unsplash.com/@grstocks) on [Unsplash](https://unsplash.com/).

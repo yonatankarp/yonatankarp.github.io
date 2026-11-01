@@ -2,7 +2,7 @@
 {{ $art := partial "blog-art.html" . }}
 <article class="post-row" style="--post: {{ $art.accent | safeCSS }}">
   <div class="post-row__body">
-    <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ partial "reading-time.html" . }} min read · {{ .WordCount }} words</p>
+    <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ partial "reading-time.html" . }} min read</p>
     <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
     <p>{{ .Description | default (.Summary | plainify) }}</p>
     <div class="chip-row">

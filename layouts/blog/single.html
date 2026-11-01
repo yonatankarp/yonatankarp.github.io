@@ -2,15 +2,15 @@
 <div class="blog-px">
 <div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
 {{ $art := partial "blog-art.html" . }}
+{{ $toc := ge (len (findRE "<a " .TableOfContents)) 3 }}
 <section class="shell article-shell">
-  <article class="article" style="--post: {{ $art.accent | safeCSS }}">
+  <article class="article{{ if $toc }} article--toc{{ end }}" style="--post: {{ $art.accent | safeCSS }}">
     <header class="article__header">
       <p class="section-kicker">Article</p>
       <h1>{{ .Title }}</h1>
       <div class="article__meta">
         <span>{{ .Date.Format "Jan 2, 2006" }}</span>
         <span>{{ partial "reading-time.html" . }} min read</span>
-        <span>{{ .WordCount }} words</span>
       </div>
       {{ with .Description }}<p class="article__summary">{{ . }}</p>{{ end }}
       <div class="chip-row">
@@ -19,15 +19,21 @@
     </header>
     {{ with $art.cover }}<img class="px-cover article__cover" src="{{ . }}" alt="" width="192" height="108" fetchpriority="high" decoding="async">{{ end }}
 
-    {{ if and (ge .WordCount 600) (strings.Contains .TableOfContents "<li") }}
-    <details class="article-toc" open>
-      <summary>On this page</summary>
-      {{ .TableOfContents }}
-    </details>
-    {{ end }}
-
-    <div class="article__content px-prose">
-      {{ .Content }}
+    <div class="article__body">
+      {{ if $toc }}
+      {{ $nav := replace .TableOfContents `<nav id="TableOfContents">` `<nav aria-label="On this page">` | safeHTML }}{{/* twice on the page, so no id */}}
+      <details class="article-toc article-toc--inline px-well">
+        <summary>On this page</summary>
+        {{ $nav }}
+      </details>
+      <div class="article-toc article-toc--side px-well">
+        <p class="article-toc__title">On this page</p>
+        {{ $nav }}
+      </div>
+      {{ end }}
+      <div class="article__content px-prose">
+        {{ .Content }}
+      </div>
     </div>
 
     <div class="article-share" aria-label="Share this article">

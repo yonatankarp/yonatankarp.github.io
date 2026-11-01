@@ -19,7 +19,7 @@
       <div class="featured-article__body">
         <p class="eyebrow">Latest article</p>
         <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
-        <p class="featured-article__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ partial "reading-time.html" . }} min read · {{ .WordCount }} words</p>
+        <p class="featured-article__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ partial "reading-time.html" . }} min read</p>
         <p>{{ .Description | default (.Summary | plainify) }}</p>
         <a class="button button--primary" href="{{ .RelPermalink }}">Read article</a>
       </div>

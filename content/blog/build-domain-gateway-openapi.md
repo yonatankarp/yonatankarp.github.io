@@ -800,4 +800,4 @@ All code examples in this article are available in my GitHub repository: [https:
 ## Credits
 
 
-- Photos by [Robert Lukeman](https://unsplash.com/@pascalvendel), [Lachlan Donald](https://unsplash.com/@lox) and [Geranimo](https://unsplash.com/@geraninmo) on [Unsplash](https://unsplash.com/).
+- Photo by [Lachlan Donald](https://unsplash.com/@lox) on [Unsplash](https://unsplash.com/).

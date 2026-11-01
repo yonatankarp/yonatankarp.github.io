@@ -285,19 +285,47 @@ h4 a,
 /* Post: one sheet, like the CV's. */
 .blog-px .reading-progress { position: fixed; top: 0; left: 0; z-index: 60; width: 0; height: 4px; background: var(--amber); box-shadow: 0 4px 0 var(--ink); transition: width 80ms linear; pointer-events: none; }
 .blog-px .article-shell { display: grid; grid-template-columns: minmax(0, 1fr); padding-top: 24px; }
-.blog-px .article { width: min(1000px, 100%); max-width: min(1080px, 100%); margin-inline: auto; padding: 48px 48px 48px 64px; }   /* the max-width is for print's width: auto */
+.blog-px .article { width: min(760px, 100%); max-width: min(1080px, 100%); margin-inline: auto; padding: 48px 48px 48px 64px; }   /* the max-width is for print's width: auto */
 .blog-px .article__header { display: grid; gap: 16px; margin-bottom: 24px; }
 .blog-px .article__header h1 { font-size: 60px; overflow-wrap: anywhere; hyphens: none; }
 .blog-px .article__summary { margin: 0; max-width: 68ch; font-size: 17px; line-height: 1.6; color: var(--px-soft); }
 .blog-px .article__header .chip-row { margin-top: 0; }
 .blog-px .article__cover { max-width: 768px; margin: 4px 4px 36px; }
-.blog-px .article-toc { margin: 0 0 2rem; padding: 16px 20px; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
-.blog-px .article-toc > summary { cursor: pointer; font-size: 15px; font-weight: 600; color: var(--amber); }
-.article-toc nav { margin-top: 0.75rem; }
-.blog-px .article-toc ul ul { padding-left: 18px; }   /* the skin flattens lists; keep the TOC's nesting */
-.article-toc li { margin: 0.2rem 0; }
+/* Posts with 3 headings or more: closed above the text, and the old card, so code keeps its width; a sticky column beside
+   the text once the card fits at 1144px (a code column of 800px: wider adds little, narrower scrolls many more blocks). */
+.blog-px .article--toc { width: min(1000px, 100%); }
+.blog-px .article-toc { margin: 0 0 2rem; padding: 16px; font-size: 15px; line-height: 1.35; }
+.blog-px .article-toc--inline { padding: 0; }
+.blog-px .article-toc--inline > summary {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding-inline: 16px; cursor: pointer; list-style: none;
+  font-weight: 600; color: var(--amber);
+}
+.blog-px .article-toc--inline > summary::-webkit-details-marker { display: none; }
+.blog-px .article-toc--inline > summary::before {   /* the step-in button's pixel arrow (pixel.css) */
+  content: ''; flex: none; width: 10px; height: 10px; background: currentColor;
+  clip-path: polygon(0 40%, 50% 40%, 50% 20%, 60% 20%, 60% 30%, 70% 30%, 70% 40%, 80% 40%, 80% 60%, 70% 60%, 70% 70%, 60% 70%, 60% 80%, 50% 80%, 50% 60%, 0 60%);
+}
+.blog-px .article-toc--inline[open] > summary::before { transform: rotate(90deg); }
+.blog-px .article-toc--inline > summary:focus-visible { outline: 2px solid var(--amber); outline-offset: -8px; }   /* inside the well's frame */
+.blog-px .article-toc--inline > nav { padding: 0 16px 12px; }
+.blog-px .article-toc--side { display: none; }
+.blog-px .article-toc__title { margin: 0 0 0.75rem; font-weight: 600; color: var(--amber); }
+.blog-px .article-toc ul ul { padding-left: 14px; }   /* the skin flattens lists; keep the TOC's nesting */
+.blog-px .article-toc nav > ul > li:not(:has(> a)) > ul { padding-left: 0; }   /* a post with h3s only: Hugo wraps them in an empty item */
+.article-toc li { margin: 0.4rem 0; }
 .blog-px .article-toc a { color: var(--px-soft); text-decoration: none; }
-.blog-px .article-toc a:hover { color: var(--px-text); }
+.blog-px .article-toc a:hover { color: var(--px-text); text-decoration: underline; }
+.blog-px .article-toc a:focus-visible { outline: 2px solid var(--amber); outline-offset: 0; }
+@media screen and (min-width: 1224px) {
+  .blog-px .article--toc { width: 1144px; max-width: 100%; }
+  .blog-px .article--toc .article__body { display: grid; grid-template-columns: minmax(0, 1fr) 200px; column-gap: 24px; align-items: start; }
+  .blog-px .article__content { grid-area: 1 / 1; }
+  .blog-px .article-toc--inline { display: none; }
+  .blog-px .article-toc--side {
+    display: block; grid-area: 1 / 2; position: sticky; top: 24px; max-height: calc(100vh - 48px); margin: 0; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: var(--panel-hi) transparent;
+  }
+}
 
 .article__content > * {
   max-width: 68ch;
@@ -374,9 +402,6 @@ h4 a,
 @media (max-width: 680px) {
   :root { --shell: min(100vw - 1.25rem, 1240px); }
   .blog-px .article__header .chip-row { gap: 0.45rem; }
-  .blog-px .article-toc { margin-bottom: 1.4rem; }
-  .article-toc nav { margin-top: 0.55rem; }
-  .article-toc li { margin: 0.12rem 0; }
   .blog-px .featured-article { gap: 1.1rem; }
 }
 
@@ -735,7 +760,7 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-prose > * { margin-top: 0; margin-bottom: 18px; }
 /* About 68 characters a line. Not ch: Outfit's "0" is wide, so 68ch ran to 100. Images, code and tables stay wider. */
 .px-prose > :is(p, ul, ol, blockquote, .editors-note):not(:has(img, video)), .px-case__lede, .blog-px .article__summary { max-width: 530px; }
-.px-prose h2, .px-prose h3, .px-prose h4 { margin: 40px 0 12px; font-family: var(--pixel-font); font-weight: 400; line-height: 1; color: var(--px-text); }
+.px-prose h2, .px-prose h3, .px-prose h4 { margin: 40px 0 12px; font-family: var(--pixel-font); font-weight: 400; line-height: 1; color: var(--px-text); scroll-margin-top: 24px; }
 .px-prose h2 { display: flex; align-items: center; gap: 14px; font-size: 34px; }
 .px-prose h2::before { content: ''; flex: none; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
 .px-prose h2::after { content: ''; flex: 1; height: 4px; background: var(--panel-hi); }
@@ -752,7 +777,7 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-prose strong { color: var(--px-text); font-weight: 600; }
 .px-prose blockquote { margin-inline: 0; padding: 4px 0 4px 20px; border-left: 4px solid var(--amber); color: var(--px-soft); }
 .px-prose code { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88em; }
-.px-prose :not(pre) > code { padding: 2px 6px; color: var(--px-text); background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi); }
+.px-prose :not(pre) > code { padding: 1px 4px; color: var(--px-text); background: color-mix(in srgb, var(--px-text) 8%, transparent); }
 .px-prose pre { position: relative; padding: 20px 22px; overflow: auto; color: var(--px-text); line-height: 1.55; }
 .px-prose pre code { font-size: 14px; }
 .px-prose table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; padding: 6px; font-size: 15px; line-height: 1.5; }

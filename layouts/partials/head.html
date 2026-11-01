@@ -58,7 +58,7 @@
 {{ if not .IsHome }}{{ range .Store.Get "inlineScripts" }}<script>{{ .Content | safeJS }}</script>{{ end }}{{ end }}
 {{- /* The pixel wipe between pages (end of custom.css and pixel.css). The opt-in is inline, before any stylesheet: from
      a stylesheet, Chromium 156 sometimes missed it on a cold visit with fast CSS (20 of 40 on the dev server, 1 of 20 on
-     the built files), and the page then hard-cuts. Inline it was 0 of 100. */}}
+     the built files), and the page then hard-cuts. Inline it was 0 of 70 on those cold visits. */}}
 <style>@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }</style>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $title }}</title>

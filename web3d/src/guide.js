@@ -62,9 +62,19 @@ export function guide(api, root = document) {
     panel.focus();
     count(`step-in-${button.closest('[data-floor]').dataset.floor}`);
   };
+  // Guided, the other floors are hidden="until-found": Ctrl+F still finds their text, and a match rides there (#131).
+  // Hidden on arrival, not on departure, as a skipped subtree would cut the departing card's fade.
+  const conceal = (index) => stops.forEach((s, i) => { s.hidden = roomy.matches && i !== index ? 'until-found' : false; });
+  // A dissolve runs to its end, so a match found during one waits for its arrival, or its floor would be hidden again.
+  let sought = -1;
+  root.addEventListener('beforematch', (e) => {
+    const to = keys.indexOf(e.target.closest('[data-floor]').dataset.floor);
+    if (!api.go(to)) sought = to;
+  });
   const setMode = (change) => {
     closePanel(false);
     document.documentElement.classList.toggle('building--guided', roomy.matches);
+    conceal(api.index());
     if (!change) return;   // on load the browser already scrolls to any #floor-X
     if (roomy.matches) scrollTo(0, 0);
     else stops[api.index()]?.scrollIntoView();   // keep the reader's floor in view on the plain page
@@ -167,6 +177,7 @@ export function guide(api, root = document) {
     if (open) (leaving = open.button.closest('.floor-card')).style.visibility = 'hidden';
     closePanel(false);
     show(-1);
+    stops[e.detail.index].hidden = false;   // before is-here lands, so its card fades in
     document.documentElement.classList.remove('at-street');
     if (hint) hint.style.opacity = '0';
     if (arrow) arrow.dataset.dir = e.detail.dir > 0 ? 'down' : e.detail.dir < 0 ? 'up' : '';   // a dissolve has no direction
@@ -176,6 +187,7 @@ export function guide(api, root = document) {
     leaving?.style.removeProperty('visibility');
     leaving = null;
     show(e.detail.index);
+    conceal(e.detail.index);
     if (open && !stops[e.detail.index]?.contains(open.panel)) closePanel(false);
     document.documentElement.classList.toggle('at-street', e.detail.key === 'E');
     if (arrow) arrow.dataset.dir = '';   // standing still: no arrow, like a real lift display
@@ -188,6 +200,8 @@ export function guide(api, root = document) {
       follow = null;
     }
     buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.goto === e.detail.key)));
+    if (sought >= 0) setTimeout(api.go, 0, sought);   // after this frame, which is still drawing the ride that just ended
+    sought = -1;
   });
 }
 

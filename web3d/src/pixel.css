@@ -48,6 +48,7 @@
 html.building--guided, html.building--guided body { height: 100%; overflow: hidden; }
 html.building--guided .building-stop { position: fixed; inset: 0; box-sizing: border-box; min-height: 0; pointer-events: none; visibility: hidden; transition: visibility 0s linear 560ms; }
 html.building--guided .building-stop.is-here { visibility: visible; transition-delay: 0s; }
+html.building--guided .building-stop[hidden="until-found"] { visibility: visible; transition: none; }   /* find skips visibility:hidden text; until-found already paints nothing. Not plain [hidden]: without until-found support that is what the stop gets, and display:flex above beats it. */
 html.building--guided .building-stop.is-here .floor-card { pointer-events: auto; }   /* a departing card fades out, unclickable */
 .building-hint { position: fixed; bottom: 22px; transform: translateX(-50%); z-index: 3; color: #f4f1ea; pointer-events: none; transition: opacity 180ms steps(4); }   /* in whole steps, as the cards */
 html:not(.building--guided) .building-hint { display: none; }

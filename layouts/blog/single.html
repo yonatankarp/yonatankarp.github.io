@@ -21,9 +21,14 @@
 
     <div class="article__body">
       {{ if $toc }}
-      <div class="article-toc px-well">
+      {{ $nav := replace .TableOfContents `<nav id="TableOfContents">` `<nav aria-label="On this page">` | safeHTML }}{{/* twice on the page, so no id */}}
+      <details class="article-toc article-toc--inline px-well">
+        <summary>On this page</summary>
+        {{ $nav }}
+      </details>
+      <div class="article-toc article-toc--side px-well">
         <p class="article-toc__title">On this page</p>
-        {{ replace .TableOfContents "<nav " `<nav aria-label="On this page" ` | safeHTML }}
+        {{ $nav }}
       </div>
       {{ end }}
       <div class="article__content px-prose">

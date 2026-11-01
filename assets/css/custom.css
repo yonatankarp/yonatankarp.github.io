@@ -291,8 +291,24 @@ h4 a,
 .blog-px .article__summary { margin: 0; max-width: 68ch; font-size: 17px; line-height: 1.6; color: var(--px-soft); }
 .blog-px .article__header .chip-row { margin-top: 0; }
 .blog-px .article__cover { max-width: 768px; margin: 4px 4px 36px; }
-/* Posts with 3 headings or more: the contents beside the text on wide screens, above it on tablets, not on phones or paper. */
-.blog-px .article-toc { margin: 0 0 2rem; padding: 16px 20px; font-size: 15px; line-height: 1.35; }
+/* Posts with 3 headings or more: closed above the text, and the old card, so code keeps its width; a sticky column beside
+   the text once the card fits at 1144px (a code column of 800px: wider adds little, narrower scrolls many more blocks). */
+.blog-px .article--toc { width: min(1000px, 100%); }
+.blog-px .article-toc { margin: 0 0 2rem; padding: 16px; font-size: 15px; line-height: 1.35; }
+.blog-px .article-toc--inline { padding-block: 0; }
+.blog-px .article-toc--inline > summary {
+  display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none;
+  font-weight: 600; color: var(--amber);
+}
+.blog-px .article-toc--inline > summary::-webkit-details-marker { display: none; }
+.blog-px .article-toc--inline > summary::before {   /* the step-in button's pixel arrow (pixel.css) */
+  content: ''; flex: none; width: 10px; height: 10px; background: currentColor;
+  clip-path: polygon(0 40%, 50% 40%, 50% 20%, 60% 20%, 60% 30%, 70% 30%, 70% 40%, 80% 40%, 80% 60%, 70% 60%, 70% 70%, 60% 70%, 60% 80%, 50% 80%, 50% 60%, 0 60%);
+}
+.blog-px .article-toc--inline[open] > summary::before { transform: rotate(90deg); }
+.blog-px .article-toc--inline > summary:focus-visible { outline: 2px solid var(--amber); outline-offset: -2px; }
+.blog-px .article-toc--inline > nav { padding-bottom: 12px; }
+.blog-px .article-toc--side { display: none; }
 .blog-px .article-toc__title { margin: 0 0 0.75rem; font-weight: 600; color: var(--amber); }
 .blog-px .article-toc ul ul { padding-left: 14px; }   /* the skin flattens lists; keep the TOC's nesting */
 .blog-px .article-toc nav > ul > li:not(:has(> a)) > ul { padding-left: 0; }   /* a post with h3s only: Hugo wraps them in an empty item */
@@ -300,16 +316,16 @@ h4 a,
 .blog-px .article-toc a { color: var(--px-soft); text-decoration: none; }
 .blog-px .article-toc a:hover { color: var(--px-text); text-decoration: underline; }
 .blog-px .article-toc a:focus-visible { outline: 2px solid var(--amber); outline-offset: 0; }
-@media screen and (min-width: 1024px) {
-  .blog-px .article--toc { width: min(1080px, 100%); }
-  .blog-px .article--toc .article__body { display: grid; grid-template-columns: minmax(0, 1fr) 220px; column-gap: 32px; align-items: start; }
+@media screen and (min-width: 1224px) {
+  .blog-px .article--toc { width: 1144px; max-width: 100%; }
+  .blog-px .article--toc .article__body { display: grid; grid-template-columns: minmax(0, 1fr) 200px; column-gap: 24px; align-items: start; }
   .blog-px .article__content { grid-area: 1 / 1; }
-  .blog-px .article-toc {
-    grid-area: 1 / 2; position: sticky; top: 24px; max-height: calc(100vh - 48px); margin: 0; overflow-y: auto;
+  .blog-px .article-toc--inline { display: none; }
+  .blog-px .article-toc--side {
+    display: block; grid-area: 1 / 2; position: sticky; top: 24px; max-height: calc(100vh - 48px); margin: 0; overflow-y: auto;
     scrollbar-width: thin; scrollbar-color: var(--panel-hi) transparent;
   }
 }
-@media (max-width: 760px) { .blog-px .article-toc { display: none; } }
 
 .article__content > * {
   max-width: 68ch;

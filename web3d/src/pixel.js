@@ -3,6 +3,7 @@
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 import { guide, roomy } from './guide.js';
 import '../../assets/js/copy-email.js';
+import '../../assets/js/site-menu.js';
 import './pixel.css';
 
 const FW = 480, FH = 180, FRAMES = 12, FPS = 8;
@@ -508,9 +509,9 @@ function streetView(base, box, stops, loaded, then) {
     return c.canvas;
   }
   const hero = stops.find((s) => s.dataset.floor === 'E'), heroCard = hero?.querySelector('.floor-card');
-  let clear = 0, card = 0, sized = '';   // CSS --street-top: the bottom of whatever sits over the top of the street; card: the phone's hero card top, read per size
+  let clear = 0, card = 0, across = 0.5, sized = '';   // CSS --street-top: the bottom of whatever sits over the top of the street; card: the phone's hero card top; CSS --street-x: where the phone's tower stands, as a share of the width; read per size
   if (heroCard) new ResizeObserver(() => { sized = ''; loaded(); }).observe(heroCard);   // a late font moves the card's top, so the street's foot
-  function measure(ctx, w, h) { if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; card = heroCard ? hero.clientHeight - parseFloat(getComputedStyle(hero).paddingBottom) - heroCard.offsetHeight : 0; } }
+  function measure(ctx, w, h) { if (sized !== `${w},${h}`) { sized = `${w},${h}`; const css = getComputedStyle(ctx.canvas); clear = parseFloat(css.getPropertyValue('--street-top')) || 0; across = parseFloat(css.getPropertyValue('--street-x')) || 0.5; card = heroCard ? hero.clientHeight - parseFloat(getComputedStyle(hero).paddingBottom) - heroCard.offsetHeight : 0; } }
   function layout(w, h, dpr, wide) {   // in device pixels, sized by the CSS height; the building centred beside the card, the street under it
     const [EW, EH] = view.size, W = w / dpr, H = h / dpr, rects = Object.values(view.windows);
     if (!wide) {   // phones: only the tower, as big as whole device pixels allow between the top bar and the card, the cornice under the bar
@@ -518,7 +519,7 @@ function streetView(base, box, stops, loaded, then) {
       const top = Math.min(...floors.map((r) => r[1])) - PAD, bottom = Math.max(...floors.map((r) => r[3])) + PAD;
       const foot = card || H * 0.62, s = Math.max(Math.round(dpr), Math.floor(Math.min(w / TOWER, (foot - clear) * dpr / (bottom - top))));
       // The road's foot on the card, or, where that leaves no room, the cornice just under the bar, 2 art pixels of sky between them; the road gives way.
-      return { s, x: Math.round(w / 2 - (EW / 2) * s), y: Math.round(Math.max(clear * dpr - (CRANE[2] - 2) * s, foot * dpr - EH * s)) };
+      return { s, x: Math.round(w * across - (EW / 2) * s), y: Math.round(Math.max(clear * dpr - (CRANE[2] - 2) * s, foot * dpr - EH * s)) };
     }
     const top = Math.min(...rects.map((r) => r[1])) - PAD, bottom = Math.max(...rects.map((r) => r[3])) + PAD;   // the roof's window, the ground floor's
     const fit = rects.length ? (H - clear) / (bottom - top) : Infinity;   // every window between the top bar and the bottom edge

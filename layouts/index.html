@@ -49,7 +49,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
   {{- /* A CSP with hash sources stops Chrome's preload scanner from fetching the module early: it then waited for the
        parser, 1717 ms in, and the street drew 400 ms later (Fast 3G, #149). So the module is preloaded by hand. */}}
   <link rel="modulepreload" href="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}">
-  <style>html, body { margin: 0; background: #151923; }</style>
+  <style>html, body { margin: 0; background: #0c0e14; }</style>
   {{- /* Guided from the first paint, not when the module runs (#39): the query is guide.js's roomy, and only where
        a module can run; unguided again if the module fails to load. The street's look too, unless the address names a floor. */}}
   <script>{{ $guided.Content | safeJS }}</script>

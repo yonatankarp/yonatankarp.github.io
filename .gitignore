@@ -29,6 +29,10 @@ web3d/pixel/paintings/candidates/*
 !web3d/pixel/paintings/candidates/parking_400.png
 !web3d/pixel/paintings/candidates/writing_400.png
 !web3d/pixel/paintings/candidates/street9_634.png
+!web3d/pixel/paintings/candidates/sumup_717.png
+!web3d/pixel/paintings/candidates/billie_risk_834.png
+!web3d/pixel/paintings/candidates/billie_orchestrator_800.png
+!web3d/pixel/paintings/candidates/billie_payments_717.png
 # install_picks.py also saves each crop beside its pixel art; only the -px.png files are read
 web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/*-px.png

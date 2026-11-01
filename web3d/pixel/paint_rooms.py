@@ -55,12 +55,10 @@ LOBBY = (
 )
 ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come from the lobby
     "sumup": (
-        "a small Berlin café that takes card payments: a long honey-wood counter with a chrome espresso machine, a "
-        "glass pastry case with golden croissants, a small black card payment terminal with a glowing green screen; a "
-        "dark green chalkboard menu on the wall; a big yellow industrial stamping press standing on the floor, as "
-        "tall as a person, feeding small pale-blue boxes onto a black conveyor belt that runs into a separate tall dark "
-        "server rack with rows of green status lights; a large wooden-framed window showing a dusky purple-to-peach Berlin skyline with the TV tower; a "
-        "small round café table with two cups and a potted plant."
+        "an indoor market hall of small independent shops that take card payments, side by side: a coffee cart with a "
+        "striped awning and a chrome espresso machine, a flower stall with zinc buckets of colourful flowers, a small "
+        "bakery counter with a basket of bread loaves; on each counter a small white card payment terminal with a "
+        "glowing green screen; the upper wall in the middle of the room is bare plaster; warm amber accents."
     ),
     "nice": (
         "a contact centre operations room: a row of desks with monitors and headsets resting on them, empty office "
@@ -69,21 +67,27 @@ ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come 
         "with blue lights."
     ),
     "billie_risk": (
-        "a real-time data signal room for fraud detection: a long horizontal glass pipe running across the wall with "
-        "glowing cyan light pulses flowing inside it, a control panel with round analogue gauges and dials, a large "
-        "wall screen showing a network graph of connected circles with one circle glowing red, a desk with two "
-        "monitors and a desk lamp, a potted plant, cool cyan accents."
+        "a credit risk office where business purchases on invoice are checked, from left to right: a big brass balance "
+        "scale on a wooden side table weighing a stack of paper invoices against a pile of gold coins; a large round "
+        "wall gauge with a green, amber and red arc and a black needle; a wide wooden desk with a tall stack of paper "
+        "invoices, a big rubber stamp, a green ink pad and a desk lamp; a tall grey filing cabinet with an open drawer "
+        "of folders, two of them marked with small red flags, a magnifying glass on top; the upper wall in the middle "
+        "of the room is bare warm beige plaster."
     ),
     "billie_orchestrator": (
-        "a control room built around a large glowing violet hexagonal console standing on the floor, thick cables "
-        "running from it to four smaller dark server cabinets, a wall screen showing paper invoices moving into a green "
-        "lane and an amber lane, one ghostly translucent cabinet with a dashed outline standing apart, violet accents."
+        "an automated decision room for business orders, from left to right: a waist-high conveyor belt carrying "
+        "cardboard parcels with paper invoices on top into a big grey steel sorting machine with a large traffic light "
+        "on top (red, amber and green lamps); out of the machine two short slides, one into a green crate of accepted "
+        "parcels and one into a red crate of rejected parcels; on the wall at the right a large dark screen showing a "
+        "network graph of connected circles with one circle glowing red; the upper wall in the middle of the room is "
+        "bare warm beige plaster."
     ),
     "billie_payments": (
-        "a compliance screening room: a conveyor belt carrying envelopes and paper invoices through a large "
-        "airport-style security scanner arch with a glowing frame, a red review tray beside the belt for flagged "
-        "envelopes, thick pipes running along the ceiling with glowing joints, a red post box on the wall for returned "
-        "letters, a wall dashboard of small status tiles in green and red, coral accents."
+        "a payments vault room where money moves between businesses: a big round polished steel bank vault door set "
+        "into the wall with a spoked wheel handle; shiny brass pneumatic tubes running along the ceiling and down into a "
+        "desk-high banknote counting machine with stacks of green banknotes and gold coins beside it; a red metal bin "
+        "for returned payments with a curved chute leading back up into the tubes; the upper wall in the middle of the "
+        "room is bare plaster; coral accents."
     ),
     "inuitive": (
         "a hardware and robotics test lab: a long workbench with green circuit boards, small black chips and soldering "

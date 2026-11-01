@@ -104,7 +104,8 @@ function builtRoutes() {
     }
   })(publicDir);
 
-  return routes.sort().concat(missingRoute);
+  // The homepage at every hour: this script runs at wall-clock time, so "/" alone would only ever see one (#151).
+  return routes.sort().concat(missingRoute, ...["dawn", "day", "dusk", "night"].map((time) => `/?time=${time}`));
 }
 
 // Runs in every page before its own scripts.
@@ -166,7 +167,7 @@ async function exercise(page, route) {
     did.push(`search results ${await page.locator(".search-result").count()}`);
   }
 
-  if (route === "/") {
+  if (route === "/" || route.startsWith("/?time=")) {
     await page.keyboard.press("ArrowDown");
     await page.waitForTimeout(800);
     await page.locator(".building-floor-btn").nth(3).click();

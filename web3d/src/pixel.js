@@ -8,7 +8,10 @@ import './pixel.css';
 const FW = 480, FH = 180, FRAMES = 12, FPS = 8;
 const REST_MS = 2600;   // after each action loop the room holds still, so the text keeps the reader's attention
 const ORDER = ['P', 'L', '1', '2', '3', '4', '5', '6', '7', 'R'];   // bottom to top
-const SKY = '#74228a';                                        // the roof painting's top row
+const TIME = document.documentElement.dataset.time;          // picked once, in the page's head (#151): it never changes while the page is open
+const BAKED = { dawn: 'RPL', day: 'RPL', night: 'RP' }[TIME];   // the art with its own picture at this hour: the rooms with an outside view (gen_floors.PHASES); none at dusk
+const HOUR = BAKED ? `-${TIME}` : '';                          // the file name's suffix
+let SKY = { dawn: '#5d5a86', day: '#2f5c96', night: '#232a4d' }[TIME] ?? '#74228a';   // above the roof, until its strip gives its own top row
 const GROUND = ['#33231a', '#1f1610'];                        // under the garage: the earth's top line, then soil
 const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted lift doors; mirrors gen_floors.DOOR
 // Where each street window looks into its room, in strip pixels: mirrors gen_exterior.LOOK. The roof's is painted,
@@ -30,6 +33,14 @@ const LEGACY = { about: 'L', testimonial: 'L', contact: 'R', experience: '7', pr
 // Hugo lowercases menu URLs, so the site menu's About arrives as #floor-l.
 const hashKey = () => { const h = location.hash.slice(1); return LEGACY[h] ?? (h.match(/^floor-(\w+)$/) || [])[1]?.toUpperCase(); };
 
+// A picture's colour at one pixel, as CSS.
+function colourAt(img, x, y) {
+  const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+  c.canvas.width = c.canvas.height = 1;
+  c.drawImage(img, -x, -y);
+  return `rgb(${[...c.getImageData(0, 0, 1, 1).data.slice(0, 3)]})`;
+}
+
 export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pauseButton }) {
   const ctx = canvas.getContext('2d');
   const keys = stops.map((s) => s.dataset.floor);
@@ -42,9 +53,12 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     if (key === 'E' || started.has(key)) return;   // the street is exterior.png, not a strip
     started.add(key);
     const img = new Image();
-    img.onload = () => { img.since = performance.now(); strips.set(key, img); loaded(); };
+    img.onload = () => {
+      if (key === 'R') SKY = colourAt(img, 300, 0);
+      img.since = performance.now(); strips.set(key, img); loaded();
+    };
     img.onerror = () => { strips.set(key, null); loaded(); };
-    img.src = `${base}pixel/floor-${key}.png`;
+    img.src = `${base}pixel/floor-${key}${BAKED?.includes(key) ? HOUR : ''}.png`;
   };
   const loadAll = () => keys.forEach(load);
   // The street is the first screen: the other floors wait until it has arrived (or failed), or the lift moves (#130).
@@ -193,13 +207,18 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     // Every storey, the one in view with its top at ry; s and x0 are the frame's own, or the flight's.
     function tower(s, x0, ry) { for (const key of ORDER) {
       const y = ry - (level(key) - camY) * s;
-      if (key === 'R' && y > 0) { ctx.fillStyle = SKY; ctx.fillRect(0, 0, w, y + 1); }   // the sky goes on above the roof
+      const img = strips.get(key);
+      if (key === 'R' && y > 0) {                                                         // the sky goes on above the roof
+        ctx.fillStyle = SKY; ctx.fillRect(0, 0, w, y + 1);
+        // At night its stars too: the top rows of the strip's right run, plain sky and stars, each course shifted so no column of them lines up.
+        const t = img ? (img.width - FRAMES * FW) / 2 : 0;
+        if (TIME === 'night' && t) for (let r = 1, gy = y - 16 * s; gy + 16 * s > 0; r++, gy -= 16 * s) for (let gx = -(r * 97 % t) * s; gx < w; gx += t * s) ctx.drawImage(img, FRAMES * FW + t, 0, t, 16, gx, gy, t * s, 16 * s);
+      }
       if (key === 'P' && y + FH * s < h) {                                                // and the ground under the garage
         ctx.fillStyle = GROUND[1]; ctx.fillRect(0, y + FH * s, w, h);
         ctx.fillStyle = GROUND[0]; ctx.fillRect(0, y + FH * s, w, s);
       }
       if (y > h || y + FH * s < 0) continue;
-      const img = strips.get(key);
       ctx.fillStyle = '#1f2532';   // a plain storey until its picture arrives (or if it never does)
       if (!img || now - img.since < FADE_IN_MS) ctx.fillRect(0, y, w, FH * s);
       if (!img) continue;
@@ -246,7 +265,7 @@ function drawDoors(ctx, img, f, x0, y0, s, open) {
   ctx.restore();
 }
 
-// The street view: the whole building at dusk (web3d/pixel/gen_exterior.py), its windows live crops of the rooms,
+// The street view: the whole building at this hour (web3d/pixel/gen_exterior.py), its windows live crops of the rooms,
 // 1-7 dimmed behind each floor's company sign.
 // Its windows are buttons laid over the canvas; the street left and right of the picture repeats its neighbours.
 function streetView(base, box, stops, loaded, then) {
@@ -254,15 +273,11 @@ function streetView(base, box, stops, loaded, then) {
   const img = new Image();
   img.onload = () => {
     then();
-    const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
-    c.canvas.width = 1; c.canvas.height = view.size[1];
-    c.drawImage(img, 0, 0);
-    const px = (y) => `rgb(${[...c.getImageData(0, y, 1, 1).data.slice(0, 3)]})`;
-    Object.assign(view, { img, since: performance.now(), top: px(0), bottom: px(view.size[1] - 1) });
+    Object.assign(view, { img, since: performance.now(), top: colourAt(img, 0, 0), bottom: colourAt(img, 0, view.size[1] - 1) });
     loaded();
   };
   img.onerror = then;
-  img.src = `${base}pixel/exterior.png`;
+  img.src = `${base}pixel/exterior${HOUR}.png`;
   const buttons = [];
   // The lift is the keyboard's way between floors, so the windows stay out of the Tab order, except where the lift is
   // hidden at the street (phones, pixel.css): there they are the only way in (#131).
@@ -340,7 +355,8 @@ function streetView(base, box, stops, loaded, then) {
       }
       return {
         street: { s: z, x: rx + (look[0] - x0) * z, y: ry + (look[1] - y0) * z }, room: { s: z, x: rx, y: ry }, hole,
-        dim: 0.85 * easeInOut(Math.min(1, t * 2)), roomA: clamp01((t - 0.3) / 0.2),
+        dim: (TIME === 'day' ? 0.5 : 0.85) * easeInOut(Math.min(1, t * 2)),   // at noon a full dim reads as the lights going out
+        roomA: clamp01((t - 0.3) / 0.2),
       };
     },
     draw(ctx, f, w, h, a, dpr, wide, cam) {   // cam: a flight's scale and place, else the street's own

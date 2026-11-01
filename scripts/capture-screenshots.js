@@ -19,22 +19,29 @@ const viewports = [
   { name: "mobile", width: 390, height: 1200 },
 ];
 
+const homeSelectors = [
+  [".building-name[data-goto='E']", 1, "name plate"],
+  [".building-links nav a", 4, "top bar tabs"],
+  [".building-download", 1, "CV download"],
+  [".building-social a", 4, "social links"],
+  ["#pixel-canvas", 1, "building canvas"],
+  ["section.building-stop", 11, "building floors"],
+  [".building-window", 9, "street view windows"],
+];
+
 const routes = [
   {
     name: "home",
-    path: "/",
+    path: "/?time=dusk",   // pinned: the art follows the clock otherwise, so captures could not be compared (#151)
     pauseLabel: true,
     ride: true,
-    requiredSelectors: [
-      [".building-name[data-goto='E']", 1, "name plate"],
-      [".building-links nav a", 4, "top bar tabs"],
-      [".building-download", 1, "CV download"],
-      [".building-social a", 4, "social links"],
-      ["#pixel-canvas", 1, "building canvas"],
-      ["section.building-stop", 11, "building floors"],
-      [".building-window", 9, "street view windows"],
-    ],
+    requiredSelectors: [...homeSelectors, ["html[data-time='dusk']", 1, "dusk art"]],
   },
+  ...["dawn", "day", "night"].map((time) => ({
+    name: `home-${time}`,
+    path: `/?time=${time}`,
+    requiredSelectors: [...homeSelectors, [`html[data-time='${time}']`, 1, `${time} art`]],
+  })),
   {
     name: "projects",
     path: "/projects/",

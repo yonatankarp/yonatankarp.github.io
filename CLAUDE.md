@@ -84,10 +84,10 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 
 ## Analytics
 
-- **GoatCounter** for privacy-friendly analytics (script in `layouts/partials/head.html`)
+- **GoatCounter** for privacy-friendly analytics (script in `layouts/partials/head.html`, pinned to `count.v5.js` with the SRI hash from goatcounter.com/help/countjs-versions; a new version means a new URL and hash)
 - Dashboard: `https://yonatankarp.goatcounter.com`
 - Localhost and private IPs are automatically excluded
-- To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into `count.js`)
+- To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into the script)
 - Events (dashboard, Events): `cv-download` (the top bar's Download CV), `social-<icon>` (its social icons:
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage or the CV),
   `email-copy` (the Copy chip beside it) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride

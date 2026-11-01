@@ -6,7 +6,7 @@ That directory is git-ignored because routine captures are binary churn, but eac
 
 ## What Gets Captured
 
-- Routes: `/`, `/projects/`, `/blog/`, `/cv/`, `/blog/self-compiling-second-brain/`, and `/madeira-2026/`.
+- Routes: `/`, `/projects/`, `/blog/`, `/cv/`, `/blog/self-compiling-second-brain/`, `/search/`, and `/skills/`.
 - Viewports: desktop `1440x1100` and mobile `390x1200`.
 - Files: `<route>-<viewport>-<YYYY-MM-DD>.png`.
 
@@ -19,11 +19,9 @@ That directory is git-ignored because routine captures are binary churn, but eac
 - The mobile menu button is visible, accessible, closed by default, and wired to `#primary-nav`.
 - The home page keeps its hero and proof sections.
 - The blog index renders multiple article rows/cards.
-- The standalone Madeira page keeps route guide cards, itinerary day sections, visible photos, and source panels.
 
 ## Operational Notes
 
 - Without `--base` or `SITE_URL`, the helper starts the bundled/local Hugo server with `--renderToMemory`.
 - `--renderToMemory` prevents visual capture from rewriting `public/` with localhost metadata.
-- Keep per-run human notes in the relevant `docs/autonomous-capacity-burn-*.md` report when a capture supports a design change.
-- Promote a screenshot into tracked git history only when it documents a specific durable decision or regression example.
+- `artifacts/` and `screenshots/` are git-ignored as a whole; captures stay local.

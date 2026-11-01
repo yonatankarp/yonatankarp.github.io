@@ -6,9 +6,9 @@ hugo_stats.json
 .tools/
 .superpowers/
 .DS_Store
-artifacts/visual-smoke/
-artifacts/*live-drift-audit*/*.png
-artifacts/*capacity-burn*/*.png
+# Generated screenshots: npm run visual:capture writes to artifacts/visual-smoke/ (#148)
+artifacts/
+screenshots/
 
 # The pixel building's bundle, built by Vite (npm run build:building)
 assets/building/

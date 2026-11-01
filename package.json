@@ -1,9 +1,10 @@
 {
   "scripts": {
     "build": "npm run build:building && node scripts/run-hugo.js --gc --minify --cleanDestinationDir && npm run pdf",
-    "check": "npm run check:blog-assets && npm run build && npm run check:site-metadata && npm run check:generated-html && npm run check:cv-print && npm run check:links",
+    "check": "npm run check:blog-assets && npm run build && npm run check:site-metadata && npm run check:generated-html && npm run check:cv-print && npm run check:links && npm run check:csp",
     "check:blog-assets": "node scripts/check-blog-assets.js",
     "check:cv-print": "node scripts/check-cv-print.js",
+    "check:csp": "node scripts/check-csp.js",
     "check:generated-html": "node scripts/check-generated-html.js",
     "check:hugo-pin": "node scripts/check-hugo-pin.js",
     "check:links": "node scripts/check-links.js",

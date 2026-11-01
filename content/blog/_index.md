@@ -18,11 +18,7 @@ aliases:
   - /archive/2
   - /archive/3
   - /chatgpt-will-not-replace-engineers-any-time-soon
-  - /design-patterns-abstract-factory
-  - /design-patterns-builder
-  - /design-patterns-factory
   - /design-patterns-factory-method
-  - /design-patterns-prototype
   - /design-patterns-singleton
   - /enhance-productivity-with-a-repository-template
   - /how-to-make-chatgpt-lie
@@ -85,7 +81,6 @@ aliases:
   - /kotlin-smell-013-companion-object-functions
   - /kotlin-smell-13-companion-object-functions
   - /newsletter
-  - /our-errors-your-gain-a-system-design-cautionary-tale
   - /page/about
   - /recommendations
   - /series/adven-to-fcode

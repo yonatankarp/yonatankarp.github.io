@@ -1,4 +1,4 @@
-{{- /* Hugo's sitemap without the noindex pages: tag and category lists, and pages with noindex: true. */ -}}
+{{- /* Hugo's sitemap without the noindex pages: tag lists, and pages with noindex: true. */ -}}
 {{ printf "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\"?>" | safeHTML }}
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   {{ range where .Pages "Sitemap.Disable" "ne" true }}

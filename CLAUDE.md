@@ -2,7 +2,7 @@
 
 ## Stack
 
-- **Hugo** static site generator (v0.168.0, pinned as `HUGO_VERSION` in the workflows; see Deployment)
+- **Hugo** static site generator (v0.169.0, pinned as `HUGO_VERSION` in the workflows; see Deployment)
 - **Custom Hugo layouts** in `layouts/`
 - **GitHub Actions** for CI/CD to GitHub Pages
 - Site styles in `assets/css/custom.css`
@@ -31,6 +31,8 @@ front matter places it in the building; testimonials need a `pullQuote` that is 
 - `content/contributions/` — NOT used (contributions are in projects/)
 - `content/blog/` — blog posts
 - `content/testimonial/` — recommendation quotes with photos
+- Experience, education and testimonial entries have no pages of their own: the `[[cascade]]` in `hugo.toml` renders
+  them with `layouts/_default/redirect.html`, a noindex redirect to their homepage floor
 - `content/skills/_index.md` — skills page
 - `content/footer/` — contact section
 - `content/cv.md` — printable CV page
@@ -96,8 +98,12 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 
 Push to `main` triggers GitHub Actions workflow (`.github/workflows/deploy.yml`) which builds Hugo and deploys to GitHub Pages.
 
-Hugo's version is pinned twice, as `HUGO_VERSION` in both
-`.github/workflows/ci.yml` and `.github/workflows/deploy.yml` — bump both, or CI
-and the deploy build the site with different Hugo versions. The weekly
-`Pin staleness` workflow reports either failure (`npm run check:hugo-pin` runs
-the same check locally); nothing else watches that pin.
+Hugo is pinned twice, as `HUGO_VERSION` and `HUGO_SHA256` in both
+`.github/workflows/ci.yml` and `.github/workflows/deploy.yml`. Bump both values
+together, in both files: `HUGO_SHA256` is the `hugo_extended_<version>_linux-amd64.deb`
+line of the release's `hugo_<version>_checksums.txt`, and the install step fails
+when it does not match. The weekly `Pin staleness` workflow reports a stale or
+disagreeing pin and fails on a wrong checksum (`npm run check:hugo-pin` runs the
+same check locally); nothing else watches that pin. For local builds, put the same
+Hugo release at `.tools/hugo/hugo` (gitignored), which the npm scripts prefer over
+`hugo` on the `PATH`.

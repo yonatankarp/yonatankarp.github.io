@@ -11,8 +11,6 @@ tags:
   - spring-boot
   - redis
   - redistemplate
-categories:
-  - Backend
 images:
   featured_image: "/images/blog/covers/fix-misconfigurations-redistemplate.jpg"
 ---

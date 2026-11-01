@@ -30,14 +30,7 @@
     <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
     <span>Download CV</span>
   </a>
-  {{- /* 12x12 pixel drawings at 2x, the download icon's scale; data/home/en.yaml contact.social names them. */}}
-  {{ $icons := dict
-    "linkedin" "M1 0h10v1H1zM0 1h12v1H0zM0 2h2v1H0zM4 2h8v1H4zM0 3h2v1H0zM4 3h8v1H4zM0 4h12v1H0zM0 5h2v1H0zM4 5h1v1H4zM8 5h4v1H8zM0 6h2v1H0zM4 6h1v1H4zM9 6h3v1H9zM0 7h2v1H0zM4 7h1v1H4zM7 7h1v1H7zM10 7h2v1H10zM0 8h2v1H0zM4 8h1v1H4zM7 8h2v1H7zM10 8h2v1H10zM0 9h2v1H0zM4 9h1v1H4zM7 9h2v1H7zM10 9h2v1H10zM0 10h12v1H0zM1 11h10v1H1z"
-    "github" "M3 0h6v1H3zM1 1h10v1H1zM1 2h2v1H1zM4 2h4v1H4zM9 2h2v1H9zM0 3h3v1H0zM9 3h3v1H9zM0 4h2v1H0zM10 4h2v1H10zM0 5h2v1H0zM10 5h2v1H10zM0 6h3v1H0zM9 6h3v1H9zM0 7h4v1H0zM8 7h4v1H8zM0 8h1v1H0zM3 8h2v1H3zM7 8h5v1H7zM0 9h2v1H0zM4 9h1v1H4zM7 9h5v1H7zM1 10h2v1H1zM8 10h3v1H8zM3 11h2v1H3zM7 11h2v1H7z"
-    "x" "M0 0h3v1H0zM10 0h2v1H10zM0 1h4v1H0zM9 1h2v1H9zM1 2h4v1H1zM8 2h2v1H8zM2 3h4v1H2zM7 3h2v1H7zM3 4h5v1H3zM4 5h4v1H4zM4 6h5v1H4zM3 7h2v1H3zM6 7h4v1H6zM2 8h2v1H2zM7 8h4v1H7zM1 9h2v1H1zM8 9h4v1H8zM0 10h2v1H0zM9 10h3v1H9zM0 11h1v1H0zM10 11h2v1H10z"
-    "podcast" "M4 0h4v1H4zM3 1h6v1H3zM3 2h1v1H3zM5 2h2v1H5zM8 2h1v1H8zM3 3h6v1H3zM1 4h1v1H1zM3 4h1v1H3zM5 4h2v1H5zM8 4h1v1H8zM10 4h1v1H10zM1 5h1v1H1zM3 5h6v1H3zM10 5h1v1H10zM1 6h1v1H1zM4 6h4v1H4zM10 6h1v1H10zM2 7h1v1H2zM9 7h1v1H9zM3 8h6v1H3zM5 9h2v1H5zM5 10h2v1H5zM3 11h6v1H3z"
-  }}
   <nav class="{{ cond $home "building-social" "px-bar__social" }}" aria-label="Find me elsewhere">
-    {{ range hugo.Data.home.en.contact.social }}<a href="{{ .url }}" aria-label="{{ .label }}" title="{{ .label }}" data-goatcounter-click="social-{{ .icon }}"><svg width="24" height="24" viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="{{ index $icons .icon }}"/></svg></a>{{ end }}
+    {{ range hugo.Data.home.en.contact.social }}<a href="{{ .url }}" aria-label="{{ .label }}" title="{{ .label }}" data-goatcounter-click="social-{{ .icon }}">{{ partial "pixel-icon.html" .icon }}</a>{{ end }}
   </nav>
 </header>

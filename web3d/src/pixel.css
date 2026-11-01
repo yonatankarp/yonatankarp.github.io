@@ -205,10 +205,10 @@
 }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* outside, the windows are the way in: the card sits under the street */
   html.building--guided.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
-  /* On a short phone the street sinks to keep its top window clear of the name (pixel.js): the card gives way, so
-     the bottom windows (P and L, 310 art pixels down) stay out from under it and the card scrolls instead (#45). */
-  .pixel .building-stop--hero { padding-top: max(clamp(116px, calc(100svh - 216px), calc(62svh + 12px)), calc(var(--street-top) + 310px)); }
-  .pixel .building-stop--hero .floor-card { width: 100%; }
+  /* The card takes its own height at the bottom and the street stands on it (pixel.js). Only on a short phone does it
+     stop rising: the bottom windows (P and L, 235 art pixels under the cornice) stay out from under it and it scrolls (#45). */
+  .pixel .building-stop--hero { padding-top: calc(var(--street-top) + 240px); }
+  .pixel .building-stop--hero .floor-card { width: 100%; padding-top: 12px; padding-bottom: 10px; }
 }
 @media (max-width: 1279px) {   /* ten lift buttons leave no room for the label between the name and the panel */
   .pixel .building-download span { display: none; }

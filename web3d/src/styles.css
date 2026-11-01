@@ -105,9 +105,9 @@ html.building--guided .building-stop.is-here .floor-card { pointer-events: auto;
   font-size: 14px; pointer-events: none; transition: opacity 400ms ease;
 }
 html:not(.building--guided) .building-hint { display: none; }
-/* A touch screen has no arrow keys to mention. */
-.building-hint .hint-coarse { display: none; }
-@media (pointer: coarse) { .building-hint .hint-fine { display: none; } .building-hint .hint-coarse { display: inline; } }
+/* A touch screen has no arrow keys to mention, and it swipes. */
+.hint-coarse { display: none; }
+@media (pointer: coarse) { .hint-fine { display: none; } .hint-coarse { display: inline; } }
 
 /* Elevator panel */
 .elevator {

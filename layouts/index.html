@@ -79,7 +79,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
   <main class="building-stops" id="building-stops">
     <section class="building-stop building-stop--hero is-here" id="floor-E" data-floor="E" aria-labelledby="fE">
       <article class="floor-card floor-card--hero" style="--accent:{{ index $accent "E" }}">
-        <p class="floor-how">Every floor is a chapter of my CV. Scroll to go inside, or pick a window.</p>
+        <p class="floor-how">Every floor is a chapter of my CV. <span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, or pick a window.</p>
         <p class="floor-eyebrow">{{ partial "nobreak.html" $home.hero.eyebrow }}</p>
         <h1 id="fE" tabindex="-1">{{ $home.hero.title }}</h1>
         <p class="floor-open">{{ $home.hero.availability }}</p>

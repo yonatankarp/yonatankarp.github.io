@@ -198,7 +198,8 @@ const count = (path) => window.goatcounter?.count?.({ path, event: true });
 // A long card on a small screen scrolls first; the lift only moves once it is at its end.
 function scrollsInside(target, dir) {
   const box = target.closest?.('.floor-card, .floor-panel');
-  // A sliver of overflow (12 to 21px on some cards) is not worth a key press that barely moves anything (#131).
-  if (!box || box.scrollHeight <= box.clientHeight + 40) return false;
+  // A sliver of overflow (12 to 21px on some cards) is not worth a key press that barely moves anything (#131), except
+  // on the hero, where what it hides is the way to get in touch.
+  if (!box || box.scrollHeight <= box.clientHeight + (box.matches('.floor-card--hero') ? 0 : 40)) return false;
   return dir > 0 ? box.scrollTop + box.clientHeight < box.scrollHeight - 1 : box.scrollTop > 0;
 }

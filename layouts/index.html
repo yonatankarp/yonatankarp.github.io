@@ -31,8 +31,16 @@ addEventListener('error', function (e) { if (e.target.type === 'module') documen
 if ('noModule' in HTMLScriptElement.prototype && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
 if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.add('at-street');
 ` | minify | fingerprint "sha256" }}
+{{- /* Dusk or night, picked once here and read by pixel.js (#151). Before the stylesheet, which would hold this script
+     back, so the street's art starts at once; it is the one preload a static tag could not get right, as a tag would
+     fetch the dusk street at night too. ?time=dusk|night overrides the visitor's clock; anything else means the clock. */}}
+{{ $time := resources.FromString "js/home-time.js" (printf `
+var t=new URLSearchParams(location.search).get('time'),h=new Date().getHours(),n=t==='night'||t!=='dusk'&&(h>=20||h<6),l=document.createElement('link');
+document.documentElement.dataset.time=n?'night':'dusk';
+l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(n?'-night':'')+'.png';document.head.appendChild(l);
+` $base) | minify | fingerprint "sha256" }}
 {{ $street := resources.FromString "js/home-street.js" `document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');` | minify | fingerprint "sha256" }}
-{{ .Store.Set "inlineScripts" (slice $guided $street) }}
+{{ .Store.Set "inlineScripts" (slice $time $guided $street) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
@@ -41,10 +49,10 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
 <html lang="{{ .Site.Language.Lang }}">
 <head>
   {{ partial "head.html" . }}
+  <script>{{ $time.Content | safeJS }}</script>
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   {{- /* The street is the first screen: fetch its art at once, not with the floors once the module runs (#130). The
        URLs are pixel.js's own, from the canvas's data-base; the JSON is a fetch(), so it is preloaded with CORS. */}}
-  <link rel="preload" as="image" href="{{ $base }}pixel/exterior.png" fetchpriority="high">
   <link rel="preload" as="fetch" href="{{ $base }}pixel/exterior.json" crossorigin>
   {{- /* A CSP with hash sources stops Chrome's preload scanner from fetching the module early: it then waited for the
        parser, 1717 ms in, and the street drew 400 ms later (Fast 3G, #149). So the module is preloaded by hand. */}}

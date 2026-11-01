@@ -209,9 +209,12 @@
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* outside, the windows are the way in: the card sits under the street */
   html.building--guided.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
   /* The card hangs from the street, just under its bottom windows (P and L): pixel.js sets --street-end, and until
-     it runs the same edge at the street's smallest scale (#132). On a short phone the street sinks to keep its top
-     window clear of the name, and the card scrolls instead (#45). */
-  .pixel .building-stop--hero { align-items: flex-start; padding-top: var(--street-end, max(calc(62svh - 22px), calc(var(--street-top) + 310px))); }
+     it runs the same edge from pixel.js's layout, the street's scale --s in whole CSS px per art pixel (#132). On a
+     short phone the street sinks to keep its top window clear of the name, and the card scrolls instead (#45). */
+  .pixel .building-stop--hero {
+    --s: max(1px, round(down, min(62svh / 336, 100vw / 200), 1px));
+    align-items: flex-start; padding-top: var(--street-end, max(calc(62svh - 22 * var(--s)), calc(var(--street-top) + 310 * var(--s))));
+  }
   .pixel .building-stop--hero .floor-card { width: 100%; }
 }
 @media (max-width: 1279px) {   /* eleven lift buttons leave no room for the label between the name and the panel */

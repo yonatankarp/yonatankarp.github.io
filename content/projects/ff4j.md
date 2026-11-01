@@ -2,7 +2,7 @@
 date: 2026-03-15T00:00:00+01:00
 title: "ff4j (contributor)"
 weight: 40
-description: "Upstream Jakarta namespace migration work that exposed the release gap behind the later ff4k replacement."
+description: "Upstream migration of ff4j from the javax to the jakarta namespace. It led me to start ff4k, and ff4j 3.0.0 now ships it."
 group: "contribution"
 projectKind: "Upstream contribution"
 draft: false
@@ -15,7 +15,7 @@ params:
         btnText: "GitHub"
 ---
 
-Authored ff4j's `javax.*` to `jakarta.*` namespace migration so the Java feature-flag library could fit modern Spring Boot 3 and Jakarta EE 9+ application stacks. The PR merged, but the unreleased migration later became the practical motivation for building `ff4k`.
+I wrote ff4j's `javax.*` to `jakarta.*` namespace migration so the Java feature-flag library could fit Spring Boot 3 and Jakarta EE 9+ application stacks. The PR merged, and that work is what led me to build `ff4k`. ff4j 3.0.0 now ships the migration.
 
 <!--more-->
 
@@ -23,34 +23,26 @@ Authored ff4j's `javax.*` to `jakarta.*` namespace migration so the Java feature
 
 ff4j had the right general shape for Java feature flags, but the ecosystem around it had moved. Spring Boot 3 and Jakarta EE 9+ require the `jakarta.*` namespace, while older Java EE libraries still depended on `javax.*`. That made a small-looking import boundary into a deployment blocker for teams trying to modernize their services.
 
-The upstream contribution was deliberately narrow: migrate the namespace boundary and dependency surface without changing ff4j's product model. It closed the compatibility issue in the project while keeping the work reviewable for maintainers.
+I kept the contribution narrow: migrate the namespace and the dependencies without changing ff4j's product model, so the maintainers could review it. It closed the compatibility issue in the project.
 
 ## Work shipped
 
 - Replaced legacy `javax.*` imports with Jakarta equivalents.
-- Updated the affected dependencies for modern Java enterprise stacks.
+- Updated the affected dependencies for Java enterprise stacks.
 - Merged the migration as ff4j PR [#752](https://github.com/ff4j/ff4j/pull/752), closing the reported Jakarta compatibility issue.
-- Kept the change focused to 29 files with a balanced import and dependency migration rather than a broader library redesign.
+- Kept the change to 29 files, with no wider library redesign.
 
-The important product detail is that this was a breaking ecosystem migration. It needed a new major release, not just a patch release, because applications depending on the old Java EE namespace would feel the API/runtime shift.
+This was a breaking migration. It needed a new major release, because applications depending on the old Java EE namespace would see the API and runtime change. ff4j 3.0.0, published on September 30, 2026, ships it.
 
-## Engineering judgment
+## What came next
 
-This contribution sits at the boundary between "fix the dependency" and "replace the dependency." The upstream PR solved the immediate technical compatibility problem, but merge status is not the same thing as availability. If a library does not release the migration, downstream teams still cannot depend on it in production.
-
-That gap is what made `ff4k` a reasonable follow-on instead of a vanity rewrite. The lesson was not simply that ff4j used an old namespace; it was that feature-flag infrastructure needed an actively maintained, Kotlin-native surface with predictable async behavior and storage boundaries.
-
-## What this demonstrates
-
-- Diagnosing dependency modernization work at the framework compatibility layer.
-- Keeping upstream changes contribution-sized even when the surrounding problem is larger.
-- Recognizing that release cadence is part of dependency risk, not separate from implementation quality.
-- Turning a stalled upstream migration into a sharper replacement strategy instead of copying the older API unchanged.
+This work is what triggered [`ff4k`](/projects/ff4k/), a Kotlin-native feature flag library with predictable async behavior and storage boundaries, which does not copy the older API.
 
 ## Current shape
 
 - Project: [ff4j/ff4j](https://github.com/ff4j/ff4j)
 - Contribution: [PR #752](https://github.com/ff4j/ff4j/pull/752)
+- Released in: [ff4j 3.0.0](https://github.com/ff4j/ff4j/releases/tag/3.0.0)
 - Area: Java EE to Jakarta namespace migration
 - Scope: 29 files, 155 additions, 160 deletions
 - Relationship: direct precursor to [ff4k](/projects/ff4k/)

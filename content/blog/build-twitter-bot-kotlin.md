@@ -1,5 +1,5 @@
 ---
-title: "Build your own Twitter Bot with Kotlin"
+title: "Build Your Own Twitter Bot with Kotlin"
 date: 2021-12-15T00:00:00+01:00
 aliases:
   - /build-your-own-twitter-bot-with-kotlin

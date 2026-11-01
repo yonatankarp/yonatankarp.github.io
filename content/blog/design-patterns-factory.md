@@ -5,7 +5,7 @@ aliases:
   - /design-patterns-factory
 draft: false
 type: "blog"
-description: "Master the Factory Pattern for efficient code, improved scalability, and simplified object creation in software development."
+description: "The Factory pattern in Kotlin: a static method that hides object creation from client code, shown with an alchemist making gold and copper coins."
 tags:
   - kotlin
   - design-patterns

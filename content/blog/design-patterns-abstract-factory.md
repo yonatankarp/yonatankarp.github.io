@@ -5,7 +5,7 @@ aliases:
   - /design-patterns-abstract-factory
 draft: false
 type: "blog"
-description: "Explore Abstract Factory Pattern for efficient object creation, dependencies management, and implementing related classes in software design."
+description: "The Abstract Factory pattern in Kotlin: an interface for creating families of related objects, shown with elven and orcish kingdom factories."
 tags:
   - kotlin
   - design-patterns

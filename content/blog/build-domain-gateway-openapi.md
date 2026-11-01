@@ -1,5 +1,5 @@
 ---
-title: "How To Build Your Domain Gateway With OpenAPI"
+title: "How to Build Your Domain Gateway with OpenAPI"
 date: 2022-12-14T00:00:00+01:00
 aliases:
   - /building-your-domain-gateway-with-openapi

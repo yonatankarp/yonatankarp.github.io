@@ -1,5 +1,5 @@
 ---
-title: "[Interview Questions] Concurrency vs. Parallelism: Decoding the Simultaneous Illusion"
+title: "Concurrency vs. Parallelism: Decoding the Simultaneous Illusion"
 seoTitle: "Concurrency vs. Parallelism: Interview Questions"
 date: 2023-03-11T00:00:00+01:00
 aliases:
@@ -23,7 +23,7 @@ images:
 
 <!--more-->
 
-One of my most successful posts so far is a detailed explanation of my favorite interview question (see [How does HashMap work in Java?](/blog/how-hashmap-works-java/) for more details). As a result, I've decided to create a series of posts breaking down more questions. All the questions that will be answered during this series have been used in my current employer's hiring process.
+One of my most successful posts so far is a detailed explanation of my favorite interview question (see [How Does HashMap Work in Java?](/blog/how-hashmap-works-java/) for more details). As a result, I've decided to create a series of posts breaking down more questions. All the questions that will be answered during this series have been used in my current employer's hiring process.
 
 In today's post, we will focus on concurrent and parallel programming. So without further ado, let's start!
 

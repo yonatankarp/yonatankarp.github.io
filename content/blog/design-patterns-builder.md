@@ -5,7 +5,7 @@ aliases:
   - /design-patterns-builder
 draft: false
 type: "blog"
-description: "Master complex object construction with Builder design pattern, enabling flexible object flavors and avoiding constructor pollution."
+description: "The Builder pattern in Kotlin: separating construction from representation to avoid telescoping constructors, with an RPG hero as the example."
 tags:
   - kotlin
   - design-patterns

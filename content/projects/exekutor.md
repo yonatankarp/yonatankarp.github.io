@@ -15,4 +15,4 @@ params:
         btnText: "GitHub"
 ---
 
-Plugin architecture demo in Kotlin. Demonstrates extensible application design patterns.
+Plugin architecture demo in Kotlin.

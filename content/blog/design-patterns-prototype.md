@@ -5,7 +5,7 @@ aliases:
   - /design-patterns-prototype
 draft: false
 type: "blog"
-description: "Master the Prototype design pattern: create efficient objects through cloning, reduce overhead, and enhance software development flexibility."
+description: "The Prototype pattern in Kotlin: creating new objects by cloning an existing instance with copy(), shown with a factory of elven and orcish creatures."
 tags:
   - kotlin
   - design-patterns

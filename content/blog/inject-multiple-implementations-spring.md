@@ -1,5 +1,5 @@
 ---
-title: "How to inject multiple implementations in the Spring Framework"
+title: "How to Inject Multiple Implementations in the Spring Framework"
 date: 2022-02-11T00:00:00+01:00
 aliases:
   - /how-to-inject-multiple-implementations-in-spring-boot

@@ -1,21 +1,21 @@
 ---
 date: 2026-03-01T00:00:00+01:00
 title: "TaleKeeper"
-weight: 30
-description: "A self-hosted tabletop RPG memory tool that turns local session audio into transcripts, speaker-aware review, summaries, and searchable campaign records."
-projectKind: "Self-hosted tool"
+weight: 60
+description: "An experiment in tabletop RPG memory: a self-hosted tool that turns local session audio into transcripts, summaries, and searchable campaign records."
+projectKind: "Self-hosted experiment"
 group: "project"
 draft: false
 link: "https://yonatankarp.github.io/TaleKeeper/"
 caseStudy: true
 tech: ["Python", "FastAPI", "Svelte"]
-years: "2026–present"
+years: "2026"
 params:
     button:
         btnText: "Docs"
 ---
 
-Self-hosted TTRPG session recorder that turns live table audio into searchable campaign memory. The Python/FastAPI backend handles transcription, speaker diarization, and summary generation; the Svelte 5 frontend keeps review and session lookup usable at the table.
+An experiment: a self-hosted TTRPG session recorder that turns live table audio into searchable campaign memory. The Python/FastAPI backend handles transcription, speaker diarization, and summary generation; the Svelte 5 frontend keeps review and session lookup usable at the table.
 
 <!--more-->
 
@@ -27,9 +27,9 @@ Long-running tabletop campaigns accumulate a lot of important state in spoken fo
 
 ## Product shape
 
-The core workflow is designed around post-session cleanup rather than perfect automation. A campaign gets session recordings, transcripts, speaker-aware segments, generated summaries, and character point-of-view recaps. The review surface matters because RPG memory is messy: aliases, jokes, interruptions, and table talk need a human pass before the record becomes useful.
+The core workflow assumes cleanup after the session. A campaign gets session recordings, transcripts, speaker-aware segments, generated summaries, and character point-of-view recaps. RPG memory is messy: aliases, jokes, interruptions, and table talk need a human pass before the record becomes useful, which is what the review surface is for.
 
-That local-first boundary is deliberate. Recording, transcription, diarization, and storage can run independently of an LLM provider. Summaries and generated scene images are optional layers, using local Ollama where possible or an OpenAI-compatible image endpoint when the owner chooses to configure one.
+Recording, transcription, diarization, and storage can run independently of an LLM provider. Summaries and generated scene images are optional layers, using local Ollama where possible or an OpenAI-compatible image endpoint when the owner chooses to configure one.
 
 ## Engineering shape
 
@@ -42,9 +42,5 @@ That local-first boundary is deliberate. Recording, transcription, diarization, 
 
 - Docs: [yonatankarp.github.io/TaleKeeper/](https://yonatankarp.github.io/TaleKeeper/)
 - Repository: [github.com/yonatankarp/TaleKeeper](https://github.com/yonatankarp/TaleKeeper)
-- Public repo status: archived, GitHub Pages-enabled, three open issues as of August 14, 2026
 - Stack: Python, FastAPI, Svelte 5, SQLite, Whisper, diarization, Ollama-compatible local AI
-
-## Why it matters
-
-The interesting part is not just transcription. It is the product boundary: useful campaign memory needs audio ingestion, ML processing, human correction, storage, and retrieval to line up without turning a hobby table into an enterprise workflow. `TaleKeeper` is a compact example of designing local AI around a real social setting where privacy, reviewability, and low ceremony matter.
+- Status: an experiment I did not use much. The repository is archived, with GitHub Pages enabled.

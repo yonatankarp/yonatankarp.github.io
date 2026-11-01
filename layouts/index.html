@@ -224,7 +224,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
         <h2 id="fP" tabindex="-1">{{ $home.projects.title }}</h2>
         {{ $upstream := slice }}{{ $tools := slice }}{{ $games := slice }}
         {{ range $projects }}
-          {{ if eq .Params.group "contribution" }}{{ $upstream = $upstream | append (replace .Title " (contributor)" "") }}
+          {{ if eq .Params.group "contribution" }}{{ $upstream = $upstream | append (partial "project-title.html" .Title) }}
           {{ else if in (lower .Params.projectKind) "game" }}{{ $games = $games | append .Title }}
           {{ else }}{{ $tools = $tools | append .Title }}{{ end }}
         {{ end }}
@@ -250,7 +250,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
           {{ $group := cond (eq .Params.group "contribution") "contribution" (cond $isGame "game" "tool") }}
           {{ if eq $group $kind }}
           {{- /* A case study's own page first, its repository or docs second (#33). */}}
-          {{ $name := partial "nobreak.html" (replace .Title " (contributor)" "") }}
+          {{ $name := partial "nobreak.html" (partial "project-title.html" .Title) }}
           <li>{{ if .Params.caseStudy }}{{ $name }}{{ else }}<a href="{{ .Params.link }}">{{ $name }}</a>{{ end }} <span class="panel-soft">· {{ .Params.projectKind }}</span>
             <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 240 "…" }}</span>
             {{ if .Params.caseStudy }}<span class="panel-desc"><a href="{{ .RelPermalink }}">Case study</a> · <a href="{{ .Params.link }}">{{ .Params.button.btnText }}</a></span>{{ end }}

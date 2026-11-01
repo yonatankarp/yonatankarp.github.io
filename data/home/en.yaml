@@ -72,7 +72,7 @@ testimonials:
   title: "What people notice after working with me."
 
 contact:
-  kicker: "Contact"
+  kicker: "Writing, podcast, contact"
   title: "If your backend domain needs an owner, let's talk."
   text: "The strongest fit is Staff+ backend work where product rules, vendors, event flows, and operational risk need to become one system the team can own."
   priorities:
@@ -85,6 +85,10 @@ contact:
       text: *location
     - label: "Best for"
       text: "Teams turning messy backend domains into owned platforms"
+  podcast:   # the roof's podcast sign and panel block; `text`, one optional sentence, goes before the link
+    title: "The Reading Club"
+    platform: "Spotify"
+    url: "https://open.spotify.com/show/4pZG0kazNvz9wHriBv6ni0"
   email:
     label: "Email"
     address: "yonvata@gmail.com"

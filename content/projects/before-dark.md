@@ -16,4 +16,4 @@ params:
         btnText: "Play on itch.io"
 ---
 
-Short point-and-click horror game about a boy named Max and a house that seems to be waiting for him. The demo is on itch.io.
+Short point-and-click horror game about a boy named Jacob, his bear Teddy and a locked door, made with Tal Karp-Rudin. The free demo plays in the browser on itch.io.

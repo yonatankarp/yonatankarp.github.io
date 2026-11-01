@@ -365,8 +365,23 @@ html:not(.building--guided) .pixel .building-floor-btn { flex: 1; width: auto; h
 }
 .pixel .floor-panel:focus { outline: none; }
 html.building--guided .pixel .floor-panel { position: absolute; left: clamp(16px, 3vw, 36px); top: 132px; bottom: 24px; width: min(780px, 58vw); display: none; }
-html.building--guided .pixel .floor-panel.is-open { display: block; }
-html.panel-open .pixel .building-stop.is-here .floor-card { visibility: hidden; }
+html.building--guided .pixel .floor-panel:is(.is-open, .panel-moving) { display: block; }
+/* Hidden by what is open, not by panel-open, which stays for the way back: Back's refocus needs a card that can take focus. */
+.pixel .building-stop.is-here:has(.floor-panel.is-open) .floor-card { visibility: hidden; }
+/* Growing out of the card or shrinking into it (guide.js): the card paints nothing (it sits 12px outside the panel, and can
+   still take focus), and the first shadow draws the ink frame of the panel's clipped right and bottom edges. One shadow:
+   four, for a frame all round, took each frame from 17 to 83ms in software rendering at 1440x810. */
+.pixel .building-stop:has(.panel-moving) .floor-card { clip-path: inset(50%); }
+.pixel .building-stop:has(.panel-moving) { filter: drop-shadow(4px 4px 0 var(--ink)) drop-shadow(8px 8px 0 rgba(0, 0, 0, 0.45)); }
+/* The room drops out of focus behind a panel: through a 4px dither of ink, in whole steps (guide.js), to a flat dim at rest.
+   A dither left on the room is a screen door that crawls with its loop, and the panel is what is being read. */
+.pixel .building-scrim::before {
+  content: ''; position: absolute; inset: 0;
+  --dots: conic-gradient(var(--ink) 25%, #0000 0) 0 0 / 8px 8px;
+  --checker: conic-gradient(var(--ink) 25%, #0000 0 50%, var(--ink) 0 75%, #0000 0) 0 0 / 8px 8px;
+  --flat: rgba(10, 11, 16, 0.45);
+}
+html:has(.floor-panel.is-open) .pixel .building-scrim::before { background: var(--flat); }
 html.panel-open .pixel .building-hint { visibility: hidden; }
 .pixel .panel-back { position: absolute; top: 22px; right: 24px; min-height: 44px; padding: 0 14px; border: 0; cursor: pointer;
   font: 400 15px/1 var(--display); color: var(--text); background: var(--panel-hi); box-shadow: inset 0 0 0 4px var(--ink);

@@ -186,7 +186,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
           <p class="floor-end"><a href="#floor-P" data-goto="P">Down to the garage: projects ↓</a></p>
           {{ with index $posts 0 }}<p class="floor-end">Latest writing: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a> · <a href="{{ "blog/" | relURL }}">All posts</a></p>{{ end }}
         </div>
-        {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
+        {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" loading="lazy" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
         <h2 id="fL" tabindex="-1">{{ $home.testimonials.title }}</h2>
         <ul class="floor-quotes">
           {{ range $testimonials }}
@@ -205,7 +205,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
         {{ range $testimonials }}
         {{ $t := . }}
         <figure class="panel-quote">
-          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "30x30 Center" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
+          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "30x30 Center" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" loading="lazy" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
           <blockquote>{{ .Plain | htmlUnescape }}<cite>{{ .Params.name }}, {{ .Params.position }}</cite></blockquote>
         </figure>
         {{ end }}

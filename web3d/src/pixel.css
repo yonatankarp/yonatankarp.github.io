@@ -350,6 +350,8 @@ html.panel-open .pixel .building-hint { visibility: hidden; }
   box-shadow: inset 0 0 0 4px var(--ink), 0 0 0 4px var(--ink), 4px 4px 0 4px rgba(0, 0, 0, 0.35);
   box-sizing: content-box;
 }
+/* A hidden floor's layer still covers the viewport, so loading="lazy" alone fetches at once: no box until the lobby. After the card's fade, or its text would reflow in it. */
+html.building--guided .pixel .building-stop:not(.is-here) .floor-portrait { display: none; transition: display 0s linear 180ms allow-discrete; }
 .pixel .panel-quote { display: grid; grid-template-columns: 68px 1fr; gap: 16px; margin: 0 0 18px; }
 .pixel .panel-quote img { width: 60px; height: 60px; border: 4px solid var(--ink); object-fit: cover; image-rendering: pixelated; }
 .pixel .panel-quote blockquote { margin: 0; font-size: 15px; line-height: 24px; }

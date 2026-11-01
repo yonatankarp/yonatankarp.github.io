@@ -31,13 +31,13 @@ addEventListener('error', function (e) { if (e.target.type === 'module') documen
 if ('noModule' in HTMLScriptElement.prototype && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
 if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.add('at-street');
 ` | minify | fingerprint "sha256" }}
-{{- /* Dusk or night, picked once here and read by pixel.js (#151). Before the stylesheet, which would hold this script
-     back, so the street's art starts at once; it is the one preload a static tag could not get right, as a tag would
-     fetch the dusk street at night too. ?time=dusk|night overrides the visitor's clock; anything else means the clock. */}}
+{{- /* The hour's art (#151): dawn, day, dusk or night, picked once here and read by pixel.js, never changed while the page
+     is open. ?time= overrides the visitor's clock; anything else means the clock. Before the stylesheet, which would hold
+     this script back, so the street's art starts at once; a static preload tag would fetch the dusk street at every hour. */}}
 {{ $time := resources.FromString "js/home-time.js" (printf `
-var t=new URLSearchParams(location.search).get('time'),h=new Date().getHours(),n=t==='night'||t!=='dusk'&&(h>=20||h<6),l=document.createElement('link');
-document.documentElement.dataset.time=n?'night':'dusk';
-l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(n?'-night':'')+'.png';document.head.appendChild(l);
+(function(){var t=new URLSearchParams(location.search).get('time'),h=new Date().getHours(),p=/^(dawn|day|dusk|night)$/.test(t)?t:h<6||h>=20?'night':h<8?'dawn':h<18?'day':'dusk',l=document.createElement('link');
+document.documentElement.dataset.time=p;
+l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(p==='dusk'?'':'-'+p)+'.png';document.head.appendChild(l)})();
 ` $base) | minify | fingerprint "sha256" }}
 {{ $street := resources.FromString "js/home-street.js" `document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');` | minify | fingerprint "sha256" }}
 {{ .Store.Set "inlineScripts" (slice $time $guided $street) }}

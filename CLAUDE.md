@@ -23,6 +23,13 @@ The homepage (`layouts/index.html`) is the pixel-art career building. Its script
 `web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Each experience entry's `floor`
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
 
+The building's art follows the visitor's local clock: dawn 06:00-07:59, day 08:00-17:59, dusk 18:00-19:59, night
+20:00-05:59, picked once at load by the inline script in `layouts/index.html` (`html[data-time]`). `/?time=dawn|day|dusk|night`
+overrides it for testing; anything else means the clock. Dusk is the plain files; a variant is one more entry in
+`PHASES` in `web3d/pixel/gen_floors.py`, baked with `uv run web3d/pixel/gen_exterior.py build static/building/pixel --time NAME`
+into `exterior-NAME.png` and `floor-{R,P,L}-NAME.png` (only those rooms show outside). To show it, add it to the head script's
+pick, and to `BAKED` and `SKY` in `web3d/src/pixel.js`.
+
 ## Content Structure
 
 - `content/experience/` — job entries (one .md per role)

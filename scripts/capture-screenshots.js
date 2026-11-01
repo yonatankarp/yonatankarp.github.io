@@ -37,7 +37,11 @@ const routes = [
     ride: true,
     requiredSelectors: [...homeSelectors, ["html[data-time='dusk']", 1, "dusk art"]],
   },
-  { name: "home-night", path: "/?time=night", requiredSelectors: [...homeSelectors, ["html[data-time='night']", 1, "night art"]] },
+  ...["dawn", "day", "night"].map((time) => ({
+    name: `home-${time}`,
+    path: `/?time=${time}`,
+    requiredSelectors: [...homeSelectors, [`html[data-time='${time}']`, 1, `${time} art`]],
+  })),
   {
     name: "projects",
     path: "/projects/",

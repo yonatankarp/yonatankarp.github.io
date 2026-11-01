@@ -9,8 +9,10 @@ import './pixel.css';
 const FW = 480, FH = 180, FRAMES = 12, FPS = 8;
 const REST_MS = 2600;   // after each action loop the room holds still, so the text keeps the reader's attention
 const ORDER = ['P', 'L', '1', '2', '3', '4', '5', '6', '7', 'R'];   // bottom to top
-const NIGHT = document.documentElement.dataset.time === 'night' ? '-night' : '';   // picked once, in the page's head: no change at an hour boundary
-let SKY = NIGHT ? '#232a4d' : '#74228a';                      // above the roof, until its strip gives its own top row
+const TIME = document.documentElement.dataset.time;          // picked once, in the page's head (#151): it never changes while the page is open
+const BAKED = { dawn: 'RPL', day: 'RPL', night: 'RP' }[TIME];   // the art with its own picture at this hour: the rooms with an outside view (gen_floors.PHASES); none at dusk
+const HOUR = BAKED ? `-${TIME}` : '';                          // the file name's suffix
+let SKY = { dawn: '#5d5a86', day: '#2f5c96', night: '#232a4d' }[TIME] ?? '#74228a';   // above the roof, until its strip gives its own top row
 const GROUND = ['#33231a', '#1f1610'];                        // under the garage: the earth's top line, then soil
 const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted lift doors; mirrors gen_floors.DOOR
 // Where each street window looks into its room, in strip pixels: mirrors gen_exterior.LOOK. The roof's is painted,
@@ -57,7 +59,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       img.since = performance.now(); strips.set(key, img); loaded();
     };
     img.onerror = () => { strips.set(key, null); loaded(); };
-    img.src = `${base}pixel/floor-${key}${key === 'R' ? NIGHT : ''}.png`;
+    img.src = `${base}pixel/floor-${key}${BAKED?.includes(key) ? HOUR : ''}.png`;
   };
   const loadAll = () => keys.forEach(load);
   // The street is the first screen: the other floors wait until it has arrived (or failed), or the lift moves (#130).
@@ -211,7 +213,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
         ctx.fillStyle = SKY; ctx.fillRect(0, 0, w, y + 1);
         // At night its stars too: the top rows of the strip's right run, plain sky and stars, each course shifted so no column of them lines up.
         const t = img ? (img.width - FRAMES * FW) / 2 : 0;
-        if (NIGHT && t) for (let r = 1, gy = y - 16 * s; gy + 16 * s > 0; r++, gy -= 16 * s) for (let gx = -(r * 97 % t) * s; gx < w; gx += t * s) ctx.drawImage(img, FRAMES * FW + t, 0, t, 16, gx, gy, t * s, 16 * s);
+        if (TIME === 'night' && t) for (let r = 1, gy = y - 16 * s; gy + 16 * s > 0; r++, gy -= 16 * s) for (let gx = -(r * 97 % t) * s; gx < w; gx += t * s) ctx.drawImage(img, FRAMES * FW + t, 0, t, 16, gx, gy, t * s, 16 * s);
       }
       if (key === 'P' && y + FH * s < h) {                                                // and the ground under the garage
         ctx.fillStyle = GROUND[1]; ctx.fillRect(0, y + FH * s, w, h);
@@ -264,7 +266,7 @@ function drawDoors(ctx, img, f, x0, y0, s, open) {
   ctx.restore();
 }
 
-// The street view: the whole building at dusk or at night (web3d/pixel/gen_exterior.py), its windows live crops of the rooms,
+// The street view: the whole building at this hour (web3d/pixel/gen_exterior.py), its windows live crops of the rooms,
 // 1-7 dimmed behind each floor's company sign.
 // Its windows are buttons laid over the canvas; the street left and right of the picture repeats its neighbours.
 function streetView(base, box, stops, loaded, then) {
@@ -276,7 +278,7 @@ function streetView(base, box, stops, loaded, then) {
     loaded();
   };
   img.onerror = then;
-  img.src = `${base}pixel/exterior${NIGHT}.png`;
+  img.src = `${base}pixel/exterior${HOUR}.png`;
   const buttons = [];
   // The lift is the keyboard's way between floors, so the windows stay out of the Tab order, except where the lift is
   // hidden at the street (phones, pixel.css): there they are the only way in (#131).

@@ -3,6 +3,7 @@
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 import { guide, roomy } from './guide.js';
 import '../../assets/js/copy-email.js';
+import '../../assets/js/site-menu.js';
 import './pixel.css';
 
 const FW = 480, FH = 180, FRAMES = 12, FPS = 8;

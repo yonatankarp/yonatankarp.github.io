@@ -39,3 +39,4 @@
     <span>Download CV</span>
   </a>
 </header>
+{{ if not $home }}{{ with resources.Get "js/site-menu.js" | minify | fingerprint }}<script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>{{ end }}{{ end }}

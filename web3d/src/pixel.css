@@ -529,6 +529,7 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
   html.building--guided .pixel .building-links { right: clamp(16px, 3vw, 36px); flex-wrap: wrap; }
   html.building--guided .pixel .building-social { position: static; }
 }
+@media (max-width: 579px) { .building.pixel { --street-top: 180px; } }   /* those links take two rows there */
 @supports selector(:popover-open) {
   @media (max-width: 760px), (max-aspect-ratio: 6/5), (max-height: 499px) {
     .building.pixel { --street-top: 60px; }

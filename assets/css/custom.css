@@ -484,7 +484,9 @@ h4 a,
 }
 .px-bar a { text-decoration: none; }
 .px-bar__name { grid-area: name; justify-self: start; }
-.px-bar__links { grid-area: links; }
+.px-menu { display: none; }
+.px-bar__links { display: contents; color: inherit; }   /* a popover only under Menu on phones; here its children are the bar's */
+.px-bar__tabs { grid-area: links; }
 .px-bar__social { grid-area: social; justify-self: end; display: flex; gap: 8px; }
 .px-bar__name, .px-download, .px-bar__tabs a, .px-bar__social a { clip-path: var(--stepped); }
 .px-bar__name { display: flex; align-items: center; box-sizing: border-box; height: 56px; padding: 0 18px; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); font: 400 30px/1 var(--pixel-font); }
@@ -505,7 +507,7 @@ h4 a,
 .px-download:active { transform: translateY(4px); }
 .px-download svg { shape-rendering: crispEdges; }
 /* The stepped clip-path cuts outlines away, so focus is a ring drawn inside the box: cream, then ink. */
-.px-bar a:focus-visible, .cv-floor:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
+.px-bar a:focus-visible, .px-menu:focus-visible, .cv-floor:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
 
 /* The homepage street without its tower behind the sheet of every pixel page, dimmed (gen_exterior.py: backdrop.png),
    at the visitor's hour like the homepage: html[data-time] is set before the first paint (partials/time-pick.html).
@@ -592,6 +594,36 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 
 @media screen and (max-width: 579px) {   /* phones: the tabs take the row, the social row gets its own under them */
   .px-bar { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; }
+}
+
+/* Phones, and any window too short for the homepage's lift: one row, with the links in a popover under Menu, as on the
+   homepage (web3d/src/pixel.css). Without the Popover API none of this applies: no Menu, and the links stay on the page. */
+@supports selector(:popover-open) {
+  @media screen and (max-width: 760px), screen and (max-aspect-ratio: 6/5), screen and (max-height: 499px) {
+    .px-bar { display: flex; align-items: center; gap: 4px; padding: 8px; }
+    .px-bar__name { height: 48px; margin-right: auto; padding: 0 12px; }
+    .px-menu, .px-download { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; width: 46px; min-height: 48px; padding: 0; }
+    .px-download span { display: none; }
+    .px-download::after { content: 'PDF'; font-size: 15px; line-height: 15px; }
+    .px-menu { border: 0; cursor: pointer; clip-path: var(--stepped); color: var(--px-text); background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); font: 400 15px/15px var(--pixel-font); }
+    .px-menu svg { shape-rendering: crispEdges; }
+    .px-menu:hover, .px-bar:has(:popover-open) .px-menu { background: var(--panel-hi); }
+    /* Under an open menu the page dims; assets/js/site-menu.js keeps the tap that shuts it from pressing anything. */
+    .px-bar:has(:popover-open) { position: relative; z-index: 4; }
+    .px-bar:has(:popover-open)::before { content: ''; position: fixed; inset: 0; z-index: -1; cursor: pointer; background: rgba(10, 11, 16, 0.6); }
+    .px-bar__links:not(:popover-open) { display: none; }
+    /* In the top layer, where absolute is against the page: it stays under the bar when the bar scrolls away. */
+    .px-bar__links:popover-open {
+      position: absolute; inset: 60px 8px auto auto; box-sizing: border-box; width: min(480px, calc(100vw - 16px)); max-height: calc(100svh - 68px); margin: 0; overflow: auto;
+      display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 12px 12px 24px;
+      clip-path: var(--stepped); border: 4px solid var(--ink); color: var(--px-text); background: var(--panel);
+      box-shadow: inset 4px 4px 0 0 var(--panel-hi), inset 12px 0 0 0 var(--amber);
+    }
+    .px-bar__tabs { display: grid; flex: 1 0 100%; grid-template-columns: 1fr 1fr; }
+    .px-bar__tabs a { min-height: 52px; font: 400 30px/1 var(--pixel-font); background: var(--well); }
+    .px-bar__social { flex: 1; gap: 4px; }
+    .px-bar__social a { flex: 1; }
+  }
 }
 
 @media screen and (max-width: 359px) {   /* 320px, 400% zoom: the name would push the download button off the screen */

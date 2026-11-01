@@ -129,7 +129,7 @@ const assertions = [
   "Every page renders the shared top bar (layouts/partials/pixel-bar.html): name plate, four tabs, CV download and the social row.",
   "Home page renders the building: its canvas, every floor and the street view's windows.",
   "Home page rides the lift: a floor button (the hero's CTA on mobile) rides to the roof or floor 8, the name plate rides back to the street.",
-  "Home page pause button shows a Pause label that turns to Play on click on desktop, and stays at least 36x36px with the label hidden on mobile.",
+  "Home page pause button shows a Pause label that turns to Play on click, on mobile inside the top bar's Menu.",
   "CV page renders every role.",
   "Blog index contains multiple article rows/cards.",
 ];
@@ -490,19 +490,11 @@ async function assertPauseLabel(page, route, viewport) {
         height: box.height,
       };
     });
-  const state = await read();
-
   if (viewport.name === "mobile") {
-    if (state.labelVisible) {
-      fail(`${route.path} (${viewport.name}) shows the pause label`);
-    }
-
-    if (state.width < 36 || state.height < 36) {
-      fail(`${route.path} (${viewport.name}) pause button is ${state.width}x${state.height}, under 36x36`);
-    }
-
-    return;
+    await page.click(".building-menu");
   }
+
+  const state = await read();
 
   if (!state.labelVisible || state.text !== "Pause") {
     fail(`${route.path} (${viewport.name}) pause label is ${state.labelVisible ? "visible" : "hidden"} with text ${state.text}, expected visible "Pause"`);
@@ -516,6 +508,10 @@ async function assertPauseLabel(page, route, viewport) {
   }
 
   await page.click(".building-pause");
+
+  if (viewport.name === "mobile") {
+    await page.keyboard.press("Escape");
+  }
 }
 
 async function main() {

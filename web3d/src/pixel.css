@@ -85,7 +85,7 @@
   background: var(--panel);
   box-shadow: inset 0 0 0 4px var(--ink);
   display: flex; align-items: center; box-sizing: border-box; height: 56px; padding: 0 18px;
-  font-family: var(--display); font-weight: 400; font-stretch: normal; font-size: 30px; color: var(--text);
+  font-family: var(--display); font-weight: 400; font-stretch: normal; font-size: 30px; letter-spacing: 0; color: var(--text);
   backdrop-filter: none;
 }
 .pixel .building-download {
@@ -164,7 +164,6 @@
   @media (max-height: 340px) { .pixel .elevator { visibility: hidden; } }
   .pixel .building-floor-btn { width: 36px; height: 36px; }
   .pixel .elevator-display { display: none; }
-  .pixel .building-name { padding: 0 14px; }
   /* Over the room's floor, just above the elevator (#45 made it 56px tall). */
   .pixel .building-hint { left: 50%; white-space: normal; top: calc(var(--card-top) - 72px); bottom: auto; transform: translate(-50%, -100%); width: max-content; max-width: calc(100% - 24px); box-sizing: border-box; margin: 0; padding: 8px 12px; font-size: 14px; }
   .pixel .building-scrim { background: linear-gradient(0deg, rgba(10, 11, 16, 0.75) 0, rgba(10, 11, 16, 0.5) 40%, rgba(10, 11, 16, 0) 52%); }
@@ -426,7 +425,13 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
 }
 /* Short or narrow (zoomed) screens, and no JavaScript: the plain page (#24). The top bar scrolls away with it,
    cards are full width and never scroll inside themselves, and there is no lift to describe. */
-html:not(.building--guided) .pixel .building-top { position: relative; flex-wrap: wrap; }
+html:not(.building--guided) .pixel .building-top { position: relative; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "name . download" "links . social"; align-items: start; gap: 8px 16px; }   /* the inner pages' bar */
+html:not(.building--guided) .pixel .building-name { grid-area: name; justify-self: start; }
+html:not(.building--guided) .pixel .building-links { grid-area: links; }
+html:not(.building--guided) .pixel .building-download { grid-area: download; justify-self: end; }
+html:not(.building--guided) .pixel .building-social { grid-area: social; justify-self: end; }
+@media (max-width: 579px) { html:not(.building--guided) .pixel .building-top { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; } }
+@media (max-width: 359px) { html:not(.building--guided) .pixel .building-name { height: 44px; padding: 0 14px; font-size: 24px; } }
 html:not(.building--guided) .pixel .building-links, html:not(.building--guided) .pixel .building-social { position: static; flex-wrap: wrap; }   /* 320px: the pause wraps under Search */
 html:not(.building--guided) .pixel .building-stops { padding-top: 0; }
 html:not(.building--guided) .pixel .building-stop { min-height: 0; padding: 12px clamp(12px, 3vw, 36px); }

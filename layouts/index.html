@@ -65,13 +65,13 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
 
   <nav class="elevator" aria-label="Floors">
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor></span></div>
-    <button class="building-floor-btn" type="button" data-goto="R" aria-label="R, Roof, contact" title="R, Roof, contact">R</button>
+    <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-label="R, Roof, contact" title="R, Roof, contact">R</a>
     {{ range $experience }}
-    <button class="building-floor-btn" type="button" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}" title="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</button>
+    <a class="building-floor-btn" href="#floor-{{ .Params.floor }}" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}" title="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</a>
     {{ end }}
-    {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</button>{{ end }}
-    <button class="building-floor-btn" type="button" data-goto="L" aria-label="L, Lobby, recommendations, skills and writing" title="L, Lobby, recommendations, skills and writing">L</button>
-    <button class="building-floor-btn" type="button" data-goto="P" aria-label="P, Parking, projects" title="P, Parking, projects">P</button>
+    {{ with $degree }}<a class="building-floor-btn" href="#floor-1" data-goto="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</a>{{ end }}
+    <a class="building-floor-btn" href="#floor-L" data-goto="L" aria-label="L, Lobby, recommendations, skills and writing" title="L, Lobby, recommendations, skills and writing">L</a>
+    <a class="building-floor-btn" href="#floor-P" data-goto="P" aria-label="P, Parking, projects" title="P, Parking, projects">P</a>
   </nav>
 
   <p class="building-hint" style="opacity:0"><span class="hint-fine">Scroll, swipe or use the arrow keys to ride the lift</span><span class="hint-coarse">Swipe to ride the lift</span></p>

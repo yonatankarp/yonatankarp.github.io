@@ -129,6 +129,7 @@
 .pixel .elevator-arrow { border-left-width: 6px; border-right-width: 6px; border-bottom-width: 8px; }
 .pixel .building-floor-btn {
   width: 44px; height: 40px;
+  display: grid; place-items: center; text-decoration: none;   /* a link, for the plain page */
   border: 0; border-radius: 0;
   background: #30363e;
   color: var(--text);
@@ -203,7 +204,7 @@
   .pixel .floor-card h1 { font-size: 30px; }
 }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* outside, the windows are the way in: the card sits under the street */
-  html.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
+  html.building--guided.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
   /* On a short phone the street sinks to keep its top window clear of the name (pixel.js): the card gives way, so
      the bottom windows (P and L, 310 art pixels down) stay out from under it and the card scrolls instead (#45). */
   .pixel .building-stop--hero { padding-top: max(clamp(116px, calc(100svh - 216px), calc(62svh + 12px)), calc(var(--street-top) + 310px)); }
@@ -275,8 +276,10 @@ html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card 
   .pixel .building-hint { top: max(calc(var(--card-top) - 72px), 216px); }   /* 500px tall: between the icons and the lift */
 }
 @media print { .pixel .building-social { display: none; } }
-/* Without JavaScript there is no lift to ride: the floors are a plain page, read top to bottom. */
-html:not(.building--guided) .pixel .elevator, html:not(.building--guided) .pixel .exterior-windows { display: none; }
+/* Without JavaScript there is no lift to ride: the floors are a plain page, read top to bottom, its buttons a row of links. */
+html:not(.building--guided) .pixel .exterior-windows, html:not(.building--guided) .pixel .elevator-display { display: none; }
+html:not(.building--guided) .pixel .elevator { position: relative; inset: auto; transform: none; box-sizing: border-box; width: min(492px, calc(100% - 2 * clamp(12px, 3vw, 36px))); margin: 0 clamp(12px, 3vw, 36px); padding: 8px; gap: 4px; visibility: visible; }
+html:not(.building--guided) .pixel .building-floor-btn { flex: 1; width: auto; height: 44px; }   /* 44px wide, 24 at 320px: one row at any width */
 
 /* Step inside: each floor's full story, a wide panel over the left of its room (a sheet from the bottom on
    phones). The short card is the preview; while a panel is open the lift stays where it is. */

@@ -1,7 +1,7 @@
 // Pixel building: one 480x180 pixel-art strip per floor (web3d/pixel/gen_floors.py), stacked into a tower and
 // drawn at a whole-number scale so every pixel stays square. The lift rides between floors in whole art pixels.
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
-import { guide } from './guide.js';
+import { guide, roomy } from './guide.js';
 import '../../assets/js/copy-email.js';
 import './styles.css';
 import './pixel.css';
@@ -19,6 +19,7 @@ const FOCUS = { 2: 330, 3: 250 };                               // on narrow scr
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
+const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
 // The phone layout: the same query as every phone rule in pixel.css, so the canvas and the cards always agree (#46).
 const narrow = matchMedia('(max-width: 760px), (max-aspect-ratio: 6/5)');
 const easeInOut = (u) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
@@ -71,7 +72,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     if (to === ride.to || (ride.fade && u < 1)) return false;   // already on its way there; a dissolve runs to its end
     const here = pos(u), vel = u < 1 ? (here - pos(rideU(now - 16))) / 16 : 0;   // floors per ms
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: through a window, not a ride
-    const still = reduceMotion.matches;
+    const still = held();
     const flies = fade && LOOK[keys[to === eAt ? Math.round(here) : to]];   // through a window; else the plain dissolve
     const dist = Math.abs(to - here), dur = fade ? (flies ? 1400 : 900) : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
     const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000;   // the doors shut, then it moves
@@ -93,15 +94,15 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     return a + (b - a) * (p - k);
   };
 
-  // The room loops only while it is allowed to move: the pause button (WCAG 2.2.2) and reduced motion hold it on
-  // its rest frame. A frame that would draw the same picture is skipped, and once nothing is moving the loop
+  // The room loops only while it is allowed to move: the pause button (WCAG 2.2.2), reduced motion and the plain page
+  // hold it on its rest frame. A frame that would draw the same picture is skipped, and once nothing is moving the loop
   // sleeps: until the next frame of the loop, or for good while held, until a ride, a resize or a load wakes it (#36).
   let paused = false, raf = 0, timer = 0, drawn = '';
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
-  // Reduced motion has nothing to pause: the button hides, and shows again if it is turned off after load (#128).
+  // Held has nothing to pause: the button hides, and shows again if that changes after load (#128).
   const label = () => {
     if (!pauseButton) return;
-    pauseButton.hidden = reduceMotion.matches;
+    pauseButton.hidden = held();
     pauseButton.dataset.paused = paused;
     pauseButton.setAttribute('aria-label', paused ? 'Play the animation' : 'Pause the animation');
     pauseButton.title = pauseButton.getAttribute('aria-label');
@@ -110,7 +111,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   label();
   pauseButton?.addEventListener('click', () => { paused = !paused; label(); wake(); });
   addEventListener('resize', wake);
-  reduceMotion.addEventListener('change', () => { label(); wake(); });
+  for (const q of [reduceMotion, roomy]) q.addEventListener('change', () => { label(); wake(); });
 
   let passing = -1, arrived = -1, last = performance.now(), cardTop = 0;
   function frame(now) {
@@ -125,7 +126,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       cardTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--card-top')) || 0;   // CSS px; 0 where it is unset
     }
     ctx.imageSmoothingEnabled = false;
-    const wide = !narrow.matches, still = reduceMotion.matches;
+    const wide = !narrow.matches, still = held();
 
     const u = rideU(now);
     const p = ride.fade ? (u < 0.5 ? ride.from : ride.to) : Math.min(keys.length - 1, Math.max(0, pos(u)));

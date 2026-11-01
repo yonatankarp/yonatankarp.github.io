@@ -355,7 +355,8 @@ function streetView(base, box, stops, loaded, then) {
       }
       return {
         street: { s: z, x: rx + (look[0] - x0) * z, y: ry + (look[1] - y0) * z }, room: { s: z, x: rx, y: ry }, hole,
-        dim: 0.85 * easeInOut(Math.min(1, t * 2)), roomA: clamp01((t - 0.3) / 0.2),
+        dim: (TIME === 'day' ? 0.5 : 0.85) * easeInOut(Math.min(1, t * 2)),   // at noon a full dim reads as the lights going out
+        roomA: clamp01((t - 0.3) / 0.2),
       };
     },
     draw(ctx, f, w, h, a, dpr, wide, cam) {   // cam: a flight's scale and place, else the street's own

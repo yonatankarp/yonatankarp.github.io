@@ -130,6 +130,15 @@ export function guide(api, root = document) {
       }
       return;
     }
+    // In the lift, a floor's name presses its button (aria-keyshortcuts in layouts/index.html), and E goes out to the
+    // street. Only there: page-wide single-key shortcuts would fire under typing and speech input (WCAG 2.1.4).
+    const named = !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1 && e.target.closest?.('.elevator') && e.key.toUpperCase();
+    if (named && keys.includes(named)) {
+      e.preventDefault();
+      buttons.find((b) => b.dataset.goto === named)?.focus();   // focus stays in the lift, so the ride does not move it
+      api.go(keys.indexOf(named));
+      return;
+    }
     // The lift's floors are links, for the plain page, but here they press like the buttons they look like.
     if (e.key === ' ' && e.target.closest?.('.building-floor-btn')) { e.preventDefault(); e.target.click(); return; }
     if (e.key === ' ' && e.target.closest?.('button, a, [role=button], summary')) return;   // Space presses the control

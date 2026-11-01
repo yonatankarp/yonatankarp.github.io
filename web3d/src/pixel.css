@@ -516,4 +516,5 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
   .pixel .floor-card h2 { margin-bottom: 8px; }
   .pixel .floor-quotes li { margin-bottom: 8px; }
   .pixel .step-in-bar { margin-top: 12px; }
+  .pixel .floor-signs { margin: 8px 0 10px; }
 }

@@ -1,0 +1,15 @@
+{{- /* /uses: the setup behind the work (uses.tech), a prose sheet over the street like the skills page. The list is the
+     page's Markdown: one h2 per group, a bullet per thing with a line on why. */ -}}
+{{ define "main" }}
+<div class="px-sheet px-skills">
+  <header class="px-skills__head">
+    <p class="px-kicker">Uses</p>
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}<p class="px-skills__lede">{{ . }}</p>{{ end }}
+    {{ if not .Lastmod.IsZero }}<p class="px-skills__lede">Last updated {{ .Lastmod.Format "January 2006" }}.</p>{{ end }}
+  </header>
+  <div class="px-prose">
+    {{ .Content }}
+  </div>
+</div>
+{{ end }}

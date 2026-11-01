@@ -1,0 +1,5 @@
+{{- /* The visitor's hour for the art (#151), as a statement that sets html[data-time]: dawn 06-08, day 08-18, dusk 18-20,
+     night 20-06. ?time=dawn|day|dusk|night overrides the clock; anything else means the clock. Shared by the homepage's
+     pre-paint script (layouts/index.html), which also preloads that hour's street, and every other page's (head.html),
+     whose backdrop custom.css picks by it. Returns plain JS: the caller minifies it and allows it in the CSP by its hash. */ -}}
+{{ return `var t=new URLSearchParams(location.search).get('time'),h=new Date().getHours(),p=/^(dawn|day|dusk|night)$/.test(t)?t:h<6||h>=20?'night':h<8?'dawn':h<18?'day':'dusk';document.documentElement.dataset.time=p;` }}

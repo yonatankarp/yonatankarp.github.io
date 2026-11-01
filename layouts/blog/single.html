@@ -49,6 +49,15 @@
       </button>
     </div>
 
+    {{- /* No comments here: the talk happens where the post was shared. `discuss.linkedin` and `discuss.x` in the front
+         matter point at that post's own thread; without one, the link goes to the profile. */}}
+    {{ $discuss := .Params.discuss | default dict }}
+    {{ $linkedin := $discuss.linkedin | default (index (where hugo.Data.home.en.contact.social "icon" "linkedin") 0).url }}
+    {{ $x := $discuss.x | default (printf "https://x.com/%s" site.Params.social.twitter) }}
+    <p class="article-discuss">Questions, or a different take? Discuss this post on
+      <a href="{{ $linkedin }}" target="_blank" rel="noopener" data-goatcounter-click="discuss-linkedin">LinkedIn</a> or
+      <a href="{{ $x }}" target="_blank" rel="noopener" data-goatcounter-click="discuss-x">X</a>.</p>
+
     <footer class="article__footer">
       <div>
         {{ with .PrevInSection }}<a class="text-link" href="{{ .RelPermalink }}">← {{ .Title }}</a>{{ end }}

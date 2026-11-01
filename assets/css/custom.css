@@ -331,6 +331,10 @@ h4 a,
 }
 
 .blog-px .article-share { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem; margin: 2.75rem 0 0; padding-top: 1.6rem; border-top: 4px solid var(--panel-hi); }
+.blog-px .article-discuss { margin: 1.25rem 0 0; font-size: 17px; color: var(--px-soft); }
+.blog-px .article-discuss a { color: var(--amber); font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.blog-px .article-discuss a:hover { color: var(--amber-hi); }
+.blog-px .article-discuss a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 .blog-px .article-share__label { margin-inline-end: 0.25rem; font-size: 15px; font-weight: 600; color: var(--amber); }
 .blog-px .article__footer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 4px solid var(--panel-hi); }
 
@@ -395,7 +399,7 @@ h4 a,
   .blog-px :is(.page-head__copy, .featured-article, .post-row, .blog-sidebar, .article, .related-card) { clip-path: none; box-shadow: none; }
   .blog-px .article { width: auto; padding: 0; }
   .blog-px .article-shell { padding-top: 0; }
-  .blog-px :is(.reading-progress, .article-toc, .article-share, .article__footer, .related-posts, .code-copy, .blog-sidebar, .pagination, .button) { display: none; }
+  .blog-px :is(.reading-progress, .article-toc, .article-share, .article-discuss, .article__footer, .related-posts, .code-copy, .blog-sidebar, .pagination, .button) { display: none; }
   .blog-px .px-prose a { text-decoration: underline; }
   .blog-px .px-prose pre {
     --well: #10131b; --px-text: #f2ece0; --panel-hi: #2b3344; --ink: #0a0b10;
@@ -503,7 +507,13 @@ h4 a,
 /* The stepped clip-path cuts outlines away, so focus is a ring drawn inside the box: cream, then ink. */
 .px-bar a:focus-visible, .cv-floor:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
 
-/* The homepage street without its tower behind the sheet of every pixel page, dimmed (gen_exterior.py: backdrop.png). */
+/* The homepage street without its tower behind the sheet of every pixel page, dimmed (gen_exterior.py: backdrop.png),
+   at the visitor's hour like the homepage: html[data-time] is set before the first paint (partials/time-pick.html).
+   Without JS it stays dusk. Relative to the published css/ folder. */
+.px-skin { --scene: url(../building/pixel/backdrop.png); }
+html[data-time="dawn"] .px-skin { --scene: url(../building/pixel/backdrop-dawn.png); }
+html[data-time="day"] .px-skin { --scene: url(../building/pixel/backdrop-day.png); }
+html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night.png); }
 .px-skin::before {
   content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; image-rendering: pixelated;
   background: linear-gradient(rgba(12, 14, 20, 0.5), rgba(12, 14, 20, 0.5)), var(--scene) 0 100% / 100% auto no-repeat;

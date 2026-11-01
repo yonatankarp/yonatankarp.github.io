@@ -7,8 +7,9 @@ Run: uv run web3d/pixel/gen_exterior.py blockout            # the code blockout,
      uv run web3d/pixel/gen_exterior.py paint [--count N]   # Draw Things repaints the blockout (port 7860)
      uv run web3d/pixel/gen_exterior.py build OUT           # OUT/exterior.png (12 frames) + exterior.json,
                                                             # and backdrop.png: the street without the tower
-     uv run web3d/pixel/gen_exterior.py build OUT --time PHASE   # a gen_floors.PHASES entry: exterior-PHASE.png and its
-                                                            # floor-R, floor-P and (with a door) floor-L; dusk files untouched
+     uv run web3d/pixel/gen_exterior.py build OUT --time PHASE   # a gen_floors.PHASES entry: exterior-PHASE.png,
+                                                            # backdrop-PHASE.png and its floor-R, floor-P and (with a
+                                                            # door) floor-L; dusk files untouched
 
 The blockout fixes what the model must not move: the number of storeys, the window grid, the entrance, the garage
 and the crane. The model repaints it into the rooms' style; the picked painting is pixelated with the floors'
@@ -280,12 +281,13 @@ def lit_sign(room, key, daylit=False):
     return out
 
 
-def phase_street(scheme):
+def phase_street(scheme, tower=True):
     """The street at another hour, its windows still empty. After dark, each sign's colour spills onto the facade round its
-    frame and the lobby's light onto the pavement. By day the panes catch the sky and the walls turn from the sun."""
-    art = street(night=scheme)
+    frame and the lobby's light onto the pavement. By day the panes catch the sky and the walls turn from the sun.
+    Without the tower (the other pages' backdrop-PHASE.png) the lot is built up as in street(), with nothing to spill or shade."""
+    art = street(tower, night=scheme)
     px, cv, sky = art.load(), G.Layer(art), G.open_sky(scheme)
-    if scheme.get("spill"):
+    if tower and scheme.get("spill"):
         for key, (x0, y0, x1, y1) in windows().items():
             if key in G.SIGNS:
                 for y in range(y0 - 6, y1 + 6):
@@ -311,11 +313,11 @@ def phase_street(scheme):
                 for y in range(top + 3, GROUND):
                     if px[x, y] in shade and G.BAYER[y % 4][x % 4] < (x - x1 + 10) * 2:
                         px[x, y] = shade[px[x, y]]
-        for x in range(BX1 + 4, 340):                                    # and the tower's shadow falls on its neighbour
+        for x in range(BX1 + 4, 340) if tower else ():                   # and the tower's shadow falls on its neighbour
             for y in range(150 + (x - BX1) // 2, GROUND):
                 if px[x, y] in shade:
                     px[x, y] = shade[px[x, y]]
-    if not scheme.get("stars"):                                          # in daylight, the slots beside the tower are alleys,
+    if tower and not scheme.get("stars"):                                # in daylight, the slots beside the tower are alleys,
         for x0, top in ((166, NEIGHBOURS[3][2]), (311, NEIGHBOURS[4][2])):   # not bright slits of sky
             for x, y in product(range(x0, x0 + 3), range(top, GROUND)):
                 if px[x, y] in sky:
@@ -363,6 +365,7 @@ def build(out, phase=None):
         strip.paste(img, (f * EW, 0))
     if scheme:
         strip.save(out / f"exterior-{phase}.png")
+        phase_street(scheme, tower=False).save(out / f"backdrop-{phase}.png")   # the other pages' scene at this hour
         for key in "RPL" if "door" in scheme else "RP":
             G.build(key, out, phase)
         print("drew exterior", phase)

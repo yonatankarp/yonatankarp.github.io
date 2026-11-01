@@ -917,9 +917,3 @@ In this article we've followed the steps of building our business logic in a lib
 
 
 Mariusz Sołtysiak: for moral support, review, and suggestions while writing this article.
-
-
-## Credits
-
-
-- Photos by [niko photos](https://unsplash.com/@niko_photos) on [Unsplash](https://unsplash.com/).

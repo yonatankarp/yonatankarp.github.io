@@ -10,7 +10,6 @@
       <div class="article__meta">
         <span>{{ .Date.Format "Jan 2, 2006" }}</span>
         <span>{{ partial "reading-time.html" . }} min read</span>
-        <span>{{ .WordCount }} words</span>
       </div>
       {{ with .Description }}<p class="article__summary">{{ . }}</p>{{ end }}
       <div class="chip-row">

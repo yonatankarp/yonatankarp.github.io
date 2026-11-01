@@ -34,7 +34,6 @@ front matter places it in the building; testimonials need a `pullQuote` that is 
 - Experience, education and testimonial entries have no pages of their own: the `[[cascade]]` in `hugo.toml` renders
   them with `layouts/_default/redirect.html`, a noindex redirect to their homepage floor
 - `content/skills/_index.md` — skills page
-- `content/footer/` — contact section
 - `content/cv.md` — printable CV page
 
 ## Languages

@@ -1425,7 +1425,7 @@ h4 a,
 .px-case__head { display: grid; justify-items: start; gap: 14px; padding-bottom: 28px; border-bottom: 4px solid var(--panel-hi); }
 .px-case__head > * { margin: 0; }
 .px-case h1 { font-size: 60px; overflow-wrap: anywhere; }
-.px-case__lede { max-width: 70ch; font-size: 17px; color: var(--px-soft); }
+.px-case__lede { font-size: 17px; color: var(--px-soft); }
 .px-case__meta { display: flex; flex-wrap: wrap; gap: 6px; }
 .px-chip--year { color: var(--amber); }
 .px-case .px-cta { text-decoration: none; }
@@ -1440,6 +1440,8 @@ h4 a,
 }
 .px-prose { font-size: 17px; line-height: 1.7; color: var(--px-text); overflow-wrap: break-word; }   /* long URLs wrap on phones */
 .px-prose > * { margin-top: 0; margin-bottom: 18px; }
+/* About 68 characters a line. Not ch: Outfit's "0" is wide, so 68ch ran to 100. Images, code and tables stay wider. */
+.px-prose > :is(p, ul, ol, blockquote, .editors-note):not(:has(img, video)), .px-case__lede, .blog-px .article__summary { max-width: 530px; }
 .px-prose h2, .px-prose h3, .px-prose h4 { margin: 40px 0 12px; font-family: var(--pixel-font); font-weight: 400; line-height: 1; color: var(--px-text); }
 .px-prose h2 { display: flex; align-items: center; gap: 14px; font-size: 34px; }
 .px-prose h2::before { content: ''; flex: none; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }

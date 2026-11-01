@@ -69,7 +69,7 @@ Create `content/projects/name.md` with a `link` (the build fails without one). P
 ### New experience
 Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `duration`, `summary`, and:
 - `floor`: a quoted storey, such as `floor: "5"`, that no other entry uses. Floors 2 to 7 are the roles;
-  `8`, `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey needs art: a key in
+  `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey needs art: a key in
   `data/floor_accents.yaml`, a place in `ORDER` in `web3d/src/pixel.js`, and its painting in `web3d/pixel/`.
 - `highlights`: a list; the first three show on the floor's card, the rest inside it.
 

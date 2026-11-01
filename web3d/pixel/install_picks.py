@@ -32,17 +32,16 @@ FRAME = (37, 94)           # the lift's door frame in the lobby pixels, outer in
 WHOLE = (0, 0, 1920, 640)
 PICKS = {  # name: (seed, crop (left, top, right, bottom), colours)
     "lobby": (100, (6, 6, 570, 634), 24),
-    "sumup": (451, WHOLE, 40),
+    "sumup": (717, WHOLE, 40),
     "nice": (400, WHOLE, 40),
-    "billie_risk": (400, WHOLE, 40),
+    "billie_risk": (834, WHOLE, 40),
     "inuitive": (400, WHOLE, 40),
     "reichman": (400, WHOLE, 40),
-    "billie_orchestrator": (417, WHOLE, 40),
-    "billie_payments": (417, WHOLE, 40),
+    "billie_orchestrator": (800, WHOLE, 40),
+    "billie_payments": (717, WHOLE, 40),
     "roof": (400, WHOLE, 40),
     "reception": (400, WHOLE, 40),
     "parking": (400, WHOLE, 40),
-    "writing": (400, WHOLE, 40),
 }
 
 
@@ -212,6 +211,24 @@ def shadows(px, top):
     return Image.fromarray(a, "RGB")
 
 
+def paper(a, y, bundles, skip=(0, 0, 0, 0)):
+    """A stack of tied bundles of paper standing on row y, listed from the bottom as (x0, x1, rows), each sharing its
+    outline row with the one below: an ink outline, a page line every second row, the right side in shadow, the
+    twine down the middle. Pixels in `skip` (a box, half-open) are left alone: something standing in front."""
+    for x0, x1, rows in bundles:
+        for yy in range(y - rows + 1, y + 1):
+            for x in range(x0, x1 + 1):
+                if skip[0] <= x < skip[2] and skip[1] <= yy < skip[3]:
+                    continue
+                if x in (x0, x1) or yy in (y - rows + 1, y):
+                    a[yy, x] = G.INK
+                elif x == (x0 + x1) // 2:
+                    a[yy, x] = G.c("wood", 3)
+                else:
+                    a[yy, x] = G.c("cream", 2 if x >= x1 - 2 else 3 if (y - yy) % 2 else 5)
+        y -= rows - 1
+
+
 LAMPS = {}      # name: its hanging lamps, (x, top, y, w[, length]) as relight takes them
 GONE = {}       # name: boxes of painted lamps to take down (doubled, fused, hung over a screen)
 KEEP = {}       # name: boxes the light pass must not touch
@@ -288,6 +305,33 @@ DOOR_GLASS = {(35, 42, 77), (93, 90, 134), (74, 82, 92), (48, 54, 62)}
 STREET_WINDOWS = [(411, 13, 416, 19, 1), (421, 13, 426, 19, 0), (441, 13, 446, 19, 0), (451, 13, 456, 19, 1),
                   (441, 40, 446, 46, 1), (451, 40, 456, 46, 0), (441, 62, 446, 68, 0), (451, 62, 456, 68, 0)]
 # x0, y0, x1, y1, lit: three floors of the facade across the street, the lower two behind the plant on the left
+NEWS = ["##..###.#.#..##", "#.#.#...#.#.#..", "#.#.##..#.#..#.", "#.#.#...###...#", "#.#.###.#.#.##."]   # its sign
+COVERS = (("red", "blue", "mint"), ("amber", "violet", "coral"))   # the magazines on the stand's two tiers
+
+
+def newsstand(a, x0=258, x1=292, top=108):
+    """The blog's newsstand, in front of the reception desk (x0..x1 inclusive, the sign's top row): a wooden rack
+    under a red NEWS sign, two tiers of magazines behind their shelves' lips, tied bundles of newspapers below."""
+    a[top:top + 9, x0 + 6:x1 - 5] = G.INK                                  # the sign
+    a[top + 1:top + 8, x0 + 7:x1 - 6] = G.c("red", 3)
+    sprite(a, x0 + 10, top + 2, NEWS, G.c("cream", 5))
+    a[top + 9:150, x0 + 1:x1] = G.c("wood", 1)                             # the rack's back,
+    for x, lit in ((x0, 4), (x1 - 2, 3)):                                  # its posts, lit from the left,
+        a[top + 9:152, x:x + 3] = G.INK
+        a[top + 9:150, x + 1] = G.c("wood", lit)
+    for y in (top + 9, 141, 149):                                          # and its top rail and two shelves
+        a[y:y + 3, x0:x1 + 1] = G.INK
+        a[y + 1, x0 + 1:x1] = G.c("wood", 4)
+    for tier, y in ((0, 122), (1, 132)):                                   # the magazines, a pixel apart in height
+        for i, col in enumerate(COVERS[tier]):
+            mx, my = x0 + 5 + 9 * i, y + (i + tier) % 2
+            a[my:y + 10, mx:mx + 8] = G.INK
+            a[my + 1:y + 10, mx + 1:mx + 7] = G.c(col, 4)
+            a[my + 2, mx + 2:mx + 6] = G.c("cream", 5)                     # the masthead
+            a[my + 4:my + 7, mx + 2:mx + 6] = G.c(col, 2)                  # and the cover picture
+        a[y + 9:y + 12, x0 + 3:x1 - 2] = G.INK                             # the shelf's lip, over their feet
+        a[y + 10, x0 + 4:x1 - 3] = G.c("wood", 3)
+    paper(a, 148, [(x0 + 4, x1 - 4, 4), (x0 + 5, x1 - 6, 4)])              # the newspapers, tied in bundles
 
 
 def foyer(px):
@@ -327,6 +371,7 @@ def foyer(px):
     for x0, y0, x1, y1, lit in STREET_WINDOWS:
         win = a[y0:y1, x0:x1]
         win[glass[y0:y1, x0:x1]] = G.c("amber", 4) if lit else G.c("sky", 2)
+    newsstand(a)
     return Image.fromarray(a, "RGB")
 
 
@@ -647,300 +692,140 @@ def ops_room(px):
 TOUCHUPS["nice"] = lambda px: ops_room(shadows(px, 142))   # above, the maroon is its skirting and cabinet
 
 # --- Floor 4, sumup ---
-LAMPS["sumup"] = [(177, 0, 34, 13), (236, 0, 33, 13, 0), (268, 0, 33, 13), (304, 0, 35, 13)]   # the copper one is off
-GONE["sumup"] = [(158, 0, 168, 36)]   # the doubled pendant beside the first
-SKY = [((116, 34, 138), 22), ((142, 120, 160), 33), ((215, 154, 156), 43), ((255, 176, 162), 56)]   # dusk: colour,
-# the row it is pure at
-CITY = {(116, 34, 138), (142, 120, 160), (215, 154, 156), (255, 176, 162), (71, 48, 122), (44, 28, 79), (255, 210, 138)}
-SKYLINE = [  # Berlin's roofs in two flat tones: (x0, x1, top), behind and in front
-    [(373, 378, 60), (378, 384, 56), (384, 389, 62), (389, 395, 58), (395, 401, 61), (401, 407, 61), (407, 412, 57),
-     (412, 418, 63), (418, 423, 59), (423, 447, 61)],
-    [(373, 377, 72), (377, 383, 68), (383, 388, 74), (388, 395, 70), (395, 401, 73), (401, 406, 71), (406, 413, 67),
-     (413, 417, 73), (417, 423, 69), (423, 447, 72)]]
-CUBE = G.c("cyan", 5), G.c("cyan", 4)
+LAMPS["sumup"] = [(173, 0, 31, 15), (293, 0, 31, 15), (416, 0, 32, 15)]   # one over each stall
+GONE["sumup"] = [(232, 0, 247, 30), (254, 0, 270, 31), (320, 0, 337, 31), (382, 0, 401, 33), (434, 0, 455, 33)]
+# the painted lamps between them, so the wall over the stalls stays bare
+AWNINGS = [(146, 50, 230), (262, 52, 346), (376, 48, 458)]   # x0, top row, x1 (half-open): the three stalls' awnings
+TERMINAL = [".######.",   # a card reader: screen, then keys; gen_floors.sumup() lights the screens
+            "#ssssss#",
+            "#ssssss#",
+            "#ssssss#",
+            "#wwwwwh#",
+            "#wkwkwh#",
+            "#wwwwwh#",
+            "#wkwkwh#",
+            "#wwwwwh#",
+            "########"]
+CUP = [".#####.", "#wwwww#", ".#rrr#.", ".#rrr#.", ".#www#.", ".#####."]   # a paper cup in its sleeve
+POT = ["..f.f..", ".fFfFf.", "..fgf..", "...g...", ".#####.", ".#ttt#.", ".#ttt#.", "..###.."]   # potted flowers
+WALL_LIT = (191, 165, 140)   # the awnings' pale stripes in the valance, as painted
 
 
-def cube(a, x, y):
-    """An 8 x 5 service block, outlined: lit top, cyan face."""
-    a[y:y + 5, x:x + 8] = G.INK
-    a[y + 1, x + 1:x + 7], a[y + 2:y + 4, x + 1:x + 7] = CUBE
+def awning(a, x0, y0, x1):
+    """A striped market awning: a canopy fanning out over 7 rows in red and cream stripes, then a scalloped valance."""
+    cx, n = (x0 + x1 - 1) / 2, 11                                          # its middle; stripes across
+    for r in range(8):
+        half = (x1 - x0) / 2 - 7 + r
+        for x in range(round(cx - half), round(cx + half) + 1):
+            stripe = int((x - cx + half) * n / (2 * half + 1))
+            edge = r == 0 or abs(x - cx) > half - 1
+            a[y0 + r, x] = G.INK if edge else G.c("red", 4 if r < 5 else 3) if stripe % 2 == 0 else \
+                G.c("cream", 5 if r < 5 else 4)
+    w = (x1 - x0) / n                                                      # the valance: one scallop under each stripe
+    for k in range(n):
+        sx0, sx1 = round(x0 + k * w), round(x0 + (k + 1) * w)
+        for r, inset in enumerate((0, 0, 0, 1, 2)):
+            a[y0 + 8 + r, sx0 + inset:sx1 - inset] = G.INK if r == 4 else G.c("red", 3) if k % 2 == 0 else WALL_LIT
+            if r < 4:
+                a[y0 + 8 + r, [sx0 + inset, sx1 - inset - 1]] = G.INK
+        a[y0 + 13, sx0 + 2:sx1 - 2] = G.INK
 
 
-def cafe(px):
-    """Floor 4: the window's sky came out in hard bands behind a stair-stepped frame, with a mushy city and two TV
-    towers; the press's label, middle and legs melted; the bistro table lost its shape; the menu board is a smear;
-    the rack lost its rows. Each is drawn again plainly. The press's ram, the card and the city's lit windows move in
-    gen_floors.sumup()."""
+def stalls(px):
+    """Floor 4: the market's three awnings came out bleached where the painted lamps shone on them, the stalls' backs
+    as painted light, and the card readers as grey smudges. The awnings and the light are cleared and the lamps
+    relit, then the awnings, the readers and a paper cup are drawn again plainly."""
     a = np.asarray(px).copy()
-
-    def rack(x, y):                                                        # the rack stands in front of the window
-        return x >= 423 and y >= 46 or x >= 438 and y >= 45
-
-    a[4:12, 366:454] = WALL                                                # the window: the old slanted top off,
-    for y in range(19, 95):                                                # the panes: an even dusk, two rows of roofs
-        for x in range(373, 447):
-            if rack(x, y) or x >= 404 and y >= 80 and tuple(a[y, x]) not in CITY:   # nor the plant on the table
-                continue
-            i = max([k for k, (_, m) in enumerate(SKY) if m <= y], default=0)
-            t = 0 if i + 1 == len(SKY) or y < SKY[0][1] else (y - SKY[i][1]) / (SKY[i + 1][1] - SKY[i][1])
-            a[y, x] = SKY[i + 1][0] if t > BAYER[y % 4, x % 4] else SKY[i][0]
-            for tone, row in zip(((71, 48, 122), (44, 28, 79)), SKYLINE):
-                if any(x0 <= x < x1 and y >= top for x0, x1, top in row):
-                    a[y, x] = tone
-    a[24:34, 411], a[39:59, 411:413] = (71, 48, 122), (71, 48, 122)        # one Fernsehturm
-    for y, k in zip(range(34, 39), (1, 2, 2, 2, 1)):
-        a[y, 411 - k:412 + k] = (71, 48, 122)
-    assert all(tuple(a[y, x + 132]) in ((71, 48, 122), (44, 28, 79)) for x, y in G.LIGHTS), "a lit window off the roofs"
-    wood, maroon, ink = ((106, 63, 12), (160, 100, 15)), (127, 44, 36), G.INK
-    frame = [  # square bars, (box, colours across the bar): the frame, the casement, the mullion and the transom
-        (366, 12, 370, 100, (ink, *wood, ink)), (450, 12, 454, 45, (ink, *wood[::-1], ink)),
-        (366, 12, 454, 16, (ink, wood[1], wood[0], ink)),
-        (370, 16, 373, 95, (maroon, maroon, ink)), (447, 16, 450, 45, (ink, maroon, maroon)),
-        (370, 16, 450, 19, (maroon, maroon, ink)),
-        (396, 19, 401, 95, (ink, maroon, maroon, maroon, ink)), (373, 48, 447, 53, (ink, maroon, maroon, maroon, ink))]
-    for x0, y0, x1, y1, section in frame:
-        across_x = x1 - x0 == len(section)
-        for y in range(y0, y1):
-            for x in range(x0, x1):
-                if not rack(x, y):
-                    a[y, x] = section[x - x0] if across_x else section[y - y0]
-    a[37:70, 166:221] = (23, 50, 34)                                      # the menu board: one green, menu lines
-    for i, n in enumerate((18, 13, 20, 11, 15)):
-        a[42 + 5 * i, 170:170 + n], a[42 + 5 * i, 216] = G.c("cream", 3), G.c("amber", 4)
-    a[57:65, 332:345] = G.INK                                              # the press: a plain label,
-    a[60, [336, 339]] = G.c("amber", 5)
-    a[69:82, 323:337] = G.c("amber", 2)                                    # the ram's bay (the ram is gen_floors'),
-    cube(a, 326, 77)                                                       # the block under it,
-    belt = a[83:105, 340:358]                                              # the belt out and down, its smear cleared,
-    keep = np.zeros(belt.shape[:2], dtype=bool)
-    for col in (G.INK, (58, 53, 48), WALL, G.c("amber", 4), G.c("amber", 3)):
-        keep |= (belt == col).all(-1)
-    belt[~keep] = G.INK
-    a[84:87, 321:348], a[87, 321:348] = (58, 53, 48), G.INK
-    a[88:104, 321:340] = WALL                                              # two finished blocks on the shelf below
-    a[84:104, 318:320], a[84:104, 320] = G.c("amber", 4), G.INK            # beside the post's clean inner edge
-    cube(a, 322, 99)
-    cube(a, 331, 99)
-    a[122:138, 312:347] = a[116, 312:347]                                  # its posts straight down to two feet
-    for x0, x1 in ((309, 326), (333, 350)):
-        a[138, x0:x1] = a[141, x0:x1] = G.INK
-        a[139:141, x0:x1], a[139:141, [x0, x1 - 1]] = G.c("amber", 4), G.INK
-    a[138:142, 326:333] = WALL
-    for k in range(10):                                                    # the rack: a steel line between LED rows
-        y = 50 + 7 * k
-        a[y, 427:450], a[y + 1:y + 7, 426:450] = G.c("steel", 2), G.INK
-        a[y + 3, [437, 442]], a[y + 3, 446] = G.c("plant", 5), G.c("plant", 3)
-    a[120, 427:450] = G.c("steel", 2)
-    a[100:111, 370:423] = a[99, 411:423] = WALL                            # the bistro table: the old one off,
-    a[111:132, 388:423] = WALL
-    floor = a[132:144, 388:423]
-    for was in ((127, 44, 36), (82, 27, 24), (58, 34, 8), G.INK):
-        floor[(floor == was).all(-1)] = (106, 63, 12)
-    a[105, 392:419], a[105, [391, 419]] = G.c("wood", 4), G.INK             # an oval top over an ink underline,
-    a[106, 391:420], a[106, [390, 420]] = G.c("wood", 3), G.INK
-    a[107, 391:420] = G.INK
-    a[108:141, [404, 406]], a[108:141, 405] = G.INK, G.c("wood", 2)        # one pedestal leg and its foot
-    a[141, 401:410], a[143, 399:412] = G.INK, G.INK
-    a[142, 400:411], a[142, [399, 411]] = G.c("wood", 2), G.INK
-    for x in (392, 401):                                                   # two cups, handles out
-        a[101, x:x + 6], a[102:105, [x, x + 5]], a[102:105, x + 1:x + 5] = G.INK, G.INK, G.c("cream", 5)
-        a[[102, 104], x + 6], a[103, x + 7] = G.INK, G.INK
-    a[101, 411:417], a[102:105, [411, 416]] = G.INK, G.INK                 # and the plant's terracotta pot
-    a[102:104, 412:416], a[104, 412:416] = G.c("red", 4), G.c("red", 3)
-    a[98:101, 413:415] = G.c("plant", 3)
+    for x0, y0, x1, y1 in ((142, 40, 232, 72), (258, 46, 350, 72), (372, 40, 462, 70)):   # the painted awnings
+        a[y0:y1, x0:x1] = WALL
+    for y in range(72, 100):                                               # the light behind the stalls
+        for x in [*range(160, 218), *range(276, 326)]:
+            if tuple(a[y, x]) in {CONE, *LIGHT, (242, 177, 59)}:
+                a[y, x] = WALL
+    for x0, x1 in ((220, 232), (277, 285), (323, 336), (357, 368), (433, 447)):   # the painted readers: the wall
+        a[83:99, x0:x1] = a[80, x0:x1]                                     # and posts behind them run on down
+    a = np.asarray(relight(Image.fromarray(a, "RGB"), LAMPS["sumup"])).copy()
+    for x0, x1 in ((155, 161), (214, 222), (269, 281), (325, 335), (381, 387)):   # the stalls' posts, up to the awnings
+        a[55:76, x0:x1] = a[76, x0:x1]
+    a[86:89, 262:265] = WALL                                               # a green fleck by the coffee cart
+    floor = a[142:154, 90:160]                                             # and the awning's red, reflected in the floor
+    floor[(floor == G.c("red", 4)).all(-1) | (floor == G.c("red", 3)).all(-1)] = G.c("amber", 2)
+    for x0, y0, x1 in AWNINGS:
+        awning(a, x0, y0, x1)
+    a[62:99, 449:452], a[62:99, 452] = G.INK, G.c("wood", 1)               # the bakery's missing right-hand post
+    a[68:99, 172:214] = WALL                                               # a white box on the flower cart, which
+    a[68:99, 214:218] = a[67, 214:218]                                     # read as a toaster, goes; its post runs on
+    ink = {"#": G.INK, "s": G.c("mint", 3), "w": G.c("cream", 5), "h": G.c("cream", 3), "k": G.c("steel", 3),
+           "r": G.c("red", 3), "g": G.c("plant", 4), "t": G.c("red", 4)}
+    for rows, x, y, flower in [*((TERMINAL, x + 132, 89, None) for x in G.TERMINALS), (CUP, 277, 93, None),
+                               (POT, 178, 91, "coral"), (POT, 189, 91, "amber"), (POT, 200, 91, "violet")]:
+        for dy, row in enumerate(rows):
+            for dx, ch in enumerate(row):
+                if ch != ".":
+                    a[y + dy, x + dx] = ink[ch] if ch in ink else G.c(flower, 4 if ch == "f" else 5)
     return Image.fromarray(a, "RGB")
 
 
-TOUCHUPS["sumup"] = lambda px: cafe(shadows(px, 120))
+TOUCHUPS["sumup"] = lambda px: stalls(shadows(px, 120))
 
 # --- Floor 5, billie_risk ---
-LAMPS["billie_risk"] = [(150, 0, 28, 19), (191, 0, 30, 15), (258, 0, 32, 17), (296, 0, 32, 15), (324, 0, 32, 15)]
-GONE["billie_risk"] = [(424, 0, 433, 25), (434, 22, 442, 35)]   # a lamp fused behind the screen's corner
-CORAL, CYAN = G.R["coral"], G.R["cyan"]
+LAMPS["billie_risk"] = [(173, 0, 31, 19), (344, 0, 31, 19)]   # over the scale and the desk
+GONE["billie_risk"] = [(133, 0, 157, 30), (305, 0, 331, 34)]   # the first of each painted pair
 
 
-def risk(px):
-    """Floor 5: the pipe hung on two rods and run on into the graph's frame, its glow smear gone; the graph's one
-    flagged node left red; the console's warning lamp and side panel; the desk drawn again, with a keyboard."""
+def gauge(a, cx, cy):
+    """The credit gauge, drawn again round: an ink ring round a wood rim, a cream face, and a band from green on the
+    left through amber to red on the right. gen_floors.billie_risk() swings its needle."""
+    for y in range(cy - 22, cy + 23):
+        for x in range(cx - 22, cx + 23):
+            r, deg = np.hypot(x - cx, y - cy), np.degrees(np.arctan2(cy - y, x - cx)) % 360
+            if r > 21.5:
+                continue
+            a[y, x] = (G.INK if r > 20.5 else G.c("wood", 4 if y < cy else 3) if r > 18.5 else G.INK if r > 17.5
+                       else G.c("cream", 5))
+            if 12.5 < r < 16 and not 210 < deg < 330:                       # the band: 240 deg round the top
+                t = (210 - deg) % 360                                      # 0 at its green end, 240 at its red end
+                a[y, x] = G.c("plant", 4) if t < 100 else G.c("amber", 4) if t < 160 else G.c("coral", 4)
+    a[cy - 1:cy + 2, cx - 1:cx + 2] = G.INK                                # the pivot
+    a[cy, cx] = G.c("steel", 4)
+
+
+def credit_desk(px):
+    """Floor 5, after shadows: the gauge is drawn again round (gauge); the balance scale's chains and pans pixelated
+    into speckle, so only its post and foot are kept, drawn plainly, and gen_floors weighs with the rest; the
+    invoices on the desk, which came out as black and white stripes, are drawn as stacks of pages."""
     a = np.asarray(px).copy()
-    smear = a[50:75, 130:320]
-    smear[(smear == G.c("mint", 5)).all(-1)] = WALL                     # the pipe's glow, above and below it
-    a[67, 134], a[67, 135:145], a[68, 145] = WALL, G.INK, WALL          # the end cap's bottom edge
-    a[55:58, 308:354][(a[55:58, 308:354] == CONE).all(-1)] = WALL       # the light stops short of the pipe, as elsewhere
-    a[58:69, 308:354] = a[58:69, 242:243]                               # the pipe runs on into the graph's frame
-    for x in (224, 346):                                                # hung from the ceiling on two rods, clamped
-        a[0:58, x], a[0:58, x + 1] = G.INK, G.c("steel", 3)
-        a[58:69, x - 1:x + 3] = G.INK
-        a[59:68, x:x + 2] = G.c("steel", 4)
-    screen = a[30:83, 354:438]                                          # the graph: only the flagged node stays red
-    red = {CORAL[i]: i for i in (1, 2, 4, 5)}
-    nodes = G.blobs(lambda x, y: tuple(screen[y, x]), (0, 0, 84, 53), lambda col: col in red)
-    for node in nodes[1:]:
-        for x, y in node:
-            screen[y, x] = CYAN[red[tuple(screen[y, x])]]
-    around = lambda y, x, r: {tuple(screen[j, i]) for j in range(max(0, y - r), y + r + 1)
-                              for i in range(max(0, x - r), x + r + 1)}
-    glass, lit = {*CYAN, *CORAL, G.INK}, {*CYAN[3:], *CORAL}
-    edges = [(y, x) for y in range(2, 51) for x in range(2, 76) if tuple(screen[y, x]) == G.INK
-             and not around(y, x, 1) & lit and around(y, x, 2) <= glass]   # inside the frame, clear of the nodes
-    for y, x in edges:                                                  # its edges, a step lighter than ink
-        screen[y, x] = CYAN[2]
-    for pot in (a[120:147, 314:322], a[120:148, 432:445]):              # the pots' cyan glints
-        for i in (1, 3, 4, 5):
-            pot[(pot == CYAN[i]).all(-1)] = G.c("cream", 1)
-    a[83:87, 169:174] = G.INK                                           # the console's warning lamp, rimmed in ink
-    a[84:86, 170:173] = CORAL[4]
-    a[84, 170] = CORAL[5]
-    side = a[87:143, 178:190]                                           # its side panel, one flat tone
-    for col in (G.c("wood", 1), G.c("plank", 0)):
-        side[(side == col).all(-1)] = G.c("cream", 0)
-    sliver = a[116:135, 334:341]
-    sliver[(sliver == CONE).all(-1)] = WALL
-    a[106:114, 338:436] = G.INK                                         # the desk: an even grey top, lit along its back
-    a[107, 339:435] = G.c("steel", 5)
-    a[108:112, 339:435] = G.c("steel", 4)
-    a[112, 339:435] = G.c("steel", 3)
-    a[108:112, 364:384] = G.INK                                         # a keyboard
-    for y in (109, 110):
-        for x in range(365, 383):
-            a[y, x] = G.c("steel", 4 if (x + y) % 2 else 2)
-    for x0, x1, front, side_col in ((339, 369, 10, G.c("grey", 2)), (404, 435, 9, G.c("grey", 3))):   # level pedestals
-        a[114:149, x0:x1 + 1] = G.INK
-        a[114:148, x0 + 1:x0 + front] = G.c("steel", 5)
-        a[114:148, x0 + front] = G.c("steel", 4)
-        a[114:148, x0 + front + 2:x1] = side_col
-    a[149, 404:436] = a[149, 370:402]                                   # the floor under the right one's old foot
+    a[26:75, 215:266] = WALL
+    gauge(a, 240, 50)
+    a[58:104, 118:198] = WALL                                              # the scale, off its table
+    a = np.asarray(relight(Image.fromarray(a, "RGB"), LAMPS["billie_risk"])).copy()
+    x = G.SCALE[0] + 132
+    a[66:69, x - 2:x + 3] = G.INK                                          # its finial,
+    a[67, x - 1:x + 2] = G.c("amber", 5)
+    a[69:100, x - 1:x + 2] = G.INK                                         # its post,
+    a[70:100, x] = G.c("amber", 4)
+    for y, half in ((99, 6), (100, 8), (101, 9), (102, 10), (103, 10)):    # and its foot, on the table
+        a[y, x - half:x + half + 1] = G.INK
+        if 99 < y < 103:
+            a[y, x - half + 1:x + half] = G.c("amber", 4 if y < 102 else 3)
+    a[58:100, 318:358] = WALL                                              # the invoices: one tall stack,
+    paper(a, 99, [(321, 353, 8), (322, 352, 8), (320, 352, 7), (322, 353, 7), (321, 352, 7)])
+    a[77:100, 264:289] = WALL                                              # and a short one by the stamp
+    paper(a, 99, [(270, 287, 4), (271, 286, 4)])
     return Image.fromarray(a, "RGB")
 
 
-TOUCHUPS["billie_risk"] = risk
+TOUCHUPS["billie_risk"] = lambda px: credit_desk(shadows(px, 120))
 
 # --- Floor 6, billie_orchestrator ---
-LAMPS["billie_orchestrator"] = [(190, 0, 42, 19), (384, 0, 44, 19)]   # down over their painted bulbs
-GONE["billie_orchestrator"] = [(219, 0, 251, 29), (316, 0, 346, 29), (369, 0, 373, 26), (174, 0, 177, 75)]   # the two
-# hung in front of the screen, a cord with no lamp, and one run down into the terminal
-KEEP["billie_orchestrator"] = [(220, 30, 355, 95)]    # the wall screen: its invoice cards are bright
-
-
-def screen(px):
-    """Floor 6: the wall screen's bezel came out lamp-lit brown where the two lamps hang in front of it, and its
-    right-hand panel came out as wall colour. Its frame is redrawn from an intact column, its sides as dark steel,
-    and the panel as more of the screen's blue, so the invoice crossing it (gen_floors) stays on the screen."""
-    a = np.asarray(px).copy()
-    x0, x1, intact = 218, 346, (250, 316)                                  # outer ink columns; the unlit stretch of top
-    ref = a[29:37, 300].copy()                                             # ink, ink, trim, ink, title bar, ink, lip
-    for x in [*range(x0 + 1, intact[0]), *range(intact[1], x1)]:
-        a[29:37, x] = ref
-    a[29:74, [x0, x1]] = G.INK
-    a[29:74, x1 + 1] = a[29:74, x0 - 1]                                   # its soft edge, as on the left
-    a[31:72, x0 + 1:x0 + 5] = a[31:72, x1 - 4:x1] = G.c("steel", 1)        # the sides
-    a[37:68, x0 + 5] = a[37:68, x1 - 5] = G.c("steel", 3)                  # their inner lip
-    panel = a[37:68, intact[1]:x1 - 5]                                     # right of the trays, whose rims are wall-tan
-    for col in (WALL, G.c("wall", 5), G.c("plank", 5)):
-        panel[(panel == col).all(-1)] = G.c("blue", 5)
-    for box, col, to in (((33, 35, x0, x1), (G.c("red", 2), G.c("coral", 1)), G.c("steel", 0)),   # a red dash on the
-                         ((68, 69, x0, x1), (G.c("coral", 1),), G.c("magenta", 1)),               # title bar and bezel
-                         ((58, 60, x0, x1), (WALL,), G.c("amber", 4))):                           # the trays' rims
-        part = a[box[0]:box[1], box[2]:box[3]]
-        for c in col:
-            part[(part == c).all(-1)] = to
-    return Image.fromarray(a, "RGB")
-
-
-GLASS = {G.c("violet", 5), G.c("violet", 4), G.c("wall", 5), G.c("grey", 5), G.c("steel", 4),   # the painted cabinet,
-         G.c("cream", 5), G.c("cream", 4), G.c("sky", 5), G.c("sky", 4), G.c("coral", 5), CONE}   # its glints, halo
-
-
-def ghost(px):
-    """Floor 6: the stand-in vendor's see-through cabinet. The painted one quantises into a lavender blob with wall
-    holes and a pale halo, so it is drawn again: the wall and skirting behind it, then glass as a 50% lavender
-    dither, a dashed violet outline and door (there, but not quite), its shelves seen through it."""
-    a = np.asarray(px).copy()
-    x0, y0, x1, y1 = 386, 48, 434, 139                                     # inclusive
-    for y in range(44, 142):                                               # the halo and stray glass around it
-        for x in range(377, 439):
-            if not (x0 <= x <= x1 and y0 <= y <= y1) and tuple(a[y, x]) in GLASS - {CONE}:
-                a[y, x] = WALL
-    for y in range(y0, y1 + 1):                                            # behind it: the room as it is to its right
-        for x in range(x0, x1 + 1):
-            if tuple(a[y, x]) in GLASS:
-                a[y, x] = a[y, x1 + 6]
-    edge, glass = G.c("violet", 4), G.c("violet", 5)
-    for y in range(y0 + 1, y1):
-        for x in range(x0 + 1, x1):
-            if (x + y) % 2 == 0:
-                a[y, x] = glass
-    door = x1 - 13
-    for y in (y0 + 24, y0 + 48, y0 + 70):                                  # shelves
-        a[y, x0 + 1:x1] = edge
-    a[y0 + 36:y0 + 41, door - 3] = edge                                    # the handle
-    for x in range(x0, x1 + 1):
-        if x % 4 < 2:
-            a[y0, x] = a[y1, x] = edge
-    for y in range(y0, y1 + 1):
-        if y % 4 < 2:
-            a[y, x0] = a[y, x1] = a[y, door] = edge
-    for x, y in ((x0, y0), (x1, y0), (x0, y1), (x1, y1), (door, y0), (door, y1)):
-        a[y, x] = edge
-    return Image.fromarray(a, "RGB")
-
-
-def glow(px):
-    """Floor 6: the core's glow on the wall came out salmon, and its pool on the floor ends in a hard edge. The wall
-    glow becomes a two-step violet dither, the pool's edge dithers into the planks, and the terminal beside the core
-    gets back its lit screen, bezel and buttons."""
-    a = np.asarray(px).copy()
-    for y in range(72, 119):                                               # the wall glow behind the core
-        for x in range(220, 355):
-            col = tuple(a[y, x])
-            if col == G.c("coral", 5):                                       # a quarter lit near the core,
-                a[y, x] = G.c("violet", 5) if x % 2 == 0 and y % 2 == 0 else WALL
-            elif col in (G.c("sky", 5), G.c("sky", 4), G.c("wall", 3), G.c("wall", 4)):   # an eighth further out
-                a[y, x] = G.c("violet", 5) if (x + y // 2 * 2) % 4 == 0 and y % 2 == 0 else WALL
-    floor = a[126:, 197:366]                                               # the floor round the pool came out in the
-    for was, now in {**SHADE, G.c("red", 2): (106, 63, 12)}.items():       # skirting's maroons: the planks' shadow
-        floor[(floor == was).all(-1)] = now                                # instead, so the pool's edge dithers into it
-    pool = {G.c("magenta", 1), G.c("magenta", 2)}                         # its dark floor, not the lit cables
-    was = a.copy()
-    for y in range(129, a.shape[0]):                                       # the pool's edge, two pixels deep
-        for x in range(197, 365):
-            if tuple(was[y, x]) not in pool or (x + y) % 2:
-                continue
-            for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (2, 0), (-2, 0), (0, 2), (0, -2)):
-                ny, nx = y + dy, x + dx
-                if ny < a.shape[0] and tuple(was[ny, nx]) not in {*G.R["magenta"], G.INK, *G.R["violet"]}:
-                    a[y, x] = was[ny, nx]
-                    break
-    halo = a[72:132, 147:157]                                              # the terminal: its tan halo goes
-    for col in (G.c("plank", 5), G.c("plank", 4), G.c("plank", 3)):
-        halo[(halo == col).all(-1)] = WALL
-    a[75:93, 156:182] = G.INK                                              # its screen, in a violet bezel
-    a[76:92, 157:181] = G.c("violet", 2)
-    for y in range(77, 91):
-        a[y, 158:180] = G.c("blue", 3 if y % 2 else 2)
-    for y, n in ((79, 12), (81, 8), (83, 14), (85, 6)):                    # a few lines of text
-        a[y, 160:160 + n] = G.c("cyan", 4)
-    a[87, 160:162] = G.c("cyan", 5)                                        # the cursor
-    for x, col in ((160, G.c("cyan", 4)), (162, G.c("amber", 4)), (164, G.c("red", 4))):
-        a[97, x] = col                                                     # and its buttons
-    return Image.fromarray(a, "RGB")
-
-
-TOUCHUPS["billie_orchestrator"] = lambda px: glow(ghost(screen(px)))
-
-
-# --- Floor 7, billie_payments ---
-LAMPS["billie_payments"] = [(188, 21, 36, 19, 16), (240, 21, 40, 17, 0), (287, 21, 43, 17, 16), (308, 21, 43, 17, 16),
-                            (341, 21, 40, 17, 16), (363, 21, 45, 15, 16), (384, 21, 37, 17, 16),
-                            (414, 21, 41, 19, 16)]   # hung from the pipe, close together: short cones; the one over
-# the scanner arch is off
-KEEP["billie_payments"] = [(400, 46, 456, 94)]   # the screening board, redrawn below; its lamp's cone stops evenly above it
-GONE["billie_payments"] = [(160, 21, 179, 42), (424, 21, 440, 44)]   # the second of two fused pairs
+LAMPS["billie_orchestrator"] = [(159, 0, 30, 19), (328, 0, 31, 19)]
+GONE["billie_orchestrator"] = [(288, 0, 316, 33)]   # the first of the pair over the stack light
+SCREEN = (363, 26, 447, 93)   # the graph's screen, its ink frame inclusive: painted in perspective, drawn square
 
 
 def planks(px):
-    """Floor 7: the red tray's reflection turned whole planks red; grow the plank colours back over them, from the
-    planks inwards, so the tray and the box (outlined in ink) keep theirs."""
+    """The red crates' reflection turned whole planks red; grow the plank colours back over them, from the planks
+    inwards, so the crates (outlined in ink) keep theirs."""
     a = np.asarray(px).copy()
     plank = {(160, 100, 15), (106, 63, 12)}
     swap = {(160, 50, 39): (160, 100, 15), (127, 44, 36): (106, 63, 12)}
@@ -960,141 +845,90 @@ def planks(px):
     return Image.fromarray(a, "RGB")
 
 
-def mailroom(px):
-    """Floor 7, after planks: the screening board comes out wall-coloured with garbled tiles, so it is drawn again as
-    a dark panel in an ink frame with flat tiles (gen_floors.SCREENING, which flips them). The scanner arch was fused
-    with a door frame and a ghost arch: one steel arch now. The post box's envelope read as a "B"; the red tray
-    melted into the skirting. The floor is planked again, as on floor 5, across the lobby too."""
+
+def decision_room(px):
+    """Floor 6, after planks: the graph screen was painted turned a little, its edges ragged, so it is drawn again
+    square and its graph (gen_floors.NODES, LINKS) drawn plainly, the flagged ring in coral. The stack light on the
+    sorting machine is drawn again as three clean lamps, all dark: gen_floors lights them."""
     a = np.asarray(px).copy()
-    a[46:96, 400:456] = WALL                                               # the board, and painted light beside it
-    a[48:92, 412:452] = G.INK
-    a[49:91, 413:451] = G.c("steel", 1)
-    a[50:90, 414:450] = G.c("dark", 1)
-    a[52, 415:431] = G.c("cream", 3)                                       # its title
-    for x, y, flagged in G.SCREENING:
-        a[y:y + 4, x + 132:x + 139] = G.GLOW["red" if flagged else "green"]
-    a[34:98, 206:272] = WALL                                               # the arch: a steel tube, ink either side,
-    a[29:40, 231:250] = np.asarray(px)[29:40, 231:250]                     # under the lamp
-    cx, cy, r = 238.5, 72, 28.5
-    for y in range(41, 98):
-        for x in range(206, 272):
-            t = int(np.floor(r + 0.5 - np.hypot(x - cx, y - cy))) if y <= cy else x - 210 if x < cx else 267 - x
-            if 0 <= t <= 5:                                                # its depth into the tube, from outside
-                a[y, x] = G.INK if t in (0, 5) else G.c("steel", 4 if t < 3 else 3)
-    for y in range(118, 142):                                              # the tray: the wall and skirting behind
-        for x in range(152, 207):                                          # it first, but not the conveyor's feed
-            if not (x >= 193 and y < 128):
-                a[y, x] = a[y, 130]
-    a[124:142, 156:207] = G.INK
-    a[125:128, 157:206] = G.c("red", 1)                                    # inside
-    a[128, 157:206] = G.c("red", 5)                                        # the front's lit lip
-    a[129:141, 157:206] = G.c("red", 3)
-    a[129:141, 203:206] = G.c("red", 2)                                    # its side in shadow
-    a[133:136, 175:188] = G.INK                                            # the handle slot
-    floor = {G.c("amber", 1), G.c("amber", 2)}
-    h, w = a.shape[:2]
-    on = lambda y, x: y >= 142 or y >= 128 and x >= 216                    # behind the conveyor it shows from row 128
-    for _ in range(2):                                                     # specks and stray shadow strokes go first
-        for y in range(128, h):
-            for x in range(w):
-                if on(y, x) and tuple(a[y, x]) not in floor and sum(
-                        tuple(a[ny, nx]) in floor for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1))
-                        if 0 <= ny < h and 0 <= nx < w) >= 3:
-                    a[y, x] = G.c("amber", 2)
-    for y in range(128, h):                                                # then the planks, on the floor between things
-        for x in range(w):
-            if on(y, x) and tuple(a[y, x]) in floor:
-                a[y, x] = G.c("amber", 1 if (x + y + 5 * (y >= 148)) % 11 == 0 else 2)
-    a[80:89, 170:181] = G.c("coral", 4)                                    # the post box's envelope: flap down
-    a[81:86, 172:179] = G.c("cream", 5)
-    for i in range(4):
-        a[81 + i, 172 + i] = a[81 + i, 178 - i] = G.INK
+    a[16:98, 357:453] = WALL
+    x0, y0, x1, y1 = SCREEN
+    a[y0:y1 + 1, x0:x1 + 1] = G.INK
+    a[y0 + 1:y1, x0 + 1:x1] = G.c("steel", 1)
+    a[y0 + 3:y1 - 2, x0 + 3:x1 - 2] = G.c("dark", 1)
+    a[y1 + 1, x0 + 1:x1 + 2] = a[y0 + 1:y1 + 2, x1 + 1] = (172, 129, 89)   # its shadow on the wall
+    nodes = [(x + 132, y) for x, y, _ in G.NODES]
+    for i, j in G.LINKS:
+        ring = G.NODES[i][2] and G.NODES[j][2]
+        line(a, *nodes[i], *nodes[j], G.c("coral", 2) if ring else G.c("dark", 3))
+    for (x, y), (_, _, flagged) in zip(nodes, G.NODES):
+        if flagged:
+            a[y - 1:y + 2, x - 1:x + 2] = G.c("coral", 4)
+            a[y - 1, x - 1] = G.c("coral", 5)
+        else:
+            a[y:y + 2, x:x + 2] = G.c("cream", 5)
+    a[37:72, 296:308] = WALL                                               # the stack light, on a stem
+    a[38:64, 297:307] = a[64:72, 300:304] = G.INK
+    a[64:72, 301:303] = G.c("steel", 3)
+    for y, ramp in G.STACK.values():
+        a[y:y + 7, 298:306] = G.c(ramp, 1)
+    floor = a[142:154, :240]                                               # the crates' red, reflected in the
+    floor[(floor == G.c("red", 4)).all(-1)] = G.c("amber", 2)              # floor by the lift
     return Image.fromarray(a, "RGB")
 
 
-TOUCHUPS["billie_payments"] = lambda px: mailroom(planks(px))
-
-# --- Floor 8, writing ---
-LAMPS["writing"] = [(252, 0, 34, 19, 3), (292, 0, 34, 19, 3), (320, 0, 34, 17, 3), (366, 0, 31, 17)]   # the board under
-# the first two takes no light, and their sweep would wipe its clippings
-GONE["writing"] = [(397, 0, 402, 33), (304, 0, 309, 34)]   # a cord with no lamp on it; a painted shade's edge
-KEEP["writing"] = [(236, 0, 392, 34), (224, 38, 321, 80), (296, 78, 331, 100), (140, 17, 191, 140),
-                   (334, 26, 402, 135)]   # the pale lamp shades, which read as light; the corkboard and its
-# clippings, the typewriter's sheet, the two bookcases
+TOUCHUPS["billie_orchestrator"] = lambda px: decision_room(planks(px))
 
 
-SHELVES = [  # the bookcases' top shelves: inside (half-open), the books standing (x, top) and lying (x0, y0, x1) on them
-    ((152, 26, 189, 42), [(153, 28), (156, 30), (159, 27), (162, 29), (165, 28), (168, 31)], [(173, 35, 186), (174, 38, 188)]),
-    ((337, 37, 389, 54), [(352 + 3 * i, top) for i, top in enumerate((39, 41, 38, 40, 42, 39, 38, 41, 40, 39, 42, 40))],
-     [(338, 44, 348), (339, 47, 350), (338, 50, 349)]),
-]
+# --- Floor 7, billie_payments ---
+LAMPS["billie_payments"] = [(172, 0, 34, 19), (329, 0, 35, 19)]
+GONE["billie_payments"] = [(137, 0, 158, 34), (225, 0, 252, 36), (280, 0, 306, 36), (362, 0, 388, 40)]   # the one
+# beside the first, the one over the vault door, the one beside the second, and the one under the pipes
 
 
-def paper(a, y, bundles, skip=(0, 0, 0, 0)):
-    """A stack of tied bundles of paper standing on row y, listed from the bottom as (x0, x1, rows), each sharing its
-    outline row with the one below: an ink outline, a page line every second row, the right side in shadow, the
-    twine down the middle. Pixels in `skip` (a box, half-open) are left alone: something standing in front."""
-    for x0, x1, rows in bundles:
-        for yy in range(y - rows + 1, y + 1):
-            for x in range(x0, x1 + 1):
-                if skip[0] <= x < skip[2] and skip[1] <= yy < skip[3]:
-                    continue
-                if x in (x0, x1) or yy in (y - rows + 1, y):
-                    a[yy, x] = G.INK
-                elif x == (x0 + x1) // 2:
-                    a[yy, x] = G.c("wood", 3)
-                else:
-                    a[yy, x] = G.c("cream", 2 if x >= x1 - 2 else 3 if (y - yy) % 2 else 5)
-        y -= rows - 1
-
-
-def newsroom(px):
-    """Floor 8: the paper stacks pixelate into black and white static, so they are drawn again as stacks of pages.
-    The cork's lamp-lit band and painted light go back to cork, as does the light pillar beside the typewriter. The
-    desk lamp's painted glow is a blob, so it gets a small cone of its own onto the press. The press's shadow is
-    a maroon wedge over the skirting, which runs on straight under it; the seam's skirting carries the room's band
-    on to the bookcase, and the halo on the bookcase's cornice goes."""
+def vault(px):
+    """Floor 7: the vault door pixelated into rings of noise, lamp-lit pink at the top, so it is drawn again round: an
+    ink edge, a steel rim lit from the upper left with eight bolts, the door's face with a groove, the recess the
+    wheel turns in (the wheel is gen_floors'), two hinges, and its shadow on the wall. The painted light caught
+    between the pipes goes back to plaster, and so does the glow under the second lamp, which relight took for a
+    plaque: the lamps are lit again without it. The planks' seams came out red: they are drawn dark again."""
     a = np.asarray(px).copy()
-    wall = np.array(WALL)
-    cork = a[41:78, 227:318]
-    for col in (G.c("amber", 3), CONE, WALL):
-        cork[(cork == col).all(-1)] = G.c("amber", 2)
-    a[80:100, 225:265] = WALL                                              # the desk's two stacks
-    paper(a, 99, [(225, 243, 7), (226, 242, 6), (225, 242, 6)])
-    paper(a, 99, [(244, 264, 8), (245, 263, 7), (244, 262, 7)])
-    for y in range(108, 142):                                              # the floor stack, behind the bin
-        for x in range(190, 222):
-            if y >= 112 and not (193 <= x < 203 and y >= 133) or tuple(a[y, x]) == G.c("plank", 5):
-                a[y, x] = WALL
-    paper(a, 141, [(191, 220, 9), (192, 219, 8), (191, 218, 8), (193, 219, 7)], skip=(193, 133, 203, 142))
-    for x0, y0, x1, y1 in ((190, 17, 192, 112), (400, 26, 403, 92), (132, 14, 162, 25)):   # pale halos by the
-        halo = a[y0:y1, x0:x1]                                                             # bookcases
-        for col in (G.c("plank", 4), G.c("plank", 5)):
-            halo[(halo == col).all(-1)] = WALL
-    side = a[77:100, 282:334]
-    side[(side == CONE).all(-1)] = WALL                                    # the light pillar around the typewriter
-    glow = a[79:98, 400:440]
-    glow[(glow == CONE).all(-1)] = WALL
-    for r in range(12):                                                    # the desk lamp's cone, down to the paper
-        y = 80 + r
-        for x in range(410 - r * 2 // 3, 421 + r // 3):
-            if (a[y, x] == wall).all() and (r < 5 or (r < 9 and (x + y) % 2 == 0) or (x % 2 == 0 and y % 2 == 0)):
-                a[y, x] = CONE
-    for (x0, y0, x1, y1), standing, lying in SHELVES:                    # the top shelves' books, bleached by the
-        a[y0:y1, x0:x1] = (82, 27, 24)                                     # painted lamp light, drawn again as floor
-        for i, (x, top) in enumerate(standing):                           # 1's are: spines in the shelves' own colours
-            a[top:y1, x - 1:x + 3] = G.INK
-            a[top + 1:y1, x:x + 2] = G.c(("red", "plant", "blue", "amber", "steel", "wood")[i % 6], 3)
-        for i, (bx0, by0, bx1) in enumerate(lying):
-            a[by0:by0 + 4, bx0:bx1 + 1] = G.INK
-            a[by0 + 1:by0 + 3, bx0 + 1:bx1] = G.c(("blue", "red", "amber")[i % 3], 4)
-    a[133:135, 442:464] = WALL                                             # the skirting behind the press
-    a[135:143, 442:464] = a[135:143, 460:461]
-    a[134:142, 122:140] = a[134:142, 112:113]                              # the seam's skirting
+    for box in (a[38:56, 398:432], a[35:56, 312:350]):
+        box[(box == CONE).all(-1)] = WALL
+    a = np.asarray(relight(Image.fromarray(a, "RGB"), LAMPS["billie_payments"])).copy()
+    for y in range(142, a.shape[0]):
+        for x in range(a.shape[1]):
+            if tuple(a[y, x]) == (160, 50, 39) and (G.c("amber", 2) in map(tuple, a[y - 1:y + 2, x]) or
+                                                     G.c("amber", 2) in map(tuple, a[y, max(0, x - 1):x + 2])):
+                a[y, x] = G.c("amber", 1)
+    a[126:130, 327:343] = a[130, 328:331] = (160, 50, 39)                  # the returns bin's painted label, which
+    cx, cy = G.VAULT[0] + 132, G.VAULT[1]                                  # read as scrawl, goes
+    for y in range(cy - 48, cy + 49):
+        for x in range(cx - 48, cx + 49):
+            r, side = np.hypot(x - cx, y - cy), (x - cx) + (y - cy)        # side < 0: toward the light
+            if r > 48.5 or r > 39.5 and x < cx - 30 and tuple(a[y, x]) == CONE:   # the painted door was larger;
+                continue                                                   # the first lamp's cone reaches its edge
+            if r > 37.5:
+                a[y, x] = WALL if r > 39.5 or side <= 0 else (172, 129, 89)
+            elif r > 36.5 or 31.5 < r <= 32.5 or 20.5 < r <= 21.5:         # the edge, the rim's inner edge, the recess
+                a[y, x] = G.INK
+            elif r > 32.5:                                                 # the rim
+                a[y, x] = G.c("steel", 4 if side < -8 else 3)
+            else:                                                          # the face, its groove, the recess
+                a[y, x] = G.c("steel", 2 if r <= 20.5 or 26 < r <= 27 else 3)
+    for k in range(8):                                                     # the bolts round the rim
+        t = np.radians(22.5 + 45 * k)
+        x, y = round(cx + 34.5 * np.cos(t)), round(cy - 34.5 * np.sin(t))
+        a[y:y + 2, x:x + 2] = G.INK
+        a[y, x] = G.c("steel", 5)
+    for y0 in (cy - 22, cy + 16):                                          # the hinges, on the right
+        a[y0:y0 + 7, cx + 35:cx + 41] = G.INK
+        a[y0 + 1:y0 + 6, cx + 36:cx + 40] = G.c("steel", 3)
+        a[y0 + 1, cx + 36:cx + 40] = G.c("steel", 4)
     return Image.fromarray(a, "RGB")
 
 
-TOUCHUPS["writing"] = lambda px: newsroom(shadows(px, 142))   # its bookcase and press stand on maroon feet
+TOUCHUPS["billie_payments"] = vault
 
 
 # --- Roof ---

@@ -503,10 +503,10 @@ h4 a,
 /* The stepped clip-path cuts outlines away, so focus is a ring drawn inside the box: cream, then ink. */
 .px-bar a:focus-visible, .cv-floor:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
 
-/* The street from the homepage behind the sheet of every pixel page, dimmed: first frame of its strip (12 frames of 480x336). */
+/* The homepage street without its tower behind the sheet of every pixel page, dimmed (gen_exterior.py: backdrop.png). */
 .px-skin::before {
   content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; image-rendering: pixelated;
-  background: linear-gradient(rgba(12, 14, 20, 0.5), rgba(12, 14, 20, 0.5)), var(--scene) 0 100% / 1200% auto no-repeat;
+  background: linear-gradient(rgba(12, 14, 20, 0.5), rgba(12, 14, 20, 0.5)), var(--scene) 0 100% / 100% auto no-repeat;
 }
 /* The sheet: one dark pixel panel, like a floor card. */
 .px-sheet {

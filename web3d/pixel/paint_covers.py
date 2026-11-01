@@ -11,7 +11,10 @@ to web3d/pixel/paintings/candidates/cover-<slug>_<seed>.png (gitignored). They a
 redraw a seed bit for bit, so static/images/blog/covers/<slug>.jpg is the source from here on. An untouched cover's .jpg is
 its painting and its PNG comes from pixelate.py's plain hint (layouts/partials/blog-art.html). A cover touched up in code
 below has no painting that matches, so its .jpg is a 6x nearest-neighbour upscale of the PNG, and the share card matches
-the post; the hint only approximates such a PNG, so redo it from the candidate with --install.
+the post; the hint only approximates such a PNG.
+
+The committed PNGs are the final art. The 7 covers with a sky or touch-up below cannot be remade without their gitignored
+candidates, and that is accepted: --install needs those local files, and a fresh paint of the same seed will differ.
 """
 import argparse
 import base64
@@ -44,7 +47,7 @@ COVERS = {
      " four high, most holding one drop of honey and one bee each. In the very middle of the comb, three big "
      "bees hover nose to tail in a line, queueing at one single cell. Every bee is well inside the picture.",
      None),
-    "break-hashmap-less-than-a-minute": (22, "The key changed, so the squirrel digs in the wrong place: the acorn is safe, nobody home.",
+    "break-hashmap-less-than-a-minute": (22, "The marker stone moved, so the squirrel digs under it and finds nothing: the acorn is where the stone was.",
      "An autumn forest floor at dusk, violet and orange sky, falling orange leaves, shown as a cut-away with the"
      " soil below. On the left a red squirrel stands at a deep hole it has just dug, looking down into it: the "
      "hole is empty. Far to the right, under a mossy stone, the cut-away soil shows its acorn safely buried "
@@ -86,11 +89,13 @@ COVERS = {
      "upright stone slab on the right. On the slab is a mosaic made of big square coloured tiles in a strict "
      "grid, nearly complete: together the tiles show a sun over green hills. One square gap waits for its tile.",
      None),
-    "amazon-keyspaces-problematic": (55, "A giant Amazon water lily that looks able to bear you, with four holes in it.",
-     "A jungle river at a hot orange sunset, dark rainforest behind. Seen from slightly above, one giant flat "
-     "round water lily pad floats in the centre, wide and bright green with a thin upturned rim and radiating "
-     "veins. Four big ragged holes are torn in the flat leaf, dark water showing through each, and one edge is "
-     "sinking under the water. A worried brown capybara stands on the pad.",
+    "amazon-keyspaces-problematic": (11, "Four ducks look alike above the water; below it, one is a wooden decoy on a cord.",
+     "A bright golden evening over a clear pond, pale gold and peach sky, reeds at the edges. Side-on cut-away "
+     "at the waterline, with clear blue water filling the lower half of the picture. Four big identical mallard "
+     "ducks float in a straight row, each large and clearly separate. Above the waterline all four look exactly "
+     "alike. Below the waterline, the first three have orange webbed feet paddling. The fourth duck, on the "
+     "right, has no feet at all: under the water it is a flat block of plain wood with a cord running straight "
+     "down to a stone on the pond bed.",
      None),
     "fix-misconfigurations-redistemplate": (11, "The fish is right there, but the heron cannot get through the ice: stored, yet null.",
      "A frozen lake at winter dusk, violet and cold blue sky, snowy firs in the distance, shown as a cut-away "
@@ -229,7 +234,38 @@ def notes(img):
     return Image.fromarray(a, "RGB")
 
 
-TOUCH_UPS = {"design-patterns-prototype": clones, "interview-questions-concurrency-parallelism": trail,
+CREAM = (242, 236, 224)
+STONE = [(134, 64), (138, 55), (143, 50), (151, 46), (160, 45), (170, 47), (176, 52), (182, 61), (184, 65), (140, 66)]
+
+
+def moved_stone(img):
+    """break-hashmap: the point is that the key changed, which no painting drew clearly. The stone moves next to the squirrel's
+    empty hole, and a dashed ghost of it stays over the acorn, with the path it took."""
+    a = np.asarray(img).copy()
+    shape = Image.new("L", SIZE)
+    ImageDraw.Draw(shape).polygon(STONE, fill=255)
+    mask = np.asarray(shape) > 0
+    ys, xs = np.nonzero(mask)
+    stone = a[ys, xs].copy()
+    for y, x in zip(ys, xs):
+        a[y, x] = a[y, 124 + (x - 124) % 4] if x < 178 else a[y, 186]  # the sky beside it, in the dither's phase
+    a[60:70, 128:188] = a[60:70, 68:128]                               # the leaf litter runs on where the stone sat
+    a[ys, xs - 72] = stone
+    edge = mask & ~(np.roll(mask, 1, 0) & np.roll(mask, -1, 0) & np.roll(mask, 1, 1) & np.roll(mask, -1, 1))
+    for y, x in zip(*np.nonzero(edge)):
+        if (x + y) % 4 < 2:
+            a[y, x] = CREAM
+    for i in range(0, 41, 3):                                          # the way it went, ending in a head at the stone
+        t = i / 40
+        x, y = int(158 - 66 * t), int(40 - 14 * (1 - (2 * t - 1) ** 2))
+        a[y, x:x + 2] = CREAM
+    for j in range(4):
+        a[37 + j, 89 + j:91 + j] = CREAM
+        a[37 + j, 95 - j:97 - j] = CREAM
+    return Image.fromarray(a, "RGB")
+
+
+TOUCH_UPS = {"break-hashmap-less-than-a-minute": moved_stone, "design-patterns-prototype": clones, "interview-questions-concurrency-parallelism": trail,
              "build-twitter-bot-kotlin": notes}
 
 

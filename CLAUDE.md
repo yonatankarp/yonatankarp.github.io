@@ -34,7 +34,6 @@ front matter places it in the building; testimonials need a `pullQuote` that is 
 - Experience, education and testimonial entries have no pages of their own: the `[[cascade]]` in `hugo.toml` renders
   them with `layouts/_default/redirect.html`, a noindex redirect to their homepage floor
 - `content/skills/_index.md` — skills page
-- `content/footer/` — contact section
 - `content/cv.md` — printable CV page
 
 ## Languages
@@ -84,10 +83,10 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 
 ## Analytics
 
-- **GoatCounter** for privacy-friendly analytics (script in `layouts/partials/head.html`)
+- **GoatCounter** for privacy-friendly analytics (script in `layouts/partials/head.html`, pinned to `count.v5.js` with the SRI hash from goatcounter.com/help/countjs-versions; a new version means a new URL and hash)
 - Dashboard: `https://yonatankarp.goatcounter.com`
 - Localhost and private IPs are automatically excluded
-- To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into `count.js`)
+- To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into the script)
 - Events (dashboard, Events): `cv-download` (the top bar's Download CV), `social-<icon>` (its social icons:
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage or the CV),
   `email-copy` (the Copy chip beside it) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride

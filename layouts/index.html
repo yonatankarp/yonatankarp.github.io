@@ -38,7 +38,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
 {{ range $projects }}{{ if not .Params.link }}{{ errorf "%s: add `link`, where the parking panel sends the reader." .File.Path }}{{ end }}{{ end }}
 <!DOCTYPE html>
-<html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
+<html lang="{{ .Site.Language.Lang }}">
 <head>
   {{ partial "head.html" . }}
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
@@ -49,7 +49,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
   {{- /* A CSP with hash sources stops Chrome's preload scanner from fetching the module early: it then waited for the
        parser, 1717 ms in, and the street drew 400 ms later (Fast 3G, #149). So the module is preloaded by hand. */}}
   <link rel="modulepreload" href="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}">
-  <style>html, body { margin: 0; background: #151923; }</style>
+  <style>html, body { margin: 0; background: #0c0e14; }</style>
   {{- /* Guided from the first paint, not when the module runs (#39): the query is guide.js's roomy, and only where
        a module can run; unguided again if the module fails to load. The street's look too, unless the address names a floor. */}}
   <script>{{ $guided.Content | safeJS }}</script>
@@ -65,13 +65,13 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
 
   <nav class="elevator" aria-label="Floors">
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor></span></div>
-    <button class="building-floor-btn" type="button" data-goto="R" aria-label="R, Roof, contact" title="R, Roof, contact">R</button>
+    <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-label="R, Roof, contact" title="R, Roof, contact">R</a>
     {{ range $experience }}
-    <button class="building-floor-btn" type="button" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}" title="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</button>
+    <a class="building-floor-btn" href="#floor-{{ .Params.floor }}" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}" title="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</a>
     {{ end }}
-    {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</button>{{ end }}
-    <button class="building-floor-btn" type="button" data-goto="L" aria-label="L, Lobby, recommendations, skills and writing" title="L, Lobby, recommendations, skills and writing">L</button>
-    <button class="building-floor-btn" type="button" data-goto="P" aria-label="P, Parking, projects" title="P, Parking, projects">P</button>
+    {{ with $degree }}<a class="building-floor-btn" href="#floor-1" data-goto="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</a>{{ end }}
+    <a class="building-floor-btn" href="#floor-L" data-goto="L" aria-label="L, Lobby, recommendations, skills and writing" title="L, Lobby, recommendations, skills and writing">L</a>
+    <a class="building-floor-btn" href="#floor-P" data-goto="P" aria-label="P, Parking, projects" title="P, Parking, projects">P</a>
   </nav>
 
   <p class="building-hint" style="opacity:0"><span class="hint-fine">Scroll, swipe or use the arrow keys to ride the lift</span><span class="hint-coarse">Swipe to ride the lift</span></p>
@@ -79,7 +79,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
   <main class="building-stops" id="building-stops">
     <section class="building-stop building-stop--hero is-here" id="floor-E" data-floor="E" aria-labelledby="fE">
       <article class="floor-card floor-card--hero" style="--accent:{{ index $accent "E" }}">
-        <p class="floor-how">Every floor is a chapter of my CV. Scroll to go inside, or pick a window.</p>
+        <p class="floor-how">Every floor is a chapter of my CV. <span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, or pick a window.</p>
         <p class="floor-eyebrow">{{ partial "nobreak.html" $home.hero.eyebrow }}</p>
         <h1 id="fE" tabindex="-1">{{ $home.hero.title }}</h1>
         <p class="floor-open">{{ $home.hero.availability }}</p>
@@ -99,11 +99,13 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
         <p class="floor-skills">{{ with $home.contact.email.address }}<span class="with-copy"><a href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</span>{{ end }}{{ range $home.contact.links }}, <a href="{{ .url }}">{{ .label }}</a>{{ end }}</p>
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Step inside</button></div>
       </article>
+      {{- /* The dialog's title, one heading on screen at a time (the card's h2 hides under it), but only one h2 on the floor.
+           The lobby's panel has its own title, so it keeps its h2. */}}
       <div class="floor-panel" id="panel-R" style="--accent:{{ index $accent "R" }}" tabindex="-1" role="region" aria-labelledby="ptR">
         <button class="panel-back" type="button">Back to the lift</button>
         <p class="sr-only" role="status" data-copy-status></p>{{/* inside the modal panel, where screen readers still hear it */}}
         <div class="panel-head"><span class="floor-badge">R</span><p><b>Roof</b><span>{{ $home.contact.kicker }}</span></p></div>
-        <h2 class="panel-title" id="ptR">{{ $home.contact.title }}</h2>
+        <p class="panel-title" id="ptR" role="heading" aria-level="2">{{ $home.contact.title }}</p>
         <p>{{ $home.contact.text }}</p>
         <dl class="panel-facts">{{ range $home.contact.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
         <h3>{{ strings.TrimSuffix "." $home.fit.title }}</h3>
@@ -133,7 +135,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
       <div class="floor-panel" id="panel-{{ $floor }}" style="--accent:{{ index $accent $floor }}" tabindex="-1" role="region" aria-labelledby="pt{{ $floor }}">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">{{ $floor }}</span><p><b>{{ .Params.company }}, {{ .Params.location }}</b><span>{{ replace .Params.duration " - " " – " }}</span></p></div>
-        <h2 class="panel-title" id="pt{{ $floor }}">{{ replace .Title " - " ", " }}</h2>
+        <p class="panel-title" id="pt{{ $floor }}" role="heading" aria-level="2">{{ replace .Title " - " ", " }}</p>
         <p>{{ .Params.summary }}</p>
         <h3>What I did</h3>
         <ul>{{ range .Params.highlights }}<li>{{ partial "nobreak.html" . }}</li>{{ end }}</ul>
@@ -165,7 +167,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
       <div class="floor-panel" id="panel-1" style="--accent:{{ index $accent "1" }}" tabindex="-1" role="region" aria-labelledby="pt1">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">1</span><p><b>{{ .Params.university }}</b><span>{{ replace .Params.year "-" " – " }}</span></p></div>
-        <h2 class="panel-title" id="pt1">{{ .Params.degree }}</h2>
+        <p class="panel-title" id="pt1" role="heading" aria-level="2">{{ .Params.degree }}</p>
         <p>{{ $home.education.title }}</p>
         {{ with .Params.teaching }}
         <h3>Teaching</h3>
@@ -186,7 +188,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
           <p class="floor-end"><a href="#floor-P" data-goto="P">Down to the garage: projects ↓</a></p>
           {{ with index $posts 0 }}<p class="floor-end">Latest writing: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a> · <a href="{{ "blog/" | relURL }}">All posts</a></p>{{ end }}
         </div>
-        {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
+        {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" loading="lazy" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
         <h2 id="fL" tabindex="-1">{{ $home.testimonials.title }}</h2>
         <ul class="floor-quotes">
           {{ range $testimonials }}
@@ -205,7 +207,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
         {{ range $testimonials }}
         {{ $t := . }}
         <figure class="panel-quote">
-          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "30x30 Center" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
+          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "30x30 Center" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" loading="lazy" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
           <blockquote>{{ .Plain | htmlUnescape }}<cite>{{ .Params.name }}, {{ .Params.position }}</cite></blockquote>
         </figure>
         {{ end }}
@@ -224,7 +226,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
         <h2 id="fP" tabindex="-1">{{ $home.projects.title }}</h2>
         {{ $upstream := slice }}{{ $tools := slice }}{{ $games := slice }}
         {{ range $projects }}
-          {{ if eq .Params.group "contribution" }}{{ $upstream = $upstream | append (replace .Title " (contributor)" "") }}
+          {{ if eq .Params.group "contribution" }}{{ $upstream = $upstream | append (partial "project-title.html" .Title) }}
           {{ else if in (lower .Params.projectKind) "game" }}{{ $games = $games | append .Title }}
           {{ else }}{{ $tools = $tools | append .Title }}{{ end }}
         {{ end }}
@@ -240,7 +242,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
       <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }};--accent-text:#FFD77A" tabindex="-1" role="region" aria-labelledby="ptP">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">P</span><p><b>Parking</b><span>{{ $home.projects.kicker }}</span></p></div>
-        <h2 class="panel-title" id="ptP">{{ $home.projects.title }}</h2>
+        <p class="panel-title" id="ptP" role="heading" aria-level="2">{{ $home.projects.title }}</p>
         {{ range slice (slice "Upstream contributions" "contribution") (slice "Libraries and tools" "tool") (slice "Games" "game") }}
         {{ $label := index . 0 }}{{ $kind := index . 1 }}
         <h3>{{ $label }}</h3>
@@ -250,7 +252,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
           {{ $group := cond (eq .Params.group "contribution") "contribution" (cond $isGame "game" "tool") }}
           {{ if eq $group $kind }}
           {{- /* A case study's own page first, its repository or docs second (#33). */}}
-          {{ $name := partial "nobreak.html" (replace .Title " (contributor)" "") }}
+          {{ $name := partial "nobreak.html" (partial "project-title.html" .Title) }}
           <li>{{ if .Params.caseStudy }}{{ $name }}{{ else }}<a href="{{ .Params.link }}">{{ $name }}</a>{{ end }} <span class="panel-soft">· {{ .Params.projectKind }}</span>
             <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 240 "…" }}</span>
             {{ if .Params.caseStudy }}<span class="panel-desc"><a href="{{ .RelPermalink }}">Case study</a> · <a href="{{ .Params.link }}">{{ .Params.button.btnText }}</a></span>{{ end }}

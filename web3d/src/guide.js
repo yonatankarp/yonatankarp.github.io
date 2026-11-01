@@ -1,6 +1,11 @@
 // Floor-to-floor navigation for the building: wheel, swipe, keys and the elevator panel each ride one floor; cards
 // follow arrivals. pixel.js passes an api with go(index), index() and moving(), and emits
 // building:floor / building:depart / building:arrive on document.
+// Short or narrow (zoomed) screens have no room for a room, a card and the lift at once: they get the plain,
+// scrolling page of the no-JS layout. Zooming crosses the line both ways, so it is followed live (#24).
+// layouts/index.html sets the first mode with the same query in <head>, before the first paint (#39).
+export const roomy = matchMedia('(min-height: 500px) and (min-width: 360px)');
+
 export function guide(api, root = document) {
   const stops = [...root.querySelectorAll('section[data-floor]')];
   const keys = stops.map((s) => s.dataset.floor);
@@ -14,10 +19,6 @@ export function guide(api, root = document) {
     mo.disconnect();
     windows.append(...[...windows.children].sort((a, b) => keys.indexOf(a.dataset.goto) - keys.indexOf(b.dataset.goto)));
   }).observe(windows, { childList: true });
-  // Short or narrow (zoomed) screens have no room for a room, a card and the lift at once: they get the plain,
-  // scrolling page of the no-JS layout. Zooming crosses the line both ways, so it is followed live (#24).
-  // layouts/index.html sets the first mode with the same query in <head>, before the first paint (#39).
-  const roomy = matchMedia('(min-height: 500px) and (min-width: 360px)');
 
   // Stops are in page order, top to bottom as the building stands, but the ride runs one way: in from the street (E)
   // at the lobby, then up floor by floor to the roof. Scrolling down (+1) rides on, up (-1) back. The garage (P) is
@@ -61,9 +62,19 @@ export function guide(api, root = document) {
     panel.focus();
     count(`step-in-${button.closest('[data-floor]').dataset.floor}`);
   };
+  // Guided, the other floors are hidden="until-found": Ctrl+F still finds their text, and a match rides there (#131).
+  // Hidden on arrival, not on departure, as a skipped subtree would cut the departing card's fade.
+  const conceal = (index) => stops.forEach((s, i) => { s.hidden = roomy.matches && i !== index ? 'until-found' : false; });
+  // A dissolve runs to its end, so a match found during one waits for its arrival, or its floor would be hidden again.
+  let sought = -1;
+  root.addEventListener('beforematch', (e) => {
+    const to = keys.indexOf(e.target.closest('[data-floor]').dataset.floor);
+    if (!api.go(to)) sought = to;
+  });
   const setMode = (change) => {
     closePanel(false);
     document.documentElement.classList.toggle('building--guided', roomy.matches);
+    conceal(api.index());
     if (!change) return;   // on load the browser already scrolls to any #floor-X
     if (roomy.matches) scrollTo(0, 0);
     else stops[api.index()]?.scrollIntoView();   // keep the reader's floor in view on the plain page
@@ -119,6 +130,8 @@ export function guide(api, root = document) {
       }
       return;
     }
+    // The lift's floors are links, for the plain page, but here they press like the buttons they look like.
+    if (e.key === ' ' && e.target.closest?.('.building-floor-btn')) { e.preventDefault(); e.target.click(); return; }
     if (e.key === ' ' && e.target.closest?.('button, a, [role=button], summary')) return;   // Space presses the control
     const next = { ArrowDown: 1, PageDown: 1, ' ': e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
     if (next && !scrollsInside(document.activeElement, next)) {   // a long card scrolls first, as with the wheel
@@ -164,6 +177,7 @@ export function guide(api, root = document) {
     if (open) (leaving = open.button.closest('.floor-card')).style.visibility = 'hidden';
     closePanel(false);
     show(-1);
+    stops[e.detail.index].hidden = false;   // before is-here lands, so its card fades in
     document.documentElement.classList.remove('at-street');
     if (hint) hint.style.opacity = '0';
     if (arrow) arrow.dataset.dir = e.detail.dir > 0 ? 'down' : e.detail.dir < 0 ? 'up' : '';   // a dissolve has no direction
@@ -173,6 +187,7 @@ export function guide(api, root = document) {
     leaving?.style.removeProperty('visibility');
     leaving = null;
     show(e.detail.index);
+    conceal(e.detail.index);
     if (open && !stops[e.detail.index]?.contains(open.panel)) closePanel(false);
     document.documentElement.classList.toggle('at-street', e.detail.key === 'E');
     if (arrow) arrow.dataset.dir = '';   // standing still: no arrow, like a real lift display
@@ -185,6 +200,8 @@ export function guide(api, root = document) {
       follow = null;
     }
     buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.goto === e.detail.key)));
+    if (sought >= 0) setTimeout(api.go, 0, sought);   // after this frame, which is still drawing the ride that just ended
+    sought = -1;
   });
 }
 
@@ -195,7 +212,8 @@ const count = (path) => window.goatcounter?.count?.({ path, event: true });
 // A long card on a small screen scrolls first; the lift only moves once it is at its end.
 function scrollsInside(target, dir) {
   const box = target.closest?.('.floor-card, .floor-panel');
-  // A sliver of overflow (12 to 21px on some cards) is not worth a key press that barely moves anything (#131).
-  if (!box || box.scrollHeight <= box.clientHeight + 40) return false;
+  // A sliver of overflow (12 to 21px on some cards) is not worth a key press that barely moves anything (#131), except
+  // on the hero, where what it hides is the way to get in touch.
+  if (!box || box.scrollHeight <= box.clientHeight + (box.matches('.floor-card--hero') ? 0 : 40)) return false;
   return dir > 0 ? box.scrollTop + box.clientHeight < box.scrollHeight - 1 : box.scrollTop > 0;
 }

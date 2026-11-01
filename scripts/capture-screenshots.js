@@ -31,7 +31,7 @@ const routes = [
       [".building-download", 1, "CV download"],
       [".building-social a", 4, "social links"],
       ["#pixel-canvas", 1, "building canvas"],
-      ["section.building-stop", 12, "building floors"],
+      ["section.building-stop", 11, "building floors"],
       [".building-window", 9, "street view windows"],
     ],
   },

@@ -25,7 +25,7 @@ images:
 </div>
 
 
-### RESTful API: The Ugly Part
+## RESTful API: The Ugly Part
 
 
 As a backend engineer, I have developed numerous REST APIs during my career. One of the most annoying issues I faced repeatedly was the lack of smooth integration between the backend and clients. Typos in URLs, inconsistent casing in JSON (camel case vs. snake case), passing values of the wrong type (e.g., string instead of an integer), and other similar mistakes have happened to me multiple times.
@@ -33,16 +33,16 @@ As a backend engineer, I have developed numerous REST APIs during my career. One
 <!--more-->
 
 
-![Close-up of API planning notes on a desk](/images/blog/kb-alex-mccarthy-zmDbLyW7VQg-unsplash-1024x683.jpg)
+![Silhouette of a person at the far end of a long meeting table, against a bright window](/images/blog/kb-alex-mccarthy-zmDbLyW7VQg-unsplash-1024x683.jpg)
 
 
-### Use OpenAPI Spec for Our New API
+## Use OpenAPI Spec for Our New API
 
 
 In 2019, my team at the time had to design a new API that would integrate with multiple clients: mobile (Android & iPhone), web, and other backend services. We aimed to make the integration process as seamless as possible while ensuring the robustness of the API definition. During our brainstorming sessions, we decided to use OpenAPI [[link](http://openapis.org)] (formerly known as Swagger) from the beginning. Although I was already familiar with Swagger as a documentation tool, this time we chose to build the API in reverse. As a result, we started by defining the API specification with all the endpoints, requests, and responses first. Each team responsible for integration (backend, mobile, and web) then used the OpenAPI generator [[link](https://openapi-generator.tech/)] to auto-generate the code they needed, including models, network layers, or controllers. Because of the usage of these generated code components in our codebase, we eliminated room for errors.
 
 
-### OpenAPI Adaptation for Better Integration
+## OpenAPI Adaptation for Better Integration
 
 
 This design approach proved to be a great success. In fact, we replicated the same process for new APIs and witnessed other teams adopting OpenAPI for their APIs as well. It became so popular within the company that OpenAPI was officially adopted as the standard for describing all our APIs. This made it easier for both internal and external integrators to adopt our APIs.
@@ -51,7 +51,7 @@ This design approach proved to be a great success. In fact, we replicated the sa
 ℹ️ OpenAPI integration was so powerful that in my new job, I introduced the same pattern. The team used OpenAPI to generate documentation from code, but my suggestion was to reverse the process, as described in this article.
 
 
-### The Article's Objectives
+## The Article's Objectives
 
 
 In this article, I will demonstrate an example of a short and simple API and walk you through the process we followed to create a working REST API. For this demonstration, we will use the following technology stack: Spring Boot, Kotlin, and Gradle's Kotlin DSL alongside (of course) OpenAPI generator. However, OpenAPI supports various other languages, and I chose this stack for the sake of this example. You can find the full list of supported languages [here](https://openapi-generator.tech/docs/generators).
@@ -309,7 +309,7 @@ Running the `build` command in Gradle should generate the code in your project f
 ## Step 3: Implementation of the API! 🎉
 
 
-![Laptop on a desk before API implementation work](/images/blog/kb-jefferson-santos-9SoCnyQmkzI-unsplash-1024x683.jpg)
+![Person in headphones working at a laptop and monitors showing code, in a dark room](/images/blog/kb-jefferson-santos-9SoCnyQmkzI-unsplash-1024x683.jpg)
 
 
 ### Implementing The Code

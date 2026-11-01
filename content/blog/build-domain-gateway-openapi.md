@@ -245,7 +245,7 @@ components:
 ```
 
 
-![Hello API Swagger display](/images/blog/kb-005-hello-openapi-spec-1024x287.webp)Hello API Swagger Display
+![Swagger UI for the Hello API: one GET /hello/{name} endpoint and the HelloResponse schema](/images/blog/kb-005-hello-openapi-spec-1024x287.webp)Hello API Swagger Display
 
 
 #### Goodbye Service
@@ -300,7 +300,7 @@ components:
 ```
 
 
-![Goodbye API Swagger display](/images/blog/kb-006-goodbye-openapi-spec-1024x286.webp)Goodbye API Swagger Display
+![Swagger UI for the Goodbye API: one GET /goodbye/{name} endpoint and the GoodbyeResponse schema](/images/blog/kb-006-goodbye-openapi-spec-1024x286.webp)Goodbye API Swagger Display
 
 
 #### Domain Gateway Service

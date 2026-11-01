@@ -10,7 +10,7 @@
   {{- $title := .Title -}}
   {{- $href := .RelPermalink -}}
   {{- $summary := .Description | default (.Summary | plainify) -}}
-  {{- $content := .Plain | truncate 400 -}}
+  {{- $content := .Plain -}}
   {{- if .IsHome -}}
     {{- $summary = site.Params.description -}}
   {{- else if eq .Path "/skills" -}}
@@ -44,7 +44,7 @@
     "type" $type
     "permalink" $href
     "summary" (replace (replace ($summary | strings.TrimSpace | htmlUnescape) "&ndash;" "-") "&mdash;" "-")
-    "content" (replace (replace ($content | htmlUnescape) "&ndash;" "-") "&mdash;" "-")
+    "content" (replace (replace ($content | htmlUnescape) "&ndash;" "-") "&mdash;" "-" | replaceRE `\s+` " ")
   ) -}}
 {{- end -}}
-{{- $entries | jsonify -}}
+{{- jsonify (dict "noHTMLEscape" true) $entries -}}

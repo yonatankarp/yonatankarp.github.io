@@ -73,6 +73,6 @@ Let's run our app again...
 As you can see, our new logo magically appears!
 
 
-### Summary
+## Summary
 
 In this short article, I've shown you how to customize your Spring banner using text or even images (for Spring Boot `2.x.x`) in just a few minutes.

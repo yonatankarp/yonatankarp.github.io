@@ -22,7 +22,7 @@ As an interviewer, I often ask the question about how HashMap works in Java. It 
 
 In this article, I will explain the HashMap question step by step.
 
-### What is the contract between the equals() and hashCode() functions in Java?
+## What is the contract between the equals() and hashCode() functions in Java?
 
 ![Desk with a laptop showing code](/images/blog/desk-macbook-code.jpeg)
 
@@ -36,7 +36,7 @@ But what does that mean?
 
 It means that if we have two objects considered equal, they must have the same hash code. However, if the objects are not equal, there is no guarantee that they would have different hash codes.
 
-### What is the complexity of retrieving an element from a HashMap?
+## What is the complexity of retrieving an element from a HashMap?
 
 ![Modular synthesizer patch cables as a metaphor for HashMap lookup paths](/images/blog/modular-synth-patch-cables.jpeg)
 
@@ -44,7 +44,7 @@ Retrieving an element from a HashMap has a constant time complexity of `O(1)`.
 
 That was easy! Or is it?
 
-### What happens if hashCode() is overridden to return a constant value?
+## What happens if hashCode() is overridden to return a constant value?
 
 Let’s assume that as a developer, I have created the following class:
 
@@ -128,7 +128,7 @@ flowchart LR
     v2 --> v3["key_3 | value_3"]
 ```
 
-### Can we improve the search time?
+## Can we improve the search time?
 
 Our problem now is that the bucket uses a linked list, a data structure that is unsorted. What if we would use a data structure that is sorted by nature?
 
@@ -154,7 +154,7 @@ flowchart LR
 
 In fact, since Java 8, the internal implementation of HashMap was changed exactly like that.
 
-### Bonus: Implementing HashSet using HashMap
+## Bonus: Implementing HashSet using HashMap
 
 ![Dollar bill and coins representing set membership](/images/blog/dollar-bill-and-coins.jpeg)
 
@@ -185,7 +185,7 @@ flowchart LR
 We can easily implement a `HashSet` using `HashMap`. We will do so by using our value for the set as the key for the map and null as the value. In fact, that’s again exactly the implementation Java chose.
 
 
-### Conclusion
+## Conclusion
 
 As you can see, the question covers many areas:
 
@@ -197,7 +197,7 @@ As you can see, the question covers many areas:
 
 Moreover, the question could be extended to cover more topics such as concurrency, for example (how would you implement distributed HashMap?).
 
-### Resources
+## Resources
 
 For more information, refer to the following resources:
 

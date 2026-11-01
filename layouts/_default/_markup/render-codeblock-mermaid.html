@@ -1,2 +1,3 @@
-<pre class="mermaid" tabindex="0" role="region" aria-label="Diagram, scrolls sideways">{{ .Inner | htmlEscape | safeHTML }}</pre>
+{{- .Page.Store.Add "diagrams" 1 -}}
+<pre class="mermaid" tabindex="0" role="region" aria-label="Diagram {{ .Page.Store.Get "diagrams" }}, scrolls sideways">{{ .Inner | htmlEscape | safeHTML }}</pre>
 {{ .Page.Store.Set "hasMermaid" true }}

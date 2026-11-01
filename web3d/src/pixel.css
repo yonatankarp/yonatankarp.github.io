@@ -135,8 +135,10 @@
   color: var(--text);
   font: 400 30px/1 var(--display);
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #4a525c;
+  transition: transform 80ms steps(1);
 }
 .pixel .building-floor-btn:hover { background: #3c434c; }
+.pixel .building-floor-btn:active { transform: translateY(4px); }
 .pixel .building-floor-btn[aria-current="true"] {
   background: var(--amber);
   color: var(--ink);

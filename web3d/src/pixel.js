@@ -162,8 +162,9 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
     }
     const inT = ride.fade ? (ride.to === eAt ? 1 - u : u) : 0;   // going in or out: 0 on the street, 1 in the room
-    const streetA = ride.fade ? 1 - easeInOut(inT) : street.alpha(p, eAt);
     const fly = ride.fade && inT > 0 && inT < 1 ? street.fly(keys[inner], inT, w, h, dpr, wide, { s, x: x0, y: ry }) : null;
+    // A flight's every frame differs and sig must see that; the plain dissolve (the roof's) steps, like the cards.
+    const eased = 1 - easeInOut(inT), streetA = ride.fade ? (fly ? eased : Math.round(eased * 6) / 6) : street.alpha(p, eAt);
     const sig = [f, camY, streetA, loads, now < fading && now, ...open.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken

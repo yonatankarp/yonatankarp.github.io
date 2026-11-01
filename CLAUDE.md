@@ -74,7 +74,7 @@ tags: [kotlin, spring-boot]
 Optional `discuss: {linkedin: <url>, x: <url>}` points the post's "Discuss this post" line at the thread where it was
 shared; without it the line links to the LinkedIn and X profiles.
 
-A cover (`images.featured_image`, a photo in `static/images/blog/covers/`) also needs its pixel-art version in
+A cover (`images.featured_image`, a painting in `static/images/blog/covers/`, made with `web3d/pixel/paint_covers.py`) also needs its pixel-art version in
 `static/images/blog/covers/pixel/`, which the blog shows; the build fails with the `pixelate.py` command to make it.
 
 ### New project

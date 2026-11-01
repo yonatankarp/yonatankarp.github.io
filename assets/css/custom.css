@@ -831,8 +831,8 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
    whole multiples of the dither tile, so the pattern stays on its grid at any viewport height. Gradients, not an image:
    the new page would have to fetch one mid-wipe, and data: URLs are outside the CSP's img-src. The root's group keeps
    its default animation: with `none`, Chromium 156 paints nothing of the old page when Back lands partway down.
-   The new document's rules run a transition, so this is every page's but the homepage's, whose arrival is in
-   web3d/src/pixel.css. */
+   The new document's rules run a transition, so this animates every page but the homepage, whose arrival is in
+   web3d/src/pixel.css; the old document only names what it hands over, so pixel.css's names reach here on the way out. */
 .px-bar { view-transition-name: px-bar; }
 ::view-transition-group(px-bar), ::view-transition-old(root), ::view-transition-new(px-bar) { animation: none; }
 ::view-transition-old(px-bar), ::view-transition-old(px-social) { display: none; }   /* px-social: the homepage names its icons on its own layouts */

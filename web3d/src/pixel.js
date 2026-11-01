@@ -145,7 +145,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   let paused = false, raf = 0, timer = 0, drawn = '';
   try { paused = localStorage.getItem(PAUSE_KEY) === 'true'; } catch { /* blocked storage: it just is not remembered */ }
   // The opening shot: -1 waiting for the art, then when it began, 0 for none. Spent at the first load in any case, and
-  // storage that cannot remember gets none, rather than one at every reload and Back.
+  // storage that cannot remember gets none, rather than one at every reload. arrive(), below, is the other way in.
   let shot = 0, epoch = 0, shotFrom = 0, shotMs = SHOT_MS;
   try {
     if (!sessionStorage.getItem(SHOT_KEY) && keys[ride.from] === 'E' && !paused && !held()) shot = -1;
@@ -162,13 +162,13 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   let waiting = '', waitTo = 0;
   const arrive = () => {
     document.documentElement.classList.remove('px-arrive');
-    if (held() || rideU(performance.now()) < 1) return;
+    if (held() || paused || rideU(performance.now()) < 1) return;
     const key = keys[ride.to];
     if (key !== 'E') {
       open.set(key, 0); lit.set(key, 0);
       waiting = key; waitTo = performance.now() + LAMPS_AFTER;
       setTimeout(wake, LAMPS_AFTER);
-    } else if (!paused) {
+    } else {
       shotFrom = ARRIVE_FROM; shotMs = ARRIVE_MS; cuttable();
       if (street.ready()) roll(); else shot = -1;
     }

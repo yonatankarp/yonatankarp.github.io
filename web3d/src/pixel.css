@@ -548,7 +548,7 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
    behind it. The band grows in from under the screen, or frame one would cut into the old page. Rows are whole multiples
    of the dither tile, so the pattern stays on its grid at any viewport height. The top bar stands still: it is its own
    group, shown at once. The root's group keeps its default animation: with `none`, Chromium 156 paints nothing of the
-   old page when Back lands partway down. */
+   old page when Back lands partway down. Only the names below also act on the way out, where custom.css animates. */
 .building-top { view-transition-name: px-bar; }
 ::view-transition-group(px-bar), ::view-transition-new(root), ::view-transition-new(px-bar) { animation: none; }
 ::view-transition-old(px-bar) { display: none; }

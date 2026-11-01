@@ -90,11 +90,12 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     requestAnimationFrame(() => document.documentElement.classList.contains('building--guided') || stops[fromHash].scrollIntoView());
   }
   const rideU = (now) => (ride.dur ? clamp01((now - ride.start) / ride.dur) : 1);
-  // A carried speed rides a cubic Hermite (smoothstep plus the speed's term), which lands without overshooting; the
+  // A cubic Hermite (smoothstep plus any carried speed's term), which lands without overshooting and, without a cubic ease's
+  // peak of 3x the mean, without strobing: past about 50 CSS px a frame the eye sees separate pictures, not motion. The
   // land term is its other end's tangent, the speed the settle starts at.
   const pos = (u) => {
     const m = ride.settle ? Math.min(1, u * ride.dur / (ride.dur - ride.settle)) : u;
-    return ride.from + (ride.to - ride.from) * (ride.v ? m * m * (3 - 2 * m) : easeInOut(m)) + ride.v * m * (1 - m) ** 2 + ride.land * m * m * (m - 1);
+    return ride.from + (ride.to - ride.from) * m * m * (3 - 2 * m) + ride.v * m * (1 - m) ** 2 + ride.land * m * m * (m - 1);
   };
   // How far past its stop the cab has sunk, in art pixels: in level's terms, so the street's far-off level is not involved.
   const sunk = (u) => { const t = ride.settle ? 1 - (1 - u) * ride.dur / ride.settle : 0; return t > 0 ? ride.sink * Math.sin(Math.PI * t) : 0; };
@@ -111,10 +112,10 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const here = cab(u), vel = u < 1 ? (here - cab(rideU(now - 16))) / 16 : 0;   // floors per ms
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: through a window, not a ride
     const still = held();
-    const dist = Math.abs(to - here), dur = fade ? (keys[to === eAt ? Math.round(here) : to] === 'R' ? 1400 : 1700) : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
+    const dist = Math.abs(to - here), dur = fade ? (keys[to === eAt ? Math.round(here) : to] === 'R' ? 1400 : 1700) : Math.min(1600, 650 + 230 * Math.max(0, dist - 1));
     const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000;   // the doors shut, then it moves
     // The eased start moves the camera less than half an art pixel at first: that stretch runs as the doors finish.
-    const hidden = vel || fade ? 0 : dur * Math.cbrt(1 / (1440 * Math.max(dist, 1e-3)));
+    const hidden = vel || fade ? 0 : dur * Math.sqrt(1 / (1080 * Math.max(dist, 1e-3)));
     const settle = fade || still || paused ? 0 : SETTLE;
     Object.assign(ride, {
       from: here, to, start: now + Math.max(0, closeMs - hidden), fade, dur: still ? 1 : dur + settle, v: fade || still ? 0 : vel * dur, settle,
@@ -204,11 +205,11 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const x0 = wide ? Math.round((w - FW * s) / 2) : Math.min(0, Math.max(w - FW * s, Math.round(w / 2 - focus * s)));
     const cy = wide ? h / 2 : cardTop ? floorAt * dpr - FH * s / 2 : h * 0.3;   // phones keep the room above the card
     const ry = Math.round(cy - FH * s / 2);                    // the top of the floor in view
-    const camY = Math.round(lerpAt(at, level) + sunk(u));      // whole art pixels: no shimmer
+    const camY = Math.round((lerpAt(at, level) + sunk(u)) * s) / s;   // whole device pixels: art pixels stay one size, and a slow move is not a series of art-pixel jumps
     const near = Math.round(p);
     if (near !== passing) { passing = near; emit('building:floor', { index: near, key: keys[near] }); }
     // Arrived the moment the camera reaches its stop: the doors and the lamps start as it settles.
-    const landed = u === 1 || (!ride.fade && u > 0.5 && camY === level(keys[ride.to]));
+    const landed = u === 1 || (!ride.fade && u > 0.5 && (camY - level(keys[ride.to])) * ride.sink >= 0);
     if (landed && arrived !== ride.to) { arrived = ride.to; emit('building:arrive', { index: ride.to, key: keys[ride.to] }); }
 
     const phase = (now - epoch) % (loopMs + REST_MS);
@@ -242,7 +243,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
 
     // Every storey, the one in view with its top at ry; s and x0 are the frame's own, or the flight's.
     function tower(s, x0, ry) { for (const key of ORDER) {
-      const y = ry - (level(key) - camY) * s;
+      const y = Math.round(ry - (level(key) - camY) * s);
       const img = strips.get(key);
       if (key === 'R' && y > 0) {                                                         // the sky goes on above the roof
         ctx.fillStyle = SKY; ctx.fillRect(0, 0, w, y + 1);
@@ -524,11 +525,13 @@ function streetView(base, box, stops, loaded, then) {
       const cover = ([ax, ay]) => Math.max(Math.max(ax, w - ax) * 2 / ww, Math.max(ay, h - ay) * 2 / wh);
       const end = Math.ceil(Math.max(cover(from), cover(to)));
       const push = clamp01(t / FLY_PAST);
-      const z = Math.round(base.s * (end / base.s) ** (push * push));   // a steady rate of growth: a zoom at a constant ratio reads as constant speed
+      // A steady rate of growth: a zoom at a constant ratio reads as constant speed. Not whole scales in flight: 2 to 3 is a 50%
+      // jump. The art pixels differ by a device pixel for the moment they move; every plane lands on, and leaves, a whole scale.
+      const z = base.s * (end / base.s) ** (push * push);
       const at = (s) => ({ s, x: Math.round(fx - mx * s), y: Math.round(fy - my * s) });
-      const rs = Math.round(base.s + (room.s - base.s) * e), front = at(z);
+      const rs = base.s + (room.s - base.s) * e, front = at(z);
       return {
-        key, front, near: at(Math.round(base.s * (z / base.s) ** 0.3)),
+        key, front, near: at(base.s * (z / base.s) ** 0.3),
         far: { s: base.s, x: base.x + Math.round((fx - from[0]) * 0.12), y: base.y + Math.round((fy - from[1]) * 0.12) },
         room: { s: rs, x: Math.round(fx - lx * rs), y: Math.round(fy - ly * rs) },
         win: [front.x + x0 * z, front.y + y0 * z, ww * z, wh * z],
@@ -546,12 +549,12 @@ function streetView(base, box, stops, loaded, then) {
       const from = base.x + mid * base.s, off = h * 1.15 - ground;   // off: where the cornice is headed, past the bottom edge, so it leaves still moving
       const e = easeInOut(CRANE_PEAK / CRANE_OUT);                  // how much of the climb is done at the peak, with the cornice still above the screen
       const Z = Math.ceil(Math.max(w / (BRICK[1] - BRICK[0] - 1), (ground + e * off) / (tall * (1 - e))));
-      const push = easeInOut(clamp01(t / CRANE_PEAK)), z = Math.round(base.s * (Z / base.s) ** push);
+      const push = easeInOut(clamp01(t / CRANE_PEAK)), z = base.s * (Z / base.s) ** push;
       const climb = easeInOut(clamp01(t / CRANE_OUT)), risen = climb * (tall + off / Z), fx = from + (w / 2 - from) * push ** 3;   // no pan till the tower has outgrown its far copy, which would show past its edge
       const at = (s) => ({ s, x: Math.round(fx - mid * s), y: Math.round(ground + (risen - ROAD) * s) });
       const front = at(z);
       return {
-        key: 'R', front, near: at(Math.round(base.s * (z / base.s) ** 0.3)), over: t >= CRANE_PEAK,
+        key: 'R', front, near: at(base.s * (z / base.s) ** 0.3), over: t >= CRANE_PEAK,
         far: { s: base.s, x: base.x + Math.round((fx - from) * 0.12), y: base.y + Math.round(climb * h * 0.04) },
         room: { ...room, y: room.y - Math.round((1 - climb) * 12) * room.s },   // the deck settles under the camera, in whole art pixels
         dim: 0, veil: Math.round(clamp01(1 - (push - 0.1) / 0.5) * 16),   // outdoors: nothing dims
@@ -570,7 +573,8 @@ function streetView(base, box, stops, loaded, then) {
       const blit = (src, sx, sy, sw, sh, c) => {   // only what is on screen: late in the flight a picture is far bigger than the canvas
         const a = Math.max(sx, Math.floor(-c.x / c.s)), b = Math.max(sy, Math.floor(-c.y / c.s));
         const r = Math.min(sx + sw, Math.ceil((w - c.x) / c.s)), d = Math.min(sy + sh, Math.ceil((h - c.y) / c.s));
-        if (r > a && d > b) ctx.drawImage(src, a, b, r - a, d - b, c.x + a * c.s, c.y + b * c.s, (r - a) * c.s, (d - b) * c.s);
+        const X = Math.round(c.x + a * c.s), Y = Math.round(c.y + b * c.s);   // the far edges too, or a fractional scale's planes part at their seams
+        if (r > a && d > b) ctx.drawImage(src, a, b, r - a, d - b, X, Y, Math.round(c.x + r * c.s) - X, Math.round(c.y + d * c.s) - Y);
       };
       const repeats = (c, y0, src = plates) => {   // the street's neighbours, repeated as in draw()
         for (let gx = c.x - L * c.s; gx > -L * c.s; gx -= L * c.s) blit(src, 0, y0, L, EH - y0, { ...c, x: gx });
@@ -615,9 +619,9 @@ function streetView(base, box, stops, loaded, then) {
       blit(plates, SHAFT[0], top, SHAFT[1] - SHAFT[0], ROAD - top, front);
       const glass = (key, [x, y, gw, gh], r) => {
         ctx.save();
-        ctx.beginPath(); ctx.rect(x, y, gw, gh); ctx.clip();
+        ctx.beginPath(); ctx.rect(Math.round(x), Math.round(y), Math.round(x + gw) - Math.round(x), Math.round(y + gh) - Math.round(y)); ctx.clip();
         room(r.s, r.x, r.y);
-        if (fly.veil) blit(veil(key, fly.veil), 0, 0, gw / front.s, gh / front.s, { s: front.s, x, y });
+        if (fly.veil) blit(veil(key, fly.veil), 0, 0, Math.round(gw / front.s), Math.round(gh / front.s), { s: front.s, x, y });
         ctx.restore();
       };
       if (fly.key !== 'R') glass(fly.key, fly.win, fly.room);

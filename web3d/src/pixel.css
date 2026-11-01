@@ -102,7 +102,7 @@ html.at-street.building--guided[data-time='night'] .pixel #pixel-canvas { backgr
 .pixel .floor-card {
   box-sizing: border-box;
   opacity: 0;
-  transform: translateY(16px); transition: opacity 180ms steps(4), transform 180ms steps(4);   /* whole 4px steps */
+  transform: translateY(16px); transition: opacity 180ms steps(8), transform 180ms steps(8);   /* whole 2px steps */
   background: var(--panel);
   width: min(400px, 30vw);       /* ends over the lift lobby, clear of the room */
   padding: 22px 22px 20px 34px;

@@ -262,7 +262,7 @@ export function guide(api, root = document) {
 }
 
 // Step inside's motion: quick, this is the way to the text. Asked for no motion, or on Pause, it cuts as it always did.
-const PANEL_MS = 280, PANEL_STEPS = 8;
+const PANEL_MS = 280, PANEL_STEPS = 16;
 const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.querySelector('[data-building-pause]')?.dataset.paused === 'true';
 
 // A GoatCounter event (CLAUDE.md, Analytics). count.js loads async, may be blocked, and a page can set

@@ -214,6 +214,8 @@ html:not(.building--guided) .building-hint { display: none; }
   .pixel .building-hint { left: 50%; white-space: normal; top: calc(var(--card-top) - 72px); bottom: auto; transform: translate(-50%, -100%); width: max-content; max-width: calc(100% - 24px); box-sizing: border-box; margin: 0; padding: 8px 12px; font-size: 14px; }
   .pixel .building-scrim { background: linear-gradient(0deg, rgba(10, 11, 16, 0.75) 0, rgba(10, 11, 16, 0.5) 40%, rgba(10, 11, 16, 0) 52%); }
 }
+/* By daylight that dimming is a dark smear on a pale sky, and nothing needs it: the cards and the bar have their own panels. */
+html:is([data-time='day'], [data-time='dawn']) .pixel .building-scrim { background: none; }
 /* Links are text: a floor whose paint is too dark to read on the panel sets a lighter --accent-text (#38). */
 .pixel .floor-card a { color: var(--accent-text, var(--accent, var(--amber))); text-underline-offset: 4px; }
 /* The Copy chip beside the email address (#153); wide enough for "Copied" so the line does not shift. */

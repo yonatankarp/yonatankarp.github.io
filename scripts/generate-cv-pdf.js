@@ -100,7 +100,7 @@ function createStaticServer() {
 
   try {
     const page = await browser.newPage({ viewport: { width: 1240, height: 1754 } });
-    await page.goto(`${baseUrl}/cv/`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}/cv/?time=dusk`, { waitUntil: "domcontentloaded" });
     try {
       await page.waitForLoadState("networkidle", { timeout: 5000 });
     } catch (error) {

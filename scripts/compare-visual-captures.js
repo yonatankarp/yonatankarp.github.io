@@ -532,7 +532,8 @@ function main() {
 
   printReport(baseline, candidate, comparison);
 
-  if (comparison.missing.length > 0) {
+  // A capture only the candidate has is a new route, such as an added time of day: reported, but nothing went missing.
+  if (comparison.missing.some((item) => item.baselineFile || item.candidateFile.missing)) {
     process.exitCode = 1;
   } else if (options.failOnDrift && overBudgetChanges(comparison.changed).length > 0) {
     process.exitCode = 1;

@@ -28,6 +28,8 @@ const OVER = 2, SETTLE = 260;                                   // the cab sinks
 const FOCUS = { 2: 330, 3: 250 };                               // on narrow screens, the art x kept mid-screen (else 300)
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
 const PAUSE_KEY = 'building-paused';                            // per viewer, kept across reloads
+const SHOT_KEY = 'building-shot', SHOT_MS = 2000;               // the opening shot: once a browser session, and how long
+const SHOT_BY = 1500;                                           // ms after the card's first paint: art later than this just appears, under someone already reading
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
 const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
@@ -101,6 +103,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const cab = (u) => { const past = pos(u) - sunk(u) / FH; return past >= eAt + 1 && past <= keys.length - 1 ? past : pos(u); };
   const emit = (name, detail) => document.dispatchEvent(new CustomEvent(name, { detail }));
   function go(index) {
+    shot = 0;
     loadAll();
     const now = performance.now(), u = rideU(now);
     const to = Math.max(0, Math.min(keys.length - 1, index));
@@ -138,6 +141,18 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   // sleeps: until the next frame of the loop, or for good while held, until a ride, a resize or a load wakes it (#36).
   let paused = false, raf = 0, timer = 0, drawn = '';
   try { paused = localStorage.getItem(PAUSE_KEY) === 'true'; } catch { /* blocked storage: it just is not remembered */ }
+  // The opening shot: -1 waiting for the art, then when it began, 0 for none. Spent at the first load in any case, and
+  // storage that cannot remember gets none, rather than one at every reload and Back.
+  let shot = 0, epoch = 0;
+  try {
+    if (!sessionStorage.getItem(SHOT_KEY) && keys[ride.from] === 'E' && !paused && !held()) shot = -1;
+    sessionStorage.setItem(SHOT_KEY, '1');
+  } catch { shot = 0; }
+  if (shot) {
+    // Any input cuts to the rest picture, in time for that same input to land on it.
+    const cut = () => { if (shot) epoch = performance.now() - (FRAMES * 1000) / FPS; shot = 0; wake(); };
+    for (const type of ['wheel', 'keydown', 'pointerdown', 'click']) addEventListener(type, cut, { capture: true, passive: true, once: true });
+  }
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
   // Held has nothing to pause: the button hides, and shows again if that changes after load (#128).
   const label = () => {
@@ -170,7 +185,11 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       cardTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--card-top')) || 0;   // CSS px; 0 where it is unset
     }
     ctx.imageSmoothingEnabled = false;
-    const wide = !narrow.matches, still = held();
+    const wide = !narrow.matches, still = held(), loopMs = (FRAMES * 1000) / FPS;
+    if (still || (shot < 0 && now - (performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? now) > SHOT_BY)) shot = 0;
+    if (shot < 0 && street.ready()) { street.prime(); shot = performance.now() + 100; }   // its clock starts after the planes' first cost and first draw, held on flat sky: the motion is fastest at once
+    const take = shot > 0 ? clamp01((now - shot) / SHOT_MS) : 0;
+    if (take === 1) { shot = 0; epoch = now - loopMs; }   // the room's loop starts on its rest, the shot's last picture
 
     const u = rideU(now);
     const p = ride.fade ? (u < 0.5 ? ride.from : ride.to) : Math.min(keys.length - 1, Math.max(0, pos(u)));
@@ -192,8 +211,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const landed = u === 1 || (!ride.fade && u > 0.5 && camY === level(keys[ride.to]));
     if (landed && arrived !== ride.to) { arrived = ride.to; emit('building:arrive', { index: ride.to, key: keys[ride.to] }); }
 
-    const loopMs = (FRAMES * 1000) / FPS;
-    const phase = now % (loopMs + REST_MS);
+    const phase = (now - epoch) % (loopMs + REST_MS);
     const f = paused || still || phase >= loopMs ? 0 : Math.floor(phase / (1000 / FPS));
     for (const key of ORDER) {
       const here = arrived === ride.to && keys[ride.to] === key;
@@ -204,7 +222,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const fly = ride.fade && inT > 0 && inT < 1 ? street.fly(keys[inner], inT, w, h, dpr, wide, { s, x: x0, y: ry }) : null;
     // A flight's every frame differs and sig must see that; the plain dissolve (no street picture to fly by) steps, like the cards.
     const eased = 1 - easeInOut(inT), streetA = ride.fade ? (fly ? eased : Math.round(eased * 6) / 6) : street.alpha(p, eAt);
-    const sig = [f, camY, streetA, loads, now < fading && now, ...open.values(), ...lit.values()].join();
+    const sig = [f, camY, streetA, loads, now < fading && now, shot < 0, shot > 0 && take, ...open.values(), ...lit.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
         cancelAnimationFrame(raf); raf = 0;
@@ -218,7 +236,9 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     ctx.fillRect(0, 0, w, h);
     if (fly) { street.flight(ctx, f, w, h, dpr, wide, fly, tower); return; }
     if (streetA < 1) tower(s, x0, ry);
-    street.draw(ctx, f, w, h, streetA, dpr, wide);
+    street.draw(ctx, f, w, h, streetA, dpr, wide, undefined, shot ? null : undefined);   // during the shot, its flat colours and the windows' places
+    if (shot > 0) street.flight(ctx, 0, w, h, dpr, wide, street.fly('E', take, w, h, dpr, wide));
+    else if (shot) { ctx.fillStyle = SKY; ctx.fillRect(0, 0, w, h); }   // the shot's first picture, and what pixel.css shows before this script
 
     // Every storey, the one in view with its top at ry; s and x0 are the frame's own, or the flight's.
     function tower(s, x0, ry) { for (const key of ORDER) {
@@ -305,13 +325,13 @@ function drawDoors(ctx, img, f, x0, y0, s, open) {
 
 // A strip's rest frame and edge runs with its lights off, each colour fallen to the nearest of the room's own, so it
 // stays on the palette; with lv of 16 Bayer cells of it left, to dither over the lit room. Laid out as the strip, with
-// one frame. Made when first seen, and kept on the image.
+// one frame. Made when first seen, and kept on the image. The street's picture is as wide as a strip, only taller.
 function shade(img, lv) {
   img.shades ??= {};
   if (img.shades[lv]) return img.shades[lv];
-  const runs = img.width - FRAMES * FW;
+  const runs = img.width - FRAMES * FW, H = img.height;
   const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true }), W = FW + runs;
-  c.canvas.width = W; c.canvas.height = FH;
+  c.canvas.width = W; c.canvas.height = H;
   if (lv < 16) {   // composited, not read back: this runs as a lamp comes on, and must not cost that frame
     const tile = document.createElement('canvas').getContext('2d');
     tile.canvas.width = tile.canvas.height = 4;
@@ -319,12 +339,12 @@ function shade(img, lv) {
     c.drawImage(shade(img, 16), 0, 0);
     c.globalCompositeOperation = 'destination-in';
     c.fillStyle = c.createPattern(tile.canvas, 'repeat');
-    c.fillRect(0, 0, W, FH);
+    c.fillRect(0, 0, W, H);
     return (img.shades[lv] = c.canvas);
   }
-  c.drawImage(img, 0, 0, FW, FH, 0, 0, FW, FH);
-  if (runs) c.drawImage(img, FRAMES * FW, 0, runs, FH, FW, 0, runs, FH);
-  const d = c.getImageData(0, 0, W, FH), px = new Uint32Array(d.data.buffer);
+  c.drawImage(img, 0, 0, FW, H, 0, 0, FW, H);
+  if (runs) c.drawImage(img, FRAMES * FW, 0, runs, H, FW, 0, runs, H);
+  const d = c.getImageData(0, 0, W, H), px = new Uint32Array(d.data.buffer);
   const rgb = (v) => [v & 255, (v >> 8) & 255, (v >> 16) & 255], own = [...new Set(px)].map((v) => [v, rgb(v)]);
   const fallen = new Map(own.map(([v, col]) => {
     const to = col.map((n, i) => n * DARK[i]);
@@ -341,11 +361,11 @@ function shade(img, lv) {
 // 1-7 dimmed behind each floor's company sign.
 // Its windows are buttons laid over the canvas; the street left and right of the picture repeats its neighbours.
 function streetView(base, box, stops, loaded, then) {
-  const view = { img: null, since: 0, size: [480, 336], windows: {}, top: SKY, bottom: '#2a2226', at: null };
+  const view = { img: null, size: [480, 336], windows: {}, top: SKY, bottom: '#2a2226', at: null };
   const img = new Image();
   img.onload = () => {
     then();
-    Object.assign(view, { img, since: performance.now(), top: colourAt(img, 0, 0), bottom: colourAt(img, 0, view.size[1] - 1) });
+    Object.assign(view, { img, top: colourAt(img, 0, 0), bottom: colourAt(img, 0, view.size[1] - 1) });
     loaded();
   };
   img.onerror = then;
@@ -388,6 +408,7 @@ function streetView(base, box, stops, loaded, then) {
   const BRICK = [170, 310], SHAFT = [167, 313], ROAD = 310, FLY_PAST = 0.85;   // FLY_PAST: how far into the flight the window's frame has left the screen
   const CRANE_PEAK = 0.4;                  // how far into the crane shot the brick fills the screen
   const CRANE_OUT = 1.15;                  // and where its climb would end: past 1, since its last stretch is too slow to see, with the cornice gone
+  const STOREY = 28, SKY_COLS = 8;         // gen_exterior.STOREY; the first 4 columns of the sky with no star in them, at any hour
   const JIB = [[200, 9, 316, 22], [238, 9, 244, 38], [283, 9, 288, 81]];   // the crane against the sky: jib, hook, mast (the clouds keep clear of them)
   let plated = null;
   function plate() {   // the rest frame without its sky, so the planes slide over the far street
@@ -404,12 +425,48 @@ function streetView(base, box, stops, loaded, then) {
       for (let y = 0; y < ROAD; y++) {
         const gone = !tower ? y < roof
           : y < CRANE[2] ? sky(x, y) || !JIB.some(([a, b, c, e]) => x >= a && x < c && y >= b && y < e)
-            : !brick && (y >= 200 || sky(x, y));
+            : !brick && (y >= 200 || sky(x, y) || (x < BRICK[0] - 1 && y >= 110 && y < 115) || (x === SHAFT[0] && y >= 110 && y < 120));   // the sky, or the cloud cut by the tower's edge (the ledge starts under it)
         if (gone) px[(y * EW + x) * 4 + 3] = 0;
       }
     }
     c.putImageData(d, 0, 0);
     return (plated = c.canvas);
+  }
+  let cleared = null;
+  function clearSky() {   // the rest frame's sky alone, for when what stands in it is further down: painted out from the sky's clear columns, and its lowest row running on below
+    if (cleared) return cleared;
+    const [EW, EH] = view.size, over = plate().getContext('2d').getImageData(0, 0, EW, EH).data, c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    c.canvas.width = EW; c.canvas.height = EH;
+    c.drawImage(view.img, 0, 0);
+    const d = c.getImageData(0, 0, EW, EH), px = new Uint32Array(d.data.buffer), fr = new ImageData(EW, EH), edge = new Uint32Array(fr.data.buffer);
+    const clear = (x, y) => px[Math.min(y, 190) * EW + SKY_COLS + x % 4];   // above the first roof's cornice
+    for (let y = 0; y < EH; y++) for (let x = 0; x < EW; x++) {
+      const i = y * EW + x;
+      if (y > 199 || over[i * 4 + 3]) px[i] = clear(x, y);
+      // What the plates leave of the tower beside its shaft travels with it: the jib's tail, the cornice's end and the glow round it.
+      else if (((x >= SHAFT[0] - 4 && x < SHAFT[0]) || (x >= SHAFT[1] && x < SHAFT[1] + 4)) && y >= 78 && y < 100 || (x >= SHAFT[1] && x < JIB[0][2] && y < JIB[0][3])) {
+        if (px[i] !== clear(x, y)) edge[i] = px[i];
+        px[i] = clear(x, y);
+      }
+    }
+    // The one cloud the tower cuts at rest (gen_exterior.STREET_CLOUDS): its hidden half, mirrored, or its cut edge would show.
+    for (let y = 110; y < 120; y++) for (let x = SHAFT[0]; x < 181; x++) if (px[y * EW + 320 - x] !== clear(320 - x, y)) px[y * EW + x] = px[y * EW + 320 - x];
+    c.putImageData(d, 0, 0);
+    const e = document.createElement('canvas').getContext('2d');
+    e.canvas.width = EW; e.canvas.height = EH;
+    e.putImageData(fr, 0, 0);
+    return (cleared = { canvas: c.canvas, fringe: e.canvas });
+  }
+  const darks = new Map();
+  function dark(lv) {   // the planes with their lights off, lv of 16 Bayer cells of it left
+    if (darks.has(lv)) return darks.get(lv);
+    const c = document.createElement('canvas').getContext('2d');
+    c.canvas.width = view.size[0]; c.canvas.height = view.size[1];
+    c.drawImage(plate(), 0, 0);
+    c.globalCompositeOperation = 'source-in';
+    c.drawImage(shade(view.img, lv), 0, 0);
+    darks.set(lv, c.canvas);
+    return c.canvas;
   }
   // The sign in a storey's window, with lv of 16 Bayer steps of it left: it dissolves in dither, on the palette.
   const veils = new Map();
@@ -448,11 +505,14 @@ function streetView(base, box, stops, loaded, then) {
   }
   return {
     alpha: (p, at) => (at < 0 ? 0 : clamp01(1 - Math.abs(p - at))),
+    ready: () => !!view.img && Object.keys(view.windows).length > 0,
+    prime() { clearSky(); SHADES.forEach((lv) => dark(lv)); },
     // Flying in at a floor's window (t: 0 on the street, 1 in the room), the camera only ever going forward. Three
     // planes part: the far street barely moves, the neighbours slide by, and the tower rushes past until the window's
     // frame has gone off the screen's edges. Behind the glass the room, further away, is still settling into place.
     // Every scale is whole, so the pixels stay square. null without the window: the plain dissolve.
     fly(key, t, w, h, dpr, wide, room) {
+      if (key === 'E') return this.descend(t, w, h, dpr, wide);
       if (key === 'R' && view.img) return this.crane(t, w, h, dpr, wide, room);
       const win = view.windows[key], look = LOOK[key];
       if (!win || !look || !view.img) return null;
@@ -497,6 +557,14 @@ function streetView(base, box, stops, loaded, then) {
         dim: 0, veil: Math.round(clamp01(1 - (push - 0.1) / 0.5) * 16),   // outdoors: nothing dims
       };
     },
+    // The opening shot (t: 0 up in the sky, 1 on the street): the camera comes down, so everything rises into the
+    // frame, the nearer the faster. It starts with the sky's own picture just under the view's foot, only flat sky in
+    // the frame, the very colour shown while the art is on its way. Whole device pixels; no scale, so no pixel changes size.
+    descend(t, w, h, dpr, wide) {
+      const base = layout(w, h, dpr, wide), high = (wide ? h : (card || (h / dpr) * 0.62) * dpr) - base.y, e = 1 - (1 - t) ** 3;
+      const at = (k) => ({ ...base, y: base.y + Math.round((1 - e) * high * k) });
+      return { key: 'E', t, far: at(1), near: at(1.25), front: at(1.5) };
+    },
     flight(ctx, f, w, h, dpr, wide, fly, room) {   // room: the frame's tower(s, x, y)
       const [EW, EH] = view.size, [L, R] = SIDE, plates = plate();
       const blit = (src, sx, sy, sw, sh, c) => {   // only what is on screen: late in the flight a picture is far bigger than the canvas
@@ -504,12 +572,37 @@ function streetView(base, box, stops, loaded, then) {
         const r = Math.min(sx + sw, Math.ceil((w - c.x) / c.s)), d = Math.min(sy + sh, Math.ceil((h - c.y) / c.s));
         if (r > a && d > b) ctx.drawImage(src, a, b, r - a, d - b, c.x + a * c.s, c.y + b * c.s, (r - a) * c.s, (d - b) * c.s);
       };
-      const repeats = (c, y0) => {   // the street's neighbours, repeated as in draw()
-        for (let gx = c.x - L * c.s; gx > -L * c.s; gx -= L * c.s) blit(plates, 0, y0, L, EH - y0, { ...c, x: gx });
-        for (let gx = c.x + EW * c.s; gx < w; gx += R * c.s) blit(plates, EW - R, y0, R, EH - y0, { ...c, x: gx - (EW - R) * c.s });
+      const repeats = (c, y0, src = plates) => {   // the street's neighbours, repeated as in draw()
+        for (let gx = c.x - L * c.s; gx > -L * c.s; gx -= L * c.s) blit(src, 0, y0, L, EH - y0, { ...c, x: gx });
+        for (let gx = c.x + EW * c.s; gx < w; gx += R * c.s) blit(src, EW - R, y0, R, EH - y0, { ...c, x: gx - (EW - R) * c.s });
       };
       const shade = (a) => { ctx.globalAlpha = a; ctx.fillStyle = '#151923'; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; };
       const { near, front } = fly;
+      if (fly.key === 'E') {
+        // lv of the lights still off for what starts coming on at t = a; 0 once on.
+        const off = (a) => { const u = (fly.t - a) / 0.1; return u >= 1 ? 0 : SHADES[Math.max(0, Math.floor(u * SHADES.length))]; };
+        const sky = clearSky();
+        this.draw(ctx, 0, w, h, 1, dpr, wide, fly.far, sky.canvas);
+        const plane = (src) => { blit(src, 0, 0, SHAFT[0], EH, near); blit(src, SHAFT[1], 0, EW - SHAFT[1], EH, near); repeats(near, 0, src); };
+        plane(plates);
+        const n = off(0.55);
+        if (n) plane(dark(n));
+        const r = off(0.72), road = (src) => { blit(src, 0, ROAD, EW, EH - ROAD, front); repeats(front, ROAD, src); };
+        road(plates);
+        if (r) road(dark(r));
+        // The slots beside the ground floor belong to the far picture at rest, and would hang in the sky: they travel with the tower.
+        blit(view.img, SHAFT[0], 200, SHAFT[1] - SHAFT[0], ROAD - 200, front);
+        const top = wide ? 0 : CRANE[2];
+        blit(plates, SHAFT[0], top, SHAFT[1] - SHAFT[0], 200 - top, front);
+        blit(sky.fringe, 0, top, EW, 200 - top, front);
+        // Floor by floor, top down, as the camera comes past them: the crane and the cornice, then each storey.
+        const roofAt = ROAD - 8 * STOREY;
+        for (let i = 0; i <= 8; i++) {
+          const a = i ? roofAt + (i - 1) * STOREY : top, lv = off(0.1 + i * 0.07);
+          if (lv) blit(dark(lv), SHAFT[0], a, SHAFT[1] - SHAFT[0], roofAt + i * STOREY - a, front);
+        }
+        return;
+      }
       if (fly.over) { measure(ctx, w, h); room(fly.room.s, fly.room.x, fly.room.y); }   // the street has gone behind the brick; measured all the same, for a page opened on the roof, whose first way back to the street starts here
       else {
         this.draw(ctx, f, w, h, 1, dpr, wide && fly.key !== 'R', fly.far);   // climbing, the far picture goes without its crane, as on phones: a copy would part from the one on the tower
@@ -537,22 +630,21 @@ function streetView(base, box, stops, loaded, then) {
         glass(key, [x, y, gw, gh], { s: rs, x: wide ? rx : Math.min(0, Math.max(w - FW * rs, rx)), y: ry - (ORDER.length - 1 - ORDER.indexOf(key)) * FH * rs });
       }
     },
-    draw(ctx, f, w, h, a, dpr, wide, cam) {   // cam: a flight's scale and place, else the street's own
+    draw(ctx, f, w, h, a, dpr, wide, cam, pic = view.img) {   // cam: a flight's scale and place, else the street's own; pic: null for the flat colours alone
       if (a <= 0) return;
       measure(ctx, w, h);
       const [EW, EH] = view.size, { s, x, y } = cam ?? layout(w, h, dpr, wide), src = f * EW, [L, R] = SIDE;
       ctx.globalAlpha = a;   // the sky and the road's flat colours, all there is until the picture arrives
       ctx.fillStyle = view.top; ctx.fillRect(0, 0, w, y + EH * s - s);
       ctx.fillStyle = view.bottom; ctx.fillRect(0, y + EH * s - s, w, h);
-      if (view.img) {
-        ctx.globalAlpha = a * clamp01((performance.now() - view.since) / FADE_IN_MS);
+      if (pic) {
         const [cx, cw, roof] = CRANE;
         if (!wide) { ctx.save(); ctx.beginPath(); ctx.rect(x, y, EW * s, EH * s); ctx.rect(x + cx * s, y, cw * s, roof * s); ctx.clip('evenodd'); }
-        ctx.drawImage(view.img, src, 0, EW, EH, x, y, EW * s, EH * s);
+        ctx.drawImage(pic, src, 0, EW, EH, x, y, EW * s, EH * s);
         // The sky repeats every 4 columns: the crane's patch comes from the clear sky at the left of the picture.
-        if (!wide) { ctx.restore(); ctx.drawImage(view.img, src, 0, cw, roof, x + cx * s, y, cw * s, roof * s); }
-        for (let gx = x - L * s; gx > -L * s; gx -= L * s) ctx.drawImage(view.img, src, 0, L, EH, gx, y, L * s, EH * s);
-        for (let gx = x + EW * s; gx < w; gx += R * s) ctx.drawImage(view.img, src + EW - R, 0, R, EH, gx, y, R * s, EH * s);
+        if (!wide) { ctx.restore(); ctx.drawImage(pic, src, 0, cw, roof, x + cx * s, y, cw * s, roof * s); }
+        for (let gx = x - L * s; gx > -L * s; gx -= L * s) ctx.drawImage(pic, src, 0, L, EH, gx, y, L * s, EH * s);
+        for (let gx = x + EW * s; gx < w; gx += R * s) ctx.drawImage(pic, src + EW - R, 0, R, EH, gx, y, R * s, EH * s);
       }
       ctx.globalAlpha = 1;
       const at = `${s},${x},${y},${dpr}`;

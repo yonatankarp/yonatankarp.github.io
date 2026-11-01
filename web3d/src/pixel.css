@@ -59,6 +59,11 @@ html:not(.building--guided) .building-hint { display: none; }
 @media (prefers-reduced-motion: reduce) { html.building--guided .building-stop, .building-hint { transition: none; } }
 
 .pixel #pixel-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+/* The street's sky until the script runs, on a slow line a good while after the card: pixel.js's SKY, and where its opening shot starts. Guided only: without the module the plain page stays dark. */
+html.at-street.building--guided .pixel #pixel-canvas { background: #74228a; }
+html.at-street.building--guided[data-time='dawn'] .pixel #pixel-canvas { background: #5d5a86; }
+html.at-street.building--guided[data-time='day'] .pixel #pixel-canvas { background: #2f5c96; }
+html.at-street.building--guided[data-time='night'] .pixel #pixel-canvas { background: #232a4d; }
 /* A quiet zone for reading: the card's side of the scene is dimmed (left on wide screens, bottom on phones). */
 .pixel .building-scrim {
   position: fixed; inset: 0; z-index: 1; pointer-events: none;

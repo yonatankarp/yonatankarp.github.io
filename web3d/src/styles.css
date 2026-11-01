@@ -102,12 +102,12 @@ html.building--guided .building-stop.is-here .floor-card { pointer-events: auto;
 .building-hint {
   position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 3;
   padding: 8px 14px; border-radius: 999px; background: rgba(14, 16, 21, 0.8); color: #f4f1ea;
-  font-size: 14px; pointer-events: none; transition: opacity 400ms ease;
+  font-size: 14px; pointer-events: none; transition: opacity 180ms steps(4);   /* in whole steps, as the cards */
 }
 html:not(.building--guided) .building-hint { display: none; }
-/* A touch screen has no arrow keys to mention. */
-.building-hint .hint-coarse { display: none; }
-@media (pointer: coarse) { .building-hint .hint-fine { display: none; } .building-hint .hint-coarse { display: inline; } }
+/* A touch screen has no arrow keys to mention, and it swipes. */
+.hint-coarse { display: none; }
+@media (pointer: coarse) { .hint-fine { display: none; } .hint-coarse { display: inline; } }
 
 /* Elevator panel */
 .elevator {
@@ -169,5 +169,5 @@ html:not(.building--guided) .building-hint { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .floor-card, html.building--guided .building-stop { transition: none; }
+  .floor-card, html.building--guided .building-stop, .building-hint { transition: none; }
 }

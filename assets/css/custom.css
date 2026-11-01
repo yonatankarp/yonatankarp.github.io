@@ -1322,13 +1322,13 @@ h4 a,
 .cv-teaching li + li { margin-top: 6px; }
 .cv-teaching span { display: block; font-size: 13px; }
 
-@media screen and (max-width: 760px) {
-  .px-bar { padding: 16px; gap: 8px 10px; }
-  .px-bar__name { height: 44px; padding: 0 14px; font-size: 24px; }
-  /* A short label under the icon instead, as on the homepage; the link's aria-label still names it. */
-  .px-download { flex-direction: column; justify-content: center; gap: 5px; min-height: 52px; padding: 0 14px; }
+@media screen and (max-width: 1279px) {   /* a short label under the icon, as on the homepage; the link's aria-label still names it */
+  .px-download { flex-direction: column; justify-content: center; gap: 5px; padding: 0 14px; }
   .px-download span { display: none; }
   .px-download::after { content: 'PDF'; font-size: 15px; line-height: 15px; }
+}
+
+@media screen and (max-width: 760px) {
   .px-sheet { width: calc(100% - 24px); padding: 26px 20px 30px; }
   .px-skin::before { display: none; }
   .cv-page h1 { font-size: 36px; }   /* the whole name on one line at 375px */
@@ -1339,6 +1339,10 @@ h4 a,
 
 @media screen and (max-width: 579px) {   /* phones: the tabs take the row, the social row gets its own under them */
   .px-bar { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; }
+}
+
+@media screen and (max-width: 359px) {   /* 320px, 400% zoom: the name would push the download button off the screen */
+  .px-bar__name { height: 44px; padding: 0 14px; font-size: 24px; }
 }
 
 @media print {

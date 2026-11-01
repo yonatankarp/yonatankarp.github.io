@@ -1,7 +1,7 @@
 // Pixel building: one 480x180 pixel-art strip per floor (web3d/pixel/gen_floors.py), stacked into a tower and
 // drawn at a whole-number scale so every pixel stays square. The lift rides between floors in whole art pixels.
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
-import { guide } from './guide.js';
+import { guide, roomy } from './guide.js';
 import '../../assets/js/copy-email.js';
 import './styles.css';
 import './pixel.css';
@@ -17,8 +17,10 @@ const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted l
 const LOOK = { L: [246, 122], 1: [322, 76], 2: [328, 82], 3: [266, 56], 4: [250, 64], 5: [222, 54], 6: [230, 96], 7: [205, 86], P: [166, 78] };
 const FOCUS = { 2: 330, 3: 250 };                               // on narrow screens, the art x kept mid-screen (else 300)
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
+const PAUSE_KEY = 'building-paused';                            // per viewer, kept across reloads
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
+const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
 // The phone layout: the same query as every phone rule in pixel.css, so the canvas and the cards always agree (#46).
 const narrow = matchMedia('(max-width: 760px), (max-aspect-ratio: 6/5)');
 const easeInOut = (u) => (u < 0.5 ? 4 * u * u * u : 1 - (-2 * u + 2) ** 3 / 2);
@@ -71,7 +73,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     if (to === ride.to || (ride.fade && u < 1)) return false;   // already on its way there; a dissolve runs to its end
     const here = pos(u), vel = u < 1 ? (here - pos(rideU(now - 16))) / 16 : 0;   // floors per ms
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: through a window, not a ride
-    const still = reduceMotion.matches;
+    const still = held();
     const flies = fade && LOOK[keys[to === eAt ? Math.round(here) : to]];   // through a window; else the plain dissolve
     const dist = Math.abs(to - here), dur = fade ? (flies ? 1400 : 900) : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
     const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000;   // the doors shut, then it moves
@@ -93,24 +95,29 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     return a + (b - a) * (p - k);
   };
 
-  // The room loops only while it is allowed to move: the pause button (WCAG 2.2.2) and reduced motion hold it on
-  // its rest frame. A frame that would draw the same picture is skipped, and once nothing is moving the loop
+  // The room loops only while it is allowed to move: the pause button (WCAG 2.2.2), reduced motion and the plain page
+  // hold it on its rest frame. A frame that would draw the same picture is skipped, and once nothing is moving the loop
   // sleeps: until the next frame of the loop, or for good while held, until a ride, a resize or a load wakes it (#36).
   let paused = false, raf = 0, timer = 0, drawn = '';
+  try { paused = localStorage.getItem(PAUSE_KEY) === 'true'; } catch { /* blocked storage: it just is not remembered */ }
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
-  // Reduced motion has nothing to pause: the button hides, and shows again if it is turned off after load (#128).
+  // Held has nothing to pause: the button hides, and shows again if that changes after load (#128).
   const label = () => {
     if (!pauseButton) return;
-    pauseButton.hidden = reduceMotion.matches;
+    pauseButton.hidden = held();
     pauseButton.dataset.paused = paused;
     pauseButton.setAttribute('aria-label', paused ? 'Play the animation' : 'Pause the animation');
     pauseButton.title = pauseButton.getAttribute('aria-label');
     pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
   };
   label();
-  pauseButton?.addEventListener('click', () => { paused = !paused; label(); wake(); });
+  pauseButton?.addEventListener('click', () => {
+    paused = !paused;
+    label(); wake();
+    try { localStorage.setItem(PAUSE_KEY, paused); } catch { /* as above */ }
+  });
   addEventListener('resize', wake);
-  reduceMotion.addEventListener('change', () => { label(); wake(); });
+  for (const q of [reduceMotion, roomy]) q.addEventListener('change', () => { label(); wake(); });
 
   let passing = -1, arrived = -1, last = performance.now(), cardTop = 0;
   function frame(now) {
@@ -125,7 +132,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       cardTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--card-top')) || 0;   // CSS px; 0 where it is unset
     }
     ctx.imageSmoothingEnabled = false;
-    const wide = !narrow.matches, still = reduceMotion.matches;
+    const wide = !narrow.matches, still = held();
 
     const u = rideU(now);
     const p = ride.fade ? (u < 0.5 ? ride.from : ride.to) : Math.min(keys.length - 1, Math.max(0, pos(u)));
@@ -155,8 +162,9 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
     }
     const inT = ride.fade ? (ride.to === eAt ? 1 - u : u) : 0;   // going in or out: 0 on the street, 1 in the room
-    const streetA = ride.fade ? 1 - easeInOut(inT) : street.alpha(p, eAt);
     const fly = ride.fade && inT > 0 && inT < 1 ? street.fly(keys[inner], inT, w, h, dpr, wide, { s, x: x0, y: ry }) : null;
+    // A flight's every frame differs and sig must see that; the plain dissolve (the roof's) steps, like the cards.
+    const eased = 1 - easeInOut(inT), streetA = ride.fade ? (fly ? eased : Math.round(eased * 6) / 6) : street.alpha(p, eAt);
     const sig = [f, camY, streetA, loads, now < fading && now, ...open.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
@@ -288,8 +296,9 @@ function streetView(base, box, stops, loaded, then) {
   const PAD = 4;     // art pixels around each window that still take its tap: half the gap to the next floor (#45)
   const TOWER = 160; // on phones, the art width kept in view: the tower (x 170-310) and a sliver of its neighbours
   const CRANE = [200, 116, 81];   // the crane over the roof, which phones leave out for the top bar: first column, width, and the cornice's row under it
-  const hero = stops.find((s) => s.dataset.floor === 'E');
+  const hero = stops.find((s) => s.dataset.floor === 'E'), heroCard = hero?.querySelector('.floor-card');
   let clear = 0, card = 0, sized = '';   // CSS --street-top: the bottom of whatever sits over the top of the street; card: the phone's hero card top, read per size
+  if (heroCard) new ResizeObserver(() => { sized = ''; loaded(); }).observe(heroCard);   // a late font moves the card's top, so the street's foot
   function layout(w, h, dpr, wide) {   // in device pixels, sized by the CSS height; the building centred beside the card, the street under it
     const [EW, EH] = view.size, W = w / dpr, H = h / dpr, rects = Object.values(view.windows);
     if (!wide) {   // phones: only the tower, as big as whole device pixels allow between the top bar and the card, the cornice under the bar
@@ -337,7 +346,7 @@ function streetView(base, box, stops, loaded, then) {
     },
     draw(ctx, f, w, h, a, dpr, wide, cam) {   // cam: a flight's scale and place, else the street's own
       if (a <= 0) return;
-      if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; card = hero ? parseFloat(getComputedStyle(hero).paddingTop) : 0; }
+      if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; card = heroCard ? hero.clientHeight - parseFloat(getComputedStyle(hero).paddingBottom) - heroCard.offsetHeight : 0; }
       const [EW, EH] = view.size, { s, x, y } = cam ?? layout(w, h, dpr, wide), src = f * EW, [L, R] = SIDE;
       ctx.globalAlpha = a;   // the sky and the road's flat colours, all there is until the picture arrives
       ctx.fillStyle = view.top; ctx.fillRect(0, 0, w, y + EH * s - s);
@@ -360,7 +369,7 @@ function streetView(base, box, stops, loaded, then) {
         const css = (v) => `${v / dpr}px`;
         // A window under the top bar (the roof, on phones) keeps only what shows below it, or goes.
         const top = Math.max(y + (y0 - PAD) * s, clear * dpr), bottom = y + (y1 + PAD) * s;
-        b.hidden = bottom <= top;
+        b.hidden = bottom - top < 24 * dpr;   // too thin a sliver to tap
         Object.assign(b.style, { left: css(x + (x0 - PAD) * s), top: css(top), width: css((x1 - x0 + 2 * PAD) * s), height: css(bottom - top) });
       }
     },

@@ -766,46 +766,67 @@ FLOORS = {  # key: (painting, accent ramp, animation), bottom to top
 }
 
 
-# --- Night (#151): baked variants of the only two pictures with open sky, never a filter or a runtime recolour ---------
-# One scheme for the street and the roof, so their dissolve shows no seam. "sky": the dusk bands, top to horizon (the
-# street's end at sky 5, the roof's run on to amber 5), and the darkest is sky 1, as sky 0 is almost the cards' panel.
-# "skyline": the roof's far city, under SKYLINE. "tone": what stands against the sky, past the two steps down every
-# ramp takes anyway (night_tone). The rooms stay as they are: they are lit indoors, and the flight in lands on them.
+# --- The time of day (#151): baked variants, never a filter or a runtime recolour --------------------------------------
+# Dusk is the plain files. Each entry of PHASES bakes exterior-<name>.png, floor-R-<name>.png and floor-P-<name>.png (and
+# floor-L-<name>.png with a "door"), so one more entry is one more variant; pixel.js lists the phases it picks from.
+# "sky": the dusk bands, top to horizon (the street's end at sky 5, the roof's run on to amber 5), shared by every picture,
+# so their dissolve shows no seam. "skyline": the roof's far city, under SKYLINE. "down": the steps down every ramp takes;
+# "tone": what stands against the sky, after that. "lit": how many sevenths of the neighbours' windows are on; "lamp": the
+# street lamps' light, (amber step, reach) or None for off. Rooms stay as they are: they are lit indoors, and only two
+# have an outside view, the garage's ramp ("sky" again) and the lobby's glass door ("door": the street it looks at).
 SKYLINE = 103   # the roof strip's row where the far city starts
 _BANDS = (c("magenta", 2), c("violet", 3), c("magenta", 5), c("sky", 4), c("sky", 5), c("coral", 5), c("wood", 5), c("amber", 5))
 _CITY = (c("sky", 4), c("sky", 5), c("coral", 5), c("violet", 3), c("violet", 2), c("sky", 2), c("magenta", 2))
 
 
-def _bands(*to):
-    return dict(zip(_BANDS, to))
+def _names(*to):
+    return [c(*t) for t in to]
 
 
-NIGHTS = {
-    "indigo": {   # the issue's: warm brick under plain navy, the horizon a dusty mauve
-        "sky": _bands(c("sky", 1), c("sky", 1), c("sky", 2), c("sky", 2), c("sky", 3), c("sky", 3), c("sky", 3), c("sky", 4)),
-        "skyline": dict(zip(_CITY, (c("sky", 3), c("sky", 3), c("sky", 3), c("sky", 1), c("sky", 1), c("sky", 1), c("dark", 2)))),
-        "tone": {},
-    },
-    "moonlit": {  # cold: blue walls under a moon, the windows the only warm thing left
-        "sky": _bands(c("sky", 1), c("sky", 1), c("blue", 2), c("blue", 2), c("blue", 2), c("blue", 2), c("blue", 3), c("blue", 3)),
-        "skyline": dict(zip(_CITY, (c("blue", 2), c("blue", 2), c("blue", 2), c("blue", 1), c("blue", 1), c("blue", 1), c("dark", 2)))),
-        "tone": {c("wall", 3): c("dark", 3), c("wall", 2): c("dark", 2), c("wall", 4): c("dark", 4), c("wall", 5): c("dark", 5),
-                 c("plank", 5): c("dark", 4), c("plank", 4): c("dark", 3), c("plank", 3): c("dark", 3), c("cream", 0): c("dark", 2)},
-        "moon": True,
-    },
-    "cityglow": {  # the dusk's own purple, burnt down: the city's light on the haze, warmest at the horizon
-        "sky": _bands(c("sky", 1), c("violet", 1), c("violet", 2), c("violet", 2), c("magenta", 1), c("magenta", 1), c("magenta", 2), c("red", 2)),
-        "skyline": dict(zip(_CITY, (c("magenta", 1), c("magenta", 1), c("magenta", 2), c("violet", 1), c("violet", 1), c("violet", 1), c("dark", 2)))),
-        "tone": {},
-    },
+def _phase(sky, city, **rest):
+    return {"sky": dict(zip(_BANDS, _names(*sky))), "skyline": dict(zip(_CITY, _names(*city))), "tone": {}} | rest
+
+
+_B, _S, _ST, _CR = "blue", "sky", "steel", "cream"
+_WARM = {c("wall", 3): c("wall", 4), c("coral", 2): c("coral", 3), c("coral", 1): c("coral", 2)}   # the sun on brick and plaster
+PHASES = {
+    "night": _phase(   # cold: blue walls under a moon, the windows the only warm thing left
+        ((_S, 1), (_S, 1), (_B, 2), (_B, 2), (_B, 2), (_B, 2), (_B, 3), (_B, 3)),
+        ((_B, 2), (_B, 2), (_B, 2), (_B, 1), (_B, 1), (_B, 1), ("dark", 2)), down=2, lit=4, lamp=(3, 1), stars=True, moon=True, spill=True,
+        tone={c("wall", 3): c("dark", 3), c("wall", 2): c("dark", 2), c("wall", 4): c("dark", 4), c("wall", 5): c("dark", 5),
+              c("plank", 5): c("dark", 4), c("plank", 4): c("dark", 3), c("plank", 3): c("dark", 3), c("cream", 0): c("dark", 2)}),
+    "dawn": _phase(    # pearl: a pale mauve going to cream, the sun just up behind the far city, thin pink streaks
+        ((_S, 3), (_S, 4), (_ST, 4), (_ST, 4), (_ST, 5), (_CR, 4), (_CR, 5), ("coral", 5)),
+        ((_S, 3), (_S, 3), (_S, 4), (_S, 2), (_S, 2), (_S, 2), (_S, 1)), down=1, lit=1, lamp=(4, 0.55), sun=True, morning_star=True,
+        streaks=(c("coral", 5), c("sky", 5), 0.3), city_off=True, glint=c("sky", 4),
+        door=dict(sky=c("cream", 4), facade=c("sky", 2), unlit=c("sky", 1), lit=c("amber", 3), kerb=c("steel", 2), road=c("steel", 1))),
+    "dawn-mist": _phase(   # colder: blue-grey with no sun yet, the lamps still on, the horizon just warming
+        ((_B, 3), (_B, 4), (_B, 5), (_B, 5), (_ST, 5), (_ST, 5), (_CR, 4), (_CR, 5)),
+        ((_ST, 3), (_ST, 3), (_ST, 4), (_B, 2), (_B, 2), (_B, 2), (_B, 1)), down=1, lit=2, lamp=(4, 0.8), morning_star=True,
+        city_off=True, glint=c("blue", 4), tone={c("wall", 3): c("dark", 4), c("plank", 5): c("wall", 3)},
+        door=dict(sky=c("steel", 5), facade=c("dark", 3), unlit=c("dark", 2), lit=c("amber", 3), kerb=c("steel", 2), road=c("steel", 1))),
+    "day": _phase(     # noon: a clear deep blue fading to pale at the horizon, fat white clouds, the sun on the walls
+        ((_B, 3), (_B, 4), (_B, 4), (_B, 5), (_B, 5), (_ST, 5), (_ST, 5), (_CR, 5)),
+        ((_ST, 4), (_ST, 4), (_ST, 4), (_ST, 3), (_ST, 3), (_ST, 3), (_ST, 2)), down=0, lit=0, lamp=None, city_off=True, daylit=True,
+        clouds=(c("cream", 5), c("steel", 5), 1), glint=c("blue", 5), road=c("grey", 2), tone=_WARM | {c("cream", 0): c("grey", 2), c("plank", 1): c("plank", 3)},
+        door=dict(sky=c("blue", 5), facade=c("wall", 4), unlit=c("dark", 3), lit=c("dark", 3), kerb=c("grey", 4), road=c("grey", 2), car=c("red", 3))),
+    "day-haze": _phase(    # a hot afternoon: paler all over, a few high wisps, softer shadow
+        ((_B, 4), (_B, 5), (_B, 5), (_ST, 5), (_ST, 5), (_CR, 5), (_CR, 5), (_CR, 5)),
+        ((_ST, 5), (_ST, 5), (_ST, 4), (_ST, 4), (_ST, 4), (_ST, 4), (_ST, 3)), down=0, lit=0, lamp=None, city_off=True, daylit=True,
+        streaks=(c("cream", 5), c("steel", 5), 0.45), glint=c("cream", 4), road=c("grey", 3), tone=_WARM | {c("cream", 0): c("grey", 3), c("plank", 1): c("plank", 3)},
+        door=dict(sky=c("steel", 5), facade=c("wall", 5), unlit=c("dark", 3), lit=c("dark", 3), kerb=c("grey", 4), road=c("grey", 3), car=c("red", 3))),
 }
-NIGHT = "moonlit"   # the picked one: what gen_exterior.py build --time night bakes
-assert all(n["sky"][c("magenta", 2)] == c("sky", 1) for n in NIGHTS.values()), "pixel.js paints the night sky sky 1 until the art loads"
+ROOF_CLOUDS = ((150, 32, 46), (232, 12, 30), (250, 66, 34), (398, 22, 52), (430, 66, 26))   # x, y, width, on open sky
+EDGE_CLOUDS = ((50, 20, 44), (150, 44, 60))                                                 # in the sky past the strip
+DOOR_VIEW = (412, 14, 472, 156)      # the lobby's glass door, in strip pixels: its sky down to row 26, the facade, then
+DOOR_ROWS = (26, 110)                # the kerb and road (install_picks.foyer)
+DOOR_WINDOWS = ((419, 27, 424, 33), (459, 27, 464, 33), (449, 54, 454, 60))   # its lit ones: install_picks.STREET_WINDOWS
+RAMP = (458, 74, 80, (457, 459))     # the garage's exit: a point of its sky; the lamp's row and columns (install_picks.garage)
 
 
-def night_tone(scheme):
-    """Everything on the palette, two steps down its ramp, then the scheme's own. INK and the GLOW lights have no ramp."""
-    tone = {col: ramp[max(0, i - 2)] for ramp in R.values() for i, col in enumerate(ramp)}
+def phase_tone(scheme):
+    """Everything on the palette, "down" steps down its ramp, then the scheme's own. INK and the GLOW lights have no ramp."""
+    tone = {col: ramp[max(0, i - scheme["down"])] for ramp in R.values() for i, col in enumerate(ramp)}
     return tone | scheme["tone"] | scheme["sky"]
 
 
@@ -816,7 +837,7 @@ def recolour(img, table, box):
             q[x, y] = table.get(q[x, y][:3], q[x, y])
 
 
-def night_sky(scheme):
+def open_sky(scheme):
     return frozenset(scheme["sky"].values())
 
 
@@ -851,53 +872,146 @@ def moon(layer, x, y, on):
                 layer.put(x + i, y + j, c("cream", 4) if d > 5.6 else c("cream", 5))
 
 
-def night_roof(base, scheme):
-    """The roof's dusk baked to night, before the crane and the city lights go on: the lift housing stays lit."""
-    tone = night_tone(scheme)
+def sun(layer, x, y, on):
+    """The sun just up behind the far city: a disc in a dither of its own light. Its upper half hides what the painting
+    left there; below the horizon, only open sky shows it."""
+    for j in range(-22, 12):
+        for i in range(-30, 31):
+            r, col = (i * i + j * j) ** 0.5, layer.get(x + i, y + j)
+            haze = (i * i + 4 * j * j) ** 0.5 / 2
+            if r < 8 and (j <= 0 or col in on):
+                layer.put(x + i, y + j, c("cream", 5) if r < 6 else c("amber", 5))
+            elif r >= 8 and y + j < SKYLINE and col in on and haze < 18 and BAYER[(y + j) % 4][(x + i) % 4] < 17 - haze:
+                layer.put(x + i, y + j, c("coral", 5))
+
+
+def cloud(layer, x, y, w, on, look, seed=0):
+    """A flat-bottomed heap of round puffs, bright on top and shaded under; "look" flattens it to a streak."""
+    top, under, tall = look
+    rnd = Random(seed + x)
+    puffs = [(x + rnd.randrange(w), (w / 6 + rnd.randrange(max(1, w // 7))) * tall) for _ in range(5)]
+    for i in range(x, x + w):
+        edge = min(1, min(i - x + 1, x + w - i) / (w / 5))                   # it tapers to its ends
+        h = max(0, *[r ** 2 - (i - px) ** 2 * tall ** 2 for px, r in puffs])
+        h = int(h ** 0.5 * edge) + 1
+        for j in range(h):
+            if layer.get(i, y - j) in on or layer.get(i, y - j) in (top, under):
+                shade = j < max(1, h // 3) or (j < h // 2 and BAYER[(y - j) % 4][i % 4] < 8)
+                layer.put(i, y - j, under if shade else top)
+
+
+def clouds(layer, spots, scheme, on):
+    look = scheme.get("clouds") or scheme.get("streaks")
+    for x, y, w in spots if look else ():
+        cloud(layer, x, y, w, on, look)
+
+
+def phase_roof(base, scheme):
+    """The roof's dusk baked to another hour, before the crane and the city lights go on: the lift housing stays lit."""
+    tone = phase_tone(scheme)
     recolour(base, tone, (HOUSING_X + 2, 0, W, SKYLINE))
     recolour(base, tone | scheme["skyline"], (HOUSING_X + 2, SKYLINE, W, H - 12))
-    cv, sky = Layer(base), night_sky(scheme)
-    for y in (108, 112):                                                    # more of the far city is home
-        for x in range(HOUSING_X + 5, 466, 7):
-            if (x * 5 + y * 3) % 11 < 3 and cv.get(x, y) in scheme["skyline"].values():
-                cv.rect(x, y, x + 2, y + 1, GLOW["amber"])
-    cv.rect(365, 49, 369, 54, GLOW["amber"])                                # someone's still up in the crane's cab
-    for x in range(296, 356, 9):                                            # and a string of work lights on the scaffold
-        cv.rect(x, 78, x + 1, 80, GLOW["city"])
-    scatter(cv, (HOUSING_X + 4, 1, 466, 16), 10, 150, sky)                  # as sparse as the rows pixel.js tiles above the strip
-    scatter(cv, (HOUSING_X + 4, 16, 466, 96), 130, 151, sky)
-    for x, y in ((150, 12), (204, 40), (262, 9), (300, 44), (433, 15), (412, 52)):
-        big_star(cv, x, y, sky)
+    cv, sky = Layer(base), open_sky(scheme)
+    if scheme.get("sun"):
+        sun(cv, 250, SKYLINE + 4, sky)
+    if scheme.get("morning_star"):
+        big_star(cv, 416, 22, sky)
+    clouds(cv, ROOF_CLOUDS, scheme, sky)
+    if scheme.get("city_off") and scheme["lit"]:                            # the last few still up
+        for x, y in CITY_LIGHTS[::5]:
+            cv.rect(ROOM_X + x, CEIL + y, ROOM_X + x + 2, CEIL + y + 1, GLOW["city"])
+    if scheme.get("stars"):
+        for y in (108, 112):                                                # more of the far city is home
+            for x in range(HOUSING_X + 5, 466, 7):
+                if (x * 5 + y * 3) % 11 < 3 and cv.get(x, y) in scheme["skyline"].values():
+                    cv.rect(x, y, x + 2, y + 1, GLOW["amber"])
+        cv.rect(365, 49, 369, 54, GLOW["amber"])                            # someone's still up in the crane's cab
+        for x in range(296, 356, 9):                                        # and a string of work lights on the scaffold
+            cv.rect(x, 78, x + 1, 80, GLOW["city"])
+        scatter(cv, (HOUSING_X + 4, 1, 466, 16), 10, 150, sky)              # as sparse as the rows pixel.js tiles above the strip
+        scatter(cv, (HOUSING_X + 4, 16, 466, 96), 130, 151, sky)
+        for x, y in ((150, 12), (204, 40), (262, 9), (300, 44), (433, 15), (412, 52)):
+            big_star(cv, x, y, sky)
     if scheme.get("moon"):
         moon(cv, 164, 20, sky)
 
 
-def build(key, out, night=None):
+def roof_after(img, scheme):
+    """What roof() just drew in its dusk colours: the crane's load, and the far city's lights where they are off."""
+    tone = phase_tone(scheme)
+    recolour(img, {c("amber", 4): tone[c("amber", 4)], c("steel", 3): tone[c("steel", 3)]}, (ROOM_X + 178, CEIL + 33, ROOM_X + 193, CEIL + 60))
+    off = {GLOW["amber"]: scheme["skyline"][c("violet", 3)]} if scheme.get("city_off") else {}
+    if not scheme["lamp"]:
+        off[GLOW["red"]] = c("red", 2)                                      # no warning light at noon
+    recolour(img, off, (HOUSING_X + 2, 0, W, H - 12))
+
+
+def phase_door(img, scheme):
+    """The lobby's glass door looks at this hour's street, kept to the door's own glass colours; a passing car's lights too."""
+    door, (x0, y0, x1, y1), (sky_to, kerb) = scheme["door"], DOOR_VIEW, DOOR_ROWS
+    recolour(img, {c("sky", 2): door["sky"]}, (x0, y0, x1, sky_to))
+    for box in DOOR_WINDOWS:
+        recolour(img, {c("amber", 4): door["lit"]}, box)
+    recolour(img, {c("sky", 1): door["facade"], c("sky", 2): door["unlit"]}, (x0, sky_to, x1, kerb))
+    car = door.get("car")
+    recolour(img, {c("steel", 2): door["kerb"], c("steel", 1): door["road"]} | ({HEADLIGHT: car, c("amber", 4): car} if car else {}), (x0, kerb, x1, y1))
+
+
+def phase_ramp(img, scheme):
+    """The garage's exit: its dither of sky 1-4 takes the street's bands; the street lamp beyond it goes off with theirs."""
+    x, y, lamp_y, lamp_xs = RAMP
+    bands = dict(zip(R["sky"][1:5], (scheme["sky"][b] for b in (c("magenta", 2), c("violet", 3), c("sky", 4), c("sky", 5)))))
+    road = {c("steel", 1): scheme.get("road", c("steel", 1)), c("steel", 3): c("steel", 3)}
+    q, seen, todo = img.load(), set(), [(x, y)]
+    while todo:                                                             # the opening, from inside it
+        x, y = todo.pop()
+        if (x, y) in seen or not (0 <= x < W and 0 <= y < H) or q[x, y][:3] not in bands.keys() | road.keys():
+            continue
+        seen.add((x, y))
+        todo += [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+    for x, y in seen:
+        col = q[x, y][:3]
+        q[x, y] = bands.get(col) or road[col]
+    if not scheme["lamp"]:
+        Layer(img).rect(lamp_xs[0], lamp_y, lamp_xs[1], lamp_y + 1, c("steel", 2))
+    if scheme.get("stars"):
+        scatter(Layer(img), (430, 40, 466, 96), 26, 154, {bands[R["sky"][1]], bands[R["sky"][2]]})
+
+
+def build(key, out, phase=None):
     name, accent, animate = FLOORS[key]
+    scheme = PHASES.get(phase)
     base = frame_base(key, name, accent)
-    if night:
-        night_roof(base, night)
+    if scheme and key == "R":
+        phase_roof(base, scheme)
     strip = Image.new("RGBA", (W * FRAMES + 2 * EDGE, H))
     for f in range(FRAMES):
         img = base.copy()
         room = Layer(img.crop((ROOM_X, CEIL, W - 8, H - 12)))
         animate(room, f)
         img.paste(room.img, (ROOM_X, CEIL))
-        if night:                                                           # the load animate() just drew in dusk colours;
-            recolour(img, {c("amber", 4): c("amber", 2), c("steel", 3): c("steel", 1)}, (ROOM_X + 178, CEIL + 33, ROOM_X + 193, CEIL + 60))
-            Layer(img).twinkle((HOUSING_X + 6, 2, 466, 96), f, 21, col=c("cream", 5), on=night_sky(night))   # off the columns the edge runs read
+        if scheme and key == "R":
+            roof_after(img, scheme)
+            if scheme.get("stars"):                                         # off the columns the edge runs read
+                Layer(img).twinkle((HOUSING_X + 6, 2, 466, 96), f, 21, col=c("cream", 5), on=open_sky(scheme))
+        elif scheme and key == "P":
+            phase_ramp(img, scheme)
+        elif scheme and key == "L":
+            phase_door(img, scheme)
         strip.paste(img, (f * W, 0))
     edges = margins(strip.crop((0, 0, W, H)), key)    # from the rest frame: the runs carry on from every frame alike,
     (left, _), (right, _) = EDGES[key]                 # as nothing they read from, or meet, moves
     for y0, y1, bx, bw, *_ in left + right + [(0, H, LOBBY_X, 1), (0, H, W - 9, 1)]:
         for f, x, y in product(range(1, FRAMES), range(bx, bx + bw), range(y0, y1)):
             assert strip.getpixel((x, y)) == strip.getpixel((f * W + x, y)), (key, f, x, y)
-    if night:
-        scatter(Layer(edges), (EDGE, 1, 2 * EDGE, 16), 14, 152, night_sky(night))   # the sky past the strip has stars too,
-        scatter(Layer(edges), (EDGE, 16, 2 * EDGE, 96), 80, 153, night_sky(night))   # its top rows also the sky above it
+    if scheme and key == "R":
+        if scheme.get("stars"):
+            scatter(Layer(edges), (EDGE, 1, 2 * EDGE, 16), 14, 152, open_sky(scheme))   # the sky past the strip has stars too,
+            scatter(Layer(edges), (EDGE, 16, 2 * EDGE, 96), 80, 153, open_sky(scheme))   # its top rows also the sky above it
+        clouds(Layer(edges), [(EDGE + x, y, w) for x, y, w in EDGE_CLOUDS], scheme, open_sky(scheme))
     strip.paste(edges, (W * FRAMES, 0))
-    strip.save(out / f"floor-{key}{'-night' if night else ''}.png")
-    print("drew floor", key, "at night" if night else "")
+    strip.save(out / f"floor-{key}{'-' + phase if phase else ''}.png")
+    print("drew floor", key, phase or "")
 
 
 if __name__ == "__main__":

@@ -69,7 +69,8 @@ html:not(.building--guided) .building-hint { display: none; }
 .pixel .floor-card, .pixel .floor-badge, .pixel .building-download, .pixel .building-name,
 .pixel .elevator, .pixel .building-floor-btn, .pixel .elevator-display, .pixel .building-hint, .pixel .step-in,
 .pixel .panel-back, .pixel .building-links a, .pixel .panel-case, .pixel .panel-chips i, .pixel .panel-quote img,
-.pixel .floor-card .hero-cta, .pixel .floor-panel, .pixel .building-pause, .pixel .floor-case, .pixel .floor-end, .pixel .building-social a {
+.pixel .floor-card .hero-cta, .pixel .floor-panel, .pixel .building-pause, .pixel .floor-case, .pixel .floor-end, .pixel .building-social a,
+.pixel .building-menu, .pixel :is(.building-links:popover-open) {   /* :is(): an unknown :popover-open must not drop the list */
   clip-path: polygon(
     var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
     100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%,
@@ -190,7 +191,8 @@ html:not(.building--guided) .building-hint { display: none; }
 /* The stepped clip-path cuts any outline away, so focus is a ring drawn inside the box: cream, then ink. */
 .pixel .building-name:focus-visible, .pixel .building-floor-btn:focus-visible, .pixel .building-download:focus-visible,
 .pixel .floor-card .step-in:focus-visible, .pixel .panel-back:focus-visible, .pixel .building-links a:focus-visible,
-.pixel .floor-card .hero-cta:focus-visible, .pixel .building-pause:focus-visible, .pixel .building-social a:focus-visible {
+.pixel .floor-card .hero-cta:focus-visible, .pixel .building-pause:focus-visible, .pixel .building-social a:focus-visible,
+.pixel .building-menu:focus-visible {
   outline: none; box-shadow: inset 0 0 0 4px var(--text), inset 0 0 0 8px var(--ink);
 }
 .pixel .building-hint { left: calc(50% + 12px + min(200px, 15vw)); white-space: nowrap; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; }
@@ -253,7 +255,7 @@ html:is([data-time='day'], [data-time='dawn']) .pixel .building-scrim { backgrou
   /* The card takes its own height at the bottom and the street stands on it (pixel.js). Only on a short phone does it
      stop rising: the bottom windows (P and L, 235 art pixels under the cornice) stay out from under it and it scrolls (#45). */
   .pixel .building-stop--hero { padding-top: calc(var(--street-top) + 240px); }
-  .pixel .building-stop--hero .floor-card { padding-top: 12px; padding-bottom: 10px; }
+  .pixel .building-stop--hero .floor-card { padding-top: 12px; padding-bottom: 0; }
   .pixel .building-download span { display: none; }   /* a portrait monitor over 1279px wide: the icon alone */
 }
 @media (max-width: 1279px) {   /* ten lift buttons leave no room for the label between the name and the panel */
@@ -281,7 +283,9 @@ html:is([data-time='day'], [data-time='dawn']) .pixel .building-scrim { backgrou
 html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card says it; the hint would cover the ground floor */
 
 /* The way out to the rest of the site, under the name: small pixel tabs. */
-.pixel .building-links { position: fixed; top: 84px; left: clamp(16px, 3vw, 36px); display: flex; gap: 8px; }
+/* Where the Menu is hidden the popover is laid out as plain links: every UA [popover] style is undone. */
+.pixel .building-menu { display: none; }
+.pixel .building-links { position: fixed; inset: 84px auto auto clamp(16px, 3vw, 36px); width: auto; height: auto; margin: 0; padding: 0; border: 0; overflow: visible; color: inherit; background: none; display: flex; gap: 8px; }
 .pixel .building-links nav { display: flex; gap: 8px; }
 .pixel .building-links a {
   display: flex; align-items: center; min-height: 44px; box-sizing: border-box; padding: 0 12px; font-size: 15px; font-weight: 500; color: var(--text); text-decoration: none; background: var(--panel);
@@ -295,41 +299,26 @@ html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card 
 .pixel .building-pause svg { shape-rendering: crispEdges; }
 .pixel .building-pause span { margin-left: 8px; font-size: 15px; font-weight: 500; }
 .pixel .building-pause[data-paused="true"] .i-pause, .pixel .building-pause:not([data-paused="true"]) .i-play { display: none; }
-@media (max-width: 760px), (max-aspect-ratio: 6/5) {
-  /* Pause goes under the download button, a full-size target clear of the street's windows. */
-  html.building--guided .pixel .building-pause { position: fixed; top: 84px; right: clamp(16px, 3vw, 36px); width: 44px; height: 44px; justify-content: center; }
-  html.building--guided .pixel .building-pause span { display: none; }
-}
 /* Elsewhere: LinkedIn, GitHub, X and the podcast, pixel icon tabs in the column under the download button (#50). */
 .pixel .building-social { position: fixed; top: 84px; right: clamp(16px, 3vw, 36px); display: flex; gap: 8px; }
-.pixel .building-social a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; color: var(--text); background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); }
+.pixel .building-social a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; color: var(--text); background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .building-social a:hover { color: var(--amber); background: var(--panel-hi); }
 .pixel .building-social svg { shape-rendering: crispEdges; }
 @media (min-width: 761px) and (max-width: 919px) and (min-aspect-ratio: 1201/1000) {   /* the lift has the links' row: up beside the pause, as tall */
   .pixel .building-social { top: 21px; right: calc(clamp(16px, 3vw, 36px) + 108px); }
   .pixel .building-social a { height: 52px; }
 }
-@media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* on the links' row, left of the pause */
-  .pixel .building-social { right: calc(clamp(16px, 3vw, 36px) + 52px); }
-}
 /* Reduced motion has no pause: the icons close the gap it leaves. */
 @media (min-width: 761px) and (max-width: 919px) and (min-aspect-ratio: 1201/1000) { .pixel .building-top:has(.building-pause[hidden]) .building-social { right: calc(clamp(16px, 3vw, 36px) + 56px); } }
-@media (max-width: 760px), (max-aspect-ratio: 6/5) { .pixel .building-top:has(.building-pause[hidden]) .building-social { right: clamp(16px, 3vw, 36px); } }
-@media (max-width: 579px) {   /* phones: no room left on that row, so a row of its own under the pause; the street starts under it */
-  .building.pixel { --street-top: 180px; }
-  .pixel .building-social { top: 136px; right: clamp(16px, 3vw, 36px); }
-  /* Outside, a column under the pause, clear of the hero card (never above --street-top + 240px). Inside, the lift and the card reach that edge: the row. So does the bigger tower of a narrow or very tall window. */
-  @media (max-height: 959px) and (min-aspect-ratio: 5/12) {
-    html.building--guided.at-street .pixel:not(.no-windows) .building-social { flex-direction: column; }
-    html.building--guided.at-street .pixel:not(.no-windows) .building-top:has(.building-pause[hidden]) .building-social { top: 84px; }
-  }
-  .pixel .building-hint { top: max(calc(var(--card-top) - 72px), 216px); }   /* 500px tall: between the icons and the lift */
-}
 @media print { .pixel .building-social { display: none; } }
 /* Without JavaScript there is no lift to ride: the floors are a plain page, read top to bottom, its buttons a row of links. */
 html:not(.building--guided) .pixel .exterior-windows, html:not(.building--guided) .pixel .elevator-display { display: none; }
 html:not(.building--guided) .pixel .elevator { position: relative; inset: auto; transform: none; box-sizing: border-box; width: min(492px, calc(100% - 2 * clamp(12px, 3vw, 36px))); margin: 0 clamp(12px, 3vw, 36px); padding: 8px; gap: 4px; visibility: visible; }
 html:not(.building--guided) .pixel .building-floor-btn { flex: 1; width: auto; height: 44px; }   /* 44px wide, 24 at 320px: one row at any width */
+@media (min-height: 341px) {   /* the plain page's lift stays in reach as it scrolls, but for 400% zoom, where it would fill the screen */
+  html:not(.building--guided) .pixel .elevator { position: sticky; top: 0; }
+  html:not(.building--guided) .pixel .building-stop { scroll-margin-top: 60px; }
+}
 
 /* Step inside: each floor's full story, a wide panel over the left of its room (a sheet from the bottom on
    phones). The short card is the preview; while a panel is open the lift stays where it is. */
@@ -417,7 +406,6 @@ html.building--guided .pixel .building-stop:not(.is-here) .floor-portrait { disp
   .pixel .step-in-bar { margin-top: 12px; bottom: -10px; }
   .pixel .floor-card:not(:has(.step-in-bar))::after { bottom: -14px; }
 }
-@media (max-width: 579px) { html.building--guided .pixel .floor-panel { top: max(30svh, 188px); } }   /* a short phone's sheet starts under the icons */
 /* Without JavaScript the panels are simply the rest of each floor's text, read in place. */
 html:not(.building--guided) .pixel .building-stop { flex-direction: column; align-items: flex-start; gap: 16px; }
 html:not(.building--guided) .pixel .floor-panel { width: min(780px, 100%); }
@@ -464,30 +452,37 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
 .pixel .floor-end { margin: 16px 0 0; padding: 10px 14px; font-size: 15px; color: var(--text-soft); background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .floor-signs { display: grid; gap: 8px; margin: 12px 0 16px; }   /* the lobby's signs, kept small above the title, */
 .pixel .floor-signs .floor-end { margin: 0; padding: 6px 14px; }        /* where the step-in bar cannot cover them */
-@media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* the street leaves the card ~38svh: keep the how-to, the title and the way to get in touch in view */
-  .pixel .building-stop--hero .floor-eyebrow, .pixel .building-stop--hero .floor-lead { display: none; }
-  .pixel .floor-how { margin-bottom: 8px; padding-bottom: 0; border-bottom: 0; font-size: 13px; line-height: 20px; }
-  .pixel .building-stop--hero .floor-card h1 { margin-bottom: 10px; }
-  .pixel .floor-open { margin-bottom: 8px; font-size: 15px; }
-  .pixel .floor-cta { margin-bottom: 0; gap: 6px 16px; }
-  .pixel .floor-card .hero-cta { min-height: 36px; padding: 0 12px; white-space: nowrap; }   /* as tall as before, so the short card still fits */
-  .pixel .building-stop--hero .floor-card::after { margin-top: 0; }   /* the "more" shading under the CTA, not over its bottom edge */
+@media (max-width: 760px), (max-aspect-ratio: 6/5), (max-height: 499px) {   /* the phone's hero: who, what he does, whether he is free, how to reach him, then the how-to */
+  .pixel .building-stop--hero .floor-eyebrow-more, .pixel .building-stop--hero .floor-lead { display: none; }
+  .pixel .building-stop--hero .floor-card { display: flex; flex-direction: column; }
+  .pixel .building-stop--hero .floor-card > * { flex-shrink: 0; }
+  .pixel .floor-eyebrow { margin-bottom: 4px; font-size: 16px; }
+  .pixel .building-stop--hero .floor-card h1 { margin-bottom: 8px; }
+  .pixel .floor-open { margin-bottom: 8px; font-size: 15px; line-height: 20px; }
+  .pixel .floor-cta { margin-bottom: 0; gap: 8px 16px; }
+  .pixel .floor-card .hero-cta { width: 100%; min-height: 44px; justify-content: center; white-space: nowrap; }
+  .pixel .with-copy { display: flex; width: 100%; align-items: center; justify-content: space-between; }
+  /* Tap areas of 44px over the 28px row: into the gap above it and the how-to's rule below. */
+  .pixel .with-copy > * { position: relative; }
+  .pixel .with-copy > :is(a, button)::after { content: ''; position: absolute; inset: -8px 0; }
+  .pixel .floor-how { order: 1; margin: 8px 0 0; padding: 8px 0 0; border-bottom: 0; border-top: 4px solid var(--panel-hi); font-size: 13px; line-height: 20px; }
+  /* The "more" shading is the card's bottom padding, so at rest it lies over no text. */
+  .pixel .building-stop--hero .floor-card::after { order: 2; bottom: 0; height: 10px; margin-top: 0; }
 }
-@media (max-width: 760px) and (max-height: 740px), (max-aspect-ratio: 6/5) and (max-height: 740px) {   /* short phones: the way to get in touch first, the availability under it */
-  html.building--guided .pixel .building-stop--hero .floor-card { display: flex; flex-direction: column; }
-  html.building--guided .pixel .building-stop--hero .floor-card > * { flex-shrink: 0; }
-  html.building--guided .pixel .floor-open { order: 1; margin: 10px 0 0; }
+@media (max-width: 760px) and (max-height: 740px), (max-aspect-ratio: 6/5) and (max-height: 740px) {   /* short phones: the how-to's one line */
+  .pixel .floor-how-why { display: none; }
 }
 /* Short or narrow (zoomed) screens, and no JavaScript: the plain page (#24). The top bar scrolls away with it,
    cards are full width and never scroll inside themselves, and there is no lift to describe. */
 html:not(.building--guided) .pixel .building-top { position: relative; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "name . download" "links . social"; align-items: start; gap: 8px 16px; }   /* the inner pages' bar */
 html:not(.building--guided) .pixel .building-name { grid-area: name; justify-self: start; }
-html:not(.building--guided) .pixel .building-links { grid-area: links; }
+html:not(.building--guided) .pixel .building-links { display: contents; }
+html:not(.building--guided) .pixel .building-links nav:first-child { grid-area: links; flex-wrap: wrap; }
 html:not(.building--guided) .pixel .building-download { grid-area: download; justify-self: end; }
 html:not(.building--guided) .pixel .building-social { grid-area: social; justify-self: end; }
 @media (max-width: 579px) { html:not(.building--guided) .pixel .building-top { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; } }
-@media (max-width: 359px) { html:not(.building--guided) .pixel .building-name { height: 44px; padding: 0 14px; font-size: 24px; } }
-html:not(.building--guided) .pixel .building-links, html:not(.building--guided) .pixel .building-social { position: static; flex-wrap: wrap; }   /* 320px: the pause wraps under Search */
+@media (max-width: 359px) { html:not(.building--guided) .pixel .building-name { padding: 0 12px; font-size: 24px; } }
+html:not(.building--guided) .pixel .building-social { position: static; flex-wrap: wrap; }
 html:not(.building--guided) .pixel .building-stops { padding-top: 0; }
 html:not(.building--guided) .pixel .building-stop { min-height: 0; padding: 12px clamp(12px, 3vw, 36px); }
 html:not(.building--guided) .pixel .building-stop .floor-card { width: min(640px, 100%); max-height: none; }
@@ -495,9 +490,17 @@ html:not(.building--guided) .pixel .floor-card, html:not(.building--guided) .pix
 html:not(.building--guided) .pixel .floor-how { display: none; }
 /* Each panel follows its own card there: not its head and title again (the lobby's title is its own). */
 html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pixel .floor-panel:not(#panel-L) .panel-title { display: none; }
+/* Landscape phones: the hero's card and the lift keep left, and the tower stands clear of them (pixel.js --street-x). */
+@media (max-height: 499px) and (min-aspect-ratio: 1201/1000) {
+  .building.pixel { --street-x: 0.8; }
+  html:not(.building--guided) .pixel .building-scrim { background: none; }
+  html:not(.building--guided) .pixel .elevator { width: min(60%, 400px); margin: 0 8px; padding: 4px; }
+  html:not(.building--guided) .pixel .building-stop--hero { padding: 4px 8px 12px; }
+  html:not(.building--guided) .pixel .building-stop--hero .floor-card { width: min(60%, 400px); }
+}
 /* Short phones: the same card set tighter, so the room keeps a band between the icons and the elevator (#127). */
 @media (max-width: 760px) and (max-height: 740px), (max-aspect-ratio: 6/5) and (max-height: 740px) {
-  .building.pixel { --card-top: clamp(280px, calc(100svh - 356px), calc(30svh + 260px)); }   /* the elevator and the hint stay under the icons */
+  .building.pixel { --card-top: clamp(132px, calc(100svh - 356px), calc(30svh + 260px)); }   /* the elevator stays under the top bar */
   html.building--guided .pixel .floor-card:not(.floor-card--hero) { padding: 12px 14px 10px 26px; }
   html.building--guided .pixel .floor-card header { margin-bottom: 10px; }
   html.building--guided .pixel .floor-card .floor-badge { width: 40px; height: 40px; }
@@ -517,4 +520,41 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
   .pixel .floor-quotes li { margin-bottom: 8px; }
   .pixel .step-in-bar { margin-top: 12px; }
   .pixel .floor-signs { margin: 8px 0 10px; }
+}
+
+/* Phones, and any window too short for the lift: one row on every page (custom.css has the same for .px-bar). Without the
+   Popover API none of this applies: no Menu, and the links stay on the page. */
+@media (max-width: 760px), (max-aspect-ratio: 6/5) {
+  html.building--guided .pixel .building-links { right: clamp(16px, 3vw, 36px); flex-wrap: wrap; }
+  html.building--guided .pixel .building-social { position: static; }
+}
+@supports selector(:popover-open) {
+  @media (max-width: 760px), (max-aspect-ratio: 6/5), (max-height: 499px) {
+    .building.pixel { --street-top: 60px; }
+    .pixel .building-top { gap: 4px; padding: 8px; }
+    html:not(.building--guided) .pixel .building-top { display: flex; }
+    .pixel .building-name { height: 48px; margin-right: auto; padding: 0 12px; }
+    .pixel .building-menu, .pixel .building-download { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; width: 46px; min-height: 48px; padding: 0; }
+    .pixel .building-download span { display: none; }
+    .pixel .building-download::after { content: 'PDF'; font-size: 15px; line-height: 15px; }
+    .pixel .building-menu { border: 0; cursor: pointer; color: var(--text); background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); font: 400 15px/15px var(--display); }
+    .pixel .building-menu svg { shape-rendering: crispEdges; }
+    .pixel .building-menu:hover, .pixel .building-top:has(:popover-open) .building-menu { background: var(--panel-hi); }
+    /* Under an open menu the page dims and takes the tap that shuts it, so that tap presses nothing else. */
+    .pixel .building-top:has(:popover-open) { z-index: 4; }
+    .pixel .building-top:has(:popover-open)::before { content: ''; position: fixed; inset: 0; z-index: -1; cursor: pointer; pointer-events: auto; background: rgba(10, 11, 16, 0.6); }
+    html .pixel .building-links:not(:popover-open) { display: none; }
+    /* In the top layer, where absolute is against the page: it stays under the bar when the bar scrolls away. */
+    html .pixel .building-links:popover-open {
+      position: absolute; inset: 60px 8px auto auto; box-sizing: border-box; width: min(480px, calc(100vw - 16px)); max-height: calc(100svh - 68px); overflow: auto;
+      display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 12px 12px 24px;
+      border: 4px solid var(--ink); background: var(--panel);
+      box-shadow: inset 4px 4px 0 0 var(--panel-hi), inset 12px 0 0 0 var(--amber);
+    }
+    .pixel .building-links nav:first-child { display: grid; flex: 1 0 100%; grid-template-columns: 1fr 1fr; }
+    .pixel .building-links nav:first-child a { min-height: 52px; font: 400 30px/1 var(--display); background: var(--well); }
+    .pixel .building-pause span { font-size: 15px; }
+    html .pixel .building-social { position: static; flex: 1; gap: 4px; }
+    .pixel .building-social a { flex: 1; }
+  }
 }

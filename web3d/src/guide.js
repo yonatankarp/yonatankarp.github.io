@@ -89,6 +89,11 @@ export function guide(api, root = document) {
   roomy.addEventListener('change', setMode);
   setMode();
 
+  // The top bar's Menu is a native popover: while it is open the wheel, swipes and keys are not the lift's, and it
+  // answers Escape itself. Told by its event, as matches(':popover-open') throws without the Popover API.
+  let menuOpen = false;
+  root.querySelector('[popover]')?.addEventListener('beforetoggle', (e) => { menuOpen = e.newState === 'open'; });
+
   // api.index() is where the lift is heading: a step during a ride carries it one floor further, so quick swipes
   // and presses add up into one longer ride instead of being dropped (#41).
   const step = (dir) => {
@@ -100,7 +105,7 @@ export function guide(api, root = document) {
   // Trackpads send long momentum tails: one gesture (wheel events without a 150 ms pause) is one floor.
   let acc = 0, lastWheel = -Infinity, spent = false;
   addEventListener('wheel', (e) => {
-    if (!roomy.matches || e.ctrlKey) return;   // ctrl+wheel is a pinch or the browser's zoom, not a ride
+    if (!roomy.matches || e.ctrlKey || menuOpen) return;   // ctrl+wheel is a pinch or the browser's zoom, not a ride
     const now = performance.now();
     if (now - lastWheel > 150) { acc = 0; spent = false; }
     lastWheel = now;
@@ -110,17 +115,22 @@ export function guide(api, root = document) {
     if (Math.abs(acc) > 24) { step(Math.sign(acc)); spent = true; }
   }, { passive: true });
 
-  let touchY = null;
-  addEventListener('touchstart', (e) => { touchY = e.touches[0].clientY; }, { passive: true });
+  // Read when the finger lands: a swipe that shuts the menu, or scrolls a card to its end, is spent on that (#169).
+  let touchY = null, touchBox = null, touchTop = 0;
+  addEventListener('touchstart', (e) => {
+    touchY = menuOpen ? null : e.touches[0].clientY;
+    touchBox = e.target.closest?.('.floor-card, .floor-panel');
+    touchTop = touchBox?.scrollTop;
+  }, { passive: true });
   addEventListener('touchend', (e) => {
     if (touchY === null || !roomy.matches) return;
     const dy = touchY - e.changedTouches[0].clientY;
     touchY = null;
-    if (Math.abs(dy) > 40 && !scrollsInside(e.target, Math.sign(dy))) step(Math.sign(dy));
+    if (Math.abs(dy) > 40 && touchBox?.scrollTop === touchTop && !scrollsInside(e.target, Math.sign(dy))) step(Math.sign(dy));
   }, { passive: true });
 
   addEventListener('keydown', (e) => {
-    if (!roomy.matches || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
+    if (!roomy.matches || menuOpen || e.target.closest?.('input, textarea, select, [contenteditable]')) return;
     if (open) {   // the panel scrolls with the keys, and Tab goes round inside it until it is closed (#37)
       if (e.key === 'Escape') closePanel();
       if (e.key === 'Tab') {
@@ -169,6 +179,13 @@ export function guide(api, root = document) {
     e.preventDefault();
     api.go(keys.indexOf(b.dataset.goto));
   });
+
+  // On the plain page the lift's amber follows the floor being read, not the last link pressed (#169).
+  const reading = new IntersectionObserver((entries) => {
+    if (roomy.matches) return;
+    for (const e of entries) if (e.isIntersecting) buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.goto === e.target.dataset.floor)));
+  }, { rootMargin: '-40% 0px -60% 0px' });
+  stops.forEach((s) => reading.observe(s));
 
   const show = (index) => stops.forEach((s, i) => s.classList.toggle('is-here', i === index));
   document.addEventListener('building:floor', (e) => {

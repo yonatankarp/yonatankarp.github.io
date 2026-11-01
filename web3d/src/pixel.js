@@ -311,7 +311,7 @@ function streetView(base, box, stops, loaded, then) {
   const TOWER = 160; // on phones, the art width kept in view: the tower (x 170-310) and a sliver of its neighbours
   const CRANE = [200, 116, 81];   // the crane over the roof, which phones leave out for the top bar: first column, width, and the cornice's row under it
   const hero = stops.find((s) => s.dataset.floor === 'E'), heroCard = hero?.querySelector('.floor-card');
-  let clear = 0, card = 0, sized = '';   // CSS --street-top: the bottom of whatever sits over the top of the street; card: the phone's hero card top, read per size
+  let clear = 0, card = 0, across = 0.5, sized = '';   // CSS --street-top: the bottom of whatever sits over the top of the street; card: the phone's hero card top; CSS --street-x: where the phone's tower stands, as a share of the width; read per size
   if (heroCard) new ResizeObserver(() => { sized = ''; loaded(); }).observe(heroCard);   // a late font moves the card's top, so the street's foot
   function layout(w, h, dpr, wide) {   // in device pixels, sized by the CSS height; the building centred beside the card, the street under it
     const [EW, EH] = view.size, W = w / dpr, H = h / dpr, rects = Object.values(view.windows);
@@ -320,7 +320,7 @@ function streetView(base, box, stops, loaded, then) {
       const top = Math.min(...floors.map((r) => r[1])) - PAD, bottom = Math.max(...floors.map((r) => r[3])) + PAD;
       const foot = card || H * 0.62, s = Math.max(Math.round(dpr), Math.floor(Math.min(w / TOWER, (foot - clear) * dpr / (bottom - top))));
       // The road's foot on the card, or, where that leaves no room, the cornice just under the bar, 2 art pixels of sky between them; the road gives way.
-      return { s, x: Math.round(w / 2 - (EW / 2) * s), y: Math.round(Math.max(clear * dpr - (CRANE[2] - 2) * s, foot * dpr - EH * s)) };
+      return { s, x: Math.round(w * across - (EW / 2) * s), y: Math.round(Math.max(clear * dpr - (CRANE[2] - 2) * s, foot * dpr - EH * s)) };
     }
     const top = Math.min(...rects.map((r) => r[1])) - PAD, bottom = Math.max(...rects.map((r) => r[3])) + PAD;   // the roof's window, the ground floor's
     const fit = rects.length ? (H - clear) / (bottom - top) : Infinity;   // every window between the top bar and the bottom edge
@@ -361,7 +361,7 @@ function streetView(base, box, stops, loaded, then) {
     },
     draw(ctx, f, w, h, a, dpr, wide, cam) {   // cam: a flight's scale and place, else the street's own
       if (a <= 0) return;
-      if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; card = heroCard ? hero.clientHeight - parseFloat(getComputedStyle(hero).paddingBottom) - heroCard.offsetHeight : 0; }
+      if (sized !== `${w},${h}`) { sized = `${w},${h}`; const css = getComputedStyle(ctx.canvas); clear = parseFloat(css.getPropertyValue('--street-top')) || 0; across = parseFloat(css.getPropertyValue('--street-x')) || 0.5; card = heroCard ? hero.clientHeight - parseFloat(getComputedStyle(hero).paddingBottom) - heroCard.offsetHeight : 0; }
       const [EW, EH] = view.size, { s, x, y } = cam ?? layout(w, h, dpr, wide), src = f * EW, [L, R] = SIDE;
       ctx.globalAlpha = a;   // the sky and the road's flat colours, all there is until the picture arrives
       ctx.fillStyle = view.top; ctx.fillRect(0, 0, w, y + EH * s - s);

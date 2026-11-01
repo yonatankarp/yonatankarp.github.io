@@ -1,7 +1,8 @@
 {{- /* The one top bar of every page, the homepage included: name plate, the tabs, Download CV, then the social row
      under it. Takes the page. On the homepage it wears the building's classes (web3d/src/pixel.css places it over
      the canvas), the name rides the lift to the street and the pause joins the tabs; elsewhere it is .px-bar
-     (custom.css) and the current tab is marked. The tags pages belong to the Blog tab. */ -}}
+     (custom.css) and the current tab is marked. The tags pages belong to the Blog tab. On phones the links, pause and
+     social row are a native popover under Menu; on wider screens each stylesheet undoes the popover's UA styles. */ -}}
 {{ $home := .IsHome }}
 {{ $here := .RelPermalink }}
 <header class="{{ cond $home "building-top" "px-bar" }}">
@@ -10,7 +11,11 @@
   {{ else }}
   <a class="px-bar__name" href="{{ .Site.Home.RelPermalink }}">Yonatan Karp-Rudin</a>
   {{ end }}
-  <div class="{{ cond $home "building-links" "px-bar__links" }}">
+  <button class="{{ cond $home "building-menu" "px-menu" }}" type="button" popovertarget="site-menu">
+    <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M0 1h10v2H0zM0 4h10v2H0zM0 7h10v2H0z"/></svg>
+    <span>Menu</span>
+  </button>
+  <div class="{{ cond $home "building-links" "px-bar__links" }}" id="site-menu" popover>
     <nav{{ if not $home }} class="px-bar__tabs"{{ end }} aria-label="Site">
       {{ range slice (slice "Projects" "projects/") (slice "Blog" "blog/") (slice "CV" "cv/") (slice "Search" "search/") }}
       {{ $url := index . 1 | relURL }}
@@ -24,13 +29,13 @@
       <span data-building-pause-label>Pause</span>
     </button>
     {{ end }}
+    <nav class="{{ cond $home "building-social" "px-bar__social" }}" aria-label="Find me elsewhere">
+      {{ range hugo.Data.home.en.contact.social }}<a href="{{ .url }}" aria-label="{{ .label }}" title="{{ .label }}" data-goatcounter-click="social-{{ .icon }}">{{ partial "pixel-icon.html" .icon }}</a>{{ end }}
+    </nav>
   </div>
   {{- /* `npm run serve` never makes the PDF (`npm run build` does), so the dev server links the web CV instead. */}}
   <a class="{{ cond $home "building-download" "px-download" }}" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} aria-label="Download CV (PDF)" data-goatcounter-click="cv-download">
     <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
     <span>Download CV</span>
   </a>
-  <nav class="{{ cond $home "building-social" "px-bar__social" }}" aria-label="Find me elsewhere">
-    {{ range hugo.Data.home.en.contact.social }}<a href="{{ .url }}" aria-label="{{ .label }}" title="{{ .label }}" data-goatcounter-click="social-{{ .icon }}">{{ partial "pixel-icon.html" .icon }}</a>{{ end }}
-  </nav>
 </header>

@@ -90,10 +90,6 @@ main {
   padding-bottom: 5rem;
 }
 
-section[id] {
-  scroll-margin-top: 6.5rem;
-}
-
 h1,
 h2,
 h3,

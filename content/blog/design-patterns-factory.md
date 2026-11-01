@@ -120,4 +120,3 @@ All code examples and tests can be found in the [**Kotlin Design Patterns reposi
 ## Credits
 
 - [Java Design Patterns](https://github.com/iluwatar/java-design-patterns)
-- Cover photo by [Alexander Tsang](https://unsplash.com/@alexander_tsang) on [Unsplash](https://unsplash.com/).

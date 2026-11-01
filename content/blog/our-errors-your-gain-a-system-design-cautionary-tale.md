@@ -119,7 +119,3 @@ This cautionary tale demonstrates the importance of addressing temporary solutio
 Remember, temporary solutions are never temporary!
 
 Every tech debt decision you make will come back and hunt you if you are not going to come back and fix it later.
-
-## Credits
-
-- Cover photo by [Cederic Vandenberghe](https://unsplash.com/@cedericvandenberghe) on [Unsplash](https://unsplash.com/).

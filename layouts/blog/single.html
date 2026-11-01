@@ -17,8 +17,9 @@
         {{ range .GetTerms "tags" }}<a class="chip" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
       </div>
     </header>
+    {{ with $art.cover }}<img class="px-cover article__cover" src="{{ . }}" alt="" width="192" height="108" fetchpriority="high" decoding="async">{{ end }}
+
     <div class="article__body">
-      {{ with $art.cover }}<img class="px-cover article__cover" src="{{ . }}" alt="" width="192" height="108" fetchpriority="high" decoding="async">{{ end }}
       {{ if $toc }}
       <div class="article-toc px-well">
         <p class="article-toc__title">On this page</p>

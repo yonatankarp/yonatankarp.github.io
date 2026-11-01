@@ -883,8 +883,9 @@ def build(key, out, night=None):
         room = Layer(img.crop((ROOM_X, CEIL, W - 8, H - 12)))
         animate(room, f)
         img.paste(room.img, (ROOM_X, CEIL))
-        if night:                                                           # off the columns the edge runs read
-            Layer(img).twinkle((HOUSING_X + 6, 2, 466, 96), f, 21, col=c("cream", 5), on=night_sky(night))
+        if night:                                                           # the load animate() just drew in dusk colours;
+            recolour(img, {c("amber", 4): c("amber", 2), c("steel", 3): c("steel", 1)}, (ROOM_X + 178, CEIL + 33, ROOM_X + 193, CEIL + 60))
+            Layer(img).twinkle((HOUSING_X + 6, 2, 466, 96), f, 21, col=c("cream", 5), on=night_sky(night))   # off the columns the edge runs read
         strip.paste(img, (f * W, 0))
     edges = margins(strip.crop((0, 0, W, H)), key)    # from the rest frame: the runs carry on from every frame alike,
     (left, _), (right, _) = EDGES[key]                 # as nothing they read from, or meet, moves

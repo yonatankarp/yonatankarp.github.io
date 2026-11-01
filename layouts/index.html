@@ -81,9 +81,8 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
     <a class="building-floor-btn" href="#floor-P" data-goto="P" aria-keyshortcuts="P" aria-label="P, Parking, projects" title="P, Parking, projects">P</a>
   </nav>
 
-  <p class="building-hint" style="opacity:0"><span class="hint-fine">Scroll, swipe or use the arrow keys to ride the lift</span><span class="hint-coarse">Swipe to ride the lift</span></p>
-
   <main class="building-stops" id="building-stops">
+    <p class="building-hint" style="opacity:0"><span class="hint-fine">Scroll, swipe or use the arrow keys to ride the lift</span><span class="hint-coarse">Swipe to ride the lift</span></p>
     <section class="building-stop building-stop--hero is-here" id="floor-E" data-floor="E" aria-labelledby="fE">
       <article class="floor-card floor-card--hero" style="--accent:{{ index $accent "E" }}">
         {{ $role := split $home.hero.eyebrow " · " }}

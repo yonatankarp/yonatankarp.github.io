@@ -28,7 +28,8 @@ The building's art follows the visitor's local clock: dawn 06:00-07:59, day 08:0
 overrides it for testing; anything else means the clock. Dusk is the plain files; a variant is one more entry in
 `PHASES` in `web3d/pixel/gen_floors.py`, baked with `uv run web3d/pixel/gen_exterior.py build static/building/pixel --time NAME`
 into `exterior-NAME.png` and `floor-{R,P,L}-NAME.png` (only those rooms show outside). To show it, add it to the head script's
-pick, and to `BAKED` and `SKY` in `web3d/src/pixel.js`.
+pick, to `BAKED` and `SKY` in `web3d/src/pixel.js`, and to the phase lists in `scripts/capture-screenshots.js` and
+`scripts/check-csp.js`.
 
 ## Content Structure
 

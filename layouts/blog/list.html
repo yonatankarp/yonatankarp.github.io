@@ -65,7 +65,7 @@
       <h2>Tags</h2>
       <div class="chip-row">
         {{ range first 8 .Site.Taxonomies.tags.ByCount }}
-        <a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>{{ .Count }}</span></a>
+        <a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>({{ .Count }})</span></a>
         {{ end }}
         <a class="text-link" href="/tags/">All tags</a>
       </div>

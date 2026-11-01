@@ -124,4 +124,4 @@
 {{ if not $is404 }}{{ range $schemas }}<script type="application/ld+json">{{ . | jsonify | safeJS }}</script>{{ end }}{{ end }}
 {{- /* A 404 counts as an event under 404/<the broken path>, not as a pageview of it, so broken links stay findable. */}}
 {{ if $is404 }}{{ with resources.Get "js/goatcounter-404.js" | minify | fingerprint }}<script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}"></script>{{ end }}{{ end }}
-<script data-goatcounter="https://yonatankarp.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+<script data-goatcounter="https://yonatankarp.goatcounter.com/count" async src="https://gc.zgo.at/count.v5.js" crossorigin="anonymous" integrity="sha384-atnOLvQb9t+jTSipvd75X2yginT4PjVbqDdlJAmxMm+wYElFmeR6EmLP5bYeoRVQ"></script>

@@ -8,7 +8,7 @@
     <p>{{ len .Pages }} {{ cond (eq (len .Pages) 1) "post" "posts" }}. <a class="text-link" href="{{ .Parent.RelPermalink }}">All {{ lower .Parent.Title }}</a></p>
     {{ else }}
     <div class="chip-row">
-      {{ range .Data.Terms.ByCount }}<a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>{{ .Count }}</span></a>{{ end }}
+      {{ range .Data.Terms.ByCount }}<a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>({{ .Count }})</span></a>{{ end }}
     </div>
     {{ end }}
   </div>

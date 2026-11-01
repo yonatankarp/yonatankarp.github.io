@@ -3,7 +3,7 @@
 {{ $mine := where $pages "Params.group" "!=" "contribution" }}
 {{ $contributions := where $pages "Params.group" "contribution" }}
 <!DOCTYPE html>
-<html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
+<html lang="{{ .Site.Language.Lang }}">
 <head>
   {{ partial "head.html" . }}
 </head>

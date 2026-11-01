@@ -458,7 +458,7 @@ for (const filePath of htmlFiles) {
   }
 
   const notFound = read("404.html");
-  if (link(notFound, "canonical").length || meta(notFound, "og:url").length || !/<script\b[^>]*src=["']?\/js\/goatcounter-404\.[^>]*>[\s\S]*?<script\b[^>]*gc\.zgo\.at\/count\.js/.test(notFound)) fail("/404.html", "needs no canonical or og:url, and GoatCounter should count it under 404/<path>");
+  if (link(notFound, "canonical").length || meta(notFound, "og:url").length || !/<script\b[^>]*src=["']?\/js\/goatcounter-404\.[^>]*>[\s\S]*?<script\b[^>]*gc\.zgo\.at\/count\.v\d+\.js[^>]*\bintegrity=/.test(notFound)) fail("/404.html", "needs no canonical or og:url, and GoatCounter should count it under 404/<path>");
 
   if (!/<title>[^<]*\bCV\b/.test(read("cv/index.html"))) fail("/cv/", 'title should say "CV"');
 

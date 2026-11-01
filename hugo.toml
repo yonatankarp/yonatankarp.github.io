@@ -64,13 +64,6 @@ sameAs = [
   "https://www.linkedin.com/in/yonatankarp/",
 ]
 
-# --- Languages ---
-
-[languages]
-[languages.en]
-locale = "en"
-direction = "ltr"
-
 # --- Markup & Performance ---
 
 [markup]

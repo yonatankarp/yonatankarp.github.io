@@ -1,7 +1,7 @@
 /* Global design system */
 /* Dark-only palette: near-black cool background with a coral accent (inspired by darrenonthe.net). */
 :root {
-  --bg: oklch(0.145 0.012 280);
+  --bg: #0c0e14;
   --surface: oklch(0.2 0.012 280 / 0.86);
   --surface-strong: oklch(0.225 0.012 280);
   --surface-muted: oklch(0.175 0.012 280);

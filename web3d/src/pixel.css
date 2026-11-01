@@ -272,6 +272,12 @@ html:is([data-time='day'], [data-time='dawn']) .pixel .building-scrim { backgrou
   .pixel .building-download::after { content: 'PDF'; font-size: 15px; line-height: 15px; }
 }
 .pixel .elevator-arrow:not([data-dir="up"]):not([data-dir="down"]) { display: none; }
+/* Outside, the lift shows no floor: no display then, and the plate closes up round the buttons, which stay put
+   (half the display's 60px, where the plate is centred; under 1280px it hangs from its right edge). */
+html.building--guided .pixel .elevator:has([data-elevator-floor]:empty):has(.elevator-arrow:not([data-dir="up"], [data-dir="down"])) .elevator-display { display: none; }
+@media (min-width: 1280px) and (min-aspect-ratio: 1201/1000) {
+  html.building--guided .pixel .elevator:has([data-elevator-floor]:empty):has(.elevator-arrow:not([data-dir="up"], [data-dir="down"])) { translate: 30px; }
+}
 @media (min-width: 761px) and (max-width: 1279px) and (min-aspect-ratio: 1201/1000) {   /* tablets: a wider hero card with a smaller title, so it is not six lines */
   .pixel .building-stop--hero .floor-card { width: min(400px, 40vw); }
   .pixel .floor-card h1 { font-size: 30px; }

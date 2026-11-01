@@ -23,7 +23,7 @@ My employer announced a few months ago that any employee who works for three yea
 
 ## Principle 1: Eventually, Something Will Break in Production
 
-![Eventually, something will break](/images/blog/car-breakdown-open-hood.jpeg)
+![Person bent under the open hood of a blue car, parked by a brick building](/images/blog/car-breakdown-open-hood.jpeg)
 
 As the old saying goes, eventually, a production incident will occur. In our case, it happened sooner rather than later. Just a couple of hours after we landed in Thailand, we discovered a huge issue: both my wife's credit card and mine had expired on the day we arrived. This came as a big surprise to us since back home, credit card providers typically replace your card at least six months before its expiration date. However, living in Germany for almost four years taught us something new. Here, you need to request a new card from your bank if you want a replacement (lesson learned!). Fortunately, we had brought some cash with us for the vacation, so we were able to rely on that.
 
@@ -62,7 +62,7 @@ So, what did we learn? Similar to code development, where seeking a review befor
 
 ## Principle 4: Requirements Change
 
-![black and white wall mounted paper](/images/blog/wall-mounted-notes.jpg)
+![Torn black poster on a green wall, its red text saying change is coming, whether you like it or not](/images/blog/wall-mounted-notes.jpg)
 
 When initially planning our trip, we intended to spend one month in Thailand and one month in the Philippines. However, during our stay in southern Thailand, we found the weather to be unbearably hot. My wife, who dislikes hot weather, and I discussed the situation and decided to look for a cooler destination. After careful consideration, we chose to shorten our stay in Thailand and add a third destination to our trip. That's how we ended up in Vietnam!
 

@@ -33,7 +33,7 @@ As a backend engineer, I have developed numerous REST APIs during my career. One
 <!--more-->
 
 
-![Close-up of API planning notes on a desk](/images/blog/kb-alex-mccarthy-zmDbLyW7VQg-unsplash-1024x683.jpg)
+![Silhouette of a person at the far end of a long meeting table, against a bright window](/images/blog/kb-alex-mccarthy-zmDbLyW7VQg-unsplash-1024x683.jpg)
 
 
 ## Use OpenAPI Spec for Our New API
@@ -309,7 +309,7 @@ Running the `build` command in Gradle should generate the code in your project f
 ## Step 3: Implementation of the API! 🎉
 
 
-![Laptop on a desk before API implementation work](/images/blog/kb-jefferson-santos-9SoCnyQmkzI-unsplash-1024x683.jpg)
+![Person in headphones working at a laptop and monitors showing code, in a dark room](/images/blog/kb-jefferson-santos-9SoCnyQmkzI-unsplash-1024x683.jpg)
 
 
 ### Implementing The Code

@@ -800,21 +800,11 @@ PHASES = {
         ((_S, 3), (_S, 3), (_S, 4), (_S, 2), (_S, 2), (_S, 2), (_S, 1)), down=1, lit=1, lamp=(4, 0.55), sun=True, morning_star=True,
         streaks=(c("coral", 5), c("sky", 5), 0.3), city_off=True, glint=c("sky", 4),
         door=dict(sky=c("cream", 4), facade=c("sky", 2), unlit=c("sky", 1), lit=c("amber", 3), kerb=c("steel", 2), road=c("steel", 1))),
-    "dawn-mist": _phase(   # colder: blue-grey with no sun yet, the lamps still on, the horizon just warming
-        ((_B, 3), (_B, 4), (_B, 5), (_B, 5), (_ST, 5), (_ST, 5), (_CR, 4), (_CR, 5)),
-        ((_ST, 3), (_ST, 3), (_ST, 4), (_B, 2), (_B, 2), (_B, 2), (_B, 1)), down=1, lit=2, lamp=(4, 0.8), morning_star=True,
-        city_off=True, glint=c("blue", 4), tone={c("wall", 3): c("dark", 4), c("plank", 5): c("wall", 3)},
-        door=dict(sky=c("steel", 5), facade=c("dark", 3), unlit=c("dark", 2), lit=c("amber", 3), kerb=c("steel", 2), road=c("steel", 1))),
     "day": _phase(     # noon: a clear deep blue fading to pale at the horizon, fat white clouds, the sun on the walls
         ((_B, 3), (_B, 4), (_B, 4), (_B, 5), (_B, 5), (_ST, 5), (_ST, 5), (_CR, 5)),
         ((_ST, 4), (_ST, 4), (_ST, 4), (_ST, 3), (_ST, 3), (_ST, 3), (_ST, 2)), down=0, lit=0, lamp=None, city_off=True, daylit=True,
         clouds=(c("cream", 5), c("steel", 5), 1), glint=c("blue", 5), road=c("grey", 2), tone=_WARM | {c("cream", 0): c("grey", 2), c("plank", 1): c("plank", 3)},
         door=dict(sky=c("blue", 5), facade=c("wall", 4), unlit=c("dark", 3), lit=c("dark", 3), kerb=c("grey", 4), road=c("grey", 2), car=c("red", 3))),
-    "day-haze": _phase(    # a hot afternoon: paler all over, a few high wisps, softer shadow
-        ((_B, 4), (_B, 5), (_B, 5), (_ST, 5), (_ST, 5), (_CR, 5), (_CR, 5), (_CR, 5)),
-        ((_ST, 5), (_ST, 5), (_ST, 4), (_ST, 4), (_ST, 4), (_ST, 4), (_ST, 3)), down=0, lit=0, lamp=None, city_off=True, daylit=True,
-        streaks=(c("cream", 5), c("steel", 5), 0.45), glint=c("cream", 4), road=c("grey", 3), tone=_WARM | {c("cream", 0): c("grey", 3), c("plank", 1): c("plank", 3)},
-        door=dict(sky=c("steel", 5), facade=c("wall", 5), unlit=c("dark", 3), lit=c("dark", 3), kerb=c("grey", 4), road=c("grey", 3), car=c("red", 3))),
 }
 ROOF_CLOUDS = ((150, 32, 46), (232, 12, 30), (250, 66, 34), (398, 22, 52), (430, 66, 26))   # x, y, width, on open sky
 EDGE_CLOUDS = ((50, 20, 44), (150, 44, 60))                                                 # in the sky past the strip

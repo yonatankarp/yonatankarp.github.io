@@ -7,7 +7,7 @@ aliases:
   - /he/blog/real-life-problem-solving-engineering-principles/
 draft: false
 type: "blog"
-description: "How software engineering problem-solving principles, usually applied to code, turned out to be surprisingly effective for navigating real-life challenges during a trip to Asia."
+description: "How problem-solving principles from software engineering, usually applied to code, also worked on real-life challenges during a trip to Asia."
 tags:
   - engineering
   - software-engineering

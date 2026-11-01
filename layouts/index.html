@@ -232,7 +232,7 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
         </figure>
         {{ end }}
         {{ with $skills }}
-        <h3>Practice areas</h3>
+        <h3>Skills</h3>
         <div class="panel-grid">{{ range .Params.practice_areas }}<div><b>{{ .name }}</b><span>{{ .summary }}</span><span class="panel-chips">{{ range .tools }}<i>{{ . }}</i>{{ end }}</span></div>{{ end }}</div>
         <h3>Stack</h3>
         <p>{{ delimit .Params.working_set ", " }}</p>

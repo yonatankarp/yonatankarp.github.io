@@ -189,7 +189,7 @@ async function check(context, baseUrl, route) {
   const result = { route, csp: false, violations: [], errors: [], goatcounter: 0, did: [] };
 
   page.on("console", (message) => {
-    if (/Content.Security.Policy|Refused to/i.test(message.text())) {
+    if (/Content.Security.Policy|Refused to|integrity/i.test(message.text())) {
       result.violations.push(`console: ${message.text().slice(0, 300)}`);
     }
   });

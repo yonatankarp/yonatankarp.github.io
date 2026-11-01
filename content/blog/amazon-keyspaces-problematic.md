@@ -1,5 +1,5 @@
 ---
-title: "4 Reasons Why Amazon Keyspaces is Problematic!"
+title: "4 Reasons Why Amazon Keyspaces Is Problematic!"
 date: 2021-12-30T00:00:00+01:00
 aliases:
   - /4-reasons-why-amazon-keyspaces-is-problematic

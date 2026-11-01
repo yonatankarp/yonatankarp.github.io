@@ -318,6 +318,11 @@ html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card 
 @media (max-width: 579px) {   /* phones: no room left on that row, so a row of its own under the pause; the street starts under it */
   .building.pixel { --street-top: 180px; }
   .pixel .building-social { top: 136px; right: clamp(16px, 3vw, 36px); }
+  /* Outside, a column under the pause, clear of the hero card (never above --street-top + 240px). Inside, the lift and the card reach that edge: the row. So does the bigger tower of a narrow or very tall window. */
+  @media (max-height: 959px) and (min-aspect-ratio: 5/12) {
+    html.building--guided.at-street .pixel:not(.no-windows) .building-social { flex-direction: column; }
+    html.building--guided.at-street .pixel:not(.no-windows) .building-top:has(.building-pause[hidden]) .building-social { top: 84px; }
+  }
   .pixel .building-hint { top: max(calc(var(--card-top) - 72px), 216px); }   /* 500px tall: between the icons and the lift */
 }
 @media print { .pixel .building-social { display: none; } }

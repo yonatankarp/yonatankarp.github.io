@@ -88,10 +88,12 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     return a + (b - a) * (p - k);
   };
 
-  // The room loops only while it is allowed to move: the pause button (WCAG 2.2.2) and reduced motion hold it on
-  // its rest frame. A frame that would draw the same picture is skipped, and once nothing is moving the loop
-  // sleeps: until the next frame of the loop, or for good while held, until a ride, a resize or a load wakes it (#36).
+  // The room loops only while it is allowed to move: the pause button (WCAG 2.2.2), reduced motion and the plain page
+  // (whose pause scrolls away with the top bar, #132) hold it on its rest frame. A frame that would draw the same
+  // picture is skipped, and once nothing is moving the loop sleeps: until the next frame of the loop, or for good
+  // while held, until a ride, a resize or a load wakes it (#36).
   let paused = false, raf = 0, timer = 0, drawn = '';
+  try { paused = localStorage.getItem('building-paused') === 'true'; } catch {}   // remembered across visits (#132)
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
   // Reduced motion has nothing to pause: the button hides, and shows again if it is turned off after load (#128).
   const label = () => {
@@ -103,7 +105,11 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
   };
   label();
-  pauseButton?.addEventListener('click', () => { paused = !paused; label(); wake(); });
+  pauseButton?.addEventListener('click', () => {
+    paused = !paused;
+    try { localStorage.setItem('building-paused', paused); } catch {}
+    label(); wake();
+  });
   addEventListener('resize', wake);
   reduceMotion.addEventListener('change', () => { label(); wake(); });
 
@@ -121,6 +127,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     }
     ctx.imageSmoothingEnabled = false;
     const wide = !narrow.matches, still = reduceMotion.matches;
+    const held = paused || still || !document.documentElement.classList.contains('building--guided');
 
     const u = rideU(now);
     const p = ride.fade ? (u < 0.5 ? ride.from : ride.to) : Math.min(keys.length - 1, Math.max(0, pos(u)));
@@ -143,17 +150,18 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
 
     const loopMs = (FRAMES * 1000) / FPS;
     const phase = now % (loopMs + REST_MS);
-    const f = paused || still || phase >= loopMs ? 0 : Math.floor(phase / (1000 / FPS));
+    const f = held || phase >= loopMs ? 0 : Math.floor(phase / (1000 / FPS));
     for (const key of ORDER) {
       const here = arrived === ride.to && keys[ride.to] === key;
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
     }
-    const streetA = ride.fade ? (ride.to === eAt ? easeInOut(u) : 1 - easeInOut(u)) : street.alpha(p, eAt);
+    // The dissolve steps in sixths, as the cards arrive in four steps (#132).
+    const streetA = ride.fade ? Math.round((ride.to === eAt ? easeInOut(u) : 1 - easeInOut(u)) * 6) / 6 : street.alpha(p, eAt);
     const sig = [f, camY, streetA, loads, now < fading && now, ...open.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
         cancelAnimationFrame(raf); raf = 0;
-        if (!paused && !still) timer = setTimeout(wake, phase < loopMs ? 1000 / FPS - (phase % (1000 / FPS)) : loopMs + REST_MS - phase);
+        if (!held) timer = setTimeout(wake, phase < loopMs ? 1000 / FPS - (phase % (1000 / FPS)) : loopMs + REST_MS - phase);
       }
       return;
     }
@@ -271,14 +279,15 @@ function streetView(base, box, stops, loaded, then) {
     const s = Math.round(dpr * Math.max(1, Math.floor(Math.min(fit, wide ? Math.min(H / EH, (W - 440) / 200) : Math.min(H * 0.62 / EH, W / 200)))));
     const cx = (wide ? 440 + (W - 440) / 2 : W / 2) * dpr;
     // The street at the bottom; on a short screen it sinks until the top window is clear of the top bar.
-    return { s, x: Math.round(cx - (EW / 2) * s), y: Math.max(Math.round((wide ? h : h * 0.62) - EH * s), Math.round(clear * dpr) - top * s) };
+    const y = Math.max(Math.round((wide ? h : h * 0.62) - EH * s), Math.round(clear * dpr) - top * s);
+    return { s, x: Math.round(cx - (EW / 2) * s), y, end: rects.length ? (y + bottom * s) / dpr : 0 };
   }
   return {
     alpha: (p, at) => (at < 0 ? 0 : clamp01(1 - Math.abs(p - at))),
     draw(ctx, f, w, h, a, dpr, wide) {
       if (a <= 0) return;
       if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; }
-      const [EW, EH] = view.size, { s, x, y } = layout(w, h, dpr, wide), src = f * EW, [L, R] = SIDE;
+      const [EW, EH] = view.size, { s, x, y, end } = layout(w, h, dpr, wide), src = f * EW, [L, R] = SIDE;
       ctx.globalAlpha = a;   // the sky and the road's flat colours, all there is until the picture arrives
       ctx.fillStyle = view.top; ctx.fillRect(0, 0, w, y + EH * s - s);
       ctx.fillStyle = view.bottom; ctx.fillRect(0, y + EH * s - s, w, h);
@@ -292,6 +301,8 @@ function streetView(base, box, stops, loaded, then) {
       const at = `${s},${x},${y},${dpr}`;
       if (at === view.at) return;
       view.at = at;
+      // Where the street's lowest windows end, in CSS px: the phone's hero card hangs from there (pixel.css, #132).
+      if (end) document.documentElement.style.setProperty('--street-end', `${end}px`);
       for (const [b, [x0, y0, x1, y1]] of buttons) {
         const css = (v) => `${v / dpr}px`;
         Object.assign(b.style, { left: css(x + (x0 - PAD) * s), top: css(y + (y0 - PAD) * s), width: css((x1 - x0 + 2 * PAD) * s), height: css((y1 - y0 + 2 * PAD) * s) });

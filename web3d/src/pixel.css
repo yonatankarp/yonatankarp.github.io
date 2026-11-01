@@ -128,14 +128,17 @@
 }
 .pixel .elevator-arrow { border-left-width: 6px; border-right-width: 6px; border-bottom-width: 8px; }
 .pixel .building-floor-btn {
+  display: grid; place-items: center; box-sizing: border-box; text-decoration: none;   /* links to the floors (#132) */
   width: 44px; height: 40px;
   border: 0; border-radius: 0;
   background: #30363e;
   color: var(--text);
   font: 400 30px/1 var(--display);
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #4a525c;
+  transition: transform 80ms steps(1);
 }
 .pixel .building-floor-btn:hover { background: #3c434c; }
+.pixel .building-floor-btn:active { transform: translateY(4px); }   /* sinks like Download and Step inside */
 .pixel .building-floor-btn[aria-current="true"] {
   background: var(--amber);
   color: var(--ink);
@@ -147,7 +150,7 @@
 .pixel .floor-card .hero-cta:focus-visible, .pixel .building-pause:focus-visible, .pixel .building-social a:focus-visible {
   outline: none; box-shadow: inset 0 0 0 4px var(--text), inset 0 0 0 8px var(--ink);
 }
-.pixel .building-hint { left: calc(50% + 12px + min(200px, 15vw)); white-space: nowrap; border-radius: 0; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; }
+.pixel .building-hint { left: calc(50% + 12px + min(200px, 15vw)); white-space: nowrap; border-radius: 0; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; transition: opacity 180ms steps(4); }
 
 /* Registered as a length so pixel.js reads it in pixels: the room's floor sits behind the elevator, above the card. */
 @property --card-top { syntax: '<length>'; inherits: true; initial-value: 0px; }
@@ -204,10 +207,11 @@
   .pixel .floor-card h1 { font-size: 30px; }
 }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* outside, the windows are the way in: the card sits under the street */
-  html.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
-  /* On a short phone the street sinks to keep its top window clear of the name (pixel.js): the card gives way, so
-     the bottom windows (P and L, 310 art pixels down) stay out from under it and the card scrolls instead (#45). */
-  .pixel .building-stop--hero { padding-top: max(clamp(116px, calc(100svh - 216px), calc(62svh + 12px)), calc(var(--street-top) + 310px)); }
+  html.building--guided.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
+  /* The card hangs from the street, just under its bottom windows (P and L): pixel.js sets --street-end, and until
+     it runs the same edge at the street's smallest scale (#132). On a short phone the street sinks to keep its top
+     window clear of the name, and the card scrolls instead (#45). */
+  .pixel .building-stop--hero { align-items: flex-start; padding-top: var(--street-end, max(calc(62svh - 22px), calc(var(--street-top) + 310px))); }
   .pixel .building-stop--hero .floor-card { width: 100%; }
 }
 @media (max-width: 1279px) {   /* eleven lift buttons leave no room for the label between the name and the panel */
@@ -277,7 +281,7 @@ html.at-street .pixel .building-hint { visibility: hidden; }   /* the hero card 
 }
 @media print { .pixel .building-social { display: none; } }
 /* Without JavaScript there is no lift to ride: the floors are a plain page, read top to bottom. */
-html:not(.building--guided) .pixel .elevator, html:not(.building--guided) .pixel .exterior-windows { display: none; }
+html:not(.building--guided) .pixel .exterior-windows { display: none; }
 
 /* Step inside: each floor's full story, a wide panel over the left of its room (a sheet from the bottom on
    phones). The short card is the preview; while a panel is open the lift stays where it is. */
@@ -350,6 +354,8 @@ html.panel-open .pixel .building-hint { visibility: hidden; }
   box-shadow: inset 0 0 0 4px var(--ink), 0 0 0 4px var(--ink), 4px 4px 0 4px rgba(0, 0, 0, 0.35);
   box-sizing: content-box;
 }
+/* Lazy, but laid out (hidden) before guide.js conceals the floors: on the street it waits for the ride (#132). */
+html.building--guided.at-street .pixel .building-stop:not(.is-here) .floor-portrait { display: none; }
 .pixel .panel-quote { display: grid; grid-template-columns: 68px 1fr; gap: 16px; margin: 0 0 18px; }
 .pixel .panel-quote img { width: 60px; height: 60px; border: 4px solid var(--ink); object-fit: cover; image-rendering: pixelated; }
 .pixel .panel-quote blockquote { margin: 0; font-size: 15px; line-height: 24px; }
@@ -433,6 +439,9 @@ html:not(.building--guided) .pixel .building-stop { min-height: 0; padding: 12px
 html:not(.building--guided) .pixel .building-stop .floor-card { width: min(640px, 100%); max-height: none; }
 html:not(.building--guided) .pixel .floor-card, html:not(.building--guided) .pixel .floor-panel { overflow: visible; overscroll-behavior: auto; }
 html:not(.building--guided) .pixel .floor-how { display: none; }
+/* The lift is a row of links down the page; nothing loops, so there is nothing to pause (#132). */
+html:not(.building--guided) .pixel .elevator { position: relative; inset: auto; visibility: visible; transform: none; flex-wrap: wrap; width: fit-content; margin: 0 clamp(12px, 3vw, 36px); }
+html:not(.building--guided) .pixel .elevator-display, html:not(.building--guided) .pixel .building-pause { display: none; }
 /* Each panel follows its own card there: not its head and title again (the lobby's title is its own). */
 html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pixel .floor-panel:not(#panel-L) .panel-title { display: none; }
 /* Short phones: the same card set tighter, so the room keeps a band between the icons and the elevator (#127). */

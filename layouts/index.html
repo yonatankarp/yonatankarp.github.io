@@ -31,14 +31,13 @@ addEventListener('error', function (e) { if (e.target.type === 'module') documen
 if ('noModule' in HTMLScriptElement.prototype && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
 if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.add('at-street');
 ` | minify | fingerprint "sha256" }}
-{{- /* The hour's art (#151): dawn, day, dusk or night, picked once here and read by pixel.js, never changed while the page
-     is open. ?time= overrides the visitor's clock; anything else means the clock. Before the stylesheet, which would hold
-     this script back, so the street's art starts at once; a static preload tag would fetch the dusk street at every hour. */}}
+{{- /* The hour's art (#151): dawn, day, dusk or night, picked once here (partials/time-pick.html) and read by pixel.js,
+     never changed while the page is open. Before the stylesheet, which would hold this script back, so the street's art
+     starts at once; a static preload tag would fetch the dusk street at every hour. */}}
 {{ $time := resources.FromString "js/home-time.js" (printf `
-(function(){var t=new URLSearchParams(location.search).get('time'),h=new Date().getHours(),p=/^(dawn|day|dusk|night)$/.test(t)?t:h<6||h>=20?'night':h<8?'dawn':h<18?'day':'dusk',l=document.createElement('link');
-document.documentElement.dataset.time=p;
-l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(p==='dusk'?'':'-'+p)+'.png';document.head.appendChild(l)})();
-` $base) | minify | fingerprint "sha256" }}
+(function(){%s
+var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(p==='dusk'?'':'-'+p)+'.png';document.head.appendChild(l)})();
+` (partial "time-pick.html" .) $base) | minify | fingerprint "sha256" }}
 {{ $street := resources.FromString "js/home-street.js" `document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');` | minify | fingerprint "sha256" }}
 {{ .Store.Set "inlineScripts" (slice $time $guided $street) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
@@ -73,13 +72,13 @@ l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(p
 
   <nav class="elevator" aria-label="Floors">
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor></span></div>
-    <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-label="R, Roof, contact" title="R, Roof, contact">R</a>
+    <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-keyshortcuts="R" aria-label="R, Roof, contact" title="R, Roof, contact">R</a>
     {{ range $experience }}
-    <a class="building-floor-btn" href="#floor-{{ .Params.floor }}" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}" title="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</a>
+    <a class="building-floor-btn" href="#floor-{{ .Params.floor }}" data-goto="{{ .Params.floor }}" aria-keyshortcuts="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}" title="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</a>
     {{ end }}
-    {{ with $degree }}<a class="building-floor-btn" href="#floor-1" data-goto="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</a>{{ end }}
-    <a class="building-floor-btn" href="#floor-L" data-goto="L" aria-label="L, Lobby, recommendations, skills and writing" title="L, Lobby, recommendations, skills and writing">L</a>
-    <a class="building-floor-btn" href="#floor-P" data-goto="P" aria-label="P, Parking, projects" title="P, Parking, projects">P</a>
+    {{ with $degree }}<a class="building-floor-btn" href="#floor-1" data-goto="1" aria-keyshortcuts="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</a>{{ end }}
+    <a class="building-floor-btn" href="#floor-L" data-goto="L" aria-keyshortcuts="L" aria-label="L, Lobby, recommendations, skills and writing" title="L, Lobby, recommendations, skills and writing">L</a>
+    <a class="building-floor-btn" href="#floor-P" data-goto="P" aria-keyshortcuts="P" aria-label="P, Parking, projects" title="P, Parking, projects">P</a>
   </nav>
 
   <p class="building-hint" style="opacity:0"><span class="hint-fine">Scroll, swipe or use the arrow keys to ride the lift</span><span class="hint-coarse">Swipe to ride the lift</span></p>

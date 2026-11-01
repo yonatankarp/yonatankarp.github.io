@@ -4,7 +4,7 @@
     {{ partial "head.html" . }}
   </head>
   {{ $pixel := or (eq .Type "projects") (eq .Layout "search") (eq .Type "skills") (eq .Kind "404") (eq .Type "blog") (eq .Kind "taxonomy") (eq .Kind "term") }}
-  <body{{ if $pixel }} class="px-skin px-page" style="--scene: url({{ "building/pixel/backdrop.png" | relURL }})"{{ end }}>
+  <body{{ if $pixel }} class="px-skin px-page"{{ end }}>
     <a class="skip-link" href="#main-content">Skip to content</a>
     {{ partial "pixel-bar.html" . }}
     <main id="main-content">

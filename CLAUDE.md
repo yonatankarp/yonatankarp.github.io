@@ -27,9 +27,11 @@ The building's art follows the visitor's local clock: dawn 06:00-07:59, day 08:0
 20:00-05:59, picked once at load by the inline script in `layouts/index.html` (`html[data-time]`). `/?time=dawn|day|dusk|night`
 overrides it for testing; anything else means the clock. Dusk is the plain files; a variant is one more entry in
 `PHASES` in `web3d/pixel/gen_floors.py`, baked with `uv run web3d/pixel/gen_exterior.py build static/building/pixel --time NAME`
-into `exterior-NAME.png` and `floor-{R,P,L}-NAME.png` (only those rooms show outside). To show it, add it to the head script's
-pick, to `BAKED` and `SKY` in `web3d/src/pixel.js`, and to the phase lists in `scripts/capture-screenshots.js` and
-`scripts/check-csp.js`.
+into `exterior-NAME.png`, `floor-{R,P,L}-NAME.png` (only those rooms show outside) and `backdrop-NAME.png`, the street
+without the tower behind every other page. The pick is `layouts/partials/time-pick.html`, shared by the homepage and
+`head.html`, so the other pages follow the same clock: `assets/css/custom.css` maps `html[data-time]` to the backdrop. To
+show a new phase, add it to that pick, to `BAKED` and `SKY` in `web3d/src/pixel.js`, to the backdrop rules in `custom.css`,
+and to the phase lists in `scripts/capture-screenshots.js` and `scripts/check-csp.js`.
 
 ## Content Structure
 
@@ -67,6 +69,9 @@ type: "blog"
 tags: [kotlin, spring-boot]
 ---
 ```
+Optional `discuss: {linkedin: <url>, x: <url>}` points the post's "Discuss this post" line at the thread where it was
+shared; without it the line links to the LinkedIn and X profiles.
+
 A cover (`images.featured_image`, a photo in `static/images/blog/covers/`) also needs its pixel-art version in
 `static/images/blog/covers/pixel/`, which the blog shows; the build fails with the `pixelate.py` command to make it.
 
@@ -97,7 +102,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into the script)
 - Events (dashboard, Events): `cv-download` (the top bar's Download CV), `social-<icon>` (its social icons:
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage or the CV),
-  `email-copy` (the Copy chip beside it) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
+  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)
   and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.
 

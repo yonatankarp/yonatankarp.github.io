@@ -106,6 +106,8 @@ html:not(.building--guided) .building-hint { display: none; }
   overflow: auto; overscroll-behavior: contain;
   scroll-padding: 12px 0 72px;   /* a link tabbed to stops clear of the pinned Step inside and keeps its focus ring */
 }
+/* Off a lift ride the doors are seen opening before the card comes over them; on a phone it sits below the room, covering nothing, so it need not wait. */
+@media (min-width: 761px) and (min-aspect-ratio: 6/5) { html.lift-ride .pixel .building-stop.is-here .floor-card { transition-delay: 220ms; } }
 @media (prefers-reduced-motion: reduce) { .pixel .floor-card, html.building--guided .pixel .building-stop.is-here .floor-card { transition: none; } }
 .pixel .floor-card h2 { margin: 0 0 12px; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1; letter-spacing: 0.01em; }
 .pixel .floor-company { font-size: 15px; font-weight: 500; }

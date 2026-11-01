@@ -18,6 +18,13 @@ const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted l
 // not a slice, so going up there is the plain dissolve.
 const LOOK = { L: [246, 122], 1: [322, 76], 2: [328, 82], 3: [266, 56], 4: [250, 64], 5: [222, 54], 6: [230, 96], 7: [205, 86], P: [166, 78] };
 const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];   // mirrors gen_floors.BAYER
+// Each room's hanging lamps, by strip x: mirrors install_picks.LAMPS (8 further right on the strip), the lift's own lamp first.
+// The roof has none: it is outdoors, so it stays as bright as its sky.
+const LAMPS = { P: [74, 215, 251, 327, 351, 395], L: [74, 169, 197, 234, 266, 300], 1: [74, 198, 211, 262, 331, 372, 403], 2: [74, 167, 200, 266, 331, 377, 438], 3: [74, 201, 262, 299, 330, 372, 403], 4: [74, 181, 301, 424], 5: [74, 181, 352], 6: [74, 167, 336], 7: [74, 180, 337] };
+const DARK = { day: [0.5, 0.52, 0.58], dawn: [0.42, 0.42, 0.52] }[TIME] ?? [0.34, 0.34, 0.44];   // what a room's colours fall to with its lights off; by day its windows still let some in
+const SHADES = [16, 10, 5];                                     // a lamp coming on: how many of 16 Bayer cells are still dark, step by step
+const POOL = 8;                                                  // a lamp's light spreads in blocks this many art pixels wide
+const OVER = 2, SETTLE = 260;                                   // the cab sinks on past its stop, in art pixels, and comes back, in ms
 const FOCUS = { 2: 330, 3: 250 };                               // on narrow screens, the art x kept mid-screen (else 300)
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
 const PAUSE_KEY = 'building-paused';                            // per viewer, kept across reloads
@@ -47,6 +54,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const keys = stops.map((s) => s.dataset.floor);
   const strips = new Map();         // key -> Image (or null while loading / missing)
   const open = new Map();           // key -> 0..1, lift doors
+  const lit = new Map();            // key -> 0..1, its lamps: on only where the lift has arrived, or a flight lands
   let loads = 0, fading = 0;        // bumped by every image or file that arrives: the picture changes (and fades in)
   const loaded = () => { loads++; fading = performance.now() + FADE_IN_MS; wake(); };
   const started = new Set();
@@ -56,6 +64,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const img = new Image();
     img.onload = () => {
       if (key === 'R') SKY = colourAt(img, 300, 0);
+      if (LAMPS[key] && !held()) shade(img, SHADES[0]);   // now, not in the first frame of a flight, which has every storey in range at once
       img.since = performance.now(); strips.set(key, img); loaded();
     };
     img.onerror = () => { strips.set(key, null); loaded(); };
@@ -67,25 +76,36 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
 
   // ---- the ride ----
   // v: the speed carried over from a ride retargeted mid-way (floors per unit of u), so the cab never stops dead.
-  const ride = { from: 0, to: 0, start: 0, dur: 0, fade: false, v: 0 };
+  // land, settle: it reaches its stop still moving, by that much, and spends the ride's last settle ms sinking past it and back.
+  const ride = { from: 0, to: 0, start: 0, dur: 0, fade: false, v: 0, land: 0, settle: 0, sink: 0 };
   const eAt = keys.indexOf('E');                               // the street view's stop
   const fromHash = keys.indexOf(hashKey());
   ride.from = ride.to = Math.max(0, fromHash);
+  lit.set(keys[ride.from], 1);   // a page opening on a floor opens with the lights on
   load(keys[ride.from]);   // a floor's own address shows that floor first, so it loads alongside the street
   if (fromHash >= 0 && location.hash !== `#floor-${keys[fromHash]}`) {   // a legacy or lowercased anchor: show the floor's own
     history.replaceState(null, '', `#floor-${keys[fromHash]}`);
     requestAnimationFrame(() => document.documentElement.classList.contains('building--guided') || stops[fromHash].scrollIntoView());
   }
   const rideU = (now) => (ride.dur ? clamp01((now - ride.start) / ride.dur) : 1);
-  // A carried speed rides a cubic Hermite (smoothstep plus the speed's term), which lands without overshooting.
-  const pos = (u) => ride.from + (ride.to - ride.from) * (ride.v ? u * u * (3 - 2 * u) : easeInOut(u)) + ride.v * u * (1 - u) ** 2;
+  // A carried speed rides a cubic Hermite (smoothstep plus the speed's term), which lands without overshooting; the
+  // land term is its other end's tangent, the speed the settle starts at.
+  const pos = (u) => {
+    const m = ride.settle ? Math.min(1, u * ride.dur / (ride.dur - ride.settle)) : u;
+    return ride.from + (ride.to - ride.from) * (ride.v ? m * m * (3 - 2 * m) : easeInOut(m)) + ride.v * m * (1 - m) ** 2 + ride.land * m * m * (m - 1);
+  };
+  // How far past its stop the cab has sunk, in art pixels: in level's terms, so the street's far-off level is not involved.
+  const sunk = (u) => { const t = ride.settle ? 1 - (1 - u) * ride.dur / ride.settle : 0; return t > 0 ? ride.sink * Math.sin(Math.PI * t) : 0; };
+  // Where the camera is, settle included, for a ride to start from.
+  // shortcut: past the roof or the garage there is no next storey to measure that against, so a ride asked for in that settle starts from the stop, up to OVER art pixels away; carry the offset separately if that ever shows.
+  const cab = (u) => { const past = pos(u) - sunk(u) / FH; return past >= eAt + 1 && past <= keys.length - 1 ? past : pos(u); };
   const emit = (name, detail) => document.dispatchEvent(new CustomEvent(name, { detail }));
   function go(index) {
     loadAll();
     const now = performance.now(), u = rideU(now);
     const to = Math.max(0, Math.min(keys.length - 1, index));
     if (to === ride.to || (ride.fade && u < 1)) return false;   // already on its way there; a dissolve runs to its end
-    const here = pos(u), vel = u < 1 ? (here - pos(rideU(now - 16))) / 16 : 0;   // floors per ms
+    const here = cab(u), vel = u < 1 ? (here - cab(rideU(now - 16))) / 16 : 0;   // floors per ms
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: through a window, not a ride
     const still = held();
     const flies = fade && LOOK[keys[to === eAt ? Math.round(here) : to]];   // through a window; else the plain dissolve
@@ -93,7 +113,12 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000;   // the doors shut, then it moves
     // The eased start moves the camera less than half an art pixel at first: that stretch runs as the doors finish.
     const hidden = vel || fade ? 0 : dur * Math.cbrt(1 / (1440 * Math.max(dist, 1e-3)));
-    Object.assign(ride, { from: here, to, start: now + Math.max(0, closeMs - hidden), fade, dur: still ? 1 : dur, v: fade || still ? 0 : vel * dur });
+    const settle = fade || still || paused ? 0 : SETTLE;
+    Object.assign(ride, {
+      from: here, to, start: now + Math.max(0, closeMs - hidden), fade, dur: still ? 1 : dur + settle, v: fade || still ? 0 : vel * dur, settle,
+      land: settle ? Math.sign(to - here) * (OVER / FH) * (Math.PI / settle) * dur : 0, sink: OVER * Math.sign(level(keys[to]) - lerpAt(here, level)),
+    });
+    document.documentElement.classList.toggle('lift-ride', !fade && !still);   // the card waits for the doors (pixel.css)
     history.replaceState(null, '', `#floor-${keys[to]}`);
     arrived = -1;   // a ride redirected back to the floor it left still arrives there (#31)
     emit('building:depart', { index: to, key: keys[to], dir: fade ? 0 : Math.sign(to - here) });
@@ -161,10 +186,10 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const x0 = wide ? Math.round((w - FW * s) / 2) : Math.min(0, Math.max(w - FW * s, Math.round(w / 2 - focus * s)));
     const cy = wide ? h / 2 : cardTop ? floorAt * dpr - FH * s / 2 : h * 0.3;   // phones keep the room above the card
     const ry = Math.round(cy - FH * s / 2);                    // the top of the floor in view
-    const camY = Math.round(lerpAt(at, level));                // whole art pixels: no shimmer
+    const camY = Math.round(lerpAt(at, level) + sunk(u));      // whole art pixels: no shimmer
     const near = Math.round(p);
     if (near !== passing) { passing = near; emit('building:floor', { index: near, key: keys[near] }); }
-    // Arrived on the last pixel the camera moves: the eased tail after it changes nothing on screen.
+    // Arrived the moment the camera reaches its stop: the doors and the lamps start as it settles.
     const landed = u === 1 || (!ride.fade && u > 0.5 && camY === level(keys[ride.to]));
     if (landed && arrived !== ride.to) { arrived = ride.to; emit('building:arrive', { index: ride.to, key: keys[ride.to] }); }
 
@@ -174,12 +199,13 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     for (const key of ORDER) {
       const here = arrived === ride.to && keys[ride.to] === key;
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
+      lit.set(key, ride.fade && keys[inner] === key ? 1 : clamp01((lit.get(key) ?? 0) + (here ? dt : -dt) * (still || paused ? 99 : DOORS)));   // in step with the doors; paused, they just switch
     }
     const inT = ride.fade ? (ride.to === eAt ? 1 - u : u) : 0;   // going in or out: 0 on the street, 1 in the room
     const fly = ride.fade && inT > 0 && inT < 1 ? street.fly(keys[inner], inT, w, h, dpr, wide, { s, x: x0, y: ry }) : null;
     // A flight's every frame differs and sig must see that; the plain dissolve (the roof's) steps, like the cards.
     const eased = 1 - easeInOut(inT), streetA = ride.fade ? (fly ? eased : Math.round(eased * 6) / 6) : street.alpha(p, eAt);
-    const sig = [f, camY, streetA, loads, now < fading && now, ...open.values()].join();
+    const sig = [f, camY, streetA, loads, now < fading && now, ...open.values(), ...lit.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
         cancelAnimationFrame(raf); raf = 0;
@@ -214,17 +240,39 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       if (!img || now - img.since < FADE_IN_MS) ctx.fillRect(0, y, w, FH * s);
       if (!img) continue;
       ctx.globalAlpha = clamp01((now - img.since) / FADE_IN_MS);
-      ctx.drawImage(img, f * FW, 0, FW, FH, x0, y, FW * s, FH * s);
       // The room runs on to the screen's edges over the facade posts: after its frames the strip holds a run of t
       // columns that carries on left of art x 8 and another right of 472 (gen_floors.EDGES), tiled outwards.
       // shortcut: past t art px (a screen over ~4.5:1) a run repeats with a step; give it longer runs if that matters.
       const t = (img.width - FRAMES * FW) / 2;
-      if (wide && t > 0) {
-        for (let gx = x0 + (8 - t) * s; gx + t * s > 0; gx -= t * s) ctx.drawImage(img, FRAMES * FW, 0, t, FH, gx, y, t * s, FH * s);
-        for (let gx = x0 + 472 * s; gx < w; gx += t * s) ctx.drawImage(img, FRAMES * FW + t, 0, t, FH, gx, y, t * s, FH * s);
-      } else {   // a strip cached from before the runs: its outermost columns, stretched
-        if (x0 > 0) ctx.drawImage(img, f * FW, 0, 1, FH, 0, y, x0, FH * s);
-        if (x0 + FW * s < w) ctx.drawImage(img, f * FW + FW - 1, 0, 1, FH, x0 + FW * s, y, w - x0 - FW * s, FH * s);
+      const paint = (src, sx, runs) => {
+        ctx.drawImage(src, sx, 0, FW, FH, x0, y, FW * s, FH * s);
+        if (wide && t > 0) {
+          for (let gx = x0 + (8 - t) * s; gx + t * s > 0; gx -= t * s) ctx.drawImage(src, runs, 0, t, FH, gx, y, t * s, FH * s);
+          for (let gx = x0 + 472 * s; gx < w; gx += t * s) ctx.drawImage(src, runs + t, 0, t, FH, gx, y, t * s, FH * s);
+        } else {   // a strip cached from before the runs: its outermost columns, stretched
+          if (x0 > 0) ctx.drawImage(src, sx, 0, 1, FH, 0, y, x0, FH * s);
+          if (x0 + FW * s < w) ctx.drawImage(src, sx + FW - 1, 0, 1, FH, x0 + FW * s, y, w - x0 - FW * s, FH * s);
+        }
+      };
+      paint(img, f * FW, FRAMES * FW);
+      // Lights off in transit; on arrival each lamp's pool spreads from its shade, the lift's first, in blocks of whole-pixel
+      // dither, never an alpha veil. The doors go in front (drawn after), on their lit cab.
+      const lamps = LAMPS[key], on = lit.get(key);
+      if (lamps && on < 1 && !still) {
+        if (!on) paint(shade(img, SHADES[0]), 0, FW);
+        else for (let lv = 0; lv < SHADES.length; lv++) {
+          ctx.save();
+          ctx.beginPath();
+          for (let cx = 0; cx < FW; cx += POOL) for (let cy = 0; cy < FH; cy += POOL) {
+            const glow = Math.max(...lamps.map((lx, i) => on - (i / lamps.length) * 0.4 - Math.min(1, Math.hypot(cx - lx, cy - 30) / 170) * 0.3));
+            if (Math.floor(glow / 0.3 * SHADES.length) !== lv && (lv || glow > 0)) continue;
+            const a = cx ? x0 + cx * s : 0, b = cx + POOL < FW ? x0 + (cx + POOL) * s : w;
+            ctx.rect(a, y + cy * s, b - a, POOL * s);
+          }
+          ctx.clip();
+          paint(shade(img, SHADES[lv]), 0, FW);
+          ctx.restore();
+        }
       }
       drawDoors(ctx, img, f, x0, y, s, open.get(key));
       ctx.globalAlpha = 1;
@@ -254,6 +302,40 @@ function drawDoors(ctx, img, f, x0, y0, s, open) {
   ctx.drawImage(img, f * FW + DOOR.x0, DOOR.y0, lw, h, x0 + (DOOR.x0 - gap) * s, top, lw * s, h * s);
   ctx.drawImage(img, f * FW + DOOR.mid, DOOR.y0, rw, h, x0 + (DOOR.mid + gap) * s, top, rw * s, h * s);
   ctx.restore();
+}
+
+// A strip's rest frame and edge runs with its lights off, each colour fallen to the nearest of the room's own, so it
+// stays on the palette; with lv of 16 Bayer cells of it left, to dither over the lit room. Laid out as the strip, with
+// one frame. Made when first seen, and kept on the image.
+function shade(img, lv) {
+  img.shades ??= {};
+  if (img.shades[lv]) return img.shades[lv];
+  const runs = img.width - FRAMES * FW;
+  const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true }), W = FW + runs;
+  c.canvas.width = W; c.canvas.height = FH;
+  if (lv < 16) {   // composited, not read back: this runs as a lamp comes on, and must not cost that frame
+    const tile = document.createElement('canvas').getContext('2d');
+    tile.canvas.width = tile.canvas.height = 4;
+    BAYER.forEach((row, y) => row.forEach((b, x) => { if (b < lv) tile.fillRect(x, y, 1, 1); }));
+    c.drawImage(shade(img, 16), 0, 0);
+    c.globalCompositeOperation = 'destination-in';
+    c.fillStyle = c.createPattern(tile.canvas, 'repeat');
+    c.fillRect(0, 0, W, FH);
+    return (img.shades[lv] = c.canvas);
+  }
+  c.drawImage(img, 0, 0, FW, FH, 0, 0, FW, FH);
+  if (runs) c.drawImage(img, FRAMES * FW, 0, runs, FH, FW, 0, runs, FH);
+  const d = c.getImageData(0, 0, W, FH), px = new Uint32Array(d.data.buffer);
+  const rgb = (v) => [v & 255, (v >> 8) & 255, (v >> 16) & 255], own = [...new Set(px)].map((v) => [v, rgb(v)]);
+  const fallen = new Map(own.map(([v, col]) => {
+    const to = col.map((n, i) => n * DARK[i]);
+    let best = v, far = Infinity;
+    for (const [w, o] of own) { const e = (o[0] - to[0]) ** 2 + (o[1] - to[1]) ** 2 + (o[2] - to[2]) ** 2; if (e < far) { far = e; best = w; } }
+    return [v, best];
+  }));
+  for (let i = 0; i < px.length; i++) px[i] = fallen.get(px[i]);
+  c.putImageData(d, 0, 0);
+  return (img.shades[lv] = c.canvas);
 }
 
 // The street view: the whole building at this hour (web3d/pixel/gen_exterior.py), its windows live crops of the rooms,

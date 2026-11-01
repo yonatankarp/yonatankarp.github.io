@@ -2,7 +2,7 @@ name: Pin staleness
 
 # Hugo is installed from a GitHub release by ci.yml and deploy.yml, so its
 # version is a string inside a workflow rather than a dependency: Dependabot
-# updates npm, gomod and the action refs and never sees it. Left alone, the site
+# updates npm and the action refs and never sees it. Left alone, the site
 # keeps being built by whatever Hugo was current on the day somebody typed the
 # pin. This reports that, and reports the two copies of the pin disagreeing,
 # which is the other failure keeping it in two files allows.
@@ -31,12 +31,13 @@ jobs:
   hugo-pin:
     name: Hugo pin against its newest release
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
 

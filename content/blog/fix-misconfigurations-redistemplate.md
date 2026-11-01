@@ -1,6 +1,8 @@
 ---
 title: "How to Fix Misconfigurations in RedisTemplate"
 date: 2024-06-05T00:00:00+01:00
+aliases:
+  - /he/blog/fix-misconfigurations-redistemplate/
 draft: false
 type: "blog"
 description: "A practical guide to identifying and fixing common RedisTemplate misconfiguration pitfalls in Spring Boot, with a focus on serialization issues."

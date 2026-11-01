@@ -1,6 +1,10 @@
 ---
 title: "Real-Life Problem Solving: Lessons from My Engineering Principles"
 date: 2023-03-05T00:00:00+01:00
+aliases:
+  - /real-life-problem-solving-lessons-from-my-engineering-principles
+  - /4-engineering-principles-ive-applied-in-real-life
+  - /he/blog/real-life-problem-solving-engineering-principles/
 draft: false
 type: "blog"
 description: "How software engineering problem-solving principles, usually applied to code, turned out to be surprisingly effective for navigating real-life challenges during a trip to Asia."

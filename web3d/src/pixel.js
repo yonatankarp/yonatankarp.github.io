@@ -1,7 +1,8 @@
 // Pixel building: one 480x180 pixel-art strip per floor (web3d/pixel/gen_floors.py), stacked into a tower and
 // drawn at a whole-number scale so every pixel stays square. The lift rides between floors in whole art pixels.
-// Reads its stops from the page (<section data-floor="KEY">) and emits the same events as the 3D renderer.
+// Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 import { guide } from './guide.js';
+import '../../assets/js/copy-email.js';
 import './styles.css';
 import './pixel.css';
 
@@ -233,7 +234,11 @@ function streetView(base, box, stops, loaded, then) {
   img.onerror = then;
   img.src = `${base}pixel/exterior.png`;
   const buttons = [];
-  fetch(`${base}pixel/exterior.json`).then((r) => r.json()).then((j) => {
+  // The lift is the keyboard's way between floors, so the windows stay out of the Tab order, except where the lift is
+  // hidden at the street (phones, pixel.css): there they are the only way in (#131).
+  const tabbable = () => buttons.forEach(([b]) => { b.tabIndex = narrow.matches ? 0 : -1; });
+  narrow.addEventListener('change', tabbable);
+  fetch(`${base}pixel/exterior.json`).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }).then((j) => {
     Object.assign(view, j);
     for (const [key, rect] of Object.entries(j.windows)) {
       const label = document.querySelector(`.building-floor-btn[data-goto="${key}"]`)?.getAttribute('aria-label');
@@ -244,9 +249,13 @@ function streetView(base, box, stops, loaded, then) {
       box.append(b);
       buttons.push([b, rect]);
     }
+    tabbable();
     view.at = null;   // place the new buttons on the next frame, whichever of image and layout came first
     loaded();
-  }).catch(() => {});
+  }).catch((err) => {   // no windows to tap: the street shows the lift instead, even on phones (pixel.css .no-windows)
+    console.error(`The street's windows did not load (${base}pixel/exterior.json):`, err);
+    document.body.classList.add('no-windows');
+  });
   document.addEventListener('building:depart', () => box?.classList.remove('is-here'));
   document.addEventListener('building:arrive', (e) => box?.classList.toggle('is-here', e.detail.key === 'E'));
 

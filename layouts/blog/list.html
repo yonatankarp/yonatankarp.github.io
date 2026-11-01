@@ -3,32 +3,31 @@
 {{ $featured := first 1 $posts }}
 {{ $paginator := partial "blog-pager.html" . }}{{/* pages after the featured one */}}
 <div class="blog-px">
-<section class="shell page-head reveal-group">
-  <div class="page-head__copy reveal">
+<section class="shell page-head">
+  <div class="page-head__copy">
     <h1>{{ .Title }}</h1>
     <p>{{ .Content | plainify }}</p>
     {{ with .OutputFormats.Get "rss" }}<div class="chip-row"><a class="chip" href="{{ .RelPermalink }}" type="application/rss+xml">RSS feed</a></div>{{ end }}
   </div>
 </section>
 
-<section class="shell blog-layout reveal-group">
+<section class="shell blog-layout">
   <div>
-    {{ range $featured }}
+    {{ if eq $paginator.PageNumber 1 }}{{ range $featured }}
     {{ $art := partial "blog-art.html" . }}
-    {{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
-    <article class="featured-article reveal" style="--post: {{ $art.accent | safeCSS }}">
+    <article class="featured-article" style="--post: {{ $art.accent | safeCSS }}">
       <div class="featured-article__body">
         <p class="eyebrow">Latest article</p>
         <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
-        <p class="featured-article__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ $readingTime }} min read · {{ .WordCount }} words</p>
+        <p class="featured-article__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ partial "reading-time.html" . }} min read · {{ .WordCount }} words</p>
         <p>{{ .Description | default (.Summary | plainify) }}</p>
         <a class="button button--primary" href="{{ .RelPermalink }}">Read article</a>
       </div>
       {{ if $art.cover }}
-      <img class="px-cover" src="{{ $art.cover }}" alt="{{ .Title }}" width="192" height="108" decoding="async">
+      <img class="px-cover" src="{{ $art.cover }}" alt="" width="192" height="108" decoding="async">
       {{ end }}
     </article>
-    {{ end }}
+    {{ end }}{{ end }}
 
     <div class="post-list">
       {{ range $paginator.Pages }}
@@ -54,16 +53,16 @@
     {{ end }}
   </div>
 
-  <aside class="blog-sidebar reveal">
+  <aside class="blog-sidebar">
     <section>
-      <h3>Search</h3>
+      <h2>Search</h2>
       <form action="/search/" method="get">
         <label class="sr-only" for="blog-search">Search articles</label>
         <input id="blog-search" class="search-input" type="search" name="q" placeholder="Search articles">
       </form>
     </section>
     <section>
-      <h3>Tags</h3>
+      <h2>Tags</h2>
       <div class="chip-row">
         {{ range first 8 .Site.Taxonomies.tags.ByCount }}
         <a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>{{ .Count }}</span></a>
@@ -72,12 +71,12 @@
       </div>
     </section>
     <section>
-      <h3>Reading tracks</h3>
+      <h2>Reading tracks</h2>
       <div class="chip-row">
-        <a class="chip" href="/tags/openapi/">API design</a>
-        <a class="chip" href="/tags/observability/">Observability</a>
-        <a class="chip" href="/tags/kotlin/">Kotlin/JVM</a>
-        <a class="chip" href="/tags/spring-boot/">Spring Boot</a>
+        {{ range slice (slice "openapi" "API design") (slice "observability" "Observability") (slice "kotlin" "Kotlin/JVM") (slice "spring-boot" "Spring Boot") }}
+        {{ $label := index . 1 }}
+        {{ with site.GetPage (printf "/tags/%s" (index . 0)) }}<a class="chip" href="{{ .RelPermalink }}">{{ $label }}</a>{{ else }}{{ errorf "layouts/blog/list.html: reading track %q has no tag page; no post is tagged %s" $label (index . 0) }}{{ end }}
+        {{ end }}
       </div>
     </section>
   </aside>

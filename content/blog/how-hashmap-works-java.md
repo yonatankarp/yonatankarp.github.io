@@ -1,6 +1,9 @@
 ---
 title: "How does HashMap work in Java?"
 date: 2022-12-02T00:00:00+01:00
+aliases:
+  - /how-does-hashmap-work-in-java
+  - /he/blog/how-hashmap-works-java/
 draft: false
 type: "blog"
 description: "A deep dive into the internal mechanics of Java's HashMap, covering the equals/hashCode contract, bucket distribution, and the binary tree optimization introduced in Java 8."

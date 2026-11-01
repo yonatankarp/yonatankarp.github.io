@@ -2,7 +2,7 @@
 
 ## Stack
 
-- **Hugo** static site generator (v0.160.0+)
+- **Hugo** static site generator (v0.168.0, pinned as `HUGO_VERSION` in the workflows; see Deployment)
 - **Custom Hugo layouts** in `layouts/`
 - **GitHub Actions** for CI/CD to GitHub Pages
 - Site styles in `assets/css/custom.css`
@@ -86,6 +86,11 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - Dashboard: `https://yonatankarp.goatcounter.com`
 - Localhost and private IPs are automatically excluded
 - To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into `count.js`)
+- Events (dashboard, Events): `cv-download` (the top bar's Download CV), `social-<icon>` (its social icons:
+  `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage or the CV),
+  `email-copy` (the Copy chip beside it) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
+  reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)
+  and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.
 
 ## Deployment
 

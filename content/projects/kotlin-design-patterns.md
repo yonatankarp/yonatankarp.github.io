@@ -2,7 +2,6 @@
 date: 2022-10-01T00:00:00+01:00
 title: "kotlin-design-patterns"
 weight: 50
-featured: true
 projectKind: "Technical writing / docs"
 group: "project"
 draft: false
@@ -14,9 +13,7 @@ build:
   list: local
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "Website"
-        URL: "https://yonatankarp.com/kotlin-design-patterns/"
 ---
 
 Software design patterns implemented in idiomatic Kotlin. A teaching/reference project that turns familiar object-oriented patterns into Kotlin-first examples with a generated MkDocs documentation site.

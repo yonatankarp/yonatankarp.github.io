@@ -1,0 +1,2 @@
+{{- /* A project's title without the " (contributor)" suffix its front matter carries for upstream work. */ -}}
+{{- return replaceRE `\s*\(contributor\)$` "" . -}}

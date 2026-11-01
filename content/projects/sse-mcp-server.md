@@ -2,7 +2,6 @@
 date: 2026-01-01T00:00:00+01:00
 title: "sse-mcp-server"
 weight: 40
-featured: true
 description: "A Spring Boot Kotlin MCP bridge that exposes typed tools over Server-Sent Events for Flowise-style agent workflows."
 group: "project"
 projectKind: "AI-agent infrastructure"
@@ -13,9 +12,7 @@ tech: ["Kotlin", "Spring Boot", "MCP", "SSE", "Docker"]
 years: "2025"
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "GitHub"
-        URL: "https://github.com/yonatankarp/sse-mcp-server"
 ---
 
 Spring Boot Kotlin MCP bridge for exposing backend tools to Flowise-style agents over Server-Sent Events. It makes tool execution inspectable: the transport is explicit, tools are registered through provider interfaces, and the agent connects through a concrete SSE endpoint instead of a hidden adapter layer.

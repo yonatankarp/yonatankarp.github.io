@@ -8,6 +8,7 @@ const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
 const cvPath = path.join(publicDir, "cv", "index.html");
 const pdfPath = path.join(publicDir, "yonatan-karp-rudin-cv.pdf");   // the homepage's Download CV
+const CV_FONTS = ["Jersey 15", "Outfit"];   // the faces the printed CV sets its text in; compared lowercased, as the minifier writes them
 
 // Chromium only writes Title, so Author, Subject and the rest are added after printing.
 async function setMetadata() {
@@ -50,6 +51,7 @@ function contentType(filePath) {
     ".png": "image/png",
     ".svg": "image/svg+xml",
     ".webp": "image/webp",
+    ".woff2": "font/woff2",
   };
 
   return types[extension] || "application/octet-stream";
@@ -105,6 +107,18 @@ function createStaticServer() {
       console.warn("CV PDF generation continuing before networkidle.");
     }
     await page.emulateMedia({ media: "print" });
+    // A PDF in fallback fonts would otherwise ship (#146): wait for the print layout's fonts and require them loaded.
+    const faces = await page.evaluate(async () => {
+      document.body.getBoundingClientRect();   // lay out in print media so its fonts start loading
+      await document.fonts.ready;
+      return Array.from(document.fonts, (face) => ({ family: face.family.replace(/["']/g, "").toLowerCase(), status: face.status }));
+    });
+    const broken = faces.filter((face) => face.status === "error").map((face) => `${face.family} failed to load`);
+    const missing = CV_FONTS.filter((family) => !faces.some((face) => face.family === family.toLowerCase() && face.status === "loaded"))
+      .map((family) => `${family} is not loaded`);
+    if (broken.length || missing.length) {
+      fail("CV PDF generation stopped: the CV's fonts did not load.", [...broken, ...missing]);
+    }
     await page.pdf({
       path: pdfPath,
       format: "A4",

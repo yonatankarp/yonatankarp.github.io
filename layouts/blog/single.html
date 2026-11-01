@@ -1,7 +1,6 @@
 {{ define "main" }}
 <div class="blog-px">
 <div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
-{{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
 {{ $art := partial "blog-art.html" . }}
 <section class="shell article-shell">
   <article class="article" style="--post: {{ $art.accent | safeCSS }}">
@@ -10,7 +9,7 @@
       <h1>{{ .Title }}</h1>
       <div class="article__meta">
         <span>{{ .Date.Format "Jan 2, 2006" }}</span>
-        <span>{{ $readingTime }} min read</span>
+        <span>{{ partial "reading-time.html" . }} min read</span>
         <span>{{ .WordCount }} words</span>
       </div>
       {{ with .Description }}<p class="article__summary">{{ . }}</p>{{ end }}
@@ -18,7 +17,7 @@
         {{ range .GetTerms "tags" }}<a class="chip" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
       </div>
     </header>
-    {{ with $art.cover }}<img class="px-cover article__cover" src="{{ . }}" alt="{{ $.Title }}" width="192" height="108" decoding="async">{{ end }}
+    {{ with $art.cover }}<img class="px-cover article__cover" src="{{ . }}" alt="" width="192" height="108" fetchpriority="high" decoding="async">{{ end }}
 
     {{ if and (ge .WordCount 600) (strings.Contains .TableOfContents "<li") }}
     <details class="article-toc" open>
@@ -65,13 +64,13 @@
 {{ $blog := where site.RegularPages "Type" "blog" }}
 {{ $recs := first 3 (where (union ($blog.Related .) (first 4 (sort $blog "Date" "desc"))) "Permalink" "!=" .Permalink) }}
 {{ with $recs }}
-<section class="shell related-posts reveal-group" aria-labelledby="keep-reading">
+<section class="shell related-posts" aria-labelledby="keep-reading">
   <h2 id="keep-reading" class="related-posts__title">Keep reading</h2>
   <div class="related-grid">
     {{ range . }}
     {{ $art := partial "blog-art.html" . }}
-    <a class="related-card reveal" href="{{ .RelPermalink }}" style="--post: {{ $art.accent | safeCSS }}">
-      {{ if $art.cover }}<img class="px-cover" src="{{ $art.cover }}" alt="{{ .Title }}" width="192" height="108" loading="lazy" decoding="async">{{ end }}
+    <a class="related-card" href="{{ .RelPermalink }}" style="--post: {{ $art.accent | safeCSS }}">
+      {{ if $art.cover }}<img class="px-cover" src="{{ $art.cover }}" alt="" width="192" height="108" loading="lazy" decoding="async">{{ end }}
       <span class="related-card__date">{{ .Date.Format "Jan 2, 2006" }}</span>
       <h3>{{ .Title }}</h3>
     </a>

@@ -12,9 +12,7 @@ build:
   list: local
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "Intro"
-        URL: "https://www.youtube.com/watch?v=g5oVn83AvBI"
 ---
 
 Tower defense game. Team project at Reichman University.

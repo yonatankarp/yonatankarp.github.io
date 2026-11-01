@@ -2,7 +2,6 @@
 date: 2023-08-01T00:00:00+01:00
 title: "openapi-generator (contributor)"
 weight: 20
-featured: true
 description: "Upstream Kotlin Spring generator work for Spring Boot 4, Jackson 3, Retrofit compatibility, and regression coverage across generated server/client code."
 projectKind: "Upstream contribution"
 group: "contribution"
@@ -13,9 +12,7 @@ tech: ["Kotlin", "Spring Boot", "OpenAPI"]
 years: "2023-2026"
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "GitHub"
-        URL: "https://github.com/OpenAPITools/openapi-generator"
 ---
 
 Added Spring Boot 4 and Jackson 3 support for the Kotlin Spring generator, then followed through on template regressions that surfaced around Retrofit, Jackson converters, and hashmap model generation. The work spans 10 upstream PRs across generator behavior, test fixtures, and compatibility paths.

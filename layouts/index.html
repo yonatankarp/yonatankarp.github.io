@@ -22,15 +22,7 @@
   {{ errorf "The homepage needs the pixel building bundle in assets/building/: run `npm run build:building` first." }}
 {{ end }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
-{{ $taken := slice "E" "R" "8" "1" "L" "P" }}{{/* storeys the template draws itself */}}
-{{ range $experience }}
-  {{ $f := .Params.floor }}
-  {{ if ne (printf "%T" $f) "string" }}{{ errorf "%s: set `floor` to a quoted storey, such as floor: \"5\" (got %v)." .File.Path $f }}
-  {{ else if not (index $accent $f) }}{{ errorf "%s: floor %q has no colour in data/floor_accents.yaml, so the building has no storey for it (ORDER in web3d/src/pixel.js)." .File.Path $f }}
-  {{ else if in $taken $f }}{{ errorf "%s: floor %q is already taken; every experience needs its own storey." .File.Path $f }}
-  {{ else }}{{ $taken = $taken | append $f }}{{ end }}
-  {{ if not .Params.highlights }}{{ errorf "%s: add `highlights`, a list of what you did there." .File.Path }}{{ end }}
-{{ end }}
+{{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
 {{ range $projects }}{{ if not .Params.link }}{{ errorf "%s: add `link`, where the parking panel sends the reader." .File.Path }}{{ end }}{{ end }}
 <!DOCTYPE html>
@@ -57,21 +49,21 @@
 
   {{ partial "pixel-bar.html" . }}
   <div class="exterior-windows" data-exterior-windows></div>
-  <p class="sr-only" role="status" aria-live="polite" data-building-status></p>
+  <p class="sr-only" role="status" aria-live="polite" data-building-status data-copy-status></p>
 
   <nav class="elevator" aria-label="Floors">
-    <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor>E</span></div>
-    <button class="building-floor-btn" type="button" data-goto="R" aria-label="Roof, contact" title="Roof, contact">R</button>
+    <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor></span></div>
+    <button class="building-floor-btn" type="button" data-goto="R" aria-label="R, Roof, contact" title="R, Roof, contact">R</button>
     <button class="building-floor-btn" type="button" data-goto="8" aria-label="Floor 8, writing" title="Floor 8, writing">8</button>
     {{ range $experience }}
     <button class="building-floor-btn" type="button" data-goto="{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}" title="Floor {{ .Params.floor }}, {{ .Params.company }}, {{ replace .Title " - " ", " }}">{{ .Params.floor }}</button>
     {{ end }}
     {{ with $degree }}<button class="building-floor-btn" type="button" data-goto="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</button>{{ end }}
-    <button class="building-floor-btn" type="button" data-goto="L" aria-label="Lobby, recommendations and skills" title="Lobby, recommendations and skills">L</button>
-    <button class="building-floor-btn" type="button" data-goto="P" aria-label="Parking, projects" title="Parking, projects">P</button>
+    <button class="building-floor-btn" type="button" data-goto="L" aria-label="L, Lobby, recommendations and skills" title="L, Lobby, recommendations and skills">L</button>
+    <button class="building-floor-btn" type="button" data-goto="P" aria-label="P, Parking, projects" title="P, Parking, projects">P</button>
   </nav>
 
-  <p class="building-hint" style="opacity:0">Scroll, swipe or use the arrow keys to ride the lift</p>
+  <p class="building-hint" style="opacity:0"><span class="hint-fine">Scroll, swipe or use the arrow keys to ride the lift</span><span class="hint-coarse">Swipe to ride the lift</span></p>
 
   <main class="building-stops" id="building-stops">
     <section class="building-stop building-stop--hero is-here" id="floor-E" data-floor="E" aria-labelledby="fE">
@@ -80,7 +72,7 @@
         <p class="floor-eyebrow">{{ partial "nobreak.html" $home.hero.eyebrow }}</p>
         <h1 id="fE" tabindex="-1">{{ $home.hero.title }}</h1>
         <p class="floor-open">{{ $home.hero.availability }}</p>
-        <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <a href="mailto:{{ $home.contact.email.address }}">{{ $home.contact.email.address }}</a></p>
+        <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <span class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</span></p>
         <p class="floor-lead">{{ index (split $home.hero.lede ". ") 0 }}.</p>
       </article>
     </section>
@@ -93,11 +85,12 @@
         <h2 id="fR" tabindex="-1">{{ $home.contact.title }}</h2>
         <p class="floor-lead">{{ $home.contact.text }}</p>
         <ul>{{ range $home.contact.priorities }}<li>{{ . }}</li>{{ end }}</ul>
-        <p class="floor-skills">{{ with $home.contact.email.address }}<a href="mailto:{{ . }}">{{ . }}</a>{{ end }}{{ range $home.contact.links }}, <a href="{{ .url }}">{{ .label }}</a>{{ end }}</p>
+        <p class="floor-skills">{{ with $home.contact.email.address }}<span class="with-copy"><a href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</span>{{ end }}{{ range $home.contact.links }}, <a href="{{ .url }}">{{ .label }}</a>{{ end }}</p>
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Step inside</button></div>
       </article>
       <div class="floor-panel" id="panel-R" style="--accent:{{ index $accent "R" }}" tabindex="-1" role="region" aria-labelledby="ptR">
         <button class="panel-back" type="button">Back to the lift</button>
+        <p class="sr-only" role="status" data-copy-status></p>{{/* inside the modal panel, where screen readers still hear it */}}
         <div class="panel-head"><span class="floor-badge">R</span><p><b>Roof</b><span>{{ $home.contact.kicker }}</span></p></div>
         <h2 class="panel-title" id="ptR">{{ $home.contact.title }}</h2>
         <p>{{ $home.contact.text }}</p>
@@ -107,7 +100,7 @@
         <h3>{{ strings.TrimSuffix "." $home.outcomes.title }}</h3>
         <div class="panel-grid">{{ range $home.outcomes.items }}<div><b>{{ .title }}</b><span>{{ .text }}</span></div>{{ end }}</div>
         <h3>Get in touch</h3>
-        <ul>{{ with $home.contact.email.address }}<li><a href="mailto:{{ . }}">{{ . }}</a></li>{{ end }}{{ range $home.contact.links }}<li><a href="{{ .url }}">{{ .text }}</a></li>{{ end }}</ul>
+        <ul>{{ with $home.contact.email.address }}<li><a href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</li>{{ end }}{{ range $home.contact.links }}<li><a href="{{ .url }}">{{ .text }}</a></li>{{ end }}</ul>
       </div>
     </section>
 

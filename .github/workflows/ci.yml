@@ -20,25 +20,24 @@ jobs:
   build:
     name: Validate Hugo build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       HUGO_VERSION: 0.168.0
+      # The .deb's line in the release's hugo_<version>_checksums.txt; it changes with HUGO_VERSION.
+      HUGO_SHA256: b7cd5087c39bf5584e40180bd04fab0c6fb19f2913cd63121da8663e112a08db
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
-        with:
-          submodules: recursive
-          fetch-depth: 0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install Hugo CLI
         run: |
-          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb \
-          && sudo dpkg -i ${{ runner.temp }}/hugo.deb
-
-      - name: Install Dart Sass
-        run: sudo snap install dart-sass
+          deb="${RUNNER_TEMP}/hugo.deb"
+          wget -O "$deb" "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          echo "${HUGO_SHA256}  ${deb}" | sha256sum -c -
+          sudo dpkg -i "$deb"
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: npm
@@ -58,17 +57,11 @@ jobs:
       - name: Check blog assets
         run: npm run check:blog-assets
 
-      - name: Setup Go
-        uses: actions/setup-go@v7
-        with:
-          go-version: "1.24"
-
       - name: Build the pixel building
         run: npm run build:building
 
       - name: Build with Hugo
         env:
-          HUGO_CACHEDIR: ${{ runner.temp }}/hugo_cache
           HUGO_ENVIRONMENT: production
           TZ: Europe/Berlin
         run: |
@@ -99,7 +92,7 @@ jobs:
 
       - name: Upload visual smoke screenshots
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: visual-smoke-screenshots
           path: artifacts/visual-smoke/**/*.png
@@ -112,6 +105,6 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: yonatankarp/github-actions/.github/workflows/dependabot-auto-merge.yml@v2
+    uses: yonatankarp/github-actions/.github/workflows/dependabot-auto-merge.yml@c4d2c5ba8c9ff912200441da8847d06325e6aa1d # v2
     secrets:
       GITHUB_PAT: ${{ secrets.REVIEWER_GITHUB_TOKEN }}

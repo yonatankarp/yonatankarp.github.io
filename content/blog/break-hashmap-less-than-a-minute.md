@@ -1,6 +1,9 @@
 ---
 title: "How to Break Your HashMap in Less Than a Minute"
 date: 2022-12-02T00:00:00+01:00
+aliases:
+  - /how-to-break-your-hashmap-in-less-than-a-minute
+  - /he/blog/break-hashmap-less-than-a-minute/
 draft: false
 type: "blog"
 description: "A cautionary demonstration of how using mutable objects as HashMap keys silently corrupts lookups, and the simple rule that prevents it."
@@ -194,7 +197,7 @@ if (map.containsKey(myInteger)) {
 If you are using an older version of Java, you can still achieve this functionality with [Project Lombok](https://projectlombok.org/) by using the `@Value` annotation. More details are available [here](https://projectlombok.org/features/Value).
 
 
-# Conclusion
+## Conclusion
 
 ```mermaid
 flowchart LR

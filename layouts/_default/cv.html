@@ -5,12 +5,7 @@
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
 {{ $accent := hugo.Data.floor_accents }}
 {{- /* Each role links to its floor and lists its highlights; a slip names its file here instead of failing deep in the page (#58). */}}
-{{ range $experience }}
-  {{ $f := .Params.floor }}
-  {{ if ne (printf "%T" $f) "string" }}{{ errorf "%s: set `floor` to a quoted storey, such as floor: \"5\" (got %v)." .File.Path $f }}
-  {{ else if not (index $accent $f) }}{{ errorf "%s: floor %q has no colour in data/floor_accents.yaml, so the building has no storey for it (ORDER in web3d/src/pixel.js)." .File.Path $f }}{{ end }}
-  {{ if not (and (reflect.IsSlice .Params.highlights) .Params.highlights) }}{{ errorf "%s: set `highlights` to a list of what you did there." .File.Path }}{{ end }}
-{{ end }}
+{{ partial "check-floors.html" $experience }}
 {{ $skills := site.GetPage "/skills" }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}" dir="{{ .Site.Language.Direction | default `ltr` }}">
@@ -28,7 +23,7 @@
         <h1>Yonatan Karp-Rudin</h1>
         <p class="cv-role">Staff Software Engineer · {{ hugo.Data.home.en.contact.location }} (relocating to Tel Aviv, Jan 2027)</p>
         <ul class="cv-contact">
-          {{ with hugo.Data.home.en.contact.email.address }}<li><a class="px-chip" href="mailto:{{ . }}">{{ . }}</a></li>{{ end }}
+          {{ with hugo.Data.home.en.contact.email.address }}<li><a class="px-chip" href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</li>{{ end }}
           <li><a class="px-chip" href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
           <li><a class="px-chip" href="https://www.linkedin.com/in/yonatankarp/">linkedin.com/in/yonatankarp</a></li>
           <li><a class="px-chip" href="https://yonatankarp.com">yonatankarp.com</a></li>
@@ -109,5 +104,7 @@
       </div>
     </section>
   </main>
+  <p class="sr-only" role="status" data-copy-status></p>
+  {{ with resources.Get "js/copy-email.js" | minify | fingerprint }}<script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>{{ end }}
 </body>
 </html>

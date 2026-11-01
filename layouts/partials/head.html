@@ -46,12 +46,17 @@
 {{ $css := resources.Get "css/custom.css" | minify | fingerprint }}
 {{ $chroma := resources.Get "css/chroma.css" | minify | fingerprint }}
 <meta charset="utf-8">
+{{- /* GitHub Pages sets no headers, so the policy is a meta tag (#149). A meta CSP has no report-only mode, so after
+     changing it load every built page in a browser and watch for securitypolicyviolation events. No inline scripts:
+     move them into assets/js. Mermaid's version is pinned in js/mermaid-loader.js too. The homepage has no policy
+     yet: layouts/index.html runs two inline scripts and an onerror handler. */}}
+{{ if not .IsHome }}<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://gc.zgo.at https://cdn.jsdelivr.net/npm/mermaid@11.17.2/; style-src 'self' 'unsafe-inline'; img-src 'self' https://yonatankarp.goatcounter.com; connect-src 'self' https://yonatankarp.goatcounter.com; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">{{ end }}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ $title }}</title>
 <meta name="description" content="{{ $description }}">
 {{ if $noindex }}<meta name="robots" content="noindex">{{ end }}
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#0c0b12">
+<meta name="theme-color" content="#0c0e14">
 <meta property="og:site_name" content="{{ $siteName }}">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="{{ $ogTitle }}">
@@ -77,14 +82,23 @@
 {{ with (cond (eq .Kind "term") . (.Site.GetPage "/blog")).OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ cond (eq $.Kind "term") $name "Blog" }} | {{ $siteName }}">{{ end }}
 <link rel="icon" type="image/png" href="{{ "images/favicon.png" | relURL }}">
 <link rel="apple-touch-icon" href="{{ "images/apple-touch-icon.png" | relURL }}">
+<link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
 {{ if not .IsHome }}{{/* the homepage (the building) brings its own styles */}}
 {{ if $css }}<link rel="stylesheet" href="{{ $css.RelPermalink }}">{{ end }}
 {{ if $chroma }}<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">{{ end }}
 {{ end }}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-{{- /* JetBrains Mono only sets code in .prose, so only pages with code ask for it (#55). */}}
-<link href="https://fonts.googleapis.com/css2?family=Jersey+15&family=Outfit:wght@400;500;600;700;800{{ if strings.Contains .Content "<code" }}&family=JetBrains+Mono:wght@400;500;700{{ end }}&display=swap" rel="stylesheet">
+{{- /* Self-hosted Google Fonts latin subsets (OFL, licences in static/fonts/), here because the homepage skips custom.css (#142).
+     Outfit and JetBrains Mono are variable, one file for every weight; a face only downloads once a glyph needs it,
+     so JetBrains Mono stays off pages without code and Outfit's latin-ext waits for a name like Sołtysiak. */}}
+{{ $fonts := "fonts/" | relURL }}
+<link rel="preload" as="font" type="font/woff2" href="{{ $fonts }}jersey-15-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="{{ $fonts }}outfit-latin.woff2" crossorigin>
+<style>
+@font-face { font-family: 'Jersey 15'; font-style: normal; font-weight: 400; font-display: swap; src: url({{ $fonts }}jersey-15-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Outfit'; font-style: normal; font-weight: 400 800; font-display: swap; src: url({{ $fonts }}outfit-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Outfit'; font-style: normal; font-weight: 400 800; font-display: swap; src: url({{ $fonts }}outfit-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400 700; font-display: swap; src: url({{ $fonts }}jetbrains-mono-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+</style>
 
 {{ $author := dict "@type" "Person" "name" "Yonatan Karp-Rudin" "url" .Site.BaseURL }}
 {{ $schemas := slice (dict "@context" "https://schema.org" "@type" "WebPage" "name" $title "description" $description "url" $canonical) }}
@@ -107,5 +121,5 @@
 {{ end }}
 {{ if not $is404 }}{{ range $schemas }}<script type="application/ld+json">{{ . | jsonify | safeJS }}</script>{{ end }}{{ end }}
 {{- /* A 404 counts as an event under 404/<the broken path>, not as a pageview of it, so broken links stay findable. */}}
-{{ if $is404 }}<script>window.goatcounter = {event: true, path: function (p) { return '404' + p }}</script>{{ end }}
+{{ if $is404 }}{{ with resources.Get "js/goatcounter-404.js" | minify | fingerprint }}<script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}"></script>{{ end }}{{ end }}
 <script data-goatcounter="https://yonatankarp.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>

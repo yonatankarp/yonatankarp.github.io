@@ -1,6 +1,9 @@
 ---
 title: "How To Build Your Domain Gateway With OpenAPI"
 date: 2022-12-14T00:00:00+01:00
+aliases:
+  - /building-your-domain-gateway-with-openapi
+  - /he/blog/build-domain-gateway-openapi/
 draft: false
 type: "blog"
 description: "An introduction to the domain gateway pattern and a practical tutorial for building one in Kotlin using OpenAPI code generation."
@@ -21,6 +24,7 @@ images:
 **TL;DR:** This article explains what a domain gateway is, how to build one, and why you would want it.
 
 </div>
+
 ## What is a Domain Gateway?
 
 

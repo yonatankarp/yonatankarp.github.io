@@ -144,11 +144,12 @@ LOGOS = {
         "kkkkkkkk....kk...kkk..kkk.kk....kkkk.",
     ],
 }
-LETTERS = {  # 5x7 caps for the team plates
+LETTERS = {  # 5x7 caps for the Billie plates
     "A": [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
     "C": [".###.", "#...#", "#....", "#....", "#....", "#...#", ".###."],
     "D": ["####.", "#...#", "#...#", "#...#", "#...#", "#...#", "####."],
     "E": ["####", "#...", "#...", "###.", "#...", "#...", "####"],
+    "F": ["####", "#...", "#...", "###.", "#...", "#...", "#..."],
     "I": ["###", ".#.", ".#.", ".#.", ".#.", ".#.", "###"],
     "K": ["#...#", "#..#.", "#.#..", "##...", "#.#..", "#..#.", "#...#"],
     "M": ["#...#", "##.##", "#.#.#", "#.#.#", "#...#", "#...#", "#...#"],
@@ -161,9 +162,10 @@ LETTERS = {  # 5x7 caps for the team plates
     "Y": ["#...#", "#...#", ".#.#.", "..#..", "..#..", "..#..", "..#.."],
     " ": ["..", "..", "..", "..", "..", "..", ".."],
 }
-# key: (logo, its team's plate or None). Billie's three floors share its logo, so each names its team in the floor's accent.
+# key: (logo, its plate or None). Billie's three floors share its logo, so each names the title and team in the floor's
+# accent: 5 and 6 are one Risk team, a storey apart for the promotion. Short, as "STAFF PAYMENTS" overflows its window.
 SIGNS = {"1": ("reichman", None), "2": ("inuitive", None), "3": ("nice", None), "4": ("sumup", None),
-         "5": ("billie", "CREDIT"), "6": ("billie", "RISK CORE"), "7": ("billie", "PAYMENTS")}
+         "5": ("billie", "SR RISK"), "6": ("billie", "STAFF RISK"), "7": ("billie", "STAFF PAY")}
 
 
 def c(name, i):

@@ -44,6 +44,8 @@ and to the phase lists in `scripts/capture-screenshots.js` and `scripts/check-cs
 - Experience, education and testimonial entries have no pages of their own: the `[[cascade]]` in `hugo.toml` renders
   them with `layouts/_default/redirect.html`, a noindex redirect to their homepage floor
 - `content/skills/_index.md` — skills page
+- `content/uses.md` — the /uses page (`layouts/uses/single.html`); a draft until its TODOs are filled, and the footer
+  links it once it is published
 - `content/cv.md` — printable CV page
 
 ## Languages
@@ -102,7 +104,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into the script)
 - Events (dashboard, Events): `cv-download` (the top bar's Download CV), `social-<icon>` (its social icons:
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage or the CV),
-  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
+  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `podcast-roof` (the roof's podcast links) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)
   and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.
 

@@ -2,7 +2,7 @@
   <div class="shell site-footer__inner">
     <div>
       <p class="site-footer__title">Yonatan Karp-Rudin</p>
-      <p class="site-footer__copy">Staff Software Engineer · {{ hugo.Data.home.en.contact.location }} · <a href="{{ "skills/" | relURL }}">Skills</a></p>
+      <p class="site-footer__copy">Staff Software Engineer · {{ hugo.Data.home.en.contact.location }} · <a href="{{ "skills/" | relURL }}">Skills</a>{{ with site.GetPage "/uses" }} · <a href="{{ .RelPermalink }}">Uses</a>{{ end }}</p>
     </div>
     <div class="footer-social" aria-label="Find me elsewhere">
       {{- /* The top bar's links and pixel icons (partials/pixel-icon.html), plus the email it leaves to the roof. */}}

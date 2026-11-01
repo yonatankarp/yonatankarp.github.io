@@ -11,6 +11,7 @@ the slabs, the floor number and everything that moves are drawn here, in the pai
 floor-<key>.png, a horizontal strip of FRAMES animation frames. The browser (web3d/src/pixel.js) slides the
 lift doors itself, using DOOR below.
 """
+import math
 import sys
 from itertools import product
 from pathlib import Path
@@ -64,6 +65,107 @@ FONT = {  # 3x5 glyphs for the lift display
     "7": ["###", "..#", ".#.", ".#.", ".#."], "8": ["###", "#.#", "###", "#.#", "###"],
     "P": ["##.", "#.#", "##.", "#..", "#.."],
 }
+
+# --- Company signs: each storey's logo on a cream plaque, lit in its street window (gen_exterior.lit_sign) ---------
+# Traced from the companies' own artwork, box-filtered to the plaque's height and cleaned by hand (baked like FONT):
+# Inuitive, inuitive-tech.com's 2017 logo; NiCE, nice.com's header; SumUp, Wikimedia Commons File:SumUp Logo.svg;
+# Billie, billie.io's header; Reichman University, en.wikipedia File:Reichman University.svg (its wordmark lettered at
+# this size, without the arc of stars, which reads as dots).
+# 'k' is INK, 'b' the brand's blue, 'B' its lit top, 'd' its shade, '.' the plaque.
+LOGOS = {
+    "reichman": [
+        "bbbb.............b........................b...b.....................................",
+        "b...b......b.....b........................b...b......b....................b..b......",
+        "b...b..bb.....bb.bbb..bbbb...bb..bbb......b...b.bbb....b...b..bb..b.b..bb...bbb.b..b",
+        "bbbb..b..b.b.b...b..b.b.b.b....b.b..b.....b...b.b..b.b.b...b.b..b.bb..b...b..b..b..b",
+        "b.b...bbbb.b.b...b..b.b.b.b..bbb.b..b.....b...b.b..b.b..b.b..bbbb.b....b..b..b..b..b",
+        "b..b..b....b.b...b..b.b.b.b.b..b.b..b.....b...b.b..b.b..b.b..b....b.....b.b..b...bbb",
+        "b...b..bbb.b..bb.b..b.b.b.b..bbb.b..b......bbb..b..b.b...b....bbb.b...bb..b...b....b",
+        "................................................................................b..b",
+        ".................................................................................bb.",
+    ],
+    "inuitive": [
+        "...............bBBBBBBBb...............",
+        ".............bbbbbbbbbbbbb.............",
+        "............bbbbbbbbbbbbbbb............",
+        "...........bbbbbbbbbbbbbbbbd...........",
+        "............bbbbbbbbbbbbbbd............",
+        "..............ddddddddddd..............",
+        ".......................................",
+        ".......................................",
+        "k..k..k..k..k..k..kkkkk..k..k...k..kkkk",
+        "k..kk.k..k..k..k....k....k..k...k..k...",
+        "k..k.kk..k..k..k....k....k...k.k...kkk.",
+        "k..k..k..k..k..k....k....k...k.k...k...",
+        "k..k..k...kk...k....k....k....k....kkkk",
+    ],
+    "nice": [
+        ".........BB...............",
+        "kkk...kk.Bb...kkkk..kkkkkk",
+        "kkk...kk.....kkkkkk.kkkkkk",
+        "kkkk..kk.kk.kkk..kk.kk....",
+        "kk.k..kk.kk.kk......kk....",
+        "kk.kk.kk.kk.kk......kkkkk.",
+        "kk..k.kk.kk.kk......kk....",
+        "kk..kkkk.kk.kkk..kk.kk....",
+        "kk...kkk.kk..kkkkkk.kkkkkk",
+        "kk...kkk.kk...kkkk..kkkkkk",
+    ],
+    "sumup": [
+        ".kkkkkkkkkkkkk....................................",
+        "kkkkkkkkkkkkkkk...................................",
+        "kkkkkk..kkkkkkk...................................",
+        "kkkk....kkkkkkk...................................",
+        "kkkk...kkkkkkkk.....kk...k..k...kk.kk...k..k...kk.",
+        "kkk...kkkkkkkkk....k..k..k..k..k..k..k..k..k..k..k",
+        "kkk...kkkkkkkkk....k.....k..k..k..k..k..k..k..k..k",
+        "kkkk.kkkkk.kkkk.....kk...k..k..k..k..k..k..k..k..k",
+        "kkkkkkkkk...kkk.......k..k..k..k..k..k..k..k..k..k",
+        "kkkkkkkkk...kkk....k..k..k..k..k..k..k..k..k..k..k",
+        "kkkkkkkk...kkkk.....kk....kk...k..k..k...kk...kkk.",
+        "kkkkkkk....kkkk...............................k...",
+        "kkkkkkk..kkkkkk...............................k...",
+        "kkkkkkkkkkkkkkk...............................k...",
+        ".kkkkkkkkkkkkk....................................",
+    ],
+    "billie": [
+        "..kkkk......kk..kk...kk...kk.........",
+        ".kkkkkk.....kk..kk...kk...kk.........",
+        "kkk..kkk........kk...kk..............",
+        "kk....kk........kk...kk..............",
+        "kk....kk....kk..kk...kk...kk....kkk..",
+        "kkkkkkkk....kk..kk...kk...kk...kk.kk.",
+        "kk....kkkk..kk..kk...kk...kk..kk...kk",
+        "kk...k..kk..kk..kk...kk...kk..kk...kk",
+        "kk..k...kk..kk..kk...kk...kk..kkkkkkk",
+        "kk.k....kk..kk..kk...kk...kk..kk.....",
+        "kkk.....kk..kk..kk...kk...kk..kk.....",
+        "kkkkkkkkk...kk..kkk..kkk..kk...kkkkkk",
+        "kkkkkkkk....kk...kkk..kkk.kk....kkkk.",
+    ],
+}
+LETTERS = {  # 5x7 caps for the Billie plates
+    "A": [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+    "C": [".###.", "#...#", "#....", "#....", "#....", "#...#", ".###."],
+    "D": ["####.", "#...#", "#...#", "#...#", "#...#", "#...#", "####."],
+    "E": ["####", "#...", "#...", "###.", "#...", "#...", "####"],
+    "F": ["####", "#...", "#...", "###.", "#...", "#...", "#..."],
+    "I": ["###", ".#.", ".#.", ".#.", ".#.", ".#.", "###"],
+    "K": ["#...#", "#..#.", "#.#..", "##...", "#.#..", "#..#.", "#...#"],
+    "M": ["#...#", "##.##", "#.#.#", "#.#.#", "#...#", "#...#", "#...#"],
+    "N": ["#...#", "##..#", "##..#", "#.#.#", "#..##", "#..##", "#...#"],
+    "O": [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+    "P": ["####.", "#...#", "#...#", "####.", "#....", "#....", "#...."],
+    "R": ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"],
+    "S": [".###.", "#...#", "#....", ".###.", "....#", "#...#", ".###."],
+    "T": ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."],
+    "Y": ["#...#", "#...#", ".#.#.", "..#..", "..#..", "..#..", "..#.."],
+    " ": ["..", "..", "..", "..", "..", "..", ".."],
+}
+# key: (logo, its plate or None). Billie's three floors share its logo, so each names the title and team in the floor's
+# accent: 5 and 6 are one Risk team, a storey apart for the promotion. Short, as "STAFF PAYMENTS" overflows its window.
+SIGNS = {"1": ("reichman", None), "2": ("inuitive", None), "3": ("nice", None), "4": ("sumup", None),
+         "5": ("billie", "SR RISK"), "6": ("billie", "STAFF RISK"), "7": ("billie", "STAFF PAY")}
 
 
 def c(name, i):
@@ -142,24 +244,9 @@ class Layer:
                 self.put(x, y, col)
 
 
-def greenish(col):
-    r, g, b = col
-    return g > 110 and g > r + 30
-
-
 def bluish(col):
     r, g, b = col
     return b > 150 and b > r + 40
-
-
-def cyanish(col):
-    r, g, b = col
-    return g > 150 and b > 150 and r < 120
-
-
-def reddish(col):
-    r, g, b = col
-    return r > 180 and g < 130
 
 
 # --- The edges: the room runs on past the strip (#64), and the lobby's planks run the room's way (#75) ----------------
@@ -197,13 +284,10 @@ EDGES = {  # key: (left bands, the lobby re-laid up to x), (right bands, the roo
     "3": ((WALL_L + boards(142, 11), 142), (wall(468) + boards(414, 11), 472)),
     "4": ((WALL_L + [(FLOOR, FLOOR + 1, 150, 24, 1), (FLOOR + 1, H - 12, 150, 24)], 150),
           (WALL_L + [(FLOOR, FLOOR + 1, 150, 24, 1), (FLOOR + 1, H - 12, 150, 24)], 472)),
-    "5": ((WALL_L + boards(203, 23), 150),
-          ([(0, 140, 22, 1), (140, 150, 22, 1, -10), (150, FLOOR, 468, 4), (H - 12, H, 468, 4)] + boards(203, 23),
-           472)),
-    "6": ((WALL_L + boards(145, 23), 145), (wall(468) + boards(430, 35), 466)),
+    "5": ((WALL_L + boards(226, 23), 150), (WALL_L + boards(226, 23), 472)),
+    "6": ((WALL_L + boards(191, 23), 145), (wall(468) + boards(191, 23), 466)),
     "7": ((WALL_L + boards(130, 11), 130), (wall(468) + boards(130, 11), 472)),
-    "8": ((WALL_L + boards(363, 11), 155), (wall(468) + boards(352, 23), 468)),
-    "R": ((WALL_L + boards(363, 11), HOUSING_X),   # sky and roof; the railing levels off at the edge
+    "R": ((WALL_L + boards(130, 11), HOUSING_X),   # sky and roof; the railing levels off at the edge
           ([(0, 121, 468, 4), (121, 138, W - 9, 1), (138, H, 468, 4)], 472)),
 }
 RECOLOUR = {"L": {c("amber", i): c("amber", i - 1) for i in (1, 2, 3)}}   # the lobby's boards from the reception's,
@@ -213,8 +297,8 @@ CLOSE = {  # key: things standing at the room's right edge end at x, outlined: t
     # from row slant on, a pixel further left each row: a shadow on the floor ends along the boards
     "1": (464, 58, H - 12, 156),
     "2": (469, 100, H - 12, 156, 164),
-    "4": (472, 59, H - 12, 161),
-    "5": (471, 100, FLOOR, 148),
+    "4": (461, 147, FLOOR, 147),
+    "5": (463, 100, H - 12, 156),
     "L": (466, 157, H - 12, 157),
 }
 
@@ -250,9 +334,9 @@ def relay(img, key):
     o = orig.load()
     get = lambda x, y: o[x, y][:3]
     src = get
-    if key == "R":   # the lift housing's floor is floor 8's lobby, so the ride up keeps the boards' direction
-        eight = Image.open(PICKS / f"{FLOORS['8'][0]}-px.png").convert("RGB")
-        src = lambda x, y: eight.getpixel((x - LOBBY_X, y - CEIL))
+    if key == "R":   # the lift housing's floor is floor 7's lobby, so the ride up keeps the boards' direction
+        seven = Image.open(PICKS / f"{FLOORS['7'][0]}-px.png").convert("RGB")
+        src = lambda x, y: seven.getpixel((x - LOBBY_X, y - CEIL))
     for x, y in product(range(LOBBY_X, 35), range(140, FLOOR)):   # the lobby's skirting up to the lift, free of the
         px[x, y] = o[22, y]                                         # painting's specks where the left run meets it
     (left, lx), (right, rx) = EDGES[key]
@@ -288,6 +372,38 @@ def margins(img, key):
     return out
 
 
+def panel(cv, x, y, w, h, face, shade):
+    """An inked board, lit from above: its bottom row in shade."""
+    cv.rect(x, y, x + w, y + h, INK)
+    cv.rect(x + 1, y + 1, x + w - 1, y + h - 1, face)
+    cv.rect(x + 1, y + h - 2, x + w - 1, y + h - 1, shade)
+
+
+def sign(cv, key, x, y):
+    """A floor's sign with its top-left at (x, y): the logo's plaque, and its team's plate beside it in the floor's
+    accent. Returns its box (x0, y0, x1, y1)."""
+    logo, team = SIGNS[key]
+    rows, accent = LOGOS[logo], FLOORS[key][1]
+    w, h = len(rows[0]) + 6, len(rows) + 4
+    panel(cv, x, y, w, h, c("cream", 5), c("cream", 4))
+    ink = {"k": INK, "b": c("blue", 3), "B": c("blue", 4), "d": c("blue", 2)}
+    for dy, row in enumerate(rows):
+        for dx, ch in enumerate(row):
+            if ch in ink:
+                cv.put(x + 3 + dx, y + 2 + dy, ink[ch])
+    if not team:
+        return x, y, x + w, y + h
+    word = ["".join(("." if i else "") + LETTERS[ch][r] for i, ch in enumerate(team)) for r in range(7)]
+    px, py, pw = x + w + 3, y + (h - 11) // 2, len(word[0]) + 6
+    panel(cv, px, py, pw, 11, c(accent, 4), c(accent, 3))
+    cv.rect(px + 1, py + 1, px + pw - 1, py + 2, c(accent, 5))                # its lit top row
+    for dy, row in enumerate(word):
+        for dx, ch in enumerate(row):
+            if ch == "#":
+                cv.put(px + 3 + dx, py + 2 + dy, INK)
+    return x, y, px + pw, y + h
+
+
 def frame_base(key, room_name, accent):
     """The static floor: slabs with the floor's colour band, facade edges, the lobby (with its number), the room."""
     img = Image.new("RGBA", (W, H), (*INK, 255))
@@ -320,40 +436,35 @@ def frame_base(key, room_name, accent):
     return img
 
 
-# --- SumUp, floor 4: a Berlin café that takes cards; the template press stamps out new services for prod ---------
-LIGHTS = [(244, 74), (248, 71), (254, 77), (259, 73), (261, 64), (249, 62), (271, 75), (277, 70), (283, 76),
-          (287, 72), (272, 65), (288, 66)]   # windows in the skyline install_picks draws
-RAM = (193, 70)       # the press's ram, its top-left: it hangs in a bay install_picks leaves empty
-CARD = [None, -32, -25, -18, -12, -10, -10, -10, -12, -18, -25, None]   # the card's height over the terminal, by frame
+# --- SumUp, floor 4: a market hall of small shops, each taking cards on its own reader -------------------------------
+TERMINALS = [90, 194, 226, 305]   # the card readers' left columns, screen top at row 90 (install_picks draws them)
+CARD = [None, -22, -17, -13, -11, -9, -9, -9, -11, -13, -17, None]   # the card's top over the coffee cart's reader, by frame
 WAVES = ([(-1, 1), (0, 0), (1, 1)], [(-2, 1), (-1, 0), (0, 0), (1, 0), (2, 1)],
          [(-3, 2), (-2, 1), (-1, 0), (0, 0), (1, 0), (2, 1), (3, 2)])   # contactless arcs, 3, 5 and 7 px
+PAID = {0: (2, 3), 2: (8, 9), 3: (10, 11), 1: (5, 6, 7)}   # reader: the frames its screen shows approved
+
+
+def approved(room, x):
+    room.rect(x + 1, 90, x + 7, 93, GLOW["green"])
+    for dx, dy in ((2, 1), (3, 2), (4, 1), (5, 0)):                        # a tick
+        room.put(x + dx, 90 + dy, INK)
 
 
 def sumup(room, f):
-    x, y = RAM                                                      # the press stamps a new service
-    y += 2 if f in (5, 6) else 0
-    room.rect(x + 4, RAM[1] - 1, x + 6, y, c("steel", 3))
-    room.rect(x, y, x + 10, y + 5, INK)
-    room.rect(x + 1, y + 1, x + 9, y + 4, c("steel", 4))
-    room.rect(x + 1, y + 1, x + 9, y + 2, c("steel", 5))
-    room.blink((291, 50, 330, 146), greenish, c("plant", 1), f)     # rack LEDs
-    for k, (x, y) in enumerate(LIGHTS):                             # Berlin's windows light up
-        if (f + 4 * k) % 6 < 3:
-            room.put(x, y, GLOW["city"])
-    if CARD[f] is None:                                             # the card taps the terminal
+    for k, frames in PAID.items():                                         # one shop after another takes a payment
+        if f in frames:
+            approved(room, TERMINALS[k])
+    if CARD[f] is None:                                                    # the card taps the coffee cart's reader
         return
-    tx, cy = 152, 78 + CARD[f]
-    for y in range(cy, cy + 10):
-        for x in range(tx, tx + 16):
-            room.put(x, y, INK if y in (cy, cy + 9) or x in (tx, tx + 15) else c("blue", 5 if y < cy + 3 else 4))
-    room.rect(tx + 3, cy + 4, tx + 7, cy + 7, c("amber", 5))
-    if 5 <= f <= 7:                                                 # approved: green screen, tick, contactless waves
-        room.rect(157, 81, 163, 84, GLOW["green"])
-        for x, y in ((158, 82), (159, 83), (160, 82), (161, 81)):
-            room.put(x, y, INK)
+    tx, cy = TERMINALS[1] - 2, 89 + CARD[f]
+    for y in range(cy, cy + 8):
+        for x in range(tx, tx + 12):
+            room.put(x, y, INK if y in (cy, cy + 7) or x in (tx, tx + 11) else c("blue", 5 if y < cy + 3 else 4))
+    room.rect(tx + 2, cy + 3, tx + 5, cy + 5, c("amber", 5))              # its chip
+    if 5 <= f <= 7:                                                        # contactless waves over it
         for i, arc in enumerate(WAVES):
             for dx, dy in arc:
-                room.put(tx + 8 + dx, cy - 2 - 2 * i + dy, GLOW["wave"])
+                room.put(tx + 6 + dx, cy - 2 - 2 * i + dy, GLOW["wave"])
 
 
 # --- NICE, floor 3: a contact-centre operations room; the cache cabinet reshuffles (the cache refactor) -------
@@ -387,58 +498,55 @@ def nice(room, f):
     room.blink((281, 100, 301, 143), bluish, c("blue", 2), f)                           # rack lights
 
 
-# --- Billie, floor 5 (Senior, Risk): real-time fraud signals flow through the Flink pipe; the graph flags one -----
-def blobs(get, box, pick):
-    """The 8-connected patches of pixels in a box that pick(col) takes, largest first, as lists of (x, y)."""
-    x0, y0, x1, y1 = box
-    seen, out = set(), []
-    for y in range(y0, y1):
-        for x in range(x0, x1):
-            if (x, y) in seen or not pick(get(x, y)):
-                continue
-            blob, todo = [], [(x, y)]
-            seen.add((x, y))
-            while todo:
-                cx, cy = todo.pop()
-                blob.append((cx, cy))
-                for nx in (cx - 1, cx, cx + 1):
-                    for ny in (cy - 1, cy, cy + 1):
-                        if x0 <= nx < x1 and y0 <= ny < y1 and (nx, ny) not in seen and pick(get(nx, ny)):
-                            seen.add((nx, ny))
-                            todo.append((nx, ny))
-            out.append(blob)
-    return sorted(out, key=len, reverse=True)
+# --- Billie, floor 5 (Senior, Risk): a credit desk; the scale weighs an order's invoices against its limit ------
+GAUGE = (108, 50)    # the credit gauge's pivot (install_picks draws its face)
+NEEDLE = [140, 132, 118, 100, 84, 72, 70, 80, 98, 118, 134, 140]   # the needle's angle, degrees from the right, by frame
+SCALE = (30, 70)     # the balance's pivot, on its post (install_picks draws the post and foot)
+TILT = [0, 0, 1, 2, 3, 3, 2, 1, 0, -1, -1, 0]   # the beam's left end, rows below level, by frame: the invoices weigh in
+STAMP = [0, 0, 0, -1, -2, -3, -3, 0, 0, 0, 0, 0]   # the stamp's lift, by frame: up, then down on the invoices
+PLASTER = (195, 154, 92)   # the painted rooms' wall (install_picks.WALL)
 
 
-THROB = "001100110000"   # the flagged node, pale on a '1': twice, then it rests saturated
-WARN = "100110011001"    # the console's warning lamp, lit on a '1'
-PIPE_CORE = {  # the pipe's glowing core, row by row: '#' is a lit event; every period divides the loop's 48 px
-    61: "#...........#...",
-    62: "##.....###......#.......",
-    63: "#######.#####..#########",
-    64: "........##..............#.......#.......#...##..",
-}
-assert all(48 % len(row) == 0 for row in PIPE_CORE.values())
+def segment(room, x0, y0, x1, y1, col):
+    n = max(abs(x1 - x0), abs(y1 - y0), 1)
+    for i in range(n + 1):
+        room.put(round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n), col)
 
 
 def billie_risk(room, f):
-    core = (c("cyan", 4), c("cyan", 5))                                        # events stream through the pipe's core
-    for y, row in PIPE_CORE.items():
-        for x in range(27, 222):
-            if room.get(x, y) in core:                                          # the flanges and the clamps stay put
-                room.put(x, y, core[row[(x - 4 * f) % len(row)] == "#"])
-    lit = {R["cyan"][i]: R["cyan"][i - 2] for i in (3, 4, 5)}
-    for k, node in enumerate(blobs(room.get, (223, 30, 301, 81), lambda col: col in lit)):
-        if f and (f + 5 * k) % 6 == 0:                                          # each node dims in its turn
-            for x, y in node:
-                room.put(x, y, lit[room.get(x, y)])
-    if THROB[f] == "1":                                                         # the flagged node throbs
-        for y in range(52, 76):
-            for x in range(255, 281):
-                if reddish(room.get(x, y)):
-                    room.put(x, y, (255, 150, 128))
-    if WARN[f] == "0":
-        room.rect(38, 84, 41, 86, c("coral", 1))                                # the console's warning lamp
+    gx, gy = GAUGE                                                         # the gauge swings toward red, then settles
+    a = math.radians(NEEDLE[f])
+    segment(room, gx, gy, round(gx + 12 * math.cos(a)), round(gy - 12 * math.sin(a)), INK)
+    room.rect(gx - 1, gy - 1, gx + 2, gy + 2, INK)
+    room.put(gx, gy, c("steel", 4))
+    px, py = SCALE                                                         # the balance: a beam, two pans on chains
+    for side, t in ((-1, TILT[f]), (1, -TILT[f])):
+        ex, ey = px + 15 * side, py + t
+        segment(room, px, py, ex, ey, c("amber", 4))
+        segment(room, px, py - 1, ex, ey - 1, INK)
+        segment(room, px, py + 1, ex, ey + 1, INK)
+        yp = ey + 20                                                       # the pan's rim
+        segment(room, ex, ey + 2, ex - 6, yp - 1, c("amber", 2))
+        segment(room, ex, ey + 2, ex + 6, yp - 1, c("amber", 2))
+        room.rect(ex - 7, yp, ex + 8, yp + 1, INK)
+        room.rect(ex - 6, yp + 1, ex + 7, yp + 2, c("amber", 4))
+        room.rect(ex - 4, yp + 2, ex + 5, yp + 3, c("amber", 3))
+        for dx, dy in ((-7, 1), (7, 1), (-5, 2), (5, 2)):                   # its ink sides
+            room.put(ex + dx, yp + dy, INK)
+        room.rect(ex - 4, yp + 3, ex + 5, yp + 4, INK)
+        if side < 0:                                                       # invoices on the left pan
+            room.rect(ex - 5, yp - 6, ex + 6, yp, INK)
+            room.rect(ex - 4, yp - 5, ex + 5, yp, c("cream", 5))
+            room.rect(ex - 3, yp - 3, ex + 4, yp - 2, c("cream", 2))
+        else:                                                              # coins on the right
+            for cx0, n in ((ex - 4, 3), (ex + 1, 2)):
+                for k in range(n):
+                    room.rect(cx0, yp - 2 - 2 * k, cx0 + 4, yp - 2 * k, INK)
+                    room.rect(cx0 + 1, yp - 2 - 2 * k, cx0 + 3, yp - 1 - 2 * k, c("amber", 5))
+    room.rect(px - 1, py - 1, px + 2, py + 2, INK)                         # the pivot pin
+    room.put(px, py, c("amber", 5))
+    if STAMP[f]:                                                           # the stamp lifts, then comes down
+        room.nudge((156, 78, 170, 99), 0, STAMP[f], mask=lambda col: col != PLASTER, bg=PLASTER)
 
 
 # --- Inuitive, floor 2: the 3D-vision lab; a calibration scan sweeps the checkerboard -------------------------
@@ -460,69 +568,71 @@ def inuitive(room, f):
         room.rect(195, 81, 197, 83, GLOW["cyan"])                           # the robot's depth lens
 
 
-TOWERS = [(100, 84, 116, 126), (182, 84, 196, 126)]   # the two server towers behind the core, trimmed in its magenta
-PULSE = "011100111000"   # the core's throb: on a '1' its body is a step brighter, and in the middle of each, its pool
-LED = {"green": (GLOW["green"], c("plant", 1)), "amber": (GLOW["amber"], c("amber", 1)), "red": (GLOW["red"], c("red", 1))}
-LEDS = [  # the services' status lights on the towers' faces: x, y, colour, lit on a '1'
-    (59, 99, "green", "110111011101"), (61, 99, "amber", "111110011111"), (87, 97, "green", "101101101111"),
-    (89, 97, "green", "111011110111"), (108, 101, "green", "110110111011"), (110, 101, "red", "111111000111"),
-    (185, 97, "green", "101110111011"), (187, 97, "amber", "111101111001"), (205, 96, "green", "110111101101"),
-    (207, 96, "green", "111011011011"), (209, 96, "red", "111111100011"), (226, 98, "green", "101111011101"),
-    (228, 98, "amber", "111001111111"),
-]
+# --- Billie, floor 6 (Staff, Risk): the orchestrator sorts each order to a verdict; the graph finds a fraud ring ----
+NODES = [(242, 38, 0), (258, 32, 0), (250, 56, 0), (240, 74, 0), (262, 82, 0), (282, 86, 0), (298, 78, 0),
+         (306, 62, 0), (302, 40, 0), (268, 46, 1), (286, 40, 1), (280, 62, 1)]   # the graph: x, y, in the flagged ring
+LINKS = [(0, 1), (0, 2), (1, 9), (2, 9), (2, 3), (3, 4), (4, 11), (4, 5), (5, 6), (6, 7), (7, 8), (8, 10), (6, 11),
+         (9, 10), (10, 11), (11, 9)]
+LINKED = 4                    # the node found linked to the ring, flagged from frame 6
+STACK = {"R": (40, "red"), "A": (48, "amber"), "G": (56, "plant")}   # the stack light's lamps: top row, ramp
+STACK_GLOW = {"R": GLOW["red"], "A": GLOW["amber"], "G": GLOW["green"]}
+VERDICT = "GGGGGGAARRRG"      # the lamp lit, by frame: orders pass, then one linked to the ring is held and declined
+RING = "010010010000"         # the ring's nodes, pale on a '1'
 
 
 def billie_orchestrator(room, f):
-    if PULSE[f] == "1":                                                    # the core throbs twice, easing in and out:
-        hide = lambda x, y: None if any(x0 <= x < x1 and y0 <= y < y1 for x0, y0, x1, y1 in TOWERS) else room.get(x, y)
-        glow = [p for b in blobs(hide, (0, 0, room.img.width, room.img.height), lambda col: col in R["magenta"])
-                if any(117 <= x < 182 and y >= 80 for x, y in b) for p in b]  # its whole glow, cut off at the towers
-        up = {R["magenta"][i]: R["magenta"][i + 1] for i in range(1, 5)}
-        for x, y in glow:
-            if y < 125 or PULSE[f - 1:f + 2] == "111":                     # the body, then the plinth and pool too
-                room.put(x, y, up.get(room.get(x, y), room.get(x, y)))
-    if f < 10:                                                             # an invoice climbs the screen's green lane,
-        x, y = 104 + 3 * f, 55 - f                                         # then is filed
-        room.rect(x, y, x + 8, y + 9, INK)
-        room.rect(x + 1, y + 1, x + 7, y + 8, c("cream", 5))
-        room.rect(x + 1, y + 1, x + 7, y + 3, c("violet", 4))
-        for yy in (y + 4, y + 6):
-            room.rect(x + 2, yy, x + 6, yy + 1, c("cream", 2))
-    for x, y, col, on in LEDS:
-        room.put(x, y, LED[col][on[f] == "0"])
+    room.roll((18, 88, 136, 109), f * 9 // 11, mask=lambda col: col != PLASTER, bg=PLASTER)   # parcels ride
+    # toward the sorter, the last stopping short of it
+    y, _ = STACK[VERDICT[f]]
+    room.rect(166, y, 174, y + 7, STACK_GLOW[VERDICT[f]])
+    room.rect(166, y, 168, y + 2, c("cream", 5))                           # its glint
+    for x, y, flagged in NODES:
+        if flagged and RING[f] == "1":
+            room.rect(x - 1, y - 1, x + 2, y + 2, c("coral", 5))
+    if f >= 6:                                                             # the linked node joins the ring
+        (x0, y0, _), (x1, y1, _) = NODES[LINKED], NODES[11]
+        segment(room, x0, y0, x1, y1, c("coral", 2))
+        room.rect(x0 - 1, y0 - 1, x0 + 2, y0 + 2, c("coral", 4))
+        room.put(x1 - 1, y1 - 1, c("coral", 5))
 
 
-BELT = {  # the belt's top, row by row, as a 24 px tile riding 2 px a frame: an envelope (flap up), a gap, a stamped one
-    98: "wWWWWWWw###GGGGGssG#####",
-    99: "WvWWWWvW###GGGGGssG#####",
-    100: "WWvWWvWW###GgggGGGG#####",
-    101: "wwwvvwww###gggggggg#####",
-    102: "########################",
-    103: "########################",
-    104: "------##------##------##",
-}
-BELT_INK = {"#": INK, "W": c("cream", 5), "w": c("cream", 4), "v": c("cream", 2), "G": c("steel", 5),
-            "g": c("steel", 4), "s": c("amber", 4), "-": c("steel", 2)}
-
-
-SCREENING = [(283 + 9 * i, 55 + 6 * j, (i, j) in {(2, 0), (0, 2), (3, 3), (1, 5)}) for j in range(6) for i in range(4)]
-# the screening board's tiles, 7 x 4 in room pixels, as (x, y, flagged): payments passed in green, a few flagged in red
+# --- Billie, floor 7 (Staff, Payments): money moves through the tubes to the counter; the vault's wheel turns ------
+VAULT = (106, 81)    # the vault door's middle (install_picks draws the door; the wheel is drawn here)
+TUBE = (210, 24, 262)   # a capsule's way: along the lower pipe from x 210 on row 24, then down the pipe at x 262
+NOTES = (238, 76, 310, 102)   # the counting machine and the cash on it
 
 
 def billie_payments(room, f):
-    for x in range(104, 198):                                              # lift the painted envelopes off the belt:
-        room.rect(x, 96, x + 1, 98, room.get(x, 95))                       # the arch post and wall carry on down to it,
-    for y, row in BELT.items():                                            # then the belt runs from the feed to the pile
-        for x in range(102, 198):
-            room.put(x, y, BELT_INK[row[(x - 2 * f) % len(row)]])
-    x = 60 + f * 22                                                        # a message travels the ceiling pipe
-    if f:
-        room.rect(x - 12, 15, x, 16, c("coral", 2))                        # its trail
-    room.rect(x, 13, x + 10, 18, INK)
-    room.rect(x + 1, 14, x + 9, 17, c("coral", 4))
-    for k, (x, y, flagged) in enumerate(SCREENING):                       # the board re-screens two tiles a frame
-        if f and (k * 5 + f) % 12 == 0:
-            room.rect(x, y, x + 7, y + 4, GLOW["green" if flagged else "red"])
+    cx, cy = VAULT                                                         # the wheel: six spokes with knobs, a turn
+    for k in range(6):                                                     # of 5 degrees a frame (60 deg a loop)
+        t = math.radians(5 * f + 60 * k)
+        dx, dy = math.cos(t), -math.sin(t)
+        for r in range(4, 17):
+            x, y = round(cx + r * dx), round(cy + r * dy)
+            room.put(x + 1, y, INK)
+            room.put(x, y + 1, INK)
+        for r in range(4, 17):
+            room.put(round(cx + r * dx), round(cy + r * dy), c("steel", 5))
+        x, y = round(cx + 18 * dx), round(cy + 18 * dy)
+        room.rect(x - 1, y - 1, x + 2, y + 2, INK)
+        room.put(x, y, c("steel", 4))
+    room.rect(cx - 3, cy - 3, cx + 4, cy + 4, INK)                         # the hub
+    room.rect(cx - 2, cy - 2, cx + 3, cy + 3, c("steel", 4))
+    room.rect(cx - 1, cy - 1, cx + 1, cy + 1, c("steel", 5))
+    if 1 <= f <= 8:                                                        # a payment rides the tube down to the counter
+        d, (x0, y0, xd) = (f - 1) * 96 // 7, TUBE
+        if x0 + d < xd - 4:
+            x, y = x0 + d, y0
+            room.rect(x - 4, y - 2, x + 5, y + 2, INK)
+            room.rect(x - 3, y - 1, x + 4, y + 1, c("coral", 4))
+            room.rect(x - 3, y - 1, x + 4, y, c("coral", 5))
+        else:
+            x, y = xd, y0 + x0 + d - xd + 4
+            room.rect(x - 2, y - 4, x + 2, y + 5, INK)
+            room.rect(x - 1, y - 3, x + 1, y + 4, c("coral", 4))
+            room.rect(x - 1, y - 3, x, y + 4, c("coral", 5))
+    if f >= 8:                                                             # and the machine counts it out
+        room.blink(NOTES, lambda col: col in (c("mint", 4), c("mint", 5)), c("mint", 2), f, every=5, lit=2)
 
 
 CITY_LIGHTS = [(57, 99), (68, 99), (79, 99), (90, 100), (101, 100), (112, 100), (123, 100), (134, 101), (236, 100),
@@ -550,23 +660,6 @@ def roof(room, f):
             room.rect(x, y, x + 2, y + 1, GLOW["amber"])
     if f % 4 < 2:
         room.rect(225, 3, 227, 5, GLOW["red"])                              # the warning light on the cat head
-
-
-# --- Writing, floor 8: the newsroom; a post being typed, then printed -------------------------------------------
-POST = (12, 12, 12, 6)   # the laptop's paragraph, line by line
-PLASTER = (195, 154, 92)   # the painted rooms' wall (install_picks.WALL)
-
-
-def writing(room, f):
-    n = sum(POST) if f == 0 else (f - 1) * sum(POST) // 10                # the room rests on a finished paragraph;
-    for i, w in enumerate(POST):                                           # then a fresh page, typed out by f11
-        room.rect(142, 86 + 3 * i, 142 + max(0, min(w, n - sum(POST[:i]))), 87 + 3 * i, c("cream", 4))
-    dx = [0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0, 0][f]                           # the typewriter's carriage: its sheet and
-    room.nudge((164, 80, 199, 86), dx, 0, mask=lambda col: col != PLASTER, bg=PLASTER)   # outline over the wall, and
-    room.nudge((163, 86, 177, 89), dx, 0, mask=lambda col: col in R["cream"], bg=INK)   # the paper curled under it
-    # over the machine's body, which stays put
-    room.nudge((256, 115, 280, 124), 0, [0, 0, 0, 1, 1, 2, 2, 3, 3, 2, 1, 0][f],  # a page eases out of the press
-               mask=lambda col: col in R["cream"], bg=c("cream", 5))
 
 
 # --- Parking: the side projects parked below the street; the games live in the arcade cabinet ----------------
@@ -668,7 +761,6 @@ FLOORS = {  # key: (painting, accent ramp, animation), bottom to top
     "5": ("billie_risk", "cyan", billie_risk),
     "6": ("billie_orchestrator", "violet", billie_orchestrator),
     "7": ("billie_payments", "coral", billie_payments),
-    "8": ("writing", "red", writing),
     "R": ("roof", "amber", roof),
 }
 

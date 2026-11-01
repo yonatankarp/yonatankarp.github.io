@@ -1,7 +1,7 @@
 {{- /* Every experience entry's storey, checked once for the homepage and the CV, so a slip names its file instead of
      failing deep in the page (#58, #63). Takes the experience pages; renders nothing. */ -}}
 {{- $accent := hugo.Data.floor_accents -}}
-{{- $taken := slice "E" "R" "8" "1" "L" "P" -}}{{- /* storeys the homepage template draws itself */ -}}
+{{- $taken := slice "E" "R" "1" "L" "P" -}}{{- /* storeys the homepage template draws itself */ -}}
 {{- range . -}}
   {{- $f := .Params.floor -}}
   {{- if ne (printf "%T" $f) "string" -}}{{- errorf "%s: set `floor` to a quoted storey, such as floor: \"5\" (got %v)." .File.Path $f -}}

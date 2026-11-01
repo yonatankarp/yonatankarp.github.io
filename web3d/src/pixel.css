@@ -199,7 +199,7 @@
 .pixel .floor-quotes q { color: var(--text); }
 .pixel .floor-quotes cite { display: block; font-style: normal; color: var(--text-soft); }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
-  .pixel .elevator { padding: 6px 4px; gap: 2px; }   /* 358px wide: it fits the narrowest guided screen (360px) */
+  .pixel .elevator { padding: 6px 4px; gap: 2px; }   /* 326px wide: it fits the narrowest guided screen (360px) */
   .pixel .building-floor-btn { width: 30px; height: 44px; font-size: 30px; }
   .pixel .floor-card h1 { font-size: 30px; }
 }
@@ -210,7 +210,7 @@
   .pixel .building-stop--hero { padding-top: max(clamp(116px, calc(100svh - 216px), calc(62svh + 12px)), calc(var(--street-top) + 310px)); }
   .pixel .building-stop--hero .floor-card { width: 100%; }
 }
-@media (max-width: 1279px) {   /* eleven lift buttons leave no room for the label between the name and the panel */
+@media (max-width: 1279px) {   /* ten lift buttons leave no room for the label between the name and the panel */
   .pixel .building-download span { display: none; }
   /* A short label under the icon instead (#62), on the font's 15px grid; the link's aria-label still names it. */
   .pixel .building-download { padding: 0 14px; flex-direction: column; justify-content: center; gap: 5px; }
@@ -301,8 +301,6 @@ html:not(.building--guided) .pixel .elevator, html:not(.building--guided) .pixel
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px rgba(255, 255, 255, 0.35);
   transition: transform 80ms steps(1);
 }
-/* Ink on floor 8's #C94F33 is 4.35:1, short of AA for its 15px label on smaller screens; this red is 5.77:1 (#131). */
-.pixel [data-floor="8"] .floor-card .step-in { background: #E0664A; }
 .pixel .floor-card .step-in::after {   /* a 10x10 pixel arrow, drawn at 2x; a clip-path, as the CSP's img-src blocks a data: mask (#149) */
   content: ''; width: 20px; height: 20px; margin-left: 10px; background: currentColor;
   clip-path: polygon(0 40%, 50% 40%, 50% 20%, 60% 20%, 60% 30%, 70% 30%, 70% 40%, 80% 40%, 80% 60%, 70% 60%, 70% 70%, 60% 70%, 60% 80%, 50% 80%, 50% 60%, 0 60%);
@@ -408,8 +406,10 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
   .pixel .floor-card .step-in { font-size: 15px; min-height: 44px; }
   .pixel .floor-card .step-in::after { width: 10px; height: 10px; margin-left: 8px; mask-size: 10px 10px; }   /* the arrow at 1x, like the text */
 }
-/* P: the bottom of the line says so. */
+/* P says it is the bottom of the line; the lobby signs the way down to it. */
 .pixel .floor-end { margin: 16px 0 0; padding: 10px 14px; font-size: 15px; color: var(--text-soft); background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
+.pixel .floor-signs { display: grid; gap: 8px; margin: 12px 0 16px; }   /* the lobby's signs, kept small above the title, */
+.pixel .floor-signs .floor-end { margin: 0; padding: 6px 14px; }        /* where the step-in bar cannot cover them */
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* the street leaves the card ~38svh: keep the how-to, the title and the way to get in touch in view */
   .pixel .building-stop--hero .floor-eyebrow, .pixel .building-stop--hero .floor-lead { display: none; }
   .pixel .floor-how { margin-bottom: 8px; padding-bottom: 0; border-bottom: 0; font-size: 13px; line-height: 20px; }

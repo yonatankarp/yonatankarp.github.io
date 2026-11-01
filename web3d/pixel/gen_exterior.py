@@ -1,16 +1,18 @@
 # /// script
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]   # numpy: pixelate
 # ///
-"""The street view: the whole building at dusk, its windows showing the live rooms. The landing view.
+"""The street view: the whole building at dusk, its windows lit with each floor's company sign. The landing view.
 
 Run: uv run web3d/pixel/gen_exterior.py blockout            # the code blockout, for a look
      uv run web3d/pixel/gen_exterior.py paint [--count N]   # Draw Things repaints the blockout (port 7860)
-     uv run web3d/pixel/gen_exterior.py build OUT           # OUT/exterior.png (12 frames) + exterior.json
+     uv run web3d/pixel/gen_exterior.py build OUT           # OUT/exterior.png (12 frames) + exterior.json,
+                                                            # and backdrop.png: the street without the tower
 
 The blockout fixes what the model must not move: the number of storeys, the window grid, the entrance, the garage
 and the crane. The model repaints it into the rooms' style; the picked painting is pixelated with the floors'
 palette and colour match, then the blockout's windows are pasted back and filled with 1:1 crops of each floor's
-strip, frame by frame, so the street view animates in step with the floors. Build the floors first.
+strip, frame by frame, so the street view animates in step with the floors: floors 1-7 dimmed behind their company's
+lit sign (G.SIGNS), the lobby and the garage as they are. Build the floors first.
 """
 import argparse
 import base64
@@ -29,22 +31,27 @@ from pixelate import dither_bands, pixelate  # noqa: E402
 HERE = Path(__file__).resolve().parent / "paintings"
 EW, EH = 480, 336               # art pixels: 2x on a 1440x900 screen, 1x on a phone (cropped to the building)
 PAINT = 4                        # painting pixels per art pixel
-PICK = 634                       # the picked candidate's seed, or None to build from the blockout
+PICK = 634                       # the picked candidate's seed, or None to build from the blockout; it was painted
+                                 # with nine storeys, and street() cuts the top one (the newsroom's) out
 GROUND = 310                     # the pavement line
 BX0, BX1 = 170, 310              # the building, in the middle of the street
 STOREY = 28
-STOREYS = ["L", "1", "2", "3", "4", "5", "6", "7", "8"]   # bottom to top above ground; P is below the street
+STOREYS = ["L", "1", "2", "3", "4", "5", "6", "7"]   # bottom to top above ground; P is below the street
 WIN_X0, WIN_X1 = 180, 300        # each storey's ribbon window
 c, INK = G.c, G.INK
 GLOW_WIN = G.GLOW["amber"]
 
 # Where each window looks into its floor's strip (x, y of the slice's top-left, in strip pixels): the room's
-# signature props. The window's size decides the slice's size.
-LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (314, 72), "5": (352, 60), "6": (230, 90),
-        "7": (210, 102), "8": (250, 92), "R": (0, 0), "L": (304, 98), "P": (166, 78)}
+# signature props, dimmed behind the sign on 1-7, so flying in, the sign fades into the room. The window's size
+# decides the slice's size.
+LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (250, 64), "5": (222, 54), "6": (230, 96),
+        "7": (205, 86), "R": (0, 0), "L": (246, 122), "P": (166, 78)}
 NEIGHBOURS = ((0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
               (314, 348, 196), (348, 398, 160), (398, 440, 206), (440, 480, 172))   # x0, x1, roof
 LAMPS = (40, 142, 338, 440)
+INFILL = ((166, 216, 6), (216, 274, 5), (274, 314, 3))   # the backdrop's blocks in the tower's lot: x0, x1, the
+                                                          # neighbour each copies, a window column (8 px) wider or narrower;
+                                                          # the last drops the column under the lamp at 142, drawn into it
 
 
 def windows():
@@ -126,7 +133,7 @@ def paint(count, start, host):
     buf = io.BytesIO()
     base.save(buf, "PNG")
     prompt = ("Edit this picture. Repaint it as a detailed flat 2D side-view video game background in clean cel "
-              "shading with bold dark outlines: a nine-storey brick and plaster city building at dusk in the middle "
+              "shading with bold dark outlines: an eight-storey brick and plaster city building at dusk in the middle "
               "of a street of older neighbouring buildings. Keep every shape exactly where it is: the same storeys, the same long window on every storey, "
               "the same lobby shop front with its awning, the same garage door, the same crane on the roof, the same "
               "neighbouring buildings, street lamps, pavement and road, and the same sunset sky. Add brick texture, "
@@ -134,7 +141,7 @@ def paint(count, start, host):
               "no text, no letters, no logos.")
     for k in range(count):
         seed = start + 17 * k
-        path = CANDIDATES / f"street9_{seed}.png"
+        path = CANDIDATES / f"street{len(STOREYS)}_{seed}.png"
         if path.exists():
             print("kept", path.name)
             continue
@@ -144,13 +151,18 @@ def paint(count, start, host):
         print("painted", path.name, flush=True)
 
 
-def build(out):
+def street(tower=True):
+    """The street without its windows' rooms; without the tower, its lot is built up with the neighbours' blocks."""
     blk = blockout()
     if PICK is None:
         art = blk.copy()
     else:
         art = pixelate(Image.open(CANDIDATES / f"street9_{PICK}.png").convert("RGB"), (EW, EH), 40)
         art = dither_bands(art, 150, 4)                                  # the sky above the neighbours
+        px, top = art.load(), GROUND - STOREY * len(STOREYS)
+        for x in range(BX0 - 4, BX1 + 4):                                # the painting's top storey goes: its cornice
+            for y in range(top + 3, -1, -1):                             # comes down a storey, sky where it stood
+                px[x, y] = px[x, y - STOREY] if y >= top - 5 else px[76 + x % 4, y]
         boxes = [(x0 - 2, y0 - 2, x1 + 2, y1 + 2) for key, (x0, y0, x1, y1) in windows().items() if key != "R"]
         boxes += [(BX0 + 2, GROUND - STOREY * (i + 1) + 10, BX0 + 7, GROUND - STOREY * (i + 1) + 17)
                   for i in range(len(STOREYS))]                          # and the floor numbers beside them
@@ -165,13 +177,25 @@ def build(out):
             boxes += [(x, y, x + 4, y + 5) for y in range(top + 8, GROUND - 6, 10) for x in range(x0 + 4, x1 - 4, 8)]
         for box in boxes:                                                # the blockout's frames stay exactly put
             art.paste(blk.crop(box), box[:2])
-
+    px = art.load()
+    infill = () if tower else tuple((x0, x1, NEIGHBOURS[n][2]) for x0, x1, n in INFILL)
+    for x0, x1, n in () if tower else INFILL:
+        sx0, sx1, top = NEIGHBOURS[n]
+        seam = x0 + (x1 - x0) // 16 * 8                                  # on a wall column, so the window grid runs on
+        for x in range(x0, x1):
+            sx = sx0 + x - x0 if x < seam else sx1 - x1 + x
+            for y in range(GROUND + 1):
+                if y >= top - 3:
+                    px[x, y] = px[sx, y]
+                elif BX0 - 2 <= x < BX1 + 2 or y < 150:                  # sky where the tower stood, from a clear
+                    px[x, y] = px[76 + x % 4, y]                         # column down to the lowest roof
+    if PICK is not None:
         def glow(x, y, col, cy, r):                                      # a 3-step Bayer ramp toward the lamp light
             d = min(((x - lx) ** 2 + (y - cy) ** 2) ** 0.5 for lx in LAMPS)
             lv = min(3, int((1 - d / r) * 3 + G.BAYER[y % 4][x % 4] / 16))
             return col if lv <= 0 else tuple(round(v + (g - v) * (0, 0.35, 0.65, 0.95)[lv]) for v, g in zip(col, c("amber", 5)))
 
-        for x0, x1, top in NEIGHBOURS:                                   # the lamps' halos, on wall pixels only
+        for x0, x1, top in NEIGHBOURS + infill:                          # the lamps' halos, on wall pixels only
             for y in range(top + 3, GROUND):
                 for x in range(x0, x1):
                     if px[x, y] not in (INK, GLOW_WIN, c("sky", 0)):
@@ -180,10 +204,10 @@ def build(out):
             art.paste(blk.crop((x, GROUND - 40, x + 1, GROUND)), (x, GROUND - 40))
             art.paste(blk.crop((x - 1, GROUND - 45, x + 2, GROUND - 40)), (x - 1, GROUND - 45))
         for x in range(196, 322):                                        # the crane, on the painting's own sky
-            for y in range(6, 53):                                       # (its dither repeats every 4 px)
+            for y in range(6, GROUND - STOREY * len(STOREYS) - 5):       # (its dither repeats every 4 px)
                 col = blk.getpixel((x, y))
-                px[x, y] = col if col != blk.getpixel((0, y)) else px[x % 4, y]
-        for x0, y0 in ((166, 272), (311, 280)):                          # the slots beside the ground floor
+                px[x, y] = col if tower and col != blk.getpixel((0, y)) else px[x % 4, y]
+        for x0, y0 in ((166, 272), (311, 280)) if tower else ():         # the slots beside the ground floor
             for y in range(y0 + 1, GROUND):
                 for x in range(x0, x0 + 3):
                     px[x, y] = px[x, y0]
@@ -205,6 +229,34 @@ def build(out):
                 else:
                     col = c("dark", 2)
                 px[x, y] = col
+    return art
+
+
+def lit_sign(room, key):
+    """A storey's window at dusk: its room dimmed to the floor's accent, and the company's sign lit in front of it,
+    its light spilling a few pixels onto the room."""
+    accent, ww, wh = G.FLOORS[key][1], room.width, room.height
+    sign = Image.new("RGBA", (ww, wh), (0, 0, 0, 0))
+    probe = G.sign(G.Layer(Image.new("RGBA", (ww, wh))), key, 0, 0)       # its size, to centre it
+    x, y = (ww - probe[2]) // 2, (wh - probe[3]) // 2
+    x0, y0, x1, y1 = G.sign(G.Layer(sign), key, x, y)
+    out, px, sp = room.copy(), room.load(), sign.load()
+    q = out.load()
+    for j in range(wh):
+        for i in range(ww):
+            if sp[i, j][3]:
+                q[i, j] = sp[i, j][:3]
+                continue
+            r, g, b = px[i, j]
+            lv = 0 if r * 3 + g * 6 + b < 900 else 1 if r * 3 + g * 6 + b < 1700 else 2
+            d = max(x0 - i, i - x1 + 1, y0 - j, j - y1 + 1)                  # how far outside the sign
+            lv += d <= 3 and G.BAYER[j % 4][i % 4] < 16 - 4 * d
+            q[i, j] = c(accent, lv)
+    return out
+
+
+def build(out):
+    art = street()
     wins = windows()
     strip = Image.new("RGB", (EW * G.FRAMES, EH))
     missing = [f"floor-{k}.png" for k in LOOK if k != "R" and not (out / f"floor-{k}.png").exists()]
@@ -217,10 +269,12 @@ def build(out):
             if key == "R":
                 continue
             sx, sy = LOOK[key]
-            img.paste(floors[key].crop((f * G.W + sx, sy, f * G.W + sx + x1 - x0, sy + y1 - y0)), (x0, y0))
+            room = floors[key].crop((f * G.W + sx, sy, f * G.W + sx + x1 - x0, sy + y1 - y0))
+            img.paste(lit_sign(room, key) if key in G.SIGNS else room, (x0, y0))
         strip.paste(img, (f * EW, 0))
     strip.save(out / "exterior.png")
     (out / "exterior.json").write_text(json.dumps({"size": [EW, EH], "windows": wins}))
+    street(tower=False).save(out / "backdrop.png")                       # the other pages' scene: one still frame
     print("drew exterior", "from blockout" if PICK is None else f"from seed {PICK}")
 
 

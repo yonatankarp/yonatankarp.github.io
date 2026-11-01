@@ -31,7 +31,7 @@ const routes = [
       [".building-download", 1, "CV download"],
       [".building-social a", 4, "social links"],
       ["#pixel-canvas", 1, "building canvas"],
-      ["section.building-stop", 12, "building floors"],
+      ["section.building-stop", 11, "building floors"],
       [".building-window", 9, "street view windows"],
     ],
   },
@@ -453,14 +453,21 @@ async function assertCtaFocusRing(page, route, viewport) {
 
 async function assertRide(page, route, viewport) {
   const arrive = async (key, via) => {
-    await page.click(via);
+    if (via.startsWith("Arrow")) {   // off the card, which would scroll first
+      await page.evaluate(() => document.activeElement?.blur());
+      await page.keyboard.press(via);
+    } else {
+      await page.click(via);
+    }
     await page
       .waitForSelector(`section[data-floor="${key}"].is-here`, { timeout: 8000 })
-      .catch(() => fail(`${route.path} (${viewport.name}) clicking ${via} did not ride to floor ${key}`));
+      .catch(() => fail(`${route.path} (${viewport.name}) ${via} did not ride to floor ${key}`));
   };
 
-  await arrive(viewport.name === "mobile" ? "R" : "8", viewport.name === "mobile" ? ".hero-cta" : ".building-floor-btn[data-goto='8']");
+  await arrive("R", viewport.name === "mobile" ? ".hero-cta" : ".building-floor-btn[data-goto='R']");
   await arrive("E", ".building-name");
+  await arrive("L", "ArrowDown");   // the way in from the street is the lobby (web3d/src/guide.js)
+  await arrive("1", "ArrowDown");
 }
 
 async function assertPauseLabel(page, route, viewport) {

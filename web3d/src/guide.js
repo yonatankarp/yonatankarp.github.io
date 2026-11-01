@@ -19,14 +19,11 @@ export function guide(api, root = document) {
   // layouts/index.html sets the first mode with the same query in <head>, before the first paint (#39).
   const roomy = matchMedia('(min-height: 500px) and (min-width: 360px)');
 
-  // Inside, stops are in page order, top to bottom: scrolling down (+1) rides down a floor. The street (E) sits
-  // above the roof: scrolling down from it goes in at the roof (contact), and riding up past the roof steps back out.
-  const inside = keys.filter((k) => k !== 'E');
-  const neighbour = (key, dir) => {
-    if (key === 'E') return dir > 0 ? keys.indexOf('R') : -1;
-    const next = inside[inside.indexOf(key) + dir];
-    return next ? keys.indexOf(next) : dir < 0 ? keys.indexOf('E') : -1;
-  };
+  // Stops are in page order, top to bottom as the building stands, but the ride runs one way: in from the street (E)
+  // at the lobby, then up floor by floor to the roof. Scrolling down (+1) rides on, up (-1) back. The garage (P) is
+  // off the ride: its button, the lobby's sign or #floor-P go down to it, and either way out is back to the lobby.
+  const path = ['E', ...keys.filter((k) => k !== 'E' && k !== 'P').reverse()];
+  const neighbour = (key, dir) => keys.indexOf(key === 'P' ? 'L' : path[path.indexOf(key) + dir]);
   // Step inside: a floor's full story opens over its room. While it is open the lift stays put and the wheel and
   // keys scroll the panel; "Back to the lift", Escape or riding away close it.
   let open = null, afterPop = null;
@@ -128,8 +125,8 @@ export function guide(api, root = document) {
       e.preventDefault();
       if (!(e.repeat && api.moving())) step(next);   // a held key rides floor by floor
     }
-    if (e.key === 'Home') { e.preventDefault(); api.go(0); }
-    if (e.key === 'End') { e.preventDefault(); api.go(keys.length - 1); }
+    if (e.key === 'Home') { e.preventDefault(); api.go(keys.indexOf(path[0])); }
+    if (e.key === 'End') { e.preventDefault(); api.go(keys.indexOf(path.at(-1))); }
   });
 
   root.addEventListener('click', (e) => {   // elevator buttons, the name (back to the street) and the windows

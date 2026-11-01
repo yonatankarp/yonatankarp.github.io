@@ -29,22 +29,28 @@ export function guide(api, root = document) {
   };
   // Step inside: a floor's full story opens over its room. While it is open the lift stays put and the wheel and
   // keys scroll the panel; "Back to the lift", Escape or riding away close it.
-  let open = null;
-  const closePanel = (refocus = true) => {
+  let open = null, afterPop = null;
+  // Step inside pushes a history entry, so a phone's Back closes the panel instead of leaving the site (#129).
+  const closePanel = (refocus = true, popped = false) => {
     if (!open) return;
-    open.panel.classList.remove('is-open');
-    open.button.setAttribute('aria-expanded', 'false');
+    const { panel, button, top } = open;
+    panel.classList.remove('is-open');
+    button.setAttribute('aria-expanded', 'false');
     document.documentElement.classList.remove('panel-open');
-    if (refocus) {   // back on Step inside, with the card where the reader left it (focus would scroll it to the end)
-      open.button.focus({ preventScroll: true });
-      open.button.closest('.floor-card').scrollTop = open.top;
-    }
+    // back on Step inside, with the card where the reader left it (focus would scroll it to the end)
+    const refocusNow = () => { button.focus({ preventScroll: true }); button.closest('.floor-card').scrollTop = top; };
+    if (refocus) refocusNow();
     open = null;
+    // Closed here, not by Back: drop the entry, so the next Back leaves the page. A ride already replaced it.
+    const back = !popped && history.state?.panel;
+    if (refocus && (popped || back)) afterPop = refocusNow;   // Chrome clears focus as Back lands on a #floor-X entry
+    if (back) history.back();
   };
   const openPanel = (button) => {
     const panel = document.getElementById(button.getAttribute('aria-controls'));
     if (!panel) return;
-    closePanel(false);
+    closePanel(false, true);
+    if (!history.state?.panel) history.pushState({ panel: true }, '', location.href);
     open = { panel, button, top: button.closest('.floor-card').scrollTop };
     panel.classList.add('is-open');
     button.setAttribute('aria-expanded', 'true');
@@ -59,6 +65,13 @@ export function guide(api, root = document) {
     if (roomy.matches) scrollTo(0, 0);
     else stops[api.index()]?.scrollIntoView();   // keep the reader's floor in view on the plain page
   };
+  addEventListener('popstate', () => {
+    closePanel(true, true);
+    if (afterPop) setTimeout(afterPop);   // after the traversal has dropped focus
+    afterPop = null;
+  });
+  // Back from a typed #floor-X to the bare address: the street, as on load (pixel.js only follows floor hashes).
+  addEventListener('hashchange', () => { const e = keys.indexOf('E'); if (!location.hash && e >= 0) api.go(e); });
   roomy.addEventListener('change', setMode);
   setMode();
 

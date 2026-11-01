@@ -13,6 +13,7 @@ const GROUND = ['#33231a', '#1f1610'];                        // under the garag
 const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted lift doors; mirrors gen_floors.DOOR
 const FOCUS = { 2: 330, 3: 250 };                               // on narrow screens, the art x kept mid-screen (else 300)
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
+const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
 // The phone layout: the same query as every phone rule in pixel.css, so the canvas and the cards always agree (#46).
 const narrow = matchMedia('(max-width: 760px), (max-aspect-ratio: 6/5)');
@@ -30,13 +31,18 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const open = new Map();           // key -> 0..1, lift doors
   let loads = 0, fading = 0;        // bumped by every image or file that arrives: the picture changes (and fades in)
   const loaded = () => { loads++; fading = performance.now() + FADE_IN_MS; wake(); };
-  const street = streetView(base, windowsBox, stops, loaded);   // first: the street is the first screen
-  for (const key of keys.filter((k) => k !== 'E')) {   // the street is exterior.png, not a strip
+  const started = new Set();
+  const load = (key) => {
+    if (key === 'E' || started.has(key)) return;   // the street is exterior.png, not a strip
+    started.add(key);
     const img = new Image();
     img.onload = () => { img.since = performance.now(); strips.set(key, img); loaded(); };
     img.onerror = () => { strips.set(key, null); loaded(); };
     img.src = `${base}pixel/floor-${key}.png`;
-  }
+  };
+  const loadAll = () => keys.forEach(load);
+  // The street is the first screen: the other floors wait until it has arrived (or failed), or the lift moves (#130).
+  const street = streetView(base, windowsBox, stops, loaded, loadAll);
 
   // ---- the ride ----
   // v: the speed carried over from a ride retargeted mid-way (floors per unit of u), so the cab never stops dead.
@@ -44,6 +50,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const eAt = keys.indexOf('E');                               // the street view's stop
   const fromHash = keys.indexOf(hashKey());
   ride.from = ride.to = Math.max(0, fromHash);
+  load(keys[ride.from]);   // a floor's own address shows that floor first, so it loads alongside the street
   if (fromHash >= 0 && location.hash !== `#floor-${keys[fromHash]}`) {   // a legacy or lowercased anchor: show the floor's own
     history.replaceState(null, '', `#floor-${keys[fromHash]}`);
     requestAnimationFrame(() => document.documentElement.classList.contains('building--guided') || stops[fromHash].scrollIntoView());
@@ -53,15 +60,18 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const pos = (u) => ride.from + (ride.to - ride.from) * (ride.v ? u * u * (3 - 2 * u) : easeInOut(u)) + ride.v * u * (1 - u) ** 2;
   const emit = (name, detail) => document.dispatchEvent(new CustomEvent(name, { detail }));
   function go(index) {
+    loadAll();
     const now = performance.now(), u = rideU(now);
     const to = Math.max(0, Math.min(keys.length - 1, index));
     if (to === ride.to || (ride.fade && u < 1)) return false;   // already on its way there; a dissolve runs to its end
     const here = pos(u), vel = u < 1 ? (here - pos(rideU(now - 16))) / 16 : 0;   // floors per ms
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: a dissolve, not a ride
     const still = reduceMotion.matches;
-    const dur = fade ? 900 : Math.min(2600, 1150 + 380 * Math.max(0, Math.abs(to - here) - 1));
-    const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / 2.2) * 1000;   // the doors shut, then it moves
-    Object.assign(ride, { from: here, to, start: now + closeMs, fade, dur: still ? 1 : dur, v: fade || still ? 0 : vel * dur });
+    const dist = Math.abs(to - here), dur = fade ? 900 : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
+    const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000;   // the doors shut, then it moves
+    // The eased start moves the camera less than half an art pixel at first: that stretch runs as the doors finish.
+    const hidden = vel || fade ? 0 : dur * Math.cbrt(1 / (1440 * Math.max(dist, 1e-3)));
+    Object.assign(ride, { from: here, to, start: now + Math.max(0, closeMs - hidden), fade, dur: still ? 1 : dur, v: fade || still ? 0 : vel * dur });
     history.replaceState(null, '', `#floor-${keys[to]}`);
     arrived = -1;   // a ride redirected back to the floor it left still arrives there (#31)
     emit('building:depart', { index: to, key: keys[to], dir: fade ? 0 : Math.sign(to - here) });
@@ -82,21 +92,21 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   // sleeps: until the next frame of the loop, or for good while held, until a ride, a resize or a load wakes it (#36).
   let paused = false, raf = 0, timer = 0, drawn = '';
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
-  if (pauseButton && !reduceMotion.matches) {   // reduced motion has nothing to pause
-    const label = () => {
-      pauseButton.dataset.paused = paused;
-      pauseButton.setAttribute('aria-label', paused ? 'Play the animation' : 'Pause the animation');
-      pauseButton.title = pauseButton.getAttribute('aria-label');
-      pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
-    };
-    label();
-    pauseButton.hidden = false;
-    pauseButton.addEventListener('click', () => { paused = !paused; label(); wake(); });
-  }
+  // Reduced motion has nothing to pause: the button hides, and shows again if it is turned off after load (#128).
+  const label = () => {
+    if (!pauseButton) return;
+    pauseButton.hidden = reduceMotion.matches;
+    pauseButton.dataset.paused = paused;
+    pauseButton.setAttribute('aria-label', paused ? 'Play the animation' : 'Pause the animation');
+    pauseButton.title = pauseButton.getAttribute('aria-label');
+    pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
+  };
+  label();
+  pauseButton?.addEventListener('click', () => { paused = !paused; label(); wake(); });
   addEventListener('resize', wake);
-  reduceMotion.addEventListener('change', wake);
+  reduceMotion.addEventListener('change', () => { label(); wake(); });
 
-  let passing = -1, arrived = -1, last = performance.now();
+  let passing = -1, arrived = -1, last = performance.now(), cardTop = 0;
   function frame(now) {
     raf = requestAnimationFrame(frame);   // first, so a frame that throws cannot stop the loop
     const dt = Math.min(0.05, (now - last) / 1000);
@@ -104,7 +114,10 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     // Drawn in device pixels, so every art pixel is the same whole number of them; laid out in CSS pixels.
     const dpr = devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
     const w = Math.round(W * dpr), h = Math.round(H * dpr);
-    if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; drawn = ''; }
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w; canvas.height = h; drawn = '';
+      cardTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--card-top')) || 0;   // CSS px; 0 where it is unset
+    }
     ctx.imageSmoothingEnabled = false;
     const wide = !narrow.matches, still = reduceMotion.matches;
 
@@ -112,21 +125,27 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const p = ride.fade ? (u < 0.5 ? ride.from : ride.to) : Math.min(keys.length - 1, Math.max(0, pos(u)));
     const inner = ride.fade ? (ride.to === eAt ? ride.from : ride.to) : -1;   // the floor seen through the dissolve
     const at = inner >= 0 ? inner : p;                                        // held still through a dissolve
-    const s = Math.round(dpr * Math.max(2, Math.floor(wide ? Math.min(W / FW, H / (FH * 1.15)) : H / (FH * 2.2))));
+    let s = Math.round(dpr * Math.max(2, Math.floor(wide ? Math.min(W / FW, H / (FH * 1.15)) : H / (FH * 2.2))));
+    // Phones: the room's floor sits behind the elevator, above the card (pixel.css --card-top). On a short phone
+    // the room is drawn smaller, down to 4/3 CSS px an art pixel, still a whole number of device pixels (#127).
+    const floorAt = cardTop - 28;
+    if (!wide && cardTop) s = Math.min(s, Math.max(Math.ceil(dpr * 4 / 3), Math.floor(dpr * floorAt / FH)));
     const focus = Math.round(lerpAt(at, (k) => FOCUS[k] ?? 300));
     const x0 = wide ? Math.round((w - FW * s) / 2) : Math.min(0, Math.max(w - FW * s, Math.round(w / 2 - focus * s)));
-    const cy = wide ? h / 2 : h * 0.3;                         // phones keep the room above the card
+    const cy = wide ? h / 2 : cardTop ? floorAt * dpr - FH * s / 2 : h * 0.3;   // phones keep the room above the card
     const camY = Math.round(lerpAt(at, level));                // whole art pixels: no shimmer
     const near = Math.round(p);
     if (near !== passing) { passing = near; emit('building:floor', { index: near, key: keys[near] }); }
-    if (u === 1 && arrived !== ride.to) { arrived = ride.to; emit('building:arrive', { index: ride.to, key: keys[ride.to] }); }
+    // Arrived on the last pixel the camera moves: the eased tail after it changes nothing on screen.
+    const landed = u === 1 || (!ride.fade && u > 0.5 && camY === level(keys[ride.to]));
+    if (landed && arrived !== ride.to) { arrived = ride.to; emit('building:arrive', { index: ride.to, key: keys[ride.to] }); }
 
     const loopMs = (FRAMES * 1000) / FPS;
     const phase = now % (loopMs + REST_MS);
     const f = paused || still || phase >= loopMs ? 0 : Math.floor(phase / (1000 / FPS));
     for (const key of ORDER) {
-      const here = u === 1 && keys[ride.to] === key;
-      open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : 2.2)));
+      const here = arrived === ride.to && keys[ride.to] === key;
+      open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
     }
     const streetA = ride.fade ? (ride.to === eAt ? easeInOut(u) : 1 - easeInOut(u)) : street.alpha(p, eAt);
     const sig = [f, camY, streetA, loads, now < fading && now, ...open.values()].join();
@@ -174,7 +193,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   wake();
   // e.g. the site menu's About; a pick the lift ignores (it is already going there, or mid-dissolve) keeps its hash
   addEventListener('hashchange', () => { const i = keys.indexOf(hashKey()); if (i >= 0 && !go(i)) history.replaceState(null, '', `#floor-${keys[ride.to]}`); });
-  return { go, index: () => ride.to, moving: () => rideU(performance.now()) < 1 || arrived !== ride.to };
+  return { go, index: () => ride.to, moving: () => arrived !== ride.to };
 }
 
 // The painted door halves slide apart over a lit cab, a whole pixel at a time.
@@ -199,10 +218,11 @@ function drawDoors(ctx, img, f, x0, y0, s, open) {
 
 // The street view: the whole building at dusk (web3d/pixel/gen_exterior.py), its windows live crops of the rooms.
 // Its windows are buttons laid over the canvas; the street left and right of the picture repeats its neighbours.
-function streetView(base, box, stops, loaded) {
+function streetView(base, box, stops, loaded, then) {
   const view = { img: null, since: 0, size: [480, 336], windows: {}, top: SKY, bottom: '#2a2226', at: null };
   const img = new Image();
   img.onload = () => {
+    then();
     const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
     c.canvas.width = 1; c.canvas.height = view.size[1];
     c.drawImage(img, 0, 0);
@@ -210,6 +230,7 @@ function streetView(base, box, stops, loaded) {
     Object.assign(view, { img, since: performance.now(), top: px(0), bottom: px(view.size[1] - 1) });
     loaded();
   };
+  img.onerror = then;
   img.src = `${base}pixel/exterior.png`;
   const buttons = [];
   fetch(`${base}pixel/exterior.json`).then((r) => r.json()).then((j) => {

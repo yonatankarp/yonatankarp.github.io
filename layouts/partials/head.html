@@ -56,7 +56,7 @@
 {{ $hashes := "" }}{{ range .Store.Get "inlineScripts" }}{{ $hashes = printf "%s '%s'" $hashes .Data.Integrity }}{{ end }}
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'{{ $hashes }} https://gc.zgo.at https://cdn.jsdelivr.net/npm/mermaid@11.17.2/; style-src 'self' 'unsafe-inline'; img-src 'self' https://yonatankarp.goatcounter.com; connect-src 'self' https://yonatankarp.goatcounter.com; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 {{ if not .IsHome }}{{ range .Store.Get "inlineScripts" }}<script>{{ .Content | safeJS }}</script>{{ end }}{{ end }}
-{{- /* The pixel wipe between pages (end of custom.css and pixel.css). The opt-in is inline, before any stylesheet: from
+{{- /* The transitions between pages (the wipe at the end of custom.css, the homepage's arrival at the end of pixel.css). The opt-in is inline, before any stylesheet: from
      a stylesheet, Chromium 156 sometimes missed it on a cold visit with fast CSS (20 of 40 on the dev server, 1 of 20 on
      the built files), and the page then hard-cuts. Inline it was 0 of 70 on those cold visits. */}}
 <style>@media (prefers-reduced-motion: no-preference) { @view-transition { navigation: auto; } }</style>

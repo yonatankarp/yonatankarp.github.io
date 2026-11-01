@@ -15,7 +15,7 @@ params:
         btnText: "GitHub"
 ---
 
-Authored ff4j's `javax.*` to `jakarta.*` namespace migration so the Java feature-flag library could fit modern Spring Boot 3 and Jakarta EE 9+ application stacks. The PR merged, but the unreleased migration later became the practical motivation for building `ff4k`.
+I wrote ff4j's `javax.*` to `jakarta.*` namespace migration so the Java feature-flag library could fit Spring Boot 3 and Jakarta EE 9+ application stacks. The PR merged, but the migration was not in a release at the time, which became my reason for building `ff4k`.
 
 <!--more-->
 
@@ -23,29 +23,22 @@ Authored ff4j's `javax.*` to `jakarta.*` namespace migration so the Java feature
 
 ff4j had the right general shape for Java feature flags, but the ecosystem around it had moved. Spring Boot 3 and Jakarta EE 9+ require the `jakarta.*` namespace, while older Java EE libraries still depended on `javax.*`. That made a small-looking import boundary into a deployment blocker for teams trying to modernize their services.
 
-The upstream contribution was deliberately narrow: migrate the namespace boundary and dependency surface without changing ff4j's product model. It closed the compatibility issue in the project while keeping the work reviewable for maintainers.
+I kept the contribution narrow: migrate the namespace and the dependencies without changing ff4j's product model, so the maintainers could review it. It closed the compatibility issue in the project.
 
 ## Work shipped
 
 - Replaced legacy `javax.*` imports with Jakarta equivalents.
-- Updated the affected dependencies for modern Java enterprise stacks.
+- Updated the affected dependencies for Java enterprise stacks.
 - Merged the migration as ff4j PR [#752](https://github.com/ff4j/ff4j/pull/752), closing the reported Jakarta compatibility issue.
-- Kept the change focused to 29 files with a balanced import and dependency migration rather than a broader library redesign.
+- Kept the change to 29 files, with no wider library redesign.
 
-The important product detail is that this was a breaking ecosystem migration. It needed a new major release, not just a patch release, because applications depending on the old Java EE namespace would feel the API/runtime shift.
+This was a breaking migration. It needed a new major release, because applications depending on the old Java EE namespace would see the API and runtime change.
 
-## Engineering judgment
+## Why this led to ff4k
 
-This contribution sits at the boundary between "fix the dependency" and "replace the dependency." The upstream PR solved the immediate technical compatibility problem, but merge status is not the same thing as availability. If a library does not release the migration, downstream teams still cannot depend on it in production.
+The PR solved the compatibility problem in the code, but a merge does not make a fix available. Until a library releases the migration, downstream teams cannot depend on it in production.
 
-That gap is what made `ff4k` a reasonable follow-on instead of a vanity rewrite. The lesson was not simply that ff4j used an old namespace; it was that feature-flag infrastructure needed an actively maintained, Kotlin-native surface with predictable async behavior and storage boundaries.
-
-## What this demonstrates
-
-- Diagnosing dependency modernization work at the framework compatibility layer.
-- Keeping upstream changes contribution-sized even when the surrounding problem is larger.
-- Recognizing that release cadence is part of dependency risk, not separate from implementation quality.
-- Turning a stalled upstream migration into a sharper replacement strategy instead of copying the older API unchanged.
+That gap, and the release cadence behind it, is why I built [`ff4k`](/projects/ff4k/): a Kotlin-native library with predictable async behavior and storage boundaries, which does not copy the older API.
 
 ## Current shape
 

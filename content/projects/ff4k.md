@@ -9,7 +9,7 @@ draft: false
 link: "https://yonatankarp.github.io/ff4k/"
 caseStudy: true
 tech: ["Kotlin", "Multiplatform", "Coroutines"]
-years: "2025–present"
+years: "2026–present"
 params:
     button:
         btnText: "Docs"

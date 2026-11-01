@@ -2,7 +2,7 @@
 date: 2025-12-01T00:00:00+01:00
 title: "ff4k"
 weight: 10
-description: "A Kotlin Multiplatform feature flag library, started while ff4j's Jakarta migration was unreleased, with typed properties and a coroutine-first API."
+description: "A Kotlin Multiplatform feature flag library, started after my ff4j Jakarta migration work, with typed properties and a coroutine-first API."
 projectKind: "Open source library"
 group: "project"
 draft: false
@@ -21,9 +21,9 @@ A Kotlin Multiplatform port of the ideas behind ff4j: feature flags, flipping st
 
 ## The problem
 
-`ff4k` started from an upstream dependency problem. `ff4j` had the right product shape for feature flags, but its Jakarta migration had not been released, and the Java API did not fit cleanly into Kotlin-first services.
+`ff4k` came out of my work on [ff4j's Jakarta migration](/projects/ff4j/). `ff4j` has the right product shape for feature flags, but its Java API did not fit cleanly into Kotlin-first services. ff4j 3.0.0, published on September 30, 2026, now ships that migration.
 
-I wrote a port of ff4j's ideas instead of a wrapper, and did not copy its older API shape. The replacement treats Kotlin as the native interface: typed properties, pluggable stores, suspend functions, and documentation that lets a service team adopt it without reverse-engineering the library.
+I wrote a port of ff4j's ideas instead of a wrapper, and did not copy its older API shape. `ff4k` treats Kotlin as the native interface: typed properties, pluggable stores, suspend functions, and documentation that lets a service team adopt it without reverse-engineering the library.
 
 Feature flags often start as harmless release switches, then become part of entitlement checks, rollout policy, tenant isolation, and incident response. At that point the library has to make three things boring: where flag definitions live, how state is stored, and which request context influences a decision.
 

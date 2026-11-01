@@ -12,9 +12,7 @@ tech: ["Kotlin", "Static analysis", "CI"]
 years: "2023"
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "GitHub"
-        URL: "https://github.com/LemonAppDev/konsist"
 ---
 
 Improved Konsist's Kotlin static-analysis surface by fixing null-aware type matching, tightening snippet verification, and reducing duplicated CI work across pull requests. The work landed as 3 merged upstream PRs.

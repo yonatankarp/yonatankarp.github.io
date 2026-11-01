@@ -23,7 +23,7 @@
       <h2>{{ index . 0 }}</h2>
       <ol class="px-grid">
         {{ range index . 1 }}
-        {{ $title := .Title | replaceRE `\s*\(contributor\)$` "" }}
+        {{ $title := partial "project-title.html" .Title }}
         {{ $case := .Params.caseStudy }}
         {{ $href := cond $case .RelPermalink .Params.link }}
         {{ $label := cond $case "Case study" (.Params.button.btnText | default "View") }}
@@ -31,7 +31,10 @@
           {{ partial "project-painting.html" (dict "page" . "max" 640) }}
           <div class="px-card__body">
             <p class="px-card__meta">{{ with .Params.projectKind }}<b>{{ . }}</b>{{ end }}<span>{{ .Params.years | default (.Date.Format "2006") }}</span></p>
-            <h3><a href="{{ $href }}"{{ if not $case }} target="_blank" rel="noopener"{{ end }}>{{ $title }}</a></h3>
+            {{- /* The CTA under the title is aria-hidden, so the link describes where it goes; the name stays the title (#131). */}}
+            {{ $hint := printf "where-%s" .File.ContentBaseName }}
+            <h3><a href="{{ $href }}"{{ if not $case }} target="_blank" rel="noopener"{{ end }} aria-describedby="{{ $hint }}">{{ $title }}</a></h3>
+            <span id="{{ $hint }}" hidden>{{ if $case }}Case study{{ else }}{{ $label }}, opens in a new tab{{ end }}</span>
             <p class="px-card__desc">{{ .Params.description | default (.Summary | plainify) }}</p>
             {{ with .Params.tech }}<ul class="px-card__tags">{{ range . }}<li class="px-chip">{{ . }}</li>{{ end }}</ul>{{ end }}
             <span class="px-cta{{ if not $case }} px-cta--out{{ end }}" aria-hidden="true">{{ $label }} {{ if $case }}&#8594;{{ else }}&#8599;{{ end }}</span>

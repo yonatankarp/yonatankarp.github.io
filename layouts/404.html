@@ -5,7 +5,7 @@
   <p class="px-notfound__lede">Maybe the link is old, maybe the article moved, or maybe the address was typed wrong.</p>
   <div class="px-notfound__links">
     <a class="px-cta" href="{{ .Site.Home.RelPermalink }}">Back to the homepage</a>
-    <a class="px-cta px-cta--out" href="/blog/">To the blog</a>
+    <a class="px-cta px-cta--out" href="{{ "blog/" | relURL }}">To the blog</a>
   </div>
 </div>
 {{ end }}

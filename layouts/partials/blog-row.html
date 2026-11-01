@@ -1,10 +1,8 @@
-{{/* A post's card in a list: the blog's pages and the tag pages. */}}
-{{ $post := . }}
+{{/* A post's card in a list: the blog's pages and the tag pages. The title is its one link to the post, stretched over the card. */}}
 {{ $art := partial "blog-art.html" . }}
-{{ $readingTime := div .WordCount 200 }}{{ if lt $readingTime 1 }}{{ $readingTime = 1 }}{{ end }}
-<article class="post-row reveal" style="--post: {{ $art.accent | safeCSS }}">
+<article class="post-row" style="--post: {{ $art.accent | safeCSS }}">
   <div class="post-row__body">
-    <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ $readingTime }} min read · {{ .WordCount }} words</p>
+    <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ partial "reading-time.html" . }} min read · {{ .WordCount }} words</p>
     <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
     <p>{{ .Description | default (.Summary | plainify) }}</p>
     <div class="chip-row">
@@ -14,15 +12,14 @@
   <div class="post-row__aside">
     {{ $fallbackLabel := "Article" }}
     {{ with index (.GetTerms "tags") 0 }}{{ $fallbackLabel = .LinkTitle }}{{ end }}
-    <a class="post-row__thumb{{ with $art.cover }} has-image{{ else }} post-row__thumb--fallback{{ end }}" href="{{ $post.RelPermalink }}" aria-label="Read {{ .Title }}">
+    <div class="post-row__thumb{{ with $art.cover }} has-image{{ else }} post-row__thumb--fallback{{ end }}" aria-hidden="true">
     {{ with $art.cover }}
-      <img class="px-cover" src="{{ . }}" alt="{{ $.Title }}" width="192" height="108" loading="lazy" decoding="async">
+      <img class="px-cover" src="{{ . }}" alt="" width="192" height="108" loading="lazy" decoding="async">
     {{ else }}
       <span class="post-row__fallback-kicker">{{ $fallbackLabel }}</span>
       <span class="post-row__fallback-title">{{ .Title }}</span>
       <span class="post-row__fallback-mark" aria-hidden="true"></span>
     {{ end }}
-    </a>
-    <a class="post-row__cta" href="{{ .RelPermalink }}" aria-label="Read {{ .Title }}">Read article <span aria-hidden="true">&rarr;</span></a>
+    </div>
   </div>
 </article>

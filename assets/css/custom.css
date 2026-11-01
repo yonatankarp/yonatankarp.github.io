@@ -30,11 +30,6 @@
   --code-text: #a9b7c6;
 }
 
-:lang(he) {
-  --body-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Hebrew", sans-serif;
-  --display-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans Hebrew", sans-serif;
-}
-
 * {
   box-sizing: border-box;
 }
@@ -125,13 +120,6 @@ textarea {
   margin-inline: auto;
 }
 
-.button:hover,
-.button:focus-visible,
-.text-link:hover,
-.text-link:focus-visible {
-  transform: translateY(-1px);
-}
-
 main {
   padding-bottom: 5rem;
 }
@@ -185,7 +173,12 @@ section[id] {
   --shadow: none; --shadow-soft: none;
   padding-bottom: 64px;
 }
-.blog-px .px-cover { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; image-rendering: pixelated; border: 4px solid var(--ink); box-sizing: border-box; }
+/* Covers at whole multiples of their 192x108 pixels, the most that fit, so no pixel is wider than its neighbour (#123).
+   The ink frame is a shadow in the margin: a border would eat into the image. */
+.blog-px .px-cover {
+  display: block; width: 192px; width: max(192px, round(down, 100% - 8px, 192px)); height: auto; margin: 4px;
+  image-rendering: pixelated; box-shadow: 0 0 0 4px var(--ink);
+}
 
 /* Panels: the floor card's frame. */
 .blog-px :is(.page-head__copy, .featured-article, .post-row, .blog-sidebar, .article, .related-card) {
@@ -206,12 +199,15 @@ section[id] {
 .blog-px .blog-layout { padding-top: 16px; gap: 16px; }
 .blog-px .post-list { gap: 16px; }
 .blog-px .post-row { margin-top: 0; }
-.blog-px .featured-article { margin-bottom: 16px; padding: 32px 32px 32px 48px; align-items: center; }
-.blog-px .post-row { padding: 24px 24px 24px 40px; grid-template-columns: minmax(0, 1fr) 288px; }
+.blog-px .featured-article { margin-bottom: 16px; padding: 32px 32px 32px 48px; align-items: center; grid-template-columns: minmax(0, 1fr) auto; }
+.blog-px .post-row { padding: 24px 24px 24px 40px; grid-template-columns: minmax(0, 1fr) auto; }
 .blog-px .featured-article h2 { font-size: 45px; }   /* on Jersey 15's 15px grid; 60px wraps to five lines beside the cover */
 .blog-px .post-row h2 { font-size: 30px; }
 .blog-px :is(.featured-article, .post-row) h2 a { color: var(--text); }
 .blog-px :is(.featured-article, .post-row) h2 a:hover { color: var(--post); }
+/* The title is a row's one link to its post; stretched over the card, it makes the cover clickable too. The chips sit above it. */
+.blog-px .post-row h2 a::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+.blog-px .post-row .chip { position: relative; z-index: 2; }
 .blog-px .eyebrow, .blog-px .section-kicker { margin: 0 0 12px; font-size: 15px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--post); }
 .blog-px :is(.featured-article__meta, .post-row__meta, .article__meta) { font-size: 15px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--muted); }
 .blog-px :is(.featured-article, .post-row) p { font-size: 16px; color: var(--muted); }
@@ -229,8 +225,6 @@ section[id] {
 }
 .blog-px .button--primary:hover { background: #ffc46a; color: var(--ink); }
 .blog-px .button--primary:active { transform: translateY(4px); }
-.blog-px .post-row__cta { min-height: 0; padding: 0; border: 0; color: var(--post); font-size: 15px; font-weight: 500; }
-.blog-px .post-row__cta:is(:hover, :focus-visible) { background: none; color: var(--text); }
 .blog-px :is(.chip, .pagination__btn, .pagination__page) {
   border: 0; border-radius: 0; background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi); color: var(--muted); transition: none;
 }
@@ -249,8 +243,8 @@ section[id] {
 
 /* Sidebar */
 .blog-px .blog-sidebar { padding: 24px 24px 24px 40px; top: 112px; }
-.blog-px .blog-sidebar h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font: 400 30px/1 var(--pixel-font); }
-.blog-px .blog-sidebar h3::before { content: ''; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
+.blog-px .blog-sidebar h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font: 400 30px/1 var(--pixel-font); }
+.blog-px .blog-sidebar h2::before { content: ''; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
 .blog-px .text-link { color: var(--amber); font-size: 14px; }
 
 /* Post: one sheet, like the CV's. */
@@ -262,7 +256,7 @@ section[id] {
 .blog-px .article__meta { gap: 4px 20px; }
 .blog-px .article__summary { margin: 0; font-size: 17px; line-height: 1.6; color: var(--muted); }
 .blog-px .article__header .chip-row { margin-top: 0; }
-.blog-px .article__cover { max-width: 768px; margin: 0 0 32px; }
+.blog-px .article__cover { max-width: 768px; margin: 4px 4px 36px; }
 .blog-px .article-toc { padding: 16px 20px; border: 0; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
 .blog-px .article-toc > summary { font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--amber); }
 .blog-px .article-toc ul ul { padding-left: 18px; }   /* the skin flattens lists; keep the TOC's nesting */
@@ -279,7 +273,7 @@ section[id] {
 .blog-px .related-posts__title::before { content: ''; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
 .blog-px .related-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
 .blog-px .related-card { display: flex; flex-direction: column; gap: 8px; padding: 20px 20px 20px 36px; text-decoration: none; color: var(--text); }
-.blog-px .related-card .px-cover { margin-bottom: 8px; }
+.blog-px .related-card .px-cover { margin: 4px 4px 12px; }
 .blog-px .related-card__date { font-size: 14px; color: var(--muted); }
 .blog-px .related-card h3 { margin: 0; font-size: 17px; }
 .blog-px .related-card:is(:hover, :focus-visible) { outline: none; box-shadow: inset 0 0 0 4px var(--post), inset 16px 0 0 0 var(--post), inset 4px 4px 0 4px var(--panel-hi); }
@@ -290,9 +284,32 @@ section[id] {
   .blog-px .page-head__copy h1, .blog-px .featured-article h2 { font-size: 40px; }
   .blog-px :is(.featured-article, .post-row) { padding: 20px 20px 20px 36px; grid-template-columns: 1fr; }
   .blog-px .post-row__aside { order: -1; width: 100%; }
-  .blog-px .post-row__cta { display: none; }   /* the cover and title already link to the post */
   .blog-px .article { padding: 28px 20px 28px 36px; }
   .blog-px .article__header h1 { font-size: 40px; }
+}
+
+/* A printed post or list (#122): dark ink on white paper, like the CV. The bar, the footer and the street already drop
+   out in the print rules further down; the progress bar, the TOC, the share row and the links onward go too. Code
+   blocks and diagrams keep their dark screen colours, which their syntax and diagram colours are drawn for. */
+@media print {
+  :root:has(.blog-px) { background: #fff; color-scheme: light; }
+  :root:has(.blog-px) .px-skin { background: #fff; }
+  .blog-px {
+    --panel: #fff; --well: #fff; --panel-hi: #bbb; --ink: #111; --px-text: #111; --px-soft: #333; --amber: #9a5a00;
+    --text: #111; --muted: #333; padding-bottom: 0;
+  }
+  .blog-px :is(.page-head__copy, .featured-article, .post-row, .blog-sidebar, .article, .related-card) { clip-path: none; box-shadow: none; }
+  .blog-px .article { width: auto; padding: 0; }
+  .blog-px .article-shell { padding-top: 0; }
+  .blog-px :is(.reading-progress, .article-toc, .article-share, .article__footer, .related-posts, .code-copy, .blog-sidebar, .pagination, .button) { display: none; }
+  .blog-px .px-prose a { text-decoration: underline; }
+  .blog-px .px-prose pre {
+    --well: #10131b; --px-text: #f2ece0; --panel-hi: #2b3344; --ink: #0a0b10;
+    break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .blog-px .px-prose :is(pre, pre code) { white-space: pre-wrap; overflow-wrap: anywhere; }   /* paper cannot scroll sideways */
+  .blog-px .px-prose .mermaid svg { max-width: 100%; height: auto; }
+  .blog-px :is(.px-cover, .px-prose img) { break-inside: avoid; }
 }
 
 .hero .eyebrow {
@@ -687,38 +704,6 @@ h4 a,
   opacity: 1;
 }
 
-.post-row__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  min-height: 2.15rem;
-  padding: 0.42rem 0.72rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
-  border-radius: 999px;
-  color: var(--hero-soft);
-  font-size: 0.82rem;
-  font-weight: 800;
-  line-height: 1;
-  text-decoration: none;
-  transition: transform var(--transition), color var(--transition), border-color var(--transition), background-color var(--transition);
-}
-
-.post-row__cta span {
-  transition: transform var(--transition);
-}
-
-.post-row__cta:hover,
-.post-row__cta:focus-visible {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
-  color: var(--text);
-}
-
-.post-row:hover .post-row__cta span,
-.post-row__cta:focus-visible span {
-  transform: translateX(2px);
-}
-
 .blog-sidebar {
   position: sticky;
   top: 6rem;
@@ -850,7 +835,7 @@ h4 a,
 }
 
 .article__content > * {
-  max-width: 72ch;
+  max-width: 68ch;
 }
 
 .article__content > img,
@@ -1033,7 +1018,6 @@ h4 a,
 .share-btn:focus-visible {
   color: var(--text);
   border-color: var(--accent);
-  transform: translateY(-2px);
 }
 
 .share-btn--copy.is-copied {
@@ -1232,32 +1216,14 @@ h4 a,
   gap: 0.5rem;
 }
 
-.reveal {
-  opacity: 1;
-  transform: none;
-}
-
-.js-enabled .reveal {
-  transform: translateY(28px);
-  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.js-enabled .reveal.is-visible {
-  transform: translateY(0);
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  .reveal,
-  .js-enabled .reveal,
   .post-row,
   .post-row__thumb img,
-  .post-row__thumb::after,
-  .post-row__cta,
-  .post-row__cta span {
+  .post-row__thumb::after {
     opacity: 1;
     transform: none;
     animation: none;
@@ -1560,6 +1526,13 @@ h4 a,
 .cv-page h1 { margin: 0 0 12px; font-size: 60px; }
 .cv-role { margin: 0 0 18px; font-size: 17px; color: var(--px-soft); }
 .cv-contact { display: flex; flex-wrap: wrap; gap: 8px; }
+/* The Copy chip beside the email address (#153): screen only, wide enough for "Copied". */
+.cv-page .copy-email {
+  min-width: 64px; min-height: 28px; padding: 0 8px; border: 0; cursor: pointer;
+  font: inherit; font-size: 14px; font-weight: 500; line-height: 28px; color: var(--px-text); background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi);
+}
+.cv-page .copy-email:hover { box-shadow: inset 0 0 0 2px var(--amber); }
+.cv-page .copy-email:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--px-text), inset 0 0 0 4px var(--ink); }
 
 .cv-focus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .cv-focus li { clip-path: var(--stepped); padding: 22px 18px 18px; font-size: 15px; line-height: 1.5; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink), inset 0 12px 0 0 var(--amber); }
@@ -1624,6 +1597,7 @@ h4 a,
   .cv-role { margin: 0 0 6px; font-size: 10pt; }
   .cv-contact { gap: 2px 14px; }
   .cv-contact a { padding: 0; font-size: 8.6pt; background: none; box-shadow: none; }
+  .cv-page .copy-email { display: none; }   /* shown by script, so the PDF's headless print would keep it */
   .px-section { padding-top: 5px; }
   .px-section h2 { gap: 8px; margin: 0 0 4px; font-size: 14pt; break-after: avoid; }
   .px-section h2::before { width: 7px; height: 7px; box-shadow: 2px 2px 0 #111; }

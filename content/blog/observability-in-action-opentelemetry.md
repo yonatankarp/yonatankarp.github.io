@@ -1,6 +1,11 @@
 ---
 title: "Observability in Action: How to Use OpenTelemetry"
 date: 2023-10-17T00:00:00+01:00
+aliases:
+  - /observability-in-action-part-1-enhancing-your-codebase-with-opentelemetry
+  - /observability-in-action-part-2-enhancing-your-codebase-with-opentelemetry
+  - /observability-in-action-part-3-enhancing-your-codebase-with-opentelemetry
+  - /he/blog/observability-in-action-opentelemetry/
 draft: false
 type: "blog"
 featured: true
@@ -542,7 +547,7 @@ $ docker-compose up
 ```
 
 
-Once Spring notifies you that the service is operational, access it via your browser at [http://localhost:8080/api/v1/cat/facts](http://localhost:8080/api/v1/cat/facts).
+Once Spring notifies you that the service is operational, access it via your browser at `http://localhost:8080/api/v1/cat/facts`.
 
 
 If executed correctly, the response should resemble:
@@ -551,7 +556,7 @@ If executed correctly, the response should resemble:
 ![Cat Facts API response in the browser](/images/blog/catfacts-api-response.webp)
 
 
-To retrieve a custom number of facts, use the `max` query parameter. For ten facts, navigate to [http://localhost:8080/api/v1/cat/facts?max=10](http://localhost:8080/api/v1/cat/facts?max=10).
+To retrieve a custom number of facts, use the `max` query parameter. For ten facts, navigate to `http://localhost:8080/api/v1/cat/facts?max=10`.
 
 
 ![Cat Facts API response using the max query parameter](/images/blog/catfacts-api-response-max10.webp)

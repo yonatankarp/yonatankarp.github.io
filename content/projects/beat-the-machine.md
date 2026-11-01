@@ -12,9 +12,7 @@ build:
   list: local
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "GitHub"
-        URL: "https://github.com/yonatankarp/beat-the-machine-ddd"
 ---
 
 AI-powered guessing game where players identify prompts used to generate images, rewritten with DDD.

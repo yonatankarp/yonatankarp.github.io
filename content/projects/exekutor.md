@@ -12,9 +12,7 @@ build:
   list: local
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "GitHub"
-        URL: "https://github.com/yonatankarp/exekutor"
 ---
 
 Plugin architecture demo in Kotlin. Demonstrates extensible application design patterns.

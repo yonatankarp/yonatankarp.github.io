@@ -1,33 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const root = document.documentElement;
-
   try {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    const revealNodes = document.querySelectorAll('.reveal');
-    if (revealNodes.length) {
-      const revealAll = () => {
-        revealNodes.forEach((el) => el.classList.add('is-visible'));
-        root.classList.remove('js-enabled');
-      };
-
-      if (!media.matches && 'IntersectionObserver' in window) {
-        root.classList.add('js-enabled');
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0, rootMargin: '0px 0px 10% 0px' });
-
-        revealNodes.forEach((el) => observer.observe(el));
-        window.addEventListener('beforeprint', revealAll, { once: true });
-      } else {
-        revealAll();
-      }
-    }
 
     // Copy-to-clipboard buttons on code blocks; Mermaid reads its <pre> as diagram source, so skip those
     document.querySelectorAll('.article__content pre:not(.mermaid)').forEach((pre) => {
@@ -149,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
   } catch {
-    document.querySelectorAll('.reveal').forEach((el) => el.classList.add('is-visible'));
-    root.classList.remove('js-enabled');
+    /* progressive enhancement only: the page works without it */
   }
 });

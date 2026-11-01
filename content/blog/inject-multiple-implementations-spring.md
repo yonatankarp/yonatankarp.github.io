@@ -1,6 +1,11 @@
 ---
 title: "How to inject multiple implementations in the Spring Framework"
 date: 2022-02-11T00:00:00+01:00
+aliases:
+  - /how-to-inject-multiple-implementations-in-spring-boot
+  - /how-to-inject-multiple-implementations-in-spring-framework
+  - /how-to-inject-multiple-implementations-in-the-spring-framework
+  - /he/blog/inject-multiple-implementations-spring/
 draft: false
 type: "blog"
 description: "An exploration of the different strategies Spring Framework offers for injecting multiple implementations of the same interface into a single bean."

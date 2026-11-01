@@ -1,6 +1,10 @@
 ---
 title: "Create a Custom Spring Boot App Banner"
 date: 2022-12-02T00:00:00+01:00
+aliases:
+  - /create-a-custom-spring-boot-app-banner
+  - /create-your-custom-spring-boot-app-banner
+  - /he/blog/custom-spring-boot-banner/
 draft: false
 type: "blog"
 description: "A fun walkthrough of how to replace the default Spring Boot startup banner with custom text and ASCII art to give your application a personal touch."

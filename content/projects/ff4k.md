@@ -3,7 +3,6 @@ date: 2025-12-01T00:00:00+01:00
 title: "ff4k"
 weight: 10
 description: "A Kotlin Multiplatform feature flag library built to replace a stalled Java-era dependency with typed APIs, async storage, and coroutine-aware targeting."
-featured: true
 projectKind: "Open source library"
 group: "project"
 draft: false
@@ -13,9 +12,7 @@ tech: ["Kotlin", "Multiplatform", "Coroutines"]
 years: "2025–present"
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "Docs"
-        URL: "https://yonatankarp.github.io/ff4k/"
 ---
 
 Kotlin Multiplatform feature flags library built after an upstream ff4j Jakarta migration stalled before release. It turns feature decisions into typed, coroutine-aware application code instead of stringly configured checks hidden behind Java-era runtime assumptions.

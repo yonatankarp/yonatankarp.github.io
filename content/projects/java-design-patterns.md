@@ -12,9 +12,7 @@ build:
   list: local
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "PR #1970"
-        URL: "https://github.com/iluwatar/java-design-patterns/pull/1970"
 ---
 
 Refactored the Prototype pattern implementation.

@@ -26,7 +26,7 @@
     {{ end }}
   </div>
   {{- /* `npm run serve` never makes the PDF (`npm run build` does), so the dev server links the web CV instead. */}}
-  <a class="{{ cond $home "building-download" "px-download" }}" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} aria-label="Download CV (PDF)">
+  <a class="{{ cond $home "building-download" "px-download" }}" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} aria-label="Download CV (PDF)" data-goatcounter-click="cv-download">
     <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
     <span>Download CV</span>
   </a>
@@ -38,6 +38,6 @@
     "podcast" "M4 0h4v1H4zM3 1h6v1H3zM3 2h1v1H3zM5 2h2v1H5zM8 2h1v1H8zM3 3h6v1H3zM1 4h1v1H1zM3 4h1v1H3zM5 4h2v1H5zM8 4h1v1H8zM10 4h1v1H10zM1 5h1v1H1zM3 5h6v1H3zM10 5h1v1H10zM1 6h1v1H1zM4 6h4v1H4zM10 6h1v1H10zM2 7h1v1H2zM9 7h1v1H9zM3 8h6v1H3zM5 9h2v1H5zM5 10h2v1H5zM3 11h6v1H3z"
   }}
   <nav class="{{ cond $home "building-social" "px-bar__social" }}" aria-label="Find me elsewhere">
-    {{ range hugo.Data.home.en.contact.social }}<a href="{{ .url }}" aria-label="{{ .label }}" title="{{ .label }}"><svg width="24" height="24" viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="{{ index $icons .icon }}"/></svg></a>{{ end }}
+    {{ range hugo.Data.home.en.contact.social }}<a href="{{ .url }}" aria-label="{{ .label }}" title="{{ .label }}" data-goatcounter-click="social-{{ .icon }}"><svg width="24" height="24" viewBox="0 0 12 12" aria-hidden="true"><path fill="currentColor" d="{{ index $icons .icon }}"/></svg></a>{{ end }}
   </nav>
 </header>

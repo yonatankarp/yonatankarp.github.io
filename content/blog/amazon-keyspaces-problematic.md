@@ -1,6 +1,10 @@
 ---
 title: "4 Reasons Why Amazon Keyspaces is Problematic!"
 date: 2021-12-30T00:00:00+01:00
+aliases:
+  - /4-reasons-why-amazon-keyspaces-is-problematic
+  - /4-reasons-why-amazon-keyspaces-is-the-worst
+  - /he/blog/amazon-keyspaces-problematic/
 draft: false
 type: "blog"
 description: "Four concrete production problems the author encountered with Amazon Keyspaces (managed Cassandra), and why the service may not be ready for every workload."

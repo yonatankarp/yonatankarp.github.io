@@ -94,17 +94,20 @@
 .floor-card li::marker { color: var(--accent, var(--amber)); }
 .floor-skills { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 15px; color: #d6d1c8; }
 
-/* Guided mode (WebGL running): the page does not scroll; each stop is a fixed layer shown on arrival. */
+/* Guided mode (the building script is running): the page does not scroll; each stop is a fixed layer shown on arrival. */
 html.building--guided, html.building--guided body { height: 100%; overflow: hidden; }
 html.building--guided .building-stop { position: fixed; inset: 0; box-sizing: border-box; min-height: 0; pointer-events: none; visibility: hidden; transition: visibility 0s linear 560ms; }
 html.building--guided .building-stop.is-here { visibility: visible; transition-delay: 0s; }
-html.building--guided .floor-card { pointer-events: auto; }
+html.building--guided .building-stop.is-here .floor-card { pointer-events: auto; }   /* a departing card fades out, unclickable */
 .building-hint {
   position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 3;
   padding: 8px 14px; border-radius: 999px; background: rgba(14, 16, 21, 0.8); color: #f4f1ea;
   font-size: 14px; pointer-events: none; transition: opacity 400ms ease;
 }
 html:not(.building--guided) .building-hint { display: none; }
+/* A touch screen has no arrow keys to mention. */
+.building-hint .hint-coarse { display: none; }
+@media (pointer: coarse) { .building-hint .hint-fine { display: none; } .building-hint .hint-coarse { display: inline; } }
 
 /* Elevator panel */
 .elevator {

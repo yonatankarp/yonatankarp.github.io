@@ -5,11 +5,14 @@
   --ink: #0a0b10;
   --panel: #151923;
   --panel-hi: #2b3344;
+  --well: #10131b;
   --text: #f2ece0;
   --text-soft: #d3cabb;
   --steel: #4a525c;
   --steel-hi: #97a2ac;
+  --steel-lo: #30363e;
   --amber: #ffb547;
+  --amber-hi: #ffd77a;
   --px: 4px;
   --street-top: 88px;   /* what pixel.js keeps the street's top window under: the lift's plate in the top bar */
   --display: 'Jersey 15', system-ui, sans-serif;   /* headings, floor numbers, buttons: at 15 or 30px (its grid) */
@@ -134,7 +137,7 @@ html:not(.building--guided) .building-hint { display: none; }
   color: var(--ink); text-decoration: none;
   font-family: var(--display); font-size: 30px; font-weight: 400;
   padding: 0 20px; min-height: 56px;
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a, inset -4px -4px 0 4px #d38f1b;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--amber-hi), inset -4px -4px 0 4px #d38f1b;
   transition: transform 80ms steps(1);
 }
 .pixel .building-download:hover { background: #ffc46a; }
@@ -152,7 +155,7 @@ html:not(.building--guided) .building-hint { display: none; }
   display: flex;
   align-items: center;
   background: var(--steel);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--steel-hi), inset -4px -4px 0 4px #30363e;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--steel-hi), inset -4px -4px 0 4px var(--steel-lo);
   padding: 8px 14px;
   gap: 8px;
 }
@@ -169,11 +172,11 @@ html:not(.building--guided) .building-hint { display: none; }
 .pixel .building-floor-btn {
   width: 44px; height: 40px;
   display: grid; place-items: center; text-decoration: none;   /* a link, for the plain page */
-  background: #30363e;
+  background: var(--steel-lo);
   color: var(--text);
   cursor: pointer;
   font: 400 30px/1 var(--display);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #4a525c;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--steel);
   transition: transform 80ms steps(1);
 }
 .pixel .building-floor-btn:hover { background: #3c434c; }
@@ -181,7 +184,7 @@ html:not(.building--guided) .building-hint { display: none; }
 .pixel .building-floor-btn[aria-current="true"] {
   background: var(--amber);
   color: var(--ink);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--amber-hi);
 }
 /* The stepped clip-path cuts any outline away, so focus is a ring drawn inside the box: cream, then ink. */
 .pixel .building-name:focus-visible, .pixel .building-floor-btn:focus-visible, .pixel .building-download:focus-visible,
@@ -372,7 +375,7 @@ html.panel-open .pixel .building-hint { visibility: hidden; }
 .pixel .floor-panel ul { list-style: none; padding: 0; margin: 0; font-size: 15px; line-height: 24px; }
 .pixel .floor-panel li { position: relative; padding-left: 20px; margin-bottom: 9px; }
 .pixel .floor-panel li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 8px; height: 8px; background: var(--accent, var(--amber)); }
-.pixel .panel-case { background: #10131b; padding: 18px 20px; box-shadow: inset 0 0 0 4px var(--ink); }
+.pixel .panel-case { background: var(--well); padding: 18px 20px; box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .panel-case h4 { font-size: 17px; line-height: 24px; font-weight: 600; margin: 4px 0 8px; }
 .pixel .floor-panel .panel-k { font: 400 15px/1 var(--display); color: var(--text-soft); margin: 14px 0 4px; }
 .pixel .panel-case .panel-k:first-child { margin-top: 0; }
@@ -422,7 +425,7 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
   position: fixed; z-index: 10; transform: translateY(-200%);
   top: 20px; left: clamp(16px, 3vw, 36px); padding: 12px 18px;
   background: var(--amber); color: var(--ink); font: 400 30px/1 var(--display); text-decoration: none;
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--amber-hi);
 }
 .pixel .skip-link:focus { transform: none; }
 .pixel .skip-link:focus-visible { outline: 4px solid var(--text); outline-offset: 4px; }
@@ -438,7 +441,7 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px rgba(255, 255, 255, 0.35);
 }
 /* A floor with a case study says so before its summary; the button opens it (#34). */
-.pixel .floor-case { margin: 0 0 14px; padding: 10px 14px; font-size: 15px; line-height: 1.45; background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
+.pixel .floor-case { margin: 0 0 14px; padding: 10px 14px; font-size: 15px; line-height: 1.45; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .floor-case b { display: block; font-weight: 500; color: var(--accent-text, var(--accent, var(--amber))); }
 /* The phone's short card, and any screen under 920px tall (#127): the case study's name, its title inside. */
 @media (max-width: 760px), (max-aspect-ratio: 6/5), (max-height: 920px) {
@@ -451,7 +454,7 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
   .pixel .floor-card .step-in::after { width: 10px; height: 10px; margin-left: 8px; }   /* the arrow at 1x, like the text */
 }
 /* P says it is the bottom of the line; the lobby signs the way down to it. */
-.pixel .floor-end { margin: 16px 0 0; padding: 10px 14px; font-size: 15px; color: var(--text-soft); background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
+.pixel .floor-end { margin: 16px 0 0; padding: 10px 14px; font-size: 15px; color: var(--text-soft); background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .floor-signs { display: grid; gap: 8px; margin: 12px 0 16px; }   /* the lobby's signs, kept small above the title, */
 .pixel .floor-signs .floor-end { margin: 0; padding: 6px 14px; }        /* where the step-in bar cannot cover them */
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* the street leaves the card ~38svh: keep the how-to, the title and the way to get in touch in view */

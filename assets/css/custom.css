@@ -233,9 +233,9 @@ h4 a,
   display: inline-flex; align-items: center; justify-content: center; max-width: 100%; text-align: center; text-decoration: none;
   min-height: 52px; padding: 0 20px; clip-path: var(--stepped);
   background: var(--amber); color: var(--ink); font: 400 30px/1 var(--pixel-font);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a, inset -4px -4px 0 4px #d38f1b;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--amber-hi), inset -4px -4px 0 4px var(--amber-lo);
 }
-.blog-px .button--primary:hover { background: #ffc46a; }
+.blog-px .button--primary:hover { background: var(--amber-hover); }
 .blog-px .button--primary:active { transform: translateY(4px); }
 .blog-px .chip-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
 .blog-px .chip {
@@ -456,6 +456,9 @@ h4 a,
   --px-text: #f2ece0;
   --px-soft: #d3cabb;
   --amber: #ffb547;
+  --amber-hi: #ffd77a;
+  --amber-lo: #d38f1b;
+  --amber-hover: #ffc46a;
   --px: 4px;
   --pixel-font: 'Jersey 15', system-ui, sans-serif;
   --stepped: polygon(
@@ -496,9 +499,9 @@ h4 a,
   grid-area: download; justify-self: end;
   display: inline-flex; align-items: center; gap: 10px; padding: 0 20px; min-height: 56px;
   background: var(--amber); color: var(--ink); font: 400 30px/1 var(--pixel-font);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a, inset -4px -4px 0 4px #d38f1b;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--amber-hi), inset -4px -4px 0 4px var(--amber-lo);
 }
-.px-download:hover { background: #ffc46a; }
+.px-download:hover { background: var(--amber-hover); }
 .px-download:active { transform: translateY(4px); }
 .px-download svg { shape-rendering: crispEdges; }
 /* The stepped clip-path cuts outlines away, so focus is a ring drawn inside the box: cream, then ink. */
@@ -682,10 +685,8 @@ h4 a,
 .px-case__art + .px-prose { margin-top: 8px; }
 
 /* The reusable article body: Jersey 15 headings, Outfit text, amber links, code and tables in well frames. */
-.px-well, .px-prose pre, .px-prose table {
-  background: var(--well); clip-path: var(--stepped);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi);
-}
+.px-well, .px-prose pre, .px-prose table { background: var(--well); clip-path: var(--stepped); }
+.px-well { box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi); }
 .px-prose { font-size: 17px; line-height: 1.7; color: var(--px-text); overflow-wrap: break-word; }   /* long URLs wrap on phones */
 .px-prose > * { margin-top: 0; margin-bottom: 18px; }
 /* About 68 characters a line. Not ch: Outfit's "0" is wide, so 68ch ran to 100. Images, code and tables stay wider. */
@@ -697,7 +698,7 @@ h4 a,
 .px-prose h3 { font-size: 28px; color: var(--amber); }
 .px-prose h4 { font-size: 24px; }
 .px-prose a { color: var(--amber); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
-.px-prose a:hover { color: #ffd77a; }
+.px-prose a:hover { color: var(--amber-hi); }
 .px-prose a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 .px-prose ul, .px-prose ol { margin: 0 0 18px; padding-left: 1.4em; }
 .px-prose ul { list-style: square; }
@@ -705,15 +706,15 @@ h4 a,
 .px-prose li::marker { color: var(--amber); }
 .px-prose li + li { margin-top: 6px; }
 .px-prose strong { color: var(--px-text); font-weight: 600; }
-.px-prose blockquote { margin-inline: 0; padding: 4px 0 4px 20px; border-left: 4px solid var(--amber); color: var(--px-soft); font-family: inherit; font-size: inherit; line-height: inherit; }
+.px-prose blockquote { margin-inline: 0; padding: 4px 0 4px 20px; border-left: 4px solid var(--amber); color: var(--px-soft); }
 .px-prose code { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88em; }
 .px-prose :not(pre) > code { padding: 2px 6px; color: var(--px-text); background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi); }
 .px-prose pre { position: relative; padding: 20px 22px; overflow: auto; color: var(--px-text); line-height: 1.55; }
-.px-prose pre code { padding: 0; background: none; box-shadow: none; font-size: 14px; }
+.px-prose pre code { font-size: 14px; }
 .px-prose table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; padding: 6px; font-size: 15px; line-height: 1.5; }
 /* Code and tables scroll sideways, and scrolled content paints over inset shadows: draw their frame as a border and
    an inset outline instead (outlines paint above the content). Focus turns it into the skin's cream-then-ink ring. */
-.px-prose :is(pre, table) { border: 4px solid var(--ink); box-shadow: none; outline: 2px solid var(--panel-hi); outline-offset: -6px; }
+.px-prose :is(pre, table) { border: 4px solid var(--ink); outline: 2px solid var(--panel-hi); outline-offset: -6px; }
 .px-prose :is(pre, table):focus-visible { border-color: var(--px-text); outline: 4px solid var(--ink); outline-offset: -8px; border-radius: 0; }
 .px-prose th, .px-prose td { padding: 10px 14px; border-bottom: 2px solid var(--panel-hi); text-align: start; vertical-align: top; }
 .px-prose th { font-weight: 600; color: var(--amber); }
@@ -725,7 +726,7 @@ h4 a,
   font: 400 18px/1 var(--pixel-font); color: var(--ink); background: var(--amber);
   transition: opacity var(--transition), background-color var(--transition);
 }
-.px-prose .code-copy:hover { background: #ffd77a; }
+.px-prose .code-copy:hover { background: var(--amber-hi); }
 .px-prose .code-copy:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--px-text), inset 0 0 0 6px var(--ink); }
 /* Touch screens have no hover to reveal Copy: show it in full, on its own row above the first code line. */
 @media (hover: none) {
@@ -800,7 +801,7 @@ h4 a,
 .px-notfound__lede { margin-bottom: 24px; }
 .px-notfound__links { display: flex; flex-wrap: wrap; gap: 12px; }
 .px-notfound .px-cta { margin-top: 0; padding: 10px 18px; font-size: 26px; text-decoration: none; }
-.px-notfound .px-cta:hover { background: #ffc46a; }
+.px-notfound .px-cta:hover { background: var(--amber-hover); }
 .px-notfound .px-cta--out:hover { background: var(--panel-hi); }
 .px-cta:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--px-text), inset 0 0 0 6px var(--ink); }
 

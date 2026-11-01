@@ -17,6 +17,7 @@ const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted l
 const LOOK = { L: [246, 122], 1: [322, 76], 2: [328, 82], 3: [266, 56], 4: [250, 64], 5: [222, 54], 6: [230, 96], 7: [205, 86], P: [166, 78] };
 const FOCUS = { 2: 330, 3: 250 };                               // on narrow screens, the art x kept mid-screen (else 300)
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
+const PAUSE_KEY = 'building-paused';                            // per viewer, kept across reloads
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
 const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
@@ -98,6 +99,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   // hold it on its rest frame. A frame that would draw the same picture is skipped, and once nothing is moving the loop
   // sleeps: until the next frame of the loop, or for good while held, until a ride, a resize or a load wakes it (#36).
   let paused = false, raf = 0, timer = 0, drawn = '';
+  try { paused = localStorage.getItem(PAUSE_KEY) === 'true'; } catch { /* blocked storage: it just is not remembered */ }
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
   // Held has nothing to pause: the button hides, and shows again if that changes after load (#128).
   const label = () => {
@@ -109,7 +111,11 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
   };
   label();
-  pauseButton?.addEventListener('click', () => { paused = !paused; label(); wake(); });
+  pauseButton?.addEventListener('click', () => {
+    paused = !paused;
+    label(); wake();
+    try { localStorage.setItem(PAUSE_KEY, paused); } catch { /* as above */ }
+  });
   addEventListener('resize', wake);
   for (const q of [reduceMotion, roomy]) q.addEventListener('change', () => { label(); wake(); });
 

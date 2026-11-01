@@ -12,9 +12,9 @@ npm run build                     # production build: bundle, hugo --gc --minify
 npm run check                     # production build plus the generated-site checks
 ```
 
-Requires Node 22+ and Hugo v0.168.0, the version pinned as `HUGO_VERSION` in the workflows (see Toolchain Pins).
+Requires Node 22+ and Hugo v0.169.0, the version pinned as `HUGO_VERSION` in the workflows (see Toolchain Pins).
 The npm scripts use `.tools/hugo/hugo` when it exists, otherwise `hugo` on the `PATH`.
-`npm run check` also needs `pdfinfo` from poppler (`brew install poppler` on macOS).
+`npm run check` also needs `pdfinfo` from poppler (`brew install poppler` on macOS), Playwright's Chromium (`npx playwright install chromium`) and the network: its last step, `npm run check:csp`, loads every built page with its CSP enforced, fetching Mermaid and GoatCounter's `count.js` from their CDNs while stubbing GoatCounter's counter.
 
 ## Visual QA
 
@@ -24,7 +24,7 @@ Use the local screenshot helper when checking layout changes:
 npm run visual:capture
 ```
 
-By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures for `/`, `/projects/`, `/blog/`, `/cv/`, a representative blog post, and the standalone Madeira 2026 page to `artifacts/visual-smoke/<YYYY-MM-DD>/`. It also checks basic page landmarks, mobile overflow, key home/blog/Madeira sections, and broken visible images before writing screenshots. To capture an already-running server, set `SITE_URL`:
+By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures for `/`, `/projects/`, `/blog/`, `/cv/`, a representative blog post, `/search/` and `/skills/` to `artifacts/visual-smoke/<YYYY-MM-DD>/`. It also checks basic page landmarks, mobile overflow, key home/blog sections, and broken visible images before writing screenshots. To capture an already-running server, set `SITE_URL`:
 
 ```bash
 SITE_URL=http://127.0.0.1:1313/ npm run visual:capture
@@ -56,7 +56,7 @@ For repeat local captures that include long article/code pages, use a slightly l
 npm run visual:compare -- --baseline artifacts/local/manifest.json --candidate artifacts/live/manifest.json --fail-on-drift --max-changed-percent 1.0 --max-average-channel-delta 0.01 --max-channel-delta 24
 ```
 
-Routine visual smoke captures are ignored by git. Curated evidence that should stay in history belongs under a dated `artifacts/<YYYY-MM-DD>-<topic>/` folder with a short README explaining why it is worth keeping.
+Visual smoke captures are ignored by git: `artifacts/` and `screenshots/` stay local.
 
 The helper expects Playwright and a Chromium browser to be available locally:
 
@@ -88,9 +88,10 @@ Hugo is installed from a GitHub release by both workflows, so its version is a
 string in `.github/workflows/ci.yml` and `.github/workflows/deploy.yml` — not a
 dependency Dependabot can bump. The weekly `Pin staleness` workflow compares that
 pin with Hugo's newest release and keeps a single `toolchain-pin` issue in step
-with what it finds: it opens the issue when the pin falls behind or the two
-workflows disagree, edits it as the answer changes, and closes it once the pin
-catches up. Run the same check locally:
+with what it finds: it opens the issue when the pin falls behind, the two
+workflows disagree, or `HUGO_SHA256` is not the release's published checksum of
+the `.deb` (that last one also fails the run), edits it as the answer changes, and
+closes it once the pin catches up. Run the same check locally:
 
 ```bash
 npm run check:hugo-pin
@@ -98,8 +99,10 @@ npm run check:hugo-pin
 
 It is deliberately outside `npm run check`: it needs the network, and its answer
 changes when Hugo releases rather than when this repository changes, so it has no
-business failing a pull request. Bumping Hugo means editing both workflows and
-letting `Validate Hugo build` decide.
+business failing a pull request. Bumping Hugo means editing `HUGO_VERSION` and
+`HUGO_SHA256` together in both workflows (the sha is the
+`hugo_extended_<version>_linux-amd64.deb` line of the release's
+`hugo_<version>_checksums.txt`) and letting `Validate Hugo build` decide.
 
 ## Deployment
 

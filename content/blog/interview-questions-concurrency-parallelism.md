@@ -15,9 +15,6 @@ tags:
   - parallelism
   - interview
   - threads
-categories:
-  - Backend
-  - Java
 images:
   featured_image: "/images/blog/covers/interview-questions-concurrency-parallelism.jpg"
 ---

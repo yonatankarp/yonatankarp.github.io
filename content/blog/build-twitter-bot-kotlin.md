@@ -13,9 +13,6 @@ tags:
   - twitter
   - bot
   - twitter4j
-categories:
-  - Backend
-  - Kotlin
 images:
   featured_image: "/images/blog/covers/build-twitter-bot-kotlin.jpg"
 ---

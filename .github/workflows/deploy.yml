@@ -22,9 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      HUGO_VERSION: 0.168.0
+      HUGO_VERSION: 0.169.0
       # The .deb's line in the release's hugo_<version>_checksums.txt; it changes with HUGO_VERSION.
-      HUGO_SHA256: b7cd5087c39bf5584e40180bd04fab0c6fb19f2913cd63121da8663e112a08db
+      HUGO_SHA256: a20f7da84e0981bebbecc032cc87f0dda2049a844727720aab14e61ce416e5e9
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7

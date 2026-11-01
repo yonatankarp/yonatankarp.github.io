@@ -25,7 +25,16 @@ pagerSize = 5
 
 [taxonomies]
   tag = "tags"
-  category = "categories"
+
+# The old experience, education and testimonial pages are redirects to their homepage floors (#133):
+# layouts/_default/redirect.html. The content stays, for the homepage, the CV and the search index.
+[[cascade]]
+  layout = "redirect"
+  outputs = ["html"]
+  [cascade.params]
+    noindex = true
+  [cascade.target]
+    path = "{/experience,/experience/**,/education,/education/**,/testimonial,/testimonial/**}"
 
 # Related-content engine for the "Keep reading" widget on blog posts.
 [related]

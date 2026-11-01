@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -291,17 +292,18 @@ function checkTopBar(route, html) {
     failures.push(`${route}: still has the old site-header or menu-toggle`);
   }
 
-  // Self-hosted fonts (#142): no Google Fonts, one Jersey 15 preload. A CSP meta on every page but the homepage (#149),
-  // and no inline executable script where one applies.
+  // Self-hosted fonts (#142): no Google Fonts, one Jersey 15 preload. A CSP meta on every page (#149), and no inline
+  // executable script it does not allow by the sha256 of its built bytes (minifyOutput must not have changed them).
   if (/fonts\.(?:googleapis|gstatic)\.com/.test(html)) failures.push(`${route}: still asks Google Fonts`);
   const jersey = countMatches(html, /<link\b[^>]*rel=["']?preload\b[^>]*\/fonts\/jersey-15-latin\.woff2[^>]*\bcrossorigin\b/g);
   if (jersey !== 1) failures.push(`${route}: expected one crossorigin preload of /fonts/jersey-15-latin.woff2, got ${jersey}`);
   const csp = countMatches(html, /<meta\b[^>]*http-equiv=["']?Content-Security-Policy\b/gi);
-  if (csp !== (home ? 0 : 1)) failures.push(`${route}: expected ${home ? "no" : "one"} Content-Security-Policy meta, got ${csp}`);
-  if (!home) {
-    const inline = Array.from(html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)).filter(([, attrs, body]) => body.trim() && !/\bsrc=/.test(attrs) && !/type=["']?application\/(?:ld\+)?json/.test(attrs));
-    if (inline.length || /<[a-z][^>]*\son[a-z]+=/i.test(html)) failures.push(`${route}: has an inline script or on* handler, which the CSP blocks`);
-  }
+  if (csp !== 1) failures.push(`${route}: expected one Content-Security-Policy meta, got ${csp}`);
+  const policy = decodeEntities(collectAttribute(html.match(/<meta\b[^>]*http-equiv=["']?Content-Security-Policy\b[^>]*>/i)?.[0] ?? "", "content") ?? "").replace(/&#43;/g, "+");
+  const scriptSrc = policy.match(/(?:^|;)\s*script-src\s+([^;]*)/)?.[1].trim().split(/\s+/) ?? [];
+  const inline = Array.from(html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)).filter(([, attrs, body]) => body.trim() && !/\bsrc=/.test(attrs) && !/type=["']?application\/(?:ld\+)?json/.test(attrs));
+  const unhashed = inline.filter(([, , body]) => !scriptSrc.includes(`'sha256-${crypto.createHash("sha256").update(body).digest("base64")}'`));
+  if (unhashed.length || /<[a-z][^>]*\son[a-z]+=/i.test(html)) failures.push(`${route}: has an inline script the CSP does not allow by hash, or an on* handler`);
 
   if (route === "/cv/" && /cv-head__art/.test(html)) {
     failures.push(`${route}: still has cv-head__art`);
@@ -344,7 +346,7 @@ for (const filePath of htmlFiles) {
     failures.push(`${route}: contains placeholder text`);
   }
 
-  if (!redirectPage && !route.startsWith("/madeira-2026/")) {
+  if (!redirectPage) {
     checkTopBar(route, html);
   }
 
@@ -410,7 +412,7 @@ for (const filePath of htmlFiles) {
     const route = `/${path.relative(publicDir, filePath).replace(/index\.html$/, "")}`;
     const html = fs.readFileSync(filePath, "utf8");
 
-    if (route.startsWith("/madeira-2026/") || isRedirectPage(html)) continue;
+    if (isRedirectPage(html)) continue;
 
     const title = decodeEntities(stripTags(html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ""));
     const [description = ""] = meta(html, "description");
@@ -421,7 +423,7 @@ for (const filePath of htmlFiles) {
     // A long title drops the site name; only a post title that is long on its own may stay over 65 (seoTitle shortens it).
     if ([...title].length > 65 && title.endsWith("| Yonatan Karp-Rudin")) fail(route, `title "${title}" is over 65 characters with the site name`);
     if (meta(html, "og:type").join() !== (/^\/blog\/[^/]+\/$/.test(route) ? "article" : "website")) fail(route, `og:type is ${meta(html, "og:type")}`);
-    if (!/^\/tags\/|^\/categories\//.test(route) && link(html, "alternate").filter((href) => href?.endsWith(".xml")).join() !== `${origin}/blog/index.xml`) fail(route, "should advertise the blog's RSS feed");
+    if (!/^\/tags\//.test(route) && link(html, "alternate").filter((href) => href?.endsWith(".xml")).join() !== `${origin}/blog/index.xml`) fail(route, "should advertise the blog's RSS feed");
   }
 
   const blog = read("blog/index.html");
@@ -461,7 +463,7 @@ for (const filePath of htmlFiles) {
   if (!/<title>[^<]*\bCV\b/.test(read("cv/index.html"))) fail("/cv/", 'title should say "CV"');
 
   const sitemap = read("sitemap.xml");
-  for (const excluded of ["/tags/", "/categories/", "/search/"]) {
+  for (const excluded of ["/tags/", "/search/"]) {
     if (sitemap.includes(`<loc>${origin}${excluded}`)) fail("sitemap.xml", `lists ${excluded}`);
   }
 
@@ -517,7 +519,7 @@ for (const filePath of htmlFiles) {
 // --- Old Hashnode URLs (#117): aliases redirect to the blog, /rss.xml serves the blog feed. ---
 {
   const read = (file) => (fs.existsSync(path.join(publicDir, file)) ? fs.readFileSync(path.join(publicDir, file), "utf8") : "");
-  const redirects = { "how-does-hashmap-work-in-java": "/blog/how-hashmap-works-java/", "design-patterns-builder": "/blog/" };
+  const redirects = { "how-does-hashmap-work-in-java": "/blog/how-hashmap-works-java/", "design-patterns-builder": "/blog/design-patterns-builder/", "design-patterns-singleton": "/blog/" };
   for (const [from, to] of Object.entries(redirects)) {
     const html = read(`${from}/index.html`);
     const target = `https://yonatankarp.com${to}`;
@@ -528,6 +530,21 @@ for (const filePath of htmlFiles) {
   if (!items("rss.xml") || items("rss.xml") !== items("blog/index.xml")) failures.push("rss.xml: should list the same posts as /blog/index.xml");
 }
 // --- end #117 ---
+// The old experience, education and testimonial pages are noindex redirects to their homepage floor (#133).
+{
+  const home = fs.readFileSync(path.join(publicDir, "index.html"), "utf8");
+  const sitemap = fs.readFileSync(path.join(publicDir, "sitemap.xml"), "utf8");
+  for (const filePath of htmlFiles) {
+    const route = `/${path.relative(publicDir, filePath).replace(/index\.html$/, "")}`;
+    if (!/^\/(?:experience|education|testimonial)\//.test(route)) continue;
+    const html = fs.readFileSync(filePath, "utf8");
+    const target = html.match(/http-equiv=["']?refresh["']?\s+content=["']?0; url=([^"'\s>]+)/)?.[1];
+    const floor = target?.match(/#(floor-[^/]+)$/)?.[1];
+    if (!isRedirectPage(html) || !/<meta\b[^>]*name=["']?robots["']?[^>]*content=["']?noindex/.test(html)) failures.push(`${route}: should be a noindex redirect`);
+    else if (/^\/[^/]+\/$/.test(route) ? target !== "https://yonatankarp.com/" : !floor || !new RegExp(`id=["']?${floor}["'\\s>]`).test(home)) failures.push(`${route}: redirects to ${target}, not to its floor on the homepage`);
+    if (sitemap.includes(`<loc>https://yonatankarp.com${route}<`)) failures.push(`sitemap.xml: lists ${route}`);
+  }
+}
 
 if (failures.length > 0) {
   console.error("Generated HTML check failed:");

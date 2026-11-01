@@ -295,9 +295,9 @@ h4 a,
    the text once the card fits at 1144px (a code column of 800px: wider adds little, narrower scrolls many more blocks). */
 .blog-px .article--toc { width: min(1000px, 100%); }
 .blog-px .article-toc { margin: 0 0 2rem; padding: 16px; font-size: 15px; line-height: 1.35; }
-.blog-px .article-toc--inline { padding-block: 0; }
+.blog-px .article-toc--inline { padding: 0; }
 .blog-px .article-toc--inline > summary {
-  display: flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 10px; min-height: 44px; padding-inline: 16px; cursor: pointer; list-style: none;
   font-weight: 600; color: var(--amber);
 }
 .blog-px .article-toc--inline > summary::-webkit-details-marker { display: none; }
@@ -306,8 +306,8 @@ h4 a,
   clip-path: polygon(0 40%, 50% 40%, 50% 20%, 60% 20%, 60% 30%, 70% 30%, 70% 40%, 80% 40%, 80% 60%, 70% 60%, 70% 70%, 60% 70%, 60% 80%, 50% 80%, 50% 60%, 0 60%);
 }
 .blog-px .article-toc--inline[open] > summary::before { transform: rotate(90deg); }
-.blog-px .article-toc--inline > summary:focus-visible { outline: 2px solid var(--amber); outline-offset: -2px; }
-.blog-px .article-toc--inline > nav { padding-bottom: 12px; }
+.blog-px .article-toc--inline > summary:focus-visible { outline: 2px solid var(--amber); outline-offset: -8px; }   /* inside the well's frame */
+.blog-px .article-toc--inline > nav { padding: 0 16px 12px; }
 .blog-px .article-toc--side { display: none; }
 .blog-px .article-toc__title { margin: 0 0 0.75rem; font-weight: 600; color: var(--amber); }
 .blog-px .article-toc ul ul { padding-left: 14px; }   /* the skin flattens lists; keep the TOC's nesting */

@@ -12,6 +12,9 @@ const ORDER = ['P', 'L', '1', '2', '3', '4', '5', '6', '7', '8', 'R'];   // bott
 const SKY = '#74228a';                                        // the roof painting's top row
 const GROUND = ['#33231a', '#1f1610'];                        // under the garage: the earth's top line, then soil
 const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted lift doors; mirrors gen_floors.DOOR
+// Where each street window looks into its room, in strip pixels: mirrors gen_exterior.LOOK. The roof's is painted,
+// not a slice, so going up there is the plain dissolve.
+const LOOK = { L: [304, 98], 1: [322, 76], 2: [328, 82], 3: [266, 56], 4: [314, 72], 5: [352, 60], 6: [230, 90], 7: [210, 102], 8: [250, 92], P: [166, 78] };
 const FOCUS = { 2: 330, 3: 250 };                               // on narrow screens, the art x kept mid-screen (else 300)
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
@@ -66,9 +69,10 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const to = Math.max(0, Math.min(keys.length - 1, index));
     if (to === ride.to || (ride.fade && u < 1)) return false;   // already on its way there; a dissolve runs to its end
     const here = pos(u), vel = u < 1 ? (here - pos(rideU(now - 16))) / 16 : 0;   // floors per ms
-    const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: a dissolve, not a ride
+    const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: through a window, not a ride
     const still = reduceMotion.matches;
-    const dist = Math.abs(to - here), dur = fade ? 900 : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
+    const flies = fade && LOOK[keys[to === eAt ? Math.round(here) : to]];   // through a window; else the plain dissolve
+    const dist = Math.abs(to - here), dur = fade ? (flies ? 1400 : 900) : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
     const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000;   // the doors shut, then it moves
     // The eased start moves the camera less than half an art pixel at first: that stretch runs as the doors finish.
     const hidden = vel || fade ? 0 : dur * Math.cbrt(1 / (1440 * Math.max(dist, 1e-3)));
@@ -81,7 +85,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   }
 
   // Floor stop index -> height in the tower, in art pixels (higher floors further up the screen).
-  const level = (key) => ORDER.indexOf(key === 'E' ? 'R' : key) * FH;   // the street has no storey: it dissolves
+  const level = (key) => ORDER.indexOf(key === 'E' ? 'L' : key) * FH;   // the street has no storey: it flies in
   const lerpAt = (p, of) => {
     const k = Math.min(Math.floor(p), keys.length - 1);
     const a = of(keys[k]), b = of(keys[Math.min(k + 1, keys.length - 1)]);
@@ -134,6 +138,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const focus = Math.round(lerpAt(at, (k) => FOCUS[k] ?? 300));
     const x0 = wide ? Math.round((w - FW * s) / 2) : Math.min(0, Math.max(w - FW * s, Math.round(w / 2 - focus * s)));
     const cy = wide ? h / 2 : cardTop ? floorAt * dpr - FH * s / 2 : h * 0.3;   // phones keep the room above the card
+    const ry = Math.round(cy - FH * s / 2);                    // the top of the floor in view
     const camY = Math.round(lerpAt(at, level));                // whole art pixels: no shimmer
     const near = Math.round(p);
     if (near !== passing) { passing = near; emit('building:floor', { index: near, key: keys[near] }); }
@@ -148,7 +153,9 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       const here = arrived === ride.to && keys[ride.to] === key;
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
     }
-    const streetA = ride.fade ? (ride.to === eAt ? easeInOut(u) : 1 - easeInOut(u)) : street.alpha(p, eAt);
+    const inT = ride.fade ? (ride.to === eAt ? 1 - u : u) : 0;   // going in or out: 0 on the street, 1 in the room
+    const streetA = ride.fade ? 1 - easeInOut(inT) : street.alpha(p, eAt);
+    const fly = ride.fade && inT > 0 && inT < 1 ? street.fly(keys[inner], inT, w, h, dpr, wide, { s, x: x0, y: ry }) : null;
     const sig = [f, camY, streetA, loads, now < fading && now, ...open.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
@@ -161,8 +168,23 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
 
     ctx.fillStyle = '#151923';
     ctx.fillRect(0, 0, w, h);
-    if (streetA < 1) for (const key of ORDER) {
-      const y = Math.round(cy - FH * s / 2 - (level(key) - camY) * s);
+    if (fly) {   // the street darkens round the window, then the window opens onto the room
+      street.draw(ctx, f, w, h, 1, dpr, wide, fly.street);
+      ctx.globalAlpha = fly.dim; ctx.fillStyle = '#151923'; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1;
+      const [hx0, hy0, hx1, hy1] = fly.hole;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(hx0, hy0, hx1 - hx0, hy1 - hy0); ctx.clip();
+      tower(fly.room.s, fly.room.x, fly.room.y);
+      street.draw(ctx, f, w, h, 1 - fly.roomA, dpr, wide, fly.street);   // the window's own pixels, until the room takes over
+      ctx.restore();
+      return;
+    }
+    if (streetA < 1) tower(s, x0, ry);
+    street.draw(ctx, f, w, h, streetA, dpr, wide);
+
+    // Every storey, the one in view with its top at ry; s and x0 are the frame's own, or the flight's.
+    function tower(s, x0, ry) { for (const key of ORDER) {
+      const y = ry - (level(key) - camY) * s;
       if (key === 'R' && y > 0) { ctx.fillStyle = SKY; ctx.fillRect(0, 0, w, y + 1); }   // the sky goes on above the roof
       if (key === 'P' && y + FH * s < h) {                                                // and the ground under the garage
         ctx.fillStyle = GROUND[1]; ctx.fillRect(0, y + FH * s, w, h);
@@ -188,8 +210,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       }
       drawDoors(ctx, img, f, x0, y, s, open.get(key));
       ctx.globalAlpha = 1;
-    }
-    street.draw(ctx, f, w, h, streetA, dpr, wide);
+    } }
   }
   wake();
   // e.g. the site menu's About; a pick the lift ignores (it is already going there, or mid-dissolve) keeps its hash
@@ -275,10 +296,36 @@ function streetView(base, box, stops, loaded, then) {
   }
   return {
     alpha: (p, at) => (at < 0 ? 0 : clamp01(1 - Math.abs(p - at))),
-    draw(ctx, f, w, h, a, dpr, wide) {
+    // Flying in at a floor's window (t: 0 on the street, 1 in the room). Each window is a 1:1 slice of its room,
+    // so at any whole scale the two line up through it: the camera closes in on it in whole-pixel steps, then
+    // the window opens out over the room. null without the window: the plain dissolve.
+    fly(key, t, w, h, dpr, wide, room) {
+      const win = view.windows[key], look = LOOK[key];
+      if (!win || !look) return null;
+      const base = layout(w, h, dpr, wide), [x0, y0, x1, y1] = win, ww = x1 - x0, wh = y1 - y0;
+      const first = t < 0.5, k = easeInOut(first ? t * 2 : t * 2 - 1), e = easeInOut(t);
+      const near = Math.max(base.s, room.s), peak = Math.max(near, Math.min(2 * near, Math.floor(Math.min(w * 0.8 / ww, h * 0.5 / wh))));
+      const z = Math.round(first ? base.s + (peak - base.s) * k : peak + (room.s - peak) * k);   // whole scales: square pixels
+      // The window's middle glides from where the street shows it to where the room will.
+      const mx = (a, b) => a + (b - a) * e;
+      const fx = mx(base.x + (x0 + ww / 2) * base.s, room.x + (look[0] + ww / 2) * room.s);
+      const fy = mx(base.y + (y0 + wh / 2) * base.s, room.y + (look[1] + wh / 2) * room.s);
+      const rx = Math.round(fx - (look[0] + ww / 2) * z), ry = Math.round(fy - (look[1] + wh / 2) * z);
+      let hole = [rx + look[0] * z, ry + look[1] * z, rx + (look[0] + ww) * z, ry + (look[1] + wh) * z];
+      if (!first) {   // the window grows to the screen's edges, on the room's pixel grid
+        const grid = (v, o, round) => o + round((v - o) / z) * z;
+        const [a, b, c, d] = hole;
+        hole = [grid(a - a * k, rx, Math.floor), grid(b - b * k, ry, Math.floor), grid(c + (w - c) * k, rx, Math.ceil), grid(d + (h - d) * k, ry, Math.ceil)];
+      }
+      return {
+        street: { s: z, x: rx + (look[0] - x0) * z, y: ry + (look[1] - y0) * z }, room: { s: z, x: rx, y: ry }, hole,
+        dim: 0.85 * easeInOut(Math.min(1, t * 2)), roomA: clamp01((t - 0.3) / 0.2),
+      };
+    },
+    draw(ctx, f, w, h, a, dpr, wide, cam) {   // cam: a flight's scale and place, else the street's own
       if (a <= 0) return;
       if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; }
-      const [EW, EH] = view.size, { s, x, y } = layout(w, h, dpr, wide), src = f * EW, [L, R] = SIDE;
+      const [EW, EH] = view.size, { s, x, y } = cam ?? layout(w, h, dpr, wide), src = f * EW, [L, R] = SIDE;
       ctx.globalAlpha = a;   // the sky and the road's flat colours, all there is until the picture arrives
       ctx.fillStyle = view.top; ctx.fillRect(0, 0, w, y + EH * s - s);
       ctx.fillStyle = view.bottom; ctx.fillRect(0, y + EH * s - s, w, h);
@@ -290,7 +337,7 @@ function streetView(base, box, stops, loaded, then) {
       }
       ctx.globalAlpha = 1;
       const at = `${s},${x},${y},${dpr}`;
-      if (at === view.at) return;
+      if (cam || at === view.at) return;
       view.at = at;
       for (const [b, [x0, y0, x1, y1]] of buttons) {
         const css = (v) => `${v / dpr}px`;

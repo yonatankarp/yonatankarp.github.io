@@ -202,6 +202,8 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
     <section class="building-stop" id="floor-L" data-floor="L" aria-labelledby="fL">
       <article class="floor-card" style="--accent:{{ index $accent "L" }}">
         <header><span class="floor-badge">L</span><span class="floor-company">Lobby</span><span class="floor-when">{{ $home.about.kicker }}</span></header>
+        {{- /* The garage is off the ride up (guide.js): its sign is in the lobby. */}}
+        <p class="floor-end"><a href="#floor-P" data-goto="P">Down to the garage: projects ↓</a></p>
         {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
         <h2 id="fL" tabindex="-1">{{ $home.testimonials.title }}</h2>
         <ul class="floor-quotes">
@@ -250,7 +252,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
         </ul>
         <p class="floor-skills"><a href="{{ "projects/" | relURL }}">All projects</a></p>
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-P" aria-expanded="false">Step inside</button></div>
-        <p class="floor-end">Bottom of the building: the lift goes no lower. Scroll up, or <a href="#floor-R" data-goto="R">ride to the roof</a> to get in touch.</p>
+        <p class="floor-end">Bottom of the building: scroll either way to ride back up to the <a href="#floor-L" data-goto="L">lobby</a>, or <a href="#floor-R" data-goto="R">ride to the roof</a> to get in touch.</p>
       </article>
       <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }};--accent-text:#FFD77A" tabindex="-1" role="region" aria-labelledby="ptP">
         <button class="panel-back" type="button">Back to the lift</button>

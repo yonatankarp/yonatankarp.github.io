@@ -453,14 +453,21 @@ async function assertCtaFocusRing(page, route, viewport) {
 
 async function assertRide(page, route, viewport) {
   const arrive = async (key, via) => {
-    await page.click(via);
+    if (via.startsWith("Arrow")) {   // off the card, which would scroll first
+      await page.evaluate(() => document.activeElement?.blur());
+      await page.keyboard.press(via);
+    } else {
+      await page.click(via);
+    }
     await page
       .waitForSelector(`section[data-floor="${key}"].is-here`, { timeout: 8000 })
-      .catch(() => fail(`${route.path} (${viewport.name}) clicking ${via} did not ride to floor ${key}`));
+      .catch(() => fail(`${route.path} (${viewport.name}) ${via} did not ride to floor ${key}`));
   };
 
   await arrive(viewport.name === "mobile" ? "R" : "8", viewport.name === "mobile" ? ".hero-cta" : ".building-floor-btn[data-goto='8']");
   await arrive("E", ".building-name");
+  await arrive("L", "ArrowDown");   // the way in from the street is the lobby (web3d/src/guide.js)
+  await arrive("1", "ArrowDown");
 }
 
 async function assertPauseLabel(page, route, viewport) {

@@ -197,7 +197,7 @@
     <section class="building-stop" id="floor-L" data-floor="L" aria-labelledby="fL">
       <article class="floor-card" style="--accent:{{ index $accent "L" }}">
         <header><span class="floor-badge">L</span><span class="floor-company">Lobby</span><span class="floor-when">{{ $home.about.kicker }}</span></header>
-        {{ with resources.Get "images/showcase/showcase.png" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
+        {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
         <h2 id="fL" tabindex="-1">{{ $home.testimonials.title }}</h2>
         <ul class="floor-quotes">
           {{ range $testimonials }}

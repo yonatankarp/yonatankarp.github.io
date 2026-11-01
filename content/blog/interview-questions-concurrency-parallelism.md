@@ -1,5 +1,6 @@
 ---
 title: "[Interview Questions] Concurrency vs. Parallelism: Decoding the Simultaneous Illusion"
+seoTitle: "Concurrency vs. Parallelism: Interview Questions"
 date: 2023-03-11T00:00:00+01:00
 draft: false
 type: "blog"

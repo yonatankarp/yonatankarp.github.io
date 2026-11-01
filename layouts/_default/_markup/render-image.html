@@ -1,1 +1,14 @@
-<img src="{{ .Destination | safeURL }}" alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }} loading="lazy" decoding="async">
+{{- /* width/height reserve the image's box before it loads; any lookup that fails leaves them out rather than failing the build */ -}}
+{{- $size := dict -}}
+{{- $u := urls.Parse .Destination -}}
+{{- if and (not $u.Scheme) (not $u.Host) $u.Path (not (strings.HasSuffix (lower $u.Path) ".svg")) -}}
+  {{- with or (.PageInner.Resources.Get $u.Path) (resources.Get $u.Path) -}}
+    {{- $r := . }}{{ with try ($r.Width) }}{{ with .Value }}{{ $size = dict "Width" . "Height" $r.Height }}{{ end }}{{ end -}}
+  {{- else -}}
+    {{- $static := path.Join "static" $u.Path -}}
+    {{- if os.FileExists $static -}}
+      {{- with try (images.Config $static) }}{{ with .Value }}{{ $size = . }}{{ end }}{{ end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+<img src="{{ .Destination | safeURL }}" alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ with $size.Width }} width="{{ . }}" height="{{ $size.Height }}"{{ end }} loading="lazy" decoding="async">

@@ -102,9 +102,10 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
       <article class="floor-card" style="--accent:{{ index $accent "R" }}">
         <header><span class="floor-badge">R</span><span class="floor-company">Roof</span><span class="floor-when">{{ $home.contact.kicker }}</span></header>
         {{- /* The top of the building is where the news is: the newest post and the podcast, small above the title like the
-             lobby's signs, where the step-in bar cannot cover them. The panel lists more. */}}
+             lobby's signs, where the step-in bar cannot cover them. The panel lists more. The ride ends here, so the
+             garage's sign too, as in the lobby. */}}
         <div class="floor-signs">
-          <p class="floor-end">{{ with index $posts 0 }}New post: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a>{{ end }}{{ with $home.contact.podcast }} · Podcast: <a href="{{ .url }}" data-goatcounter-click="podcast-roof">{{ .title }}</a>{{ end }}</p>
+          <p class="floor-end">{{ with index $posts 0 }}New post: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a>{{ end }}{{ with $home.contact.podcast }} · Podcast: <a href="{{ .url }}" data-goatcounter-click="podcast-roof">{{ .title }}</a>{{ end }} · Garage: <a href="#floor-P" data-goto="P">projects ↓</a></p>
         </div>
         <h2 id="fR" tabindex="-1">{{ $home.contact.title }}</h2>
         <p class="floor-lead">{{ $home.contact.text }}</p>

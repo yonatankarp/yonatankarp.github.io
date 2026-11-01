@@ -1,6 +1,6 @@
 ---
 title: "Projects"
-description: "Libraries, tools, upstream contributions, and shipped experiments that show how I turn unclear systems into reusable software."
+description: "Libraries, apps, tools, upstream contributions, and a few games, some still maintained and some finished."
 ---
 
-Libraries, tools, upstream contributions, and a few games. Some are maintained, some are finished, and the current work is deliberately biased toward reusable infrastructure: feature flags, AI-agent tooling, developer-facing documentation, and operational systems that can survive outside a demo.
+Libraries, apps, tools, upstream contributions, and a few games. Some are maintained and some are finished.

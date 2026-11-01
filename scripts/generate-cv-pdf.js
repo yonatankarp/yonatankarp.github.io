@@ -8,7 +8,7 @@ const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
 const cvPath = path.join(publicDir, "cv", "index.html");
 const pdfPath = path.join(publicDir, "yonatan-karp-rudin-cv.pdf");   // the homepage's Download CV
-const CV_FONTS = ["Jersey 15", "Outfit"];   // the faces the printed CV sets its text in; compared lowercased, as the minifier writes them
+const CV_FONTS = ["Jersey 15", "Outfit Print"];   // the faces the printed CV sets its text in; compared lowercased, as the minifier writes them
 
 // Chromium only writes Title, so Author, Subject and the rest are added after printing.
 async function setMetadata() {
@@ -96,7 +96,10 @@ function createStaticServer() {
 
   const { chromium } = await loadPlaywright();
   const { server, baseUrl } = await createStaticServer();
-  const browser = await chromium.launch(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {});   // e.g. chrome, where Playwright's own browser is not installed
+  const browser = await chromium.launch({
+    args: ["--font-render-hinting=none"],   // on Linux, where the deploy prints this, hinting rounds glyph advances to whole pixels: "tr ansaction"
+    ...(process.env.PLAYWRIGHT_CHANNEL && { channel: process.env.PLAYWRIGHT_CHANNEL }),   // e.g. chrome, where Playwright's own browser is not installed
+  });
 
   try {
     const page = await browser.newPage({ viewport: { width: 1240, height: 1754 } });

@@ -5,7 +5,7 @@ aliases:
   - /our-errors-your-gain-a-system-design-cautionary-tale
 draft: false
 type: "blog"
-description: "Boost system performance by learning from a real-world cautionary tale. Discover how to optimize service design and tackle temporary solutions."
+description: "How a temporary poller service stayed in production for years, and how calculating deltas replaced a materialized view that took almost 5 hours to refresh."
 tags:
   - system-design
   - software-engineering
@@ -108,7 +108,7 @@ With those changes, we regained:
 - Near-real-time information availability for clients instead of a 5-hour delay
 - Simpler, easier-to-understand codebase.
 
-## To Be Continue?
+## To Be Continued?
 
 While the story of the poller does not end here, my story in the company does. After almost 4.5 years I contacted my first manager in the company and told him that I had failed to sunset the poller. However, there is good news on the horizon. A new dedicated team starting to work now on re-writing the entire system from the ground, basing it on the right data sources, and hopefully soon enough the poller story will come to an end! 🤞
 

@@ -1,8 +1,8 @@
 ---
-title: "Practice Areas"
+title: "Skills"
 date: 2026-04-07T00:00:00+01:00
 draft: false
-description: "The parts of engineering Yonatan is strongest in, and the tools he tends to reach for in real work."
+description: "The parts of engineering I am strongest in, and the tools I use for them."
 practice_areas:
   - name: "Backend architecture"
     summary: "Designing services, contracts, and boundaries that stay understandable as systems grow."
@@ -13,12 +13,12 @@ practice_areas:
   - name: "Platform and developer experience"
     summary: "Improving the day-to-day engineering loop through templates, CI, internal tools, and shared libraries."
     tools: ["Gradle", "GitHub Actions", "Terraform", "Docker", "Kubernetes"]
-  - name: "Observability and production trust"
-    summary: "Making systems easier to debug, monitor, and operate when the stakes are real."
-    tools: ["OpenTelemetry", "NewRelic", "Kafka DLTs", "Runbooks"]
+  - name: "Observability and operations"
+    summary: "Making systems easier to debug, monitor, and operate in production."
+    tools: ["OpenTelemetry", "New Relic", "Kafka DLTs"]
   - name: "Technical writing"
     summary: "Explaining backend design, debugging, and implementation tradeoffs clearly enough to be useful."
-    tools: ["Kotlin", "Architecture notes", "Postmortem-style thinking"]
+    tools: ["Kotlin", "MkDocs"]
 working_set:
   - "Kotlin"
   - "Java"
@@ -47,4 +47,4 @@ familiar_with:
   - "Whisper"
 ---
 
-A practical view of where Yonatan tends to have the most leverage: architecture, backend systems, distributed systems, platform work, and clear technical writing.
+Architecture, backend systems, distributed systems, platform work, and technical writing.

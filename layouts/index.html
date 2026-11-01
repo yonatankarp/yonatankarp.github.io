@@ -99,11 +99,13 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
         <p class="floor-skills">{{ with $home.contact.email.address }}<span class="with-copy"><a href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</span>{{ end }}{{ range $home.contact.links }}, <a href="{{ .url }}">{{ .label }}</a>{{ end }}</p>
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Step inside</button></div>
       </article>
+      {{- /* The dialog's title, one heading on screen at a time (the card's h2 hides under it), but only one h2 on the floor.
+           The lobby's panel has its own title, so it keeps its h2. */}}
       <div class="floor-panel" id="panel-R" style="--accent:{{ index $accent "R" }}" tabindex="-1" role="region" aria-labelledby="ptR">
         <button class="panel-back" type="button">Back to the lift</button>
         <p class="sr-only" role="status" data-copy-status></p>{{/* inside the modal panel, where screen readers still hear it */}}
         <div class="panel-head"><span class="floor-badge">R</span><p><b>Roof</b><span>{{ $home.contact.kicker }}</span></p></div>
-        <h2 class="panel-title" id="ptR">{{ $home.contact.title }}</h2>
+        <p class="panel-title" id="ptR" role="heading" aria-level="2">{{ $home.contact.title }}</p>
         <p>{{ $home.contact.text }}</p>
         <dl class="panel-facts">{{ range $home.contact.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
         <h3>{{ strings.TrimSuffix "." $home.fit.title }}</h3>
@@ -133,7 +135,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
       <div class="floor-panel" id="panel-{{ $floor }}" style="--accent:{{ index $accent $floor }}" tabindex="-1" role="region" aria-labelledby="pt{{ $floor }}">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">{{ $floor }}</span><p><b>{{ .Params.company }}, {{ .Params.location }}</b><span>{{ replace .Params.duration " - " " – " }}</span></p></div>
-        <h2 class="panel-title" id="pt{{ $floor }}">{{ replace .Title " - " ", " }}</h2>
+        <p class="panel-title" id="pt{{ $floor }}" role="heading" aria-level="2">{{ replace .Title " - " ", " }}</p>
         <p>{{ .Params.summary }}</p>
         <h3>What I did</h3>
         <ul>{{ range .Params.highlights }}<li>{{ partial "nobreak.html" . }}</li>{{ end }}</ul>
@@ -165,7 +167,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
       <div class="floor-panel" id="panel-1" style="--accent:{{ index $accent "1" }}" tabindex="-1" role="region" aria-labelledby="pt1">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">1</span><p><b>{{ .Params.university }}</b><span>{{ replace .Params.year "-" " – " }}</span></p></div>
-        <h2 class="panel-title" id="pt1">{{ .Params.degree }}</h2>
+        <p class="panel-title" id="pt1" role="heading" aria-level="2">{{ .Params.degree }}</p>
         <p>{{ $home.education.title }}</p>
         {{ with .Params.teaching }}
         <h3>Teaching</h3>
@@ -240,7 +242,7 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
       <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }};--accent-text:#FFD77A" tabindex="-1" role="region" aria-labelledby="ptP">
         <button class="panel-back" type="button">Back to the lift</button>
         <div class="panel-head"><span class="floor-badge">P</span><p><b>Parking</b><span>{{ $home.projects.kicker }}</span></p></div>
-        <h2 class="panel-title" id="ptP">{{ $home.projects.title }}</h2>
+        <p class="panel-title" id="ptP" role="heading" aria-level="2">{{ $home.projects.title }}</p>
         {{ range slice (slice "Upstream contributions" "contribution") (slice "Libraries and tools" "tool") (slice "Games" "game") }}
         {{ $label := index . 0 }}{{ $kind := index . 1 }}
         <h3>{{ $label }}</h3>

@@ -598,11 +598,17 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   .px-bar__name { height: 44px; padding: 0 14px; font-size: 24px; }
 }
 
+/* Chromium embeds a variable font in a PDF as Type 3, so print sets the CV in static instances of outfit-latin.woff2.
+   Only the print rule below names this family, so no screen downloads it; a browser's own print falls back to Outfit until they load. */
+@font-face { font-family: 'Outfit Print'; font-style: normal; font-weight: 400; font-display: swap; src: url(../fonts/outfit-400.woff2) format('woff2'); }
+@font-face { font-family: 'Outfit Print'; font-style: normal; font-weight: 500; font-display: swap; src: url(../fonts/outfit-500.woff2) format('woff2'); }
+@font-face { font-family: 'Outfit Print'; font-style: normal; font-weight: 600; font-display: swap; src: url(../fonts/outfit-600.woff2) format('woff2'); }
+@font-face { font-family: 'Outfit Print'; font-style: normal; font-weight: 700; font-display: swap; src: url(../fonts/outfit-700.woff2) format('woff2'); }
 @media print {
   .px-bar { display: none; }
   .cv-page {
     --px-text: #111; --px-soft: #333; --panel-hi: #111; --well: #fff; --amber: #e8962b; --px: 2px;
-    background: #fff; color: #111; font-size: 9.4pt; line-height: 1.35;
+    background: #fff; color: #111; font-family: 'Outfit Print', 'Outfit', system-ui, sans-serif; font-size: 9.4pt; line-height: 1.35;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   :root:has(.cv-page) { background: #fff; color-scheme: light; }   /* else the page margins print in the dark scheme */
@@ -626,7 +632,7 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   .cv-role-item { grid-template-columns: minmax(0, 1fr); padding: 3px 0; break-inside: avoid; }
   .cv-role-item + .cv-role-item { border-top-width: 1px; border-top-color: #bbb; }
   .cv-floor { display: none; }   /* the floor badges link into the building; on paper they read as stray numbers */
-  .cv-page h3 { font-size: 10.6pt; }
+  .cv-page h3 { font-family: 'Outfit Print', 'Outfit', system-ui, sans-serif; font-size: 10.6pt; }
   .cv-role-item__top span { font-size: 8.6pt; }
   .cv-sub { margin: 0 0 3px; font-size: 8.8pt; }
   .cv-page .cv-sub { color: #111; }

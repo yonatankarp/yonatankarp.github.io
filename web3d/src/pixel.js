@@ -17,6 +17,7 @@ const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted l
 // Where each street window looks into its room, in strip pixels: mirrors gen_exterior.LOOK. The roof's is painted,
 // not a slice, so going up there is the plain dissolve.
 const LOOK = { L: [246, 122], 1: [322, 76], 2: [328, 82], 3: [266, 56], 4: [250, 64], 5: [222, 54], 6: [230, 96], 7: [205, 86], P: [166, 78] };
+const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];   // mirrors gen_floors.BAYER
 const FOCUS = { 2: 330, 3: 250 };                               // on narrow screens, the art x kept mid-screen (else 300)
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
 const PAUSE_KEY = 'building-paused';                            // per viewer, kept across reloads
@@ -88,7 +89,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: through a window, not a ride
     const still = held();
     const flies = fade && LOOK[keys[to === eAt ? Math.round(here) : to]];   // through a window; else the plain dissolve
-    const dist = Math.abs(to - here), dur = fade ? (flies ? 1400 : 900) : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
+    const dist = Math.abs(to - here), dur = fade ? (flies ? 1700 : 900) : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
     const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000;   // the doors shut, then it moves
     // The eased start moves the camera less than half an art pixel at first: that stretch runs as the doors finish.
     const hidden = vel || fade ? 0 : dur * Math.cbrt(1 / (1440 * Math.max(dist, 1e-3)));
@@ -190,17 +191,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
 
     ctx.fillStyle = '#151923';
     ctx.fillRect(0, 0, w, h);
-    if (fly) {   // the street darkens round the window, then the window opens onto the room
-      street.draw(ctx, f, w, h, 1, dpr, wide, fly.street);
-      ctx.globalAlpha = fly.dim; ctx.fillStyle = '#151923'; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1;
-      const [hx0, hy0, hx1, hy1] = fly.hole;
-      ctx.save();
-      ctx.beginPath(); ctx.rect(hx0, hy0, hx1 - hx0, hy1 - hy0); ctx.clip();
-      tower(fly.room.s, fly.room.x, fly.room.y);
-      street.draw(ctx, f, w, h, 1 - fly.roomA, dpr, wide, fly.street);   // the window's own pixels, until the room takes over
-      ctx.restore();
-      return;
-    }
+    if (fly) { street.flight(ctx, f, w, h, dpr, wide, fly, () => tower(fly.room.s, fly.room.x, fly.room.y)); return; }
     if (streetA < 1) tower(s, x0, ry);
     street.draw(ctx, f, w, h, streetA, dpr, wide);
 
@@ -310,6 +301,48 @@ function streetView(base, box, stops, loaded, then) {
   const PAD = 4;     // art pixels around each window that still take its tap: half the gap to the next floor (#45)
   const TOWER = 160; // on phones, the art width kept in view: the tower (x 170-310) and a sliver of its neighbours
   const CRANE = [200, 116, 81];   // the crane over the roof, which phones leave out for the top bar: first column, width, and the cornice's row under it
+  // The planes a flight parts the picture into, cut from its rest frame by what gen_exterior knows of it: mirrors its
+  // NEIGHBOURS (x0, x1, roof) and GROUND. The tower's cornice overhangs its brick (x 170-310) by 3 px a side.
+  const NEIGHBOURS = [[0, 30, 200], [30, 74, 170], [74, 118, 214], [118, 166, 176], [314, 348, 196], [348, 398, 160], [398, 440, 206], [440, 480, 172]];
+  const BRICK = [170, 310], SHAFT = [167, 313], ROAD = 310, FLY_PAST = 0.85;   // FLY_PAST: how far into the flight the window's frame has left the screen
+  const JIB = [[200, 9, 316, 22], [238, 9, 244, 38], [283, 9, 288, 81]];   // the crane against the sky: jib, hook, mast (the clouds keep clear of them)
+  let plated = null;
+  function plate() {   // the rest frame without its sky, so the planes slide over the far street
+    if (plated) return plated;
+    const [EW, EH] = view.size, c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    c.canvas.width = EW; c.canvas.height = EH;
+    c.drawImage(view.img, 0, 0);
+    const d = c.getImageData(0, 0, EW, EH), px = d.data;
+    // The sky repeats every 4 columns, and the picture's first columns are clear down to the lowest roof (rows < 200).
+    const sky = (x, y) => y < 200 && [0, 1, 2].every((i) => px[(y * EW + x) * 4 + i] === px[(y * EW + x % 4) * 4 + i]);
+    for (let x = 0; x < EW; x++) {
+      const roof = Math.min(...NEIGHBOURS.filter(([a, b]) => x >= a - 2 && x < b + 2).map((n) => n[2])) - 1;   // their cornices overhang too
+      const tower = x >= SHAFT[0] && x < SHAFT[1], brick = x >= BRICK[0] && x < BRICK[1];
+      for (let y = 0; y < ROAD; y++) {
+        const gone = !tower ? y < roof
+          : y < CRANE[2] ? sky(x, y) || !JIB.some(([a, b, c, e]) => x >= a && x < c && y >= b && y < e)
+            : !brick && (y >= 200 || sky(x, y));
+        if (gone) px[(y * EW + x) * 4 + 3] = 0;
+      }
+    }
+    c.putImageData(d, 0, 0);
+    return (plated = c.canvas);
+  }
+  // The sign in a storey's window, with lv of 16 Bayer steps of it left: it dissolves in dither, on the palette.
+  const veils = new Map();
+  function veil(key, lv) {
+    const id = `${key}${lv}`;
+    if (veils.has(id)) return veils.get(id);
+    const [x0, y0, x1, y1] = view.windows[key], ww = x1 - x0, wh = y1 - y0;
+    const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    c.canvas.width = ww; c.canvas.height = wh;
+    c.drawImage(view.img, -x0, -y0);
+    const d = c.getImageData(0, 0, ww, wh);
+    for (let y = 0; y < wh; y++) for (let x = 0; x < ww; x++) if (BAYER[y % 4][x % 4] >= lv) d.data[(y * ww + x) * 4 + 3] = 0;
+    c.putImageData(d, 0, 0);
+    veils.set(id, c.canvas);
+    return c.canvas;
+  }
   const hero = stops.find((s) => s.dataset.floor === 'E'), heroCard = hero?.querySelector('.floor-card');
   let clear = 0, card = 0, sized = '';   // CSS --street-top: the bottom of whatever sits over the top of the street; card: the phone's hero card top, read per size
   if (heroCard) new ResizeObserver(() => { sized = ''; loaded(); }).observe(heroCard);   // a late font moves the card's top, so the street's foot
@@ -331,33 +364,60 @@ function streetView(base, box, stops, loaded, then) {
   }
   return {
     alpha: (p, at) => (at < 0 ? 0 : clamp01(1 - Math.abs(p - at))),
-    // Flying in at a floor's window (t: 0 on the street, 1 in the room). Each window is a 1:1 slice of its room
-    // (on 1-7 dimmed behind the company's sign, which fades into the room), so at any whole scale the two line up
-    // through it: the camera closes in on it in whole-pixel steps, then the window opens out over the room. null
-    // without the window: the plain dissolve.
+    // Flying in at a floor's window (t: 0 on the street, 1 in the room), the camera only ever going forward. Three
+    // planes part: the far street barely moves, the neighbours slide by, and the tower rushes past until the window's
+    // frame has gone off the screen's edges. Behind the glass the room, further away, is still settling into place.
+    // Every scale is whole, so the pixels stay square. null without the window: the plain dissolve.
     fly(key, t, w, h, dpr, wide, room) {
       const win = view.windows[key], look = LOOK[key];
-      if (!win || !look) return null;
+      if (!win || !look || !view.img) return null;
       const base = layout(w, h, dpr, wide), [x0, y0, x1, y1] = win, ww = x1 - x0, wh = y1 - y0;
-      const first = t < 0.5, k = easeInOut(first ? t * 2 : t * 2 - 1), e = easeInOut(t);
-      const near = Math.max(base.s, room.s), peak = Math.max(near, Math.min(2 * near, Math.floor(Math.min(w * 0.8 / ww, h * 0.5 / wh))));
-      const z = Math.round(first ? base.s + (peak - base.s) * k : peak + (room.s - peak) * k);   // whole scales: square pixels
-      // The window's middle glides from where the street shows it to where the room will.
-      const mx = (a, b) => a + (b - a) * e;
-      const fx = mx(base.x + (x0 + ww / 2) * base.s, room.x + (look[0] + ww / 2) * room.s);
-      const fy = mx(base.y + (y0 + wh / 2) * base.s, room.y + (look[1] + wh / 2) * room.s);
-      const rx = Math.round(fx - (look[0] + ww / 2) * z), ry = Math.round(fy - (look[1] + wh / 2) * z);
-      let hole = [rx + look[0] * z, ry + look[1] * z, rx + (look[0] + ww) * z, ry + (look[1] + wh) * z];
-      if (!first) {   // the window grows to the screen's edges, on the room's pixel grid
-        const grid = (v, o, round) => o + round((v - o) / z) * z;
-        const [a, b, c, d] = hole;
-        hole = [grid(a - a * k, rx, Math.floor), grid(b - b * k, ry, Math.floor), grid(c + (w - c) * k, rx, Math.ceil), grid(d + (h - d) * k, ry, Math.ceil)];
-      }
+      const mx = x0 + ww / 2, my = y0 + wh / 2, lx = look[0] + ww / 2, ly = look[1] + wh / 2;
+      const from = [base.x + mx * base.s, base.y + my * base.s], to = [room.x + lx * room.s, room.y + ly * room.s];
+      const e = easeInOut(t), fx = from[0] + (to[0] - from[0]) * e, fy = from[1] + (to[1] - from[1]) * e;
+      // The scale at which the window covers the screen, wherever on its way its middle is by then.
+      const cover = ([ax, ay]) => Math.max(Math.max(ax, w - ax) * 2 / ww, Math.max(ay, h - ay) * 2 / wh);
+      const end = Math.ceil(Math.max(cover(from), cover(to)));
+      const push = clamp01(t / FLY_PAST);
+      const z = Math.round(base.s * (end / base.s) ** (push * push));   // a steady rate of growth: a zoom at a constant ratio reads as constant speed
+      const at = (s) => ({ s, x: Math.round(fx - mx * s), y: Math.round(fy - my * s) });
+      const rs = Math.round(base.s + (room.s - base.s) * e), front = at(z);
       return {
-        street: { s: z, x: rx + (look[0] - x0) * z, y: ry + (look[1] - y0) * z }, room: { s: z, x: rx, y: ry }, hole,
-        dim: (TIME === 'day' ? 0.5 : 0.85) * easeInOut(Math.min(1, t * 2)),   // at noon a full dim reads as the lights going out
-        roomA: clamp01((t - 0.3) / 0.2),
+        key, front, near: at(Math.round(base.s * (z / base.s) ** 0.3)),
+        far: { s: base.s, x: base.x + Math.round((fx - from[0]) * 0.12), y: base.y + Math.round((fy - from[1]) * 0.12) },
+        room: { s: rs, x: Math.round(fx - lx * rs), y: Math.round(fy - ly * rs) },
+        win: [front.x + x0 * z, front.y + y0 * z, ww * z, wh * z],
+        dim: (TIME === 'day' ? 0.3 : 0.6) * easeInOut(Math.min(1, t * 2)),   // at noon a full dim reads as the lights going out
+        // How much of the sign is still up, of 16. The lobby and the garage have none: their windows are plain slices
+        // of the room, which would double it as the two scales part.
+        veil: /\d/.test(key) ? Math.round(clamp01(1 - (t - 0.08) / 0.3) * 16) : 0,
       };
+    },
+    flight(ctx, f, w, h, dpr, wide, fly, room) {
+      const [EW, EH] = view.size, [L, R] = SIDE, plates = plate();
+      const blit = (src, sx, sy, sw, sh, c) => {   // only what is on screen: late in the flight a picture is far bigger than the canvas
+        const a = Math.max(sx, Math.floor(-c.x / c.s)), b = Math.max(sy, Math.floor(-c.y / c.s));
+        const r = Math.min(sx + sw, Math.ceil((w - c.x) / c.s)), d = Math.min(sy + sh, Math.ceil((h - c.y) / c.s));
+        if (r > a && d > b) ctx.drawImage(src, a, b, r - a, d - b, c.x + a * c.s, c.y + b * c.s, (r - a) * c.s, (d - b) * c.s);
+      };
+      const repeats = (c, y0) => {   // the street's neighbours, repeated as in draw()
+        for (let gx = c.x - L * c.s; gx > -L * c.s; gx -= L * c.s) blit(plates, 0, y0, L, EH - y0, { ...c, x: gx });
+        for (let gx = c.x + EW * c.s; gx < w; gx += R * c.s) blit(plates, EW - R, y0, R, EH - y0, { ...c, x: gx - (EW - R) * c.s });
+      };
+      const shade = (a) => { ctx.globalAlpha = a; ctx.fillStyle = '#151923'; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; };
+      const { near, front, win: [wx, wy, ww, wh] } = fly;
+      this.draw(ctx, f, w, h, 1, dpr, wide, fly.far);
+      shade(fly.dim);
+      blit(plates, 0, 0, SHAFT[0], EH, near); blit(plates, SHAFT[1], 0, EW - SHAFT[1], EH, near); repeats(near, 0);
+      shade(fly.dim * 0.5);
+      blit(plates, 0, ROAD, EW, EH - ROAD, front); repeats(front, ROAD);   // the road is nearest of all, and runs under the camera
+      const top = wide ? 0 : CRANE[2];
+      blit(plates, SHAFT[0], top, SHAFT[1] - SHAFT[0], ROAD - top, front);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(wx, wy, ww, wh); ctx.clip();
+      room();
+      if (fly.veil) blit(veil(fly.key, fly.veil), 0, 0, ww / front.s, wh / front.s, { s: front.s, x: wx, y: wy });
+      ctx.restore();
     },
     draw(ctx, f, w, h, a, dpr, wide, cam) {   // cam: a flight's scale and place, else the street's own
       if (a <= 0) return;

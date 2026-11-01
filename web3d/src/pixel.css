@@ -59,6 +59,11 @@ html:not(.building--guided) .building-hint { display: none; }
 @media (prefers-reduced-motion: reduce) { html.building--guided .building-stop, .building-hint { transition: none; } }
 
 .pixel #pixel-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+/* The street's sky until the script runs, on a slow line a good while after the card: pixel.js's SKY, and where its opening shot starts. Guided only: without the module the plain page stays dark. */
+html.at-street.building--guided .pixel #pixel-canvas { background: #74228a; }
+html.at-street.building--guided[data-time='dawn'] .pixel #pixel-canvas { background: #5d5a86; }
+html.at-street.building--guided[data-time='day'] .pixel #pixel-canvas { background: #2f5c96; }
+html.at-street.building--guided[data-time='night'] .pixel #pixel-canvas { background: #232a4d; }
 /* A quiet zone for reading: the card's side of the scene is dimmed (left on wide screens, bottom on phones). */
 .pixel .building-scrim {
   position: fixed; inset: 0; z-index: 1; pointer-events: none;
@@ -98,7 +103,7 @@ html:not(.building--guided) .building-hint { display: none; }
 .pixel .floor-card {
   box-sizing: border-box;
   opacity: 0;
-  transform: translateY(16px); transition: opacity 180ms steps(4), transform 180ms steps(4);   /* whole 4px steps */
+  transform: translateY(16px); transition: opacity 180ms steps(8), transform 180ms steps(8);   /* whole 2px steps */
   background: var(--panel);
   width: min(400px, 30vw);       /* ends over the lift lobby, clear of the room */
   padding: 22px 22px 20px 34px;
@@ -107,6 +112,8 @@ html:not(.building--guided) .building-hint { display: none; }
   overflow: auto; overscroll-behavior: contain;
   scroll-padding: 12px 0 72px;   /* a link tabbed to stops clear of the pinned Step inside and keeps its focus ring */
 }
+/* Off a lift ride the doors are seen opening before the card comes over them; on a phone it sits below the room, covering nothing, so it need not wait. */
+@media (min-width: 761px) and (min-aspect-ratio: 6/5) { html.lift-ride .pixel .building-stop.is-here .floor-card { transition-delay: 220ms; } }
 @media (prefers-reduced-motion: reduce) { .pixel .floor-card, html.building--guided .pixel .building-stop.is-here .floor-card { transition: none; } }
 .pixel .floor-card h2 { margin: 0 0 12px; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1; letter-spacing: 0.01em; }
 .pixel .floor-company { font-size: 15px; font-weight: 500; }
@@ -354,8 +361,23 @@ html:not(.building--guided) .pixel .building-floor-btn { flex: 1; width: auto; h
 }
 .pixel .floor-panel:focus { outline: none; }
 html.building--guided .pixel .floor-panel { position: absolute; left: clamp(16px, 3vw, 36px); top: 132px; bottom: 24px; width: min(780px, 58vw); display: none; }
-html.building--guided .pixel .floor-panel.is-open { display: block; }
-html.panel-open .pixel .building-stop.is-here .floor-card { visibility: hidden; }
+html.building--guided .pixel .floor-panel:is(.is-open, .panel-moving) { display: block; }
+/* Hidden by what is open, not by panel-open, which stays for the way back: Back's refocus needs a card that can take focus. */
+.pixel .building-stop.is-here:has(.floor-panel.is-open) .floor-card { visibility: hidden; }
+/* Growing out of the card or shrinking into it (guide.js): the card paints nothing (it sits 12px outside the panel, and can
+   still take focus), and the first shadow draws the ink frame of the panel's clipped right and bottom edges. One shadow:
+   four, for a frame all round, took each frame from 17 to 83ms in software rendering at 1440x810. */
+.pixel .building-stop:has(.panel-moving) .floor-card { clip-path: inset(50%); }
+.pixel .building-stop:has(.panel-moving) { filter: drop-shadow(4px 4px 0 var(--ink)) drop-shadow(8px 8px 0 rgba(0, 0, 0, 0.45)); }
+/* The room drops out of focus behind a panel: through a 4px dither of ink, in whole steps (guide.js), to a flat dim at rest.
+   A dither left on the room is a screen door that crawls with its loop, and the panel is what is being read. */
+.pixel .building-scrim::before {
+  content: ''; position: absolute; inset: 0;
+  --dots: conic-gradient(var(--ink) 25%, #0000 0) 0 0 / 8px 8px;
+  --checker: conic-gradient(var(--ink) 25%, #0000 0 50%, var(--ink) 0 75%, #0000 0) 0 0 / 8px 8px;
+  --flat: rgba(10, 11, 16, 0.45);
+}
+html:has(.floor-panel.is-open) .pixel .building-scrim::before { background: var(--flat); }
 html.panel-open .pixel .building-hint { visibility: hidden; }
 .pixel .panel-back { position: absolute; top: 22px; right: 24px; min-height: 44px; padding: 0 14px; border: 0; cursor: pointer;
   font: 400 15px/1 var(--display); color: var(--text); background: var(--panel-hi); box-shadow: inset 0 0 0 4px var(--ink);
@@ -559,4 +581,26 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
     html .pixel .building-social { position: static; flex: 1; gap: 4px; }
     .pixel .building-social a { flex: 1; }
   }
+}
+
+/* Moving between pages (the opt-in is in partials/head.html): the new page wipes down over the old in whole rows, a band
+   of ordered dither (75%, 50%, 25%) on its edge, like the building's dither; no alpha, so two pages never ghost. The
+   top bar is the same size and place on every page, so it stands still: it is its own group, shown at once. Rows are
+   whole multiples of the dither tile, so the pattern stays on its grid at any viewport height. Gradients, not an image:
+   the new page would have to fetch one mid-wipe, and data: URLs are outside the CSP's img-src. The root's group keeps
+   its default animation: with `none`, Chromium 156 paints nothing of the old page when Back lands partway down.
+   In assets/css/custom.css too, since only the homepage loads this file: keep the two the same. */
+.px-bar, .building-top { view-transition-name: px-bar; }
+::view-transition-group(px-bar), ::view-transition-old(root), ::view-transition-new(px-bar) { animation: none; }
+::view-transition-old(px-bar) { display: none; }
+::view-transition-new(root) {
+  --cell: 16px; --tile: calc(2 * var(--cell)); --wiped: calc(14 * round(up, 100vh / 14, var(--tile)));
+  mix-blend-mode: normal;
+  mask-image: linear-gradient(#000 0 0), conic-gradient(at var(--cell) var(--cell), #000 75%, #0000 0), conic-gradient(#000 25%, #0000 0 50%, #000 0 75%, #0000 0), conic-gradient(at var(--cell) var(--cell), #0000 75%, #000 0);
+  mask-repeat: no-repeat, repeat-x, repeat-x, repeat-x;
+  animation: px-wipe 350ms steps(14) both;
+}
+@keyframes px-wipe {
+  from { mask-size: 100% 0, var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile); mask-position: 0 0, 0 0, 0 var(--tile), 0 calc(2 * var(--tile)); }
+  to { mask-size: 100% var(--wiped), var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile); mask-position: 0 0, 0 var(--wiped), 0 calc(var(--wiped) + var(--tile)), 0 calc(var(--wiped) + 2 * var(--tile)); }
 }

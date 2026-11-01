@@ -27,20 +27,63 @@ export function guide(api, root = document) {
   const neighbour = (key, dir) => keys.indexOf(key === 'P' ? 'L' : path[path.indexOf(key) + dir]);
   // Step inside: a floor's full story opens over its room. While it is open the lift stays put and the wheel and
   // keys scroll the panel; "Back to the lift", Escape or riding away close it.
-  let open = null, afterPop = null;
+  let open = null, afterPop = null, moving = null;
+  const scrim = root.querySelector('.building-scrim');
+  // At rest, or cutting a motion short: the panel's display, the lift and the hint go by what is open now.
+  const rest = () => {
+    if (moving) {
+      moving.anims.forEach((a) => a.cancel());
+      moving.panel.classList.remove('panel-moving');
+      moving.panel.inert = false;
+      moving = null;
+    }
+    document.documentElement.classList.toggle('panel-open', !!open);
+  };
+  // The panel is a rigid sheet that slides and unclips between the card's box and its own, so its text never reflows.
+  // Whole 4px steps but for the card's own box, which the close has to land on. Its top and left are its own frame; the
+  // clip takes 4px off the other two for the stop's ink drop-shadow to redraw them (pixel.css), as they look at rest.
+  const frames = (panel, card, closing) => {
+    const P = panel.getBoundingClientRect(), C = card.getBoundingClientRect();
+    return Array.from({ length: PANEL_STEPS + 1 }, (_, i) => {
+      const e = 1 - (1 - i / PANEL_STEPS) ** 2, k = closing ? e : 1 - e;   // leaves fast either way: this is a click
+      const [x, y, w, h] = ['x', 'y', 'width', 'height'].map((a) => (k === 1 ? Math.round(C[a] - P[a]) : Math.round((C[a] - P[a]) * k / 4) * 4));
+      const r = P.width + w - 4, b = P.height + h - 4;   // its corners are cut by that shadow's offset, all but this one
+      return {
+        transform: `translate(${x}px, ${y}px)`,
+        clipPath: `polygon(4px 0, ${r}px 0, ${r}px ${b - 4}px, ${r - 4}px ${b - 4}px, ${r - 4}px ${b}px, 0 ${b}px, 0 4px, 4px 4px)`,
+      };
+    });
+  };
+  // Interrupted, it goes back the way it came, from where it is (reverse() would rewind one that has not started).
+  const move = (panel, card, closing) => {
+    panel.inert = closing;
+    if (moving?.panel === panel && moving.anims[0].playState === 'running') { moving.anims.forEach((a) => { a.playbackRate *= -1; }); return; }
+    rest();
+    panel.classList.add('panel-moving');
+    const anims = [
+      panel.animate(frames(panel, card, closing), { duration: PANEL_MS, easing: `steps(${PANEL_STEPS})`, fill: 'both' }),
+      scrim.animate({ background: closing ? ['var(--flat)', 'var(--checker)', 'var(--dots)', 'none'] : ['var(--dots)', 'var(--checker)', 'var(--flat)', 'var(--flat)'] },
+        { pseudoElement: '::before', duration: PANEL_MS, easing: 'steps(3)', fill: 'both' }),
+    ];
+    anims[0].onfinish = rest;
+    moving = { panel, card, anims };
+  };
   // Step inside pushes a history entry, so a phone's Back closes the panel instead of leaving the site (#129).
   const closePanel = (refocus = true, popped = false) => {
     if (!open) return;
     const { panel, button, top } = open;
+    // Only the reader's own close plays: a ride, or the layout changing, closes it at once (refocus is false).
+    const play = refocus && !still();
+    if (play) move(panel, button.closest('.floor-card'), true);
     panel.classList.remove('is-open');
     panel.setAttribute('role', 'region');   // in the plain page's flow it is a region again, not a dialog
     panel.removeAttribute('aria-modal');
     button.setAttribute('aria-expanded', 'false');
-    document.documentElement.classList.remove('panel-open');
     // back on Step inside, with the card where the reader left it (focus would scroll it to the end)
     const refocusNow = () => { button.focus({ preventScroll: true }); button.closest('.floor-card').scrollTop = top; };
     if (refocus) refocusNow();
     open = null;
+    if (!play) rest();
     // Closed here, not by Back: drop the entry, so the next Back leaves the page. A ride already replaced it.
     const back = !popped && history.state?.panel;
     if (refocus && (popped || back)) afterPop = refocusNow;   // Chrome clears focus as Back lands on a #floor-X entry
@@ -49,7 +92,7 @@ export function guide(api, root = document) {
   const openPanel = (button) => {
     const panel = document.getElementById(button.getAttribute('aria-controls'));
     if (!panel) return;
-    closePanel(false, true);
+    if (open) closePanel(false, true);
     if (!history.state?.panel) history.pushState({ panel: true }, '', location.href);
     open = { panel, button, top: button.closest('.floor-card').scrollTop };
     panel.classList.add('is-open');
@@ -59,6 +102,7 @@ export function guide(api, root = document) {
     button.setAttribute('aria-expanded', 'true');
     document.documentElement.classList.add('panel-open');
     panel.scrollTop = 0;
+    if (still()) rest(); else move(panel, button.closest('.floor-card'), false);
     panel.focus();
     count(`step-in-${button.closest('[data-floor]').dataset.floor}`);
   };
@@ -73,6 +117,7 @@ export function guide(api, root = document) {
   });
   const setMode = (change) => {
     closePanel(false);
+    rest();   // a close still playing
     document.documentElement.classList.toggle('building--guided', roomy.matches);
     conceal(api.index());
     if (!change) return;   // on load the browser already scrolls to any #floor-X
@@ -199,9 +244,11 @@ export function guide(api, root = document) {
   document.addEventListener('building:depart', (e) => {
     const a = document.activeElement;
     follow = !a || a === document.body || !!a.closest('.building-stop, .exterior-windows');
-    // A card under an open panel leaves hidden: un-hidden, it would flash at full opacity while it fades out.
-    if (open) (leaving = open.button.closest('.floor-card')).style.visibility = 'hidden';
+    // A card under an open panel, or one still closing, leaves hidden: un-hidden, it would flash at full opacity while it fades out.
+    const under = open?.button.closest('.floor-card') ?? moving?.card;
+    if (under) (leaving = under).style.visibility = 'hidden';
     closePanel(false);
+    rest();
     show(-1);
     stops[e.detail.index].hidden = false;   // before is-here lands, so its card fades in
     document.documentElement.classList.remove('at-street');
@@ -230,6 +277,10 @@ export function guide(api, root = document) {
     sought = -1;
   });
 }
+
+// Step inside's motion: quick, this is the way to the text. Asked for no motion, or on Pause, it cuts as it always did.
+const PANEL_MS = 280, PANEL_STEPS = 16;
+const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.querySelector('[data-building-pause]')?.dataset.paused === 'true';
 
 // A GoatCounter event (CLAUDE.md, Analytics). count.js loads async, may be blocked, and a page can set
 // window.goatcounter before it does, so the call may find nothing to call.

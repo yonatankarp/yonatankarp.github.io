@@ -15,7 +15,7 @@ let SKY = { dawn: '#5d5a86', day: '#2f5c96', night: '#232a4d' }[TIME] ?? '#74228
 const GROUND = ['#33231a', '#1f1610'];                        // under the garage: the earth's top line, then soil
 const DOOR = { x0: 51, x1: 96, mid: 74, y0: 72, y1: 153 };      // the painted lift doors; mirrors gen_floors.DOOR
 // Where each street window looks into its room, in strip pixels: mirrors gen_exterior.LOOK. The roof's is painted,
-// not a slice, so going up there is the plain dissolve.
+// not a slice, so going up there is the crane shot instead (streetView's fly).
 const LOOK = { L: [246, 122], 1: [322, 76], 2: [328, 82], 3: [266, 56], 4: [250, 64], 5: [222, 54], 6: [230, 96], 7: [205, 86], P: [166, 78] };
 const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];   // mirrors gen_floors.BAYER
 // Each room's hanging lamps, by strip x: mirrors install_picks.LAMPS (8 further right on the strip), the lift's own lamp first.
@@ -108,8 +108,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const here = cab(u), vel = u < 1 ? (here - cab(rideU(now - 16))) / 16 : 0;   // floors per ms
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: through a window, not a ride
     const still = held();
-    const flies = fade && LOOK[keys[to === eAt ? Math.round(here) : to]];   // through a window; else the plain dissolve
-    const dist = Math.abs(to - here), dur = fade ? (flies ? 1700 : 900) : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
+    const dist = Math.abs(to - here), dur = fade ? (keys[to === eAt ? Math.round(here) : to] === 'R' ? 1400 : 1700) : Math.min(1600, 550 + 250 * Math.max(0, dist - 1));
     const closeMs = still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000;   // the doors shut, then it moves
     // The eased start moves the camera less than half an art pixel at first: that stretch runs as the doors finish.
     const hidden = vel || fade ? 0 : dur * Math.cbrt(1 / (1440 * Math.max(dist, 1e-3)));
@@ -203,7 +202,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     }
     const inT = ride.fade ? (ride.to === eAt ? 1 - u : u) : 0;   // going in or out: 0 on the street, 1 in the room
     const fly = ride.fade && inT > 0 && inT < 1 ? street.fly(keys[inner], inT, w, h, dpr, wide, { s, x: x0, y: ry }) : null;
-    // A flight's every frame differs and sig must see that; the plain dissolve (the roof's) steps, like the cards.
+    // A flight's every frame differs and sig must see that; the plain dissolve (no street picture to fly by) steps, like the cards.
     const eased = 1 - easeInOut(inT), streetA = ride.fade ? (fly ? eased : Math.round(eased * 6) / 6) : street.alpha(p, eAt);
     const sig = [f, camY, streetA, loads, now < fading && now, ...open.values(), ...lit.values()].join();
     if (sig === drawn) {
@@ -217,7 +216,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
 
     ctx.fillStyle = '#151923';
     ctx.fillRect(0, 0, w, h);
-    if (fly) { street.flight(ctx, f, w, h, dpr, wide, fly, () => tower(fly.room.s, fly.room.x, fly.room.y)); return; }
+    if (fly) { street.flight(ctx, f, w, h, dpr, wide, fly, tower); return; }
     if (streetA < 1) tower(s, x0, ry);
     street.draw(ctx, f, w, h, streetA, dpr, wide);
 
@@ -387,6 +386,8 @@ function streetView(base, box, stops, loaded, then) {
   // NEIGHBOURS (x0, x1, roof) and GROUND. The tower's cornice overhangs its brick (x 170-310) by 3 px a side.
   const NEIGHBOURS = [[0, 30, 200], [30, 74, 170], [74, 118, 214], [118, 166, 176], [314, 348, 196], [348, 398, 160], [398, 440, 206], [440, 480, 172]];
   const BRICK = [170, 310], SHAFT = [167, 313], ROAD = 310, FLY_PAST = 0.85;   // FLY_PAST: how far into the flight the window's frame has left the screen
+  const CRANE_PEAK = 0.4;                  // how far into the crane shot the brick fills the screen
+  const CRANE_OUT = 1.15;                  // and where its climb would end: past 1, since its last stretch is too slow to see, with the cornice gone
   const JIB = [[200, 9, 316, 22], [238, 9, 244, 38], [283, 9, 288, 81]];   // the crane against the sky: jib, hook, mast (the clouds keep clear of them)
   let plated = null;
   function plate() {   // the rest frame without its sky, so the planes slide over the far street
@@ -428,6 +429,7 @@ function streetView(base, box, stops, loaded, then) {
   const hero = stops.find((s) => s.dataset.floor === 'E'), heroCard = hero?.querySelector('.floor-card');
   let clear = 0, card = 0, sized = '';   // CSS --street-top: the bottom of whatever sits over the top of the street; card: the phone's hero card top, read per size
   if (heroCard) new ResizeObserver(() => { sized = ''; loaded(); }).observe(heroCard);   // a late font moves the card's top, so the street's foot
+  function measure(ctx, w, h) { if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; card = heroCard ? hero.clientHeight - parseFloat(getComputedStyle(hero).paddingBottom) - heroCard.offsetHeight : 0; } }
   function layout(w, h, dpr, wide) {   // in device pixels, sized by the CSS height; the building centred beside the card, the street under it
     const [EW, EH] = view.size, W = w / dpr, H = h / dpr, rects = Object.values(view.windows);
     if (!wide) {   // phones: only the tower, as big as whole device pixels allow between the top bar and the card, the cornice under the bar
@@ -451,6 +453,7 @@ function streetView(base, box, stops, loaded, then) {
     // frame has gone off the screen's edges. Behind the glass the room, further away, is still settling into place.
     // Every scale is whole, so the pixels stay square. null without the window: the plain dissolve.
     fly(key, t, w, h, dpr, wide, room) {
+      if (key === 'R' && view.img) return this.crane(t, w, h, dpr, wide, room);
       const win = view.windows[key], look = LOOK[key];
       if (!win || !look || !view.img) return null;
       const base = layout(w, h, dpr, wide), [x0, y0, x1, y1] = win, ww = x1 - x0, wh = y1 - y0;
@@ -475,7 +478,26 @@ function streetView(base, box, stops, loaded, then) {
         veil: /\d/.test(key) ? Math.round(clamp01(1 - (t - 0.08) / 0.3) * 16) : 0,
       };
     },
-    flight(ctx, f, w, h, dpr, wide, fly, room) {
+    // Rising to the roof (t: 0 on the street, 1 on the deck): the camera pushes in at street level and then climbs. The
+    // far street barely moves, the neighbours slide down, and the tower grows until its brick fills the screen, the only
+    // moment the two pictures can change places unseen; then its cornice falls through the frame, off the roof behind it.
+    crane(t, w, h, dpr, wide, room) {
+      const base = layout(w, h, dpr, wide), mid = (BRICK[0] + BRICK[1]) / 2, ground = base.y + ROAD * base.s, tall = ROAD - CRANE[2];
+      const from = base.x + mid * base.s, off = h * 1.15 - ground;   // off: where the cornice is headed, past the bottom edge, so it leaves still moving
+      const e = easeInOut(CRANE_PEAK / CRANE_OUT);                  // how much of the climb is done at the peak, with the cornice still above the screen
+      const Z = Math.ceil(Math.max(w / (BRICK[1] - BRICK[0] - 1), (ground + e * off) / (tall * (1 - e))));
+      const push = easeInOut(clamp01(t / CRANE_PEAK)), z = Math.round(base.s * (Z / base.s) ** push);
+      const climb = easeInOut(clamp01(t / CRANE_OUT)), risen = climb * (tall + off / Z), fx = from + (w / 2 - from) * push ** 3;   // no pan till the tower has outgrown its far copy, which would show past its edge
+      const at = (s) => ({ s, x: Math.round(fx - mid * s), y: Math.round(ground + (risen - ROAD) * s) });
+      const front = at(z);
+      return {
+        key: 'R', front, near: at(Math.round(base.s * (z / base.s) ** 0.3)), over: t >= CRANE_PEAK,
+        far: { s: base.s, x: base.x + Math.round((fx - from) * 0.12), y: base.y + Math.round(climb * h * 0.04) },
+        room: { ...room, y: room.y - Math.round((1 - climb) * 12) * room.s },   // the deck settles under the camera, in whole art pixels
+        dim: 0, veil: Math.round(clamp01(1 - (push - 0.1) / 0.5) * 16),   // outdoors: nothing dims
+      };
+    },
+    flight(ctx, f, w, h, dpr, wide, fly, room) {   // room: the frame's tower(s, x, y)
       const [EW, EH] = view.size, [L, R] = SIDE, plates = plate();
       const blit = (src, sx, sy, sw, sh, c) => {   // only what is on screen: late in the flight a picture is far bigger than the canvas
         const a = Math.max(sx, Math.floor(-c.x / c.s)), b = Math.max(sy, Math.floor(-c.y / c.s));
@@ -487,23 +509,37 @@ function streetView(base, box, stops, loaded, then) {
         for (let gx = c.x + EW * c.s; gx < w; gx += R * c.s) blit(plates, EW - R, y0, R, EH - y0, { ...c, x: gx - (EW - R) * c.s });
       };
       const shade = (a) => { ctx.globalAlpha = a; ctx.fillStyle = '#151923'; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; };
-      const { near, front, win: [wx, wy, ww, wh] } = fly;
-      this.draw(ctx, f, w, h, 1, dpr, wide, fly.far);
-      shade(fly.dim);
-      blit(plates, 0, 0, SHAFT[0], EH, near); blit(plates, SHAFT[1], 0, EW - SHAFT[1], EH, near); repeats(near, 0);
-      shade(fly.dim * 0.5);
-      blit(plates, 0, ROAD, EW, EH - ROAD, front); repeats(front, ROAD);   // the road is nearest of all, and runs under the camera
-      const top = wide ? 0 : CRANE[2];
+      const { near, front } = fly;
+      if (fly.over) { measure(ctx, w, h); room(fly.room.s, fly.room.x, fly.room.y); }   // the street has gone behind the brick; measured all the same, for a page opened on the roof, whose first way back to the street starts here
+      else {
+        this.draw(ctx, f, w, h, 1, dpr, wide && fly.key !== 'R', fly.far);   // climbing, the far picture goes without its crane, as on phones: a copy would part from the one on the tower
+        shade(fly.dim);
+        blit(plates, 0, 0, SHAFT[0], EH, near); blit(plates, SHAFT[1], 0, EW - SHAFT[1], EH, near); repeats(near, 0);
+        shade(fly.dim * 0.5);
+        blit(plates, 0, ROAD, EW, EH - ROAD, front); repeats(front, ROAD);   // the road is nearest of all, and runs under the camera
+      }
+      const top = wide && !fly.over ? 0 : CRANE[2];   // past the peak the street's crane has left the top of the frame: only the roof's comes back
       blit(plates, SHAFT[0], top, SHAFT[1] - SHAFT[0], ROAD - top, front);
-      ctx.save();
-      ctx.beginPath(); ctx.rect(wx, wy, ww, wh); ctx.clip();
-      room();
-      if (fly.veil) blit(veil(fly.key, fly.veil), 0, 0, ww / front.s, wh / front.s, { s: front.s, x: wx, y: wy });
-      ctx.restore();
+      const glass = (key, [x, y, gw, gh], r) => {
+        ctx.save();
+        ctx.beginPath(); ctx.rect(x, y, gw, gh); ctx.clip();
+        room(r.s, r.x, r.y);
+        if (fly.veil) blit(veil(key, fly.veil), 0, 0, gw / front.s, gh / front.s, { s: front.s, x, y });
+        ctx.restore();
+      };
+      if (fly.key !== 'R') glass(fly.key, fly.win, fly.room);
+      // The storeys the crane climbs past, once their signs start to go: each room dark behind its glass, further off than the facade.
+      else if (fly.veil < 16) for (const [key, [x0, y0, x1, y1]] of Object.entries(view.windows)) {
+        const gw = (x1 - x0) * front.s, gh = (y1 - y0) * front.s, x = front.x + x0 * front.s, y = front.y + y0 * front.s, rs = fly.room.s;
+        if (!/\d/.test(key) || y > h || y + gh < 0) continue;   // the lobby's and the garage's are plain slices of the room, and have no sign to lose
+        const rx = Math.round(x + gw / 2 - (LOOK[key][0] + (x1 - x0) / 2) * rs), ry = Math.round(y + gh / 2 - (LOOK[key][1] + (y1 - y0) / 2) * rs);
+        // tower() places the storeys from the roof's camera; phones have no edge runs, so the strip stays across the screen, as at rest.
+        glass(key, [x, y, gw, gh], { s: rs, x: wide ? rx : Math.min(0, Math.max(w - FW * rs, rx)), y: ry - (ORDER.length - 1 - ORDER.indexOf(key)) * FH * rs });
+      }
     },
     draw(ctx, f, w, h, a, dpr, wide, cam) {   // cam: a flight's scale and place, else the street's own
       if (a <= 0) return;
-      if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; card = heroCard ? hero.clientHeight - parseFloat(getComputedStyle(hero).paddingBottom) - heroCard.offsetHeight : 0; }
+      measure(ctx, w, h);
       const [EW, EH] = view.size, { s, x, y } = cam ?? layout(w, h, dpr, wide), src = f * EW, [L, R] = SIDE;
       ctx.globalAlpha = a;   // the sky and the road's flat colours, all there is until the picture arrives
       ctx.fillStyle = view.top; ctx.fillRect(0, 0, w, y + EH * s - s);

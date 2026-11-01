@@ -114,6 +114,12 @@ function collectBlogAssetRefs(filePath) {
     refs.add(normalizeAssetRef(match[2]));
   }
 
+  // layouts/shortcodes/video.html takes its poster from the same path as .webp
+  for (const match of markdownBody.matchAll(/\{\{<\s*video\s+src="(\/images\/blog\/[^"]+)\.mp4"/g)) {
+    refs.add(`${match[1]}.mp4`);
+    refs.add(`${match[1]}.webp`);
+  }
+
   return refs;
 }
 
@@ -146,6 +152,21 @@ if (missingRefs.length > 0) {
   console.error("Missing blog asset references:");
   for (const missing of missingRefs) {
     console.error(`- ${missing.file}: ${missing.ref}`);
+  }
+  process.exit(1);
+}
+
+// GIFs loop with no pause (WCAG 2.2.2): use the video shortcode. The budget keeps 4 MB photos out.
+const sizeBudget = 500 * 1024;
+const blogImagesDir = path.join(staticDir, "images", "blog");
+const heavyOrGif = fs.readdirSync(blogImagesDir, { recursive: true })
+  .map((name) => path.join(blogImagesDir, name))
+  .filter((file) => fs.statSync(file).isFile() && (file.endsWith(".gif") || fs.statSync(file).size > sizeBudget));
+
+if (heavyOrGif.length > 0) {
+  console.error(`Blog media must not be a GIF (convert it to MP4 with a poster) or exceed ${sizeBudget / 1024} KB (resize it):`);
+  for (const file of heavyOrGif) {
+    console.error(`- ${path.relative(rootDir, file)} (${Math.round(fs.statSync(file).size / 1024)} KB)`);
   }
   process.exit(1);
 }

@@ -1,12 +1,50 @@
-{{- $pages := where site.RegularPages "Lang" site.Language.Lang -}}
-[
-{{- range $index, $page := $pages -}}
-  {{- if $index }},{{ end }}
-  {
-    "title": {{ $page.Title | jsonify }},
-    "permalink": {{ $page.RelPermalink | jsonify }},
-    "summary": {{ replace (replace (($page.Description | default ($page.Summary | plainify)) | htmlUnescape) "&ndash;" "-") "&mdash;" "-" | jsonify }},
-    "content": {{ replace (replace (($page.Plain | truncate 400) | htmlUnescape) "&ndash;" "-") "&mdash;" "-" | jsonify }}
-  }
+{{- /* The /search/ index (assets/js/site.js). Every entry links where the new design shows it: roles to their floor on
+     the homepage, courses to the degree's floor, recommendations to the lobby, link-out projects to their link. */ -}}
+{{- $home := site.Home.RelPermalink -}}
+{{- $sections := slice site.Home (site.GetPage "/blog") (site.GetPage "/projects") (site.GetPage "/skills") -}}
+{{- $pages := where (where site.RegularPages "Section" "!=" "projects") "Layout" "!=" "search" -}}
+{{- $pages = $sections | append $pages | append (site.GetPage "/projects").RegularPages.ByWeight -}}
+{{- $entries := slice -}}
+{{- range $pages -}}
+  {{- $type := "Page" -}}
+  {{- $title := .Title -}}
+  {{- $href := .RelPermalink -}}
+  {{- $summary := .Description | default (.Summary | plainify) -}}
+  {{- $content := .Plain | truncate 400 -}}
+  {{- if .IsHome -}}
+    {{- $summary = site.Params.description -}}
+  {{- else if eq .Path "/skills" -}}
+    {{- $areas := slice -}}
+    {{- range .Params.practice_areas }}{{ $areas = $areas | append .name .summary (delimit .tools ", ") }}{{ end -}}
+    {{- $content = printf "Skills. %s %s. %s." (delimit $areas " ") (delimit .Params.working_set ", ") (delimit .Params.familiar_with ", ") -}}
+  {{- else if not .IsPage -}}
+  {{- else if eq .Section "blog" -}}
+    {{- $type = "Post" -}}
+  {{- else if eq .Section "projects" -}}
+    {{- $type = cond (eq .Params.group "contribution") "Contribution" "Project" -}}
+    {{- $title = $title | replaceRE `\s*\(contributor\)$` "" -}}
+    {{- $href = .RelPermalink | default .Params.link -}}
+  {{- else if eq .Section "experience" -}}
+    {{- $type = "Role" -}}
+    {{- $href = printf "%s#floor-%s" $home .Params.floor -}}
+    {{- $summary = printf "%s · %s · %s. %s" .Params.company .Params.location .Params.duration .Params.summary -}}
+    {{- $content = delimit (.Params.highlights | default slice) " " -}}
+  {{- else if eq .Section "education" -}}
+    {{- $type = "Education" -}}
+    {{- $href = printf "%s#floor-1" $home -}}
+    {{- $summary = printf "%s, %s" .Params.degree .Params.year -}}
+    {{- range .Params.teaching }}{{ $content = printf "%s %s." $content .title }}{{ end -}}
+  {{- else if eq .Section "testimonial" -}}
+    {{- $type = "Recommendation" -}}
+    {{- $href = printf "%s#floor-L" $home -}}
+    {{- $summary = .Params.position -}}
+  {{- end -}}
+  {{- $entries = $entries | append (dict
+    "title" $title
+    "type" $type
+    "permalink" $href
+    "summary" (replace (replace ($summary | strings.TrimSpace | htmlUnescape) "&ndash;" "-") "&mdash;" "-")
+    "content" (replace (replace ($content | htmlUnescape) "&ndash;" "-") "&mdash;" "-")
+  ) -}}
 {{- end -}}
-]
+{{- $entries | jsonify -}}

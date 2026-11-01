@@ -381,6 +381,129 @@ for (const filePath of htmlFiles) {
   }
 }
 
+// Search and share metadata from layouts/partials/head.html, the sitemap and the feeds (#141).
+{
+  const origin = "https://yonatankarp.com";
+  const read = (file) => fs.readFileSync(path.join(publicDir, file), "utf8");
+  const tags = (html, name) => Array.from(html.matchAll(new RegExp(`<${name}\\b[^>]*>`, "g"))).map((match) => match[0]);
+  const meta = (html, key) => tags(html, "meta").filter((tag) => (collectAttribute(tag, "property") ?? collectAttribute(tag, "name")) === key).map((tag) => decodeEntities(collectAttribute(tag, "content") ?? ""));
+  const link = (html, rel) => tags(html, "link").filter((tag) => collectAttribute(tag, "rel") === rel).map((tag) => collectAttribute(tag, "href"));
+  const jsonLd = (route, html) => Array.from(html.matchAll(/<script\b[^>]*type=["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/script>/g)).flatMap((match) => {
+    try {
+      return [JSON.parse(match[1])];
+    } catch (error) {
+      failures.push(`${route}: JSON-LD does not parse: ${error.message}`);
+      return [];
+    }
+  });
+  const fail = (route, message) => failures.push(`${route}: ${message}`);
+
+  for (const filePath of htmlFiles) {
+    const route = `/${path.relative(publicDir, filePath).replace(/index\.html$/, "")}`;
+    const html = fs.readFileSync(filePath, "utf8");
+
+    if (route.startsWith("/madeira-2026/") || isRedirectPage(html)) continue;
+
+    const title = decodeEntities(stripTags(html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? ""));
+    const [description = ""] = meta(html, "description");
+
+    jsonLd(route, html);
+
+    if ([...description].length > 160) fail(route, `description is ${[...description].length} characters, over 160`);
+    // A long title drops the site name; only a post title that is long on its own may stay over 65 (seoTitle shortens it).
+    if ([...title].length > 65 && title.endsWith("| Yonatan Karp-Rudin")) fail(route, `title "${title}" is over 65 characters with the site name`);
+    if (meta(html, "og:type").join() !== (/^\/blog\/[^/]+\/$/.test(route) ? "article" : "website")) fail(route, `og:type is ${meta(html, "og:type")}`);
+    if (!/^\/tags\/|^\/categories\//.test(route) && link(html, "alternate").filter((href) => href?.endsWith(".xml")).join() !== `${origin}/blog/index.xml`) fail(route, "should advertise the blog's RSS feed");
+  }
+
+  const blog = read("blog/index.html");
+  if (!tags(blog, "a").some((tag) => collectAttribute(tag, "href") === "/blog/index.xml" && /\bchip\b/.test(collectAttribute(tag, "class") ?? ""))) fail("/blog/", "missing the RSS chip linking to /blog/index.xml");
+
+  const page2 = read("blog/page/2/index.html");
+  if (link(page2, "canonical").join() !== `${origin}/blog/page/2/`) fail("/blog/page/2/", `canonical is ${link(page2, "canonical")}`);
+  if (!/page 2/i.test(page2.match(/<title>([^<]*)/)?.[1] ?? "") || !/^Page 2 /.test(meta(page2, "description")[0] ?? "")) fail("/blog/page/2/", 'title and description should say "page 2"');
+
+  const home = read("index.html");
+  const person = jsonLd("/", home).find((item) => item["@type"] === "Person");
+  if (!person?.image || !person.sameAs?.includes("https://x.com/yonvata") || !person.address?.addressLocality) fail("/", "Person JSON-LD needs image, address and the X profile in sameAs");
+
+  const post = read("blog/build-twitter-bot-kotlin/index.html");
+  const types = jsonLd("post", post);
+  const posting = types.find((item) => item["@type"] === "BlogPosting");
+  for (const key of ["headline", "image", "description", "datePublished", "dateModified"]) {
+    if (!posting?.[key]) fail("post", `BlogPosting is missing ${key}`);
+  }
+  if (!posting?.author?.url) fail("post", "BlogPosting author needs a url");
+  if (types.find((item) => item["@type"] === "BreadcrumbList")?.itemListElement?.length !== 3) fail("post", "needs a three-step BreadcrumbList");
+  for (const key of ["og:site_name", "og:locale", "og:image:width", "og:image:height", "og:image:alt", "article:published_time", "twitter:site"]) {
+    if (meta(post, key).length !== 1) fail("post", `needs one ${key}`);
+  }
+
+  for (const [route, file] of [["/tags/kotlin/", "tags/kotlin/index.html"], ["/tags/", "tags/index.html"], ["/search/", "search/index.html"], ["/404.html", "404.html"]]) {
+    if (meta(read(file), "robots").join() !== "noindex") fail(route, "should be noindex");
+  }
+  if (!/^Posts tagged /.test(read("tags/kotlin/index.html").match(/<title>([^<]*)/)?.[1] ?? "")) fail("/tags/kotlin/", 'title should start "Posts tagged"');
+  for (const route of ["/", "/blog/", "/cv/"]) {
+    if (meta(read(`${route.slice(1)}index.html`), "robots").length) fail(route, "should not be noindex");
+  }
+
+  const notFound = read("404.html");
+  if (link(notFound, "canonical").length || meta(notFound, "og:url").length || !/window\.goatcounter=\{[^<]*path:function\(\w+\)\{return"404"\+\w+\}/.test(notFound)) fail("/404.html", "needs no canonical or og:url, and GoatCounter should count it under 404/<path>");
+
+  if (!/<title>[^<]*\bCV\b/.test(read("cv/index.html"))) fail("/cv/", 'title should say "CV"');
+
+  const sitemap = read("sitemap.xml");
+  for (const excluded of ["/tags/", "/categories/", "/search/"]) {
+    if (sitemap.includes(`<loc>${origin}${excluded}`)) fail("sitemap.xml", `lists ${excluded}`);
+  }
+
+  const feedLinks = (file) => Array.from(read(file).matchAll(/<item>[\s\S]*?<link>([^<]+)<\/link>/g)).map((match) => match[1]);
+  const homeFeed = feedLinks("index.xml");
+  if (homeFeed.length === 0 || homeFeed.some((url) => !url.startsWith(`${origin}/blog/`)) || homeFeed.join() !== feedLinks("blog/index.xml").join()) fail("index.xml", "should list the blog posts only, as /blog/index.xml does");
+}
+
+// Post media (#137, #138, #139) and the search page and index (#134).
+for (const filePath of htmlFiles) {
+  const html = fs.readFileSync(filePath, "utf8");
+  const route = `/${path.relative(publicDir, filePath).replace(/index\.html$/, "")}`;
+  if (!route.startsWith("/blog/")) continue;
+
+  for (const [tag] of html.matchAll(/<img\b[^>]*>/gi)) {
+    const src = collectAttribute(tag, "src") ?? "";
+    if (/\.gif(?:[?#]|$)/i.test(src)) failures.push(`${route}: animated GIF ${src}; use the video shortcode`);
+    if (/class=["']?article__content/.test(html) && src.startsWith("/images/blog/") && !src.endsWith(".svg") && (collectAttribute(tag, "width") === null || collectAttribute(tag, "height") === null)) {
+      failures.push(`${route}: ${src} needs width and height`);
+    }
+  }
+  for (const [tag] of html.matchAll(/<video\b[^>]*>/gi)) {
+    if (!/\bcontrols\b/.test(tag) || !collectAttribute(tag, "aria-label") || /\bautoplay\b/.test(tag)) failures.push(`${route}: videos need controls and aria-label, and no autoplay`);
+  }
+  const diagrams = Array.from(html.matchAll(/<pre\b[^>]*class=["']?mermaid\b[^>]*>/g)).map((match) => match[0]);
+  if (diagrams.some((tag) => collectAttribute(tag, "tabindex") !== "0" || collectAttribute(tag, "role") !== "region" || !collectAttribute(tag, "aria-label"))) {
+    failures.push(`${route}: a Mermaid diagram needs tabindex=0, role=region and an aria-label`);
+  }
+  if (diagrams.length && (/import mermaid from/.test(html) || !/useMaxWidth:\s*!?(?:false|1)/.test(html))) failures.push(`${route}: Mermaid should load lazily with useMaxWidth false`);
+  if (!diagrams.length && /mermaid\.esm/.test(html)) failures.push(`${route}: loads Mermaid without a diagram`);
+}
+
+{
+  const search = fs.readFileSync(path.join(publicDir, "search", "index.html"), "utf8");
+  if (!/<form\b[^>]*action=["']?\/search\/[^>]*>[\s\S]*?<input\b[^>]*name=["']?q\b/.test(search)) failures.push("/search/: needs a GET form with an input named q");
+  if (!/id=["']?search-status["']?[^>]*role=["']?status/.test(search)) failures.push("/search/: needs the #search-status live region");
+
+  const index = JSON.parse(fs.readFileSync(path.join(publicDir, "index.json"), "utf8"));
+  const home = fs.readFileSync(path.join(publicDir, "index.html"), "utf8");
+  const projects = fs.readdirSync(projectsDir).filter((file) => file.endsWith(".md") && file !== "_index.md").length;
+  if (index.filter((page) => ["Project", "Contribution"].includes(page.type)).length !== projects) failures.push(`index.json: should list all ${projects} projects`);
+  for (const page of index) {
+    if (!page.type) failures.push(`index.json: ${page.permalink} has no type`);
+    if (/\/(?:search|experience|education|testimonial)\//.test(page.permalink)) failures.push(`index.json: should not link to ${page.permalink}`);
+    if (/\(contributor\)/i.test(page.title)) failures.push(`index.json: "${page.title}" keeps "(contributor)"`);
+    const floor = page.permalink.match(/#(floor-[^/]+)$/)?.[1];
+    if (floor && !new RegExp(`id=["']?${floor}["'\\s>]`).test(home)) failures.push(`index.json: ${page.permalink} has no matching floor on the homepage`);
+  }
+}
+
 if (failures.length > 0) {
   console.error("Generated HTML check failed:");
   for (const failure of failures) {

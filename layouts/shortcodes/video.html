@@ -1,0 +1,6 @@
+{{/* A screen recording that waits for the reader to press play (no autoplay, WCAG 2.2.2).
+     src is the .mp4 under static/; its poster is the same path as .webp and gives the size, so a missing poster fails the build. */}}
+{{- $src := .Get "src" -}}
+{{- $poster := replaceRE `\.mp4$` ".webp" $src -}}
+{{- $size := imageConfig (path.Join "static" $poster) -}}
+<video src="{{ $src }}" poster="{{ $poster }}" width="{{ $size.Width }}" height="{{ $size.Height }}" aria-label="{{ .Get "alt" }}" controls muted playsinline loop preload="metadata"></video>

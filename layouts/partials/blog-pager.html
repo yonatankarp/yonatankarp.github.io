@@ -1,0 +1,2 @@
+{{/* The blog list's paginator. head.html runs before the list layout, so both must ask for it with the same arguments. */}}
+{{ return .Paginate (after 1 (sort .RegularPages "Date" "desc")) }}

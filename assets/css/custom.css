@@ -898,6 +898,7 @@ h4 a,
 
 .prose img {
   width: 100%;
+  height: auto;
   border-radius: var(--radius-lg);
 }
 
@@ -1733,7 +1734,7 @@ h4 a,
 .px-prose th, .px-prose td { padding: 10px 14px; border-bottom: 2px solid var(--panel-hi); text-align: start; vertical-align: top; }
 .px-prose th { font-weight: 600; color: var(--amber); }
 .px-prose tr:last-child td { border-bottom: 0; }
-.px-prose img { max-width: 100%; height: auto; }
+.px-prose :is(img, video) { max-width: 100%; height: auto; }
 .px-prose hr { height: 4px; border: 0; background: var(--panel-hi); }
 .px-prose .code-copy {
   top: 10px; right: 12px; padding: 4px 10px; border: 0; border-radius: 0; clip-path: var(--stepped);
@@ -1741,6 +1742,11 @@ h4 a,
 }
 .px-prose .code-copy:hover { background: #ffd77a; }
 .px-prose .code-copy:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--px-text), inset 0 0 0 6px var(--ink); }
+/* Touch screens have no hover to reveal Copy: show it in full, on its own row above the first code line. */
+@media (hover: none) {
+  .code-copy { opacity: 1; }
+  :is(.prose, .px-prose) pre:not(.mermaid) { padding-top: 48px; }   /* every pre site.js gives a button; set before it runs, so nothing shifts */
+}
 
 /* The footer on pixel pages: a panel as wide as the sheet, with square link buttons. Other pages keep the plain footer. */
 .px-page .site-footer { padding-bottom: 48px; }
@@ -1770,6 +1776,8 @@ h4 a,
 .px-page .search-input::placeholder { color: var(--px-soft); opacity: 1; }
 .px-page .search-input:hover { box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--amber); }
 .px-page .search-input:focus, .px-page .search-input:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
+.px-search__status { margin: 16px 0 0; font-size: 15px; color: var(--px-soft); }
+.px-search__status:empty { margin: 0; }
 .px-search__results { display: grid; gap: 12px; margin-top: 20px; }
 .px-search__results > p { margin: 0; color: var(--px-soft); }
 .px-page .search-result {
@@ -1784,6 +1792,7 @@ h4 a,
 .px-page .search-result p { max-width: none; margin: 0; font-size: 14.5px; line-height: 1.5; color: var(--px-soft); }
 .px-page .search-result--empty { box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi); }
 .px-page .search-result--empty:hover { box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi); }
+.px-page .search-result__type { font-size: 13px; font-weight: 500; letter-spacing: .04em; text-transform: uppercase; color: var(--amber); }
 .px-page .search-result--empty span { font-size: 15px; font-weight: 500; color: var(--amber); }
 
 .px-skills__areas { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }

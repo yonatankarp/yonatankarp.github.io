@@ -1,5 +1,5 @@
-// Floor-to-floor navigation shared by every renderer: wheel, swipe, keys and the elevator panel each ride one
-// floor; cards follow arrivals. The renderer passes an api with go(index), index() and moving(), and emits
+// Floor-to-floor navigation for the building: wheel, swipe, keys and the elevator panel each ride one floor; cards
+// follow arrivals. pixel.js passes an api with go(index), index() and moving(), and emits
 // building:floor / building:depart / building:arrive on document.
 export function guide(api, root = document) {
   const stops = [...root.querySelectorAll('section[data-floor]')];
@@ -35,6 +35,8 @@ export function guide(api, root = document) {
     if (!open) return;
     const { panel, button, top } = open;
     panel.classList.remove('is-open');
+    panel.setAttribute('role', 'region');   // in the plain page's flow it is a region again, not a dialog
+    panel.removeAttribute('aria-modal');
     button.setAttribute('aria-expanded', 'false');
     document.documentElement.classList.remove('panel-open');
     // back on Step inside, with the card where the reader left it (focus would scroll it to the end)
@@ -53,10 +55,14 @@ export function guide(api, root = document) {
     if (!history.state?.panel) history.pushState({ panel: true }, '', location.href);
     open = { panel, button, top: button.closest('.floor-card').scrollTop };
     panel.classList.add('is-open');
+    // Open, it holds Tab until it is closed, so it says so: a modal dialog, named by its title (#131).
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('aria-modal', 'true');
     button.setAttribute('aria-expanded', 'true');
     document.documentElement.classList.add('panel-open');
     panel.scrollTop = 0;
     panel.focus();
+    count(`step-in-${button.closest('[data-floor]').dataset.floor}`);
   };
   const setMode = (change) => {
     closePanel(false);
@@ -110,7 +116,7 @@ export function guide(api, root = document) {
     if (open) {   // the panel scrolls with the keys, and Tab goes round inside it until it is closed (#37)
       if (e.key === 'Escape') closePanel();
       if (e.key === 'Tab') {
-        const ring = [...open.panel.querySelectorAll('a[href], button')], a = document.activeElement;
+        const ring = [...open.panel.querySelectorAll('a[href], button:not([hidden])')], a = document.activeElement;
         const [first, last] = e.shiftKey ? [ring.at(-1), ring[0]] : [ring[0], ring.at(-1)];
         if (a === last || !open.panel.contains(a) || (e.shiftKey && a === open.panel)) { e.preventDefault(); first?.focus(); }
       }
@@ -153,6 +159,7 @@ export function guide(api, root = document) {
   // After a ride, focus follows the reader to the new floor's heading, unless it is on the lift or the top bar.
   // null until the first ride: the load's own arrival neither moves focus nor speaks.
   let follow = null, hinted = false, leaving = null;
+  const reached = new Set();   // floors counted in GoatCounter this visit: once each, rides past them are not visits
   document.addEventListener('building:depart', (e) => {
     const a = document.activeElement;
     follow = !a || a === document.body || !!a.closest('.building-stop, .exterior-windows');
@@ -177,15 +184,21 @@ export function guide(api, root = document) {
       if (follow) document.getElementById(`f${e.detail.key}`)?.focus({ preventScroll: true });
       const label = buttons.find((b) => b.dataset.goto === e.detail.key)?.getAttribute('aria-label') ?? 'Street, outside the building';
       if (status) status.textContent = label.replace(', ', ': ');
+      if (!reached.has(e.detail.key)) { reached.add(e.detail.key); count(`floor-${e.detail.key}`); }
       follow = null;
     }
     buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.goto === e.detail.key)));
   });
 }
 
+// A GoatCounter event (CLAUDE.md, Analytics). count.js loads async, may be blocked, and a page can set
+// window.goatcounter before it does, so the call may find nothing to call.
+const count = (path) => window.goatcounter?.count?.({ path, event: true });
+
 // A long card on a small screen scrolls first; the lift only moves once it is at its end.
 function scrollsInside(target, dir) {
   const box = target.closest?.('.floor-card, .floor-panel');
-  if (!box || box.scrollHeight <= box.clientHeight + 1) return false;
+  // A sliver of overflow (12 to 21px on some cards) is not worth a key press that barely moves anything (#131).
+  if (!box || box.scrollHeight <= box.clientHeight + 40) return false;
   return dir > 0 ? box.scrollTop + box.clientHeight < box.scrollHeight - 1 : box.scrollTop > 0;
 }

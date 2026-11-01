@@ -3,7 +3,7 @@
      pixels stay square; a source wider than "max" keeps its native size. */ -}}
 {{- $p := .page -}}
 {{- with resources.Get (printf "images/projects/pixel/%s.png" $p.File.BaseFileName) -}}
-  {{- $title := $p.Title | replaceRE `\s*\(contributor\)$` "" -}}
+  {{- $title := partial "project-title.html" $p.Title -}}
   {{- $width := mul .Width (div $.max .Width) -}}
   {{- $img := . -}}
   {{- if gt $width 0 }}{{ $img = .Resize (printf "%dx NearestNeighbor" $width) }}{{ end -}}

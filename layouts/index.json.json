@@ -22,7 +22,7 @@
     {{- $type = "Post" -}}
   {{- else if eq .Section "projects" -}}
     {{- $type = cond (eq .Params.group "contribution") "Contribution" "Project" -}}
-    {{- $title = $title | replaceRE `\s*\(contributor\)$` "" -}}
+    {{- $title = partial "project-title.html" $title -}}
     {{- $href = .RelPermalink | default .Params.link -}}
   {{- else if eq .Section "experience" -}}
     {{- $type = "Role" -}}

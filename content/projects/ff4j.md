@@ -12,9 +12,7 @@ tech: ["Java", "Jakarta"]
 years: "2025"
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "GitHub"
-        URL: "https://github.com/ff4j/ff4j"
 ---
 
 Authored ff4j's `javax.*` to `jakarta.*` namespace migration so the Java feature-flag library could fit modern Spring Boot 3 and Jakarta EE 9+ application stacks. The PR merged, but the unreleased migration later became the practical motivation for building `ff4k`.

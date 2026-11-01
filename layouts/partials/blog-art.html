@@ -9,5 +9,5 @@
   {{ $cover = $px | relURL }}
 {{ end }}
 {{ $floors := slice "7" "6" "5" "4" "3" "2" }}
-{{ $accent := index site.Data.floor_accents (index $floors (mod (len .Title) (len $floors))) }}
+{{ $accent := index hugo.Data.floor_accents (index $floors (mod (len .Title) (len $floors))) }}
 {{ return dict "cover" $cover "accent" $accent }}

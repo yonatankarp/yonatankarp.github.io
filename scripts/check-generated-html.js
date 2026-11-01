@@ -291,10 +291,16 @@ function checkTopBar(route, html) {
     failures.push(`${route}: still has the old site-header or menu-toggle`);
   }
 
-  const jersey = countMatches(html, /<link\b[^>]*fonts\.googleapis\.com[^>]*Jersey\+15/g);
-
-  if (jersey !== 1) {
-    failures.push(`${route}: expected one Google Fonts link with Jersey+15, got ${jersey}`);
+  // Self-hosted fonts (#142): no Google Fonts, one Jersey 15 preload. A CSP meta on every page but the homepage (#149),
+  // and no inline executable script where one applies.
+  if (/fonts\.(?:googleapis|gstatic)\.com/.test(html)) failures.push(`${route}: still asks Google Fonts`);
+  const jersey = countMatches(html, /<link\b[^>]*rel=["']?preload\b[^>]*\/fonts\/jersey-15-latin\.woff2[^>]*\bcrossorigin\b/g);
+  if (jersey !== 1) failures.push(`${route}: expected one crossorigin preload of /fonts/jersey-15-latin.woff2, got ${jersey}`);
+  const csp = countMatches(html, /<meta\b[^>]*http-equiv=["']?Content-Security-Policy\b/gi);
+  if (csp !== (home ? 0 : 1)) failures.push(`${route}: expected ${home ? "no" : "one"} Content-Security-Policy meta, got ${csp}`);
+  if (!home) {
+    const inline = Array.from(html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)).filter(([, attrs, body]) => body.trim() && !/\bsrc=/.test(attrs) && !/type=["']?application\/(?:ld\+)?json/.test(attrs));
+    if (inline.length || /<[a-z][^>]*\son[a-z]+=/i.test(html)) failures.push(`${route}: has an inline script or on* handler, which the CSP blocks`);
   }
 
   if (route === "/cv/" && /cv-head__art/.test(html)) {
@@ -322,8 +328,10 @@ for (const filePath of htmlFiles) {
   for (const imageMatch of html.matchAll(/<img\b[^>]*>/gi)) {
     const tag = imageMatch[0];
     const alt = collectAttribute(tag, "alt");
+    // A blog cover sits beside its post's title, so it is decorative: alt="", which the minifier writes as a bare alt (#123).
+    const decorativeCover = /(?:^|\s)px-cover(?:\s|$)/.test(collectAttribute(tag, "class") ?? "") && (alt === "" || /\salt(?=[\s/>])/i.test(tag));
 
-    if (alt === null || stripTags(alt) === "") {
+    if (!decorativeCover && (alt === null || stripTags(alt) === "")) {
       failures.push(`${route}: image missing useful alt text: ${tag.slice(0, 160)}`);
     }
   }
@@ -448,7 +456,7 @@ for (const filePath of htmlFiles) {
   }
 
   const notFound = read("404.html");
-  if (link(notFound, "canonical").length || meta(notFound, "og:url").length || !/window\.goatcounter=\{[^<]*path:function\(\w+\)\{return"404"\+\w+\}/.test(notFound)) fail("/404.html", "needs no canonical or og:url, and GoatCounter should count it under 404/<path>");
+  if (link(notFound, "canonical").length || meta(notFound, "og:url").length || !/<script\b[^>]*src=["']?\/js\/goatcounter-404\.[^>]*>[\s\S]*?<script\b[^>]*gc\.zgo\.at\/count\.js/.test(notFound)) fail("/404.html", "needs no canonical or og:url, and GoatCounter should count it under 404/<path>");
 
   if (!/<title>[^<]*\bCV\b/.test(read("cv/index.html"))) fail("/cv/", 'title should say "CV"');
 
@@ -482,8 +490,10 @@ for (const filePath of htmlFiles) {
   if (diagrams.some((tag) => collectAttribute(tag, "tabindex") !== "0" || collectAttribute(tag, "role") !== "region" || !collectAttribute(tag, "aria-label"))) {
     failures.push(`${route}: a Mermaid diagram needs tabindex=0, role=region and an aria-label`);
   }
-  if (diagrams.length && (/import mermaid from/.test(html) || !/useMaxWidth:\s*!?(?:false|1)/.test(html))) failures.push(`${route}: Mermaid should load lazily with useMaxWidth false`);
-  if (!diagrams.length && /mermaid\.esm/.test(html)) failures.push(`${route}: loads Mermaid without a diagram`);
+  if (diagrams.length && !/<script\b[^>]*type=["']?module\b[^>]*src=["']?\/js\/mermaid-loader\./.test(html)) failures.push(`${route}: Mermaid should load lazily through js/mermaid-loader.js`);
+  const loader = html.match(/src=["']?(\/js\/mermaid-loader\.[^"'\s>]+)/)?.[1];
+  if (loader && !/useMaxWidth:\s*!?(?:false|1)/.test(fs.readFileSync(path.join(publicDir, loader), "utf8"))) failures.push(`${route}: Mermaid should draw with useMaxWidth false`);
+  if (!diagrams.length && /mermaid-loader|mermaid\.esm/.test(html)) failures.push(`${route}: loads Mermaid without a diagram`);
 }
 
 {
@@ -503,6 +513,21 @@ for (const filePath of htmlFiles) {
     if (floor && !new RegExp(`id=["']?${floor}["'\\s>]`).test(home)) failures.push(`index.json: ${page.permalink} has no matching floor on the homepage`);
   }
 }
+
+// --- Old Hashnode URLs (#117): aliases redirect to the blog, /rss.xml serves the blog feed. ---
+{
+  const read = (file) => (fs.existsSync(path.join(publicDir, file)) ? fs.readFileSync(path.join(publicDir, file), "utf8") : "");
+  const redirects = { "how-does-hashmap-work-in-java": "/blog/how-hashmap-works-java/", "design-patterns-builder": "/blog/" };
+  for (const [from, to] of Object.entries(redirects)) {
+    const html = read(`${from}/index.html`);
+    const target = `https://yonatankarp.com${to}`;
+    if (!isRedirectPage(html) || !html.includes(`url=${target}"`) || !new RegExp(`rel=["']?canonical["']? href=["']?${target}["'\\s>]`).test(html)) failures.push(`/${from}/: should redirect to ${to}`);
+  }
+  if (/how-does-hashmap-work-in-java/.test(read("sitemap.xml") + read("index.json"))) failures.push("sitemap.xml/index.json: should not list the Hashnode aliases");
+  const items = (file) => Array.from(read(file).matchAll(/<item>[\s\S]*?<link>([^<]+)<\/link>/g)).map((match) => match[1]).join();
+  if (!items("rss.xml") || items("rss.xml") !== items("blog/index.xml")) failures.push("rss.xml: should list the same posts as /blog/index.xml");
+}
+// --- end #117 ---
 
 if (failures.length > 0) {
   console.error("Generated HTML check failed:");

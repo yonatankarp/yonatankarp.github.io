@@ -2,6 +2,9 @@
 title: "[Interview Questions] Concurrency vs. Parallelism: Decoding the Simultaneous Illusion"
 seoTitle: "Concurrency vs. Parallelism: Interview Questions"
 date: 2023-03-11T00:00:00+01:00
+aliases:
+  - /interview-questions-concurrency-parallelism
+  - /he/blog/interview-questions-concurrency-parallelism/
 draft: false
 type: "blog"
 description: "A clear explanation of the difference between concurrency and parallelism, illustrated with practical JVM-based examples commonly asked about in technical interviews."

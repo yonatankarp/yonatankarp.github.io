@@ -6,7 +6,7 @@ pagerSize = 5
 
 [outputs]
   page = ["HTML"]
-  home = ["HTML", "RSS", "JSON", "LLMS"]
+  home = ["HTML", "RSS", "JSON", "LLMS", "HashnodeRSS"]
   section = ["HTML", "RSS"]
   taxonomy = ["HTML", "RSS"]
   term = ["HTML", "RSS"]
@@ -17,6 +17,11 @@ pagerSize = 5
     baseName = "llms"
     isPlainText = true
     rel = "alternate"
+  # Hashnode's old feed path; feed readers do not follow HTML redirects, so /rss.xml serves the blog feed (#117).
+  [outputFormats.HashnodeRSS]
+    mediaType = "application/rss+xml"
+    baseName = "rss"
+    notAlternative = true
 
 [taxonomies]
   tag = "tags"
@@ -34,56 +39,21 @@ pagerSize = 5
     name = "date"
     weight = 10
 
-disableKinds = ["footerSection"]
-
-[module]
-[[module.mounts]]
-source = "archetypes"
-target = "archetypes"
-
-[[module.mounts]]
-source = "assets"
-target = "assets"
-
-[[module.mounts]]
-source = "layouts"
-target = "layouts"
-
-[[module.mounts]]
-source = "static"
-target = "static"
-
 [params]
 title = "Yonatan Karp-Rudin - Staff Software Engineer"
 description = "Staff Software Engineer based in Berlin, Germany. Building payment, compliance, and platform systems at Billie. Open source contributor."
 
 [params.seo]
 siteName = "Yonatan Karp-Rudin"
-siteDescription = "Staff Software Engineer based in Berlin, Germany. Building payment, compliance, and platform systems at Billie."
 
 [params.social]
 twitter = "yonvata"
 
 [params.seo.person]
-name = "Yonatan Karp-Rudin"
-url = "https://yonatankarp.com"
 sameAs = [
   "https://github.com/yonatankarp",
   "https://www.linkedin.com/in/yonatankarp/",
 ]
-sections = [
-  "showcase",
-  "about",
-  "education",
-  "experience",
-  "client-and-work",
-  "contact",
-]
-
-homepageExperienceCount = 6
-
-[params.blog]
-recentPostCount = 5
 
 # --- Languages ---
 
@@ -91,8 +61,6 @@ recentPostCount = 5
 [languages.en]
 locale = "en"
 direction = "ltr"
-label = "English"
-weight = 1
 
 # --- Markup & Performance ---
 
@@ -120,27 +88,5 @@ weight = 1
     quality = 85
 
 [minify]
-  disableCSS = false
-  disableHTML = false
-  disableJS = false
-  disableJSON = false
-  disableSVG = false
-  disableXML = false
   minifyOutput = true
-  [minify.tdewolff]
-    [minify.tdewolff.html]
-      keepDefaultAttrVals = true
-      keepWhitespace = false
-    [minify.tdewolff.css]
-      precision = 0
-    [minify.tdewolff.js]
-      precision = 0
 
-[build]
-writeStats = true
-[build.buildStats]
-enabledFor = ["scss"]
-disableClasses = false
-disableIDs = false
-disableTags = false
-enable = true

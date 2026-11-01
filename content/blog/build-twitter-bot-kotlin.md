@@ -1,6 +1,10 @@
 ---
 title: "Build your own Twitter Bot with Kotlin"
 date: 2021-12-15T00:00:00+01:00
+aliases:
+  - /build-your-own-twitter-bot-with-kotlin
+  - /build-your-own-twitter-bot-with-kotlin-b10b3e6659e7
+  - /he/blog/build-twitter-bot-kotlin/
 draft: false
 type: "blog"
 description: "A beginner-friendly tutorial for building and deploying a fully functional Twitter bot from scratch using Kotlin and the Twitter4J library."

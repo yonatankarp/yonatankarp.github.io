@@ -12,9 +12,7 @@ build:
   list: local
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "Gameplay"
-        URL: "https://www.youtube.com/watch?v=rBW3IBsjIRU"
 ---
 
 Horror adventure game. Won 3rd place at GameIS Awards 2015.

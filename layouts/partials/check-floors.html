@@ -1,0 +1,12 @@
+{{- /* Every experience entry's storey, checked once for the homepage and the CV, so a slip names its file instead of
+     failing deep in the page (#58, #63). Takes the experience pages; renders nothing. */ -}}
+{{- $accent := hugo.Data.floor_accents -}}
+{{- $taken := slice "E" "R" "8" "1" "L" "P" -}}{{- /* storeys the homepage template draws itself */ -}}
+{{- range . -}}
+  {{- $f := .Params.floor -}}
+  {{- if ne (printf "%T" $f) "string" -}}{{- errorf "%s: set `floor` to a quoted storey, such as floor: \"5\" (got %v)." .File.Path $f -}}
+  {{- else if not (index $accent $f) -}}{{- errorf "%s: floor %q has no colour in data/floor_accents.yaml, so the building has no storey for it (ORDER in web3d/src/pixel.js)." .File.Path $f -}}
+  {{- else if in $taken $f -}}{{- errorf "%s: floor %q is already taken; every experience needs its own storey." .File.Path $f -}}
+  {{- else -}}{{- $taken = $taken | append $f -}}{{- end -}}
+  {{- if not (and (reflect.IsSlice .Params.highlights) .Params.highlights) -}}{{- errorf "%s: set `highlights` to a list of what you did there." .File.Path -}}{{- end -}}
+{{- end -}}

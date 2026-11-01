@@ -1,14 +1,14 @@
 {{ define "main" }}
-<section class="shell page-head reveal-group">
-  <div class="page-head__copy reveal">
+<section class="shell page-head">
+  <div class="page-head__copy">
     <p class="section-kicker">{{ .Type }}</p>
     <h1>{{ .Title }}</h1>
     {{ with .Content }}<p>{{ . | plainify }}</p>{{ end }}
   </div>
 </section>
-<section class="shell post-list reveal-group">
+<section class="shell post-list">
   {{ range .Pages }}
-  <article class="post-row reveal">
+  <article class="post-row">
     <div>
       <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }}</p>
       <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>

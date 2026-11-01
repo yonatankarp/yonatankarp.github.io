@@ -12,9 +12,7 @@ build:
   list: local
 params:
     button:
-        icon: "icon-arrow-right"
         btnText: "Live Site"
-        URL: "https://poor-life-choices.vercel.app"
 ---
 
 Mead sharing app for friends. JavaScript/React, live on Vercel.

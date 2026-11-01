@@ -5,12 +5,16 @@ Personal website and blog built with [Hugo](https://gohugo.io/). Fully custom En
 ## Quick Start
 
 ```bash
-make serve   # dev server at http://localhost:1313 using the pinned local Hugo when available
-make build   # production build using the pinned local Hugo when available
-make clean   # remove build artifacts
+npm ci                            # install the build and check tools
+npx playwright install chromium   # the browser that prints the CV PDF
+npm run serve                     # dev server at http://localhost:1313: builds the pixel building bundle, then hugo server
+npm run build                     # production build: bundle, hugo --gc --minify, then the CV PDF
+npm run check                     # production build plus the generated-site checks
 ```
 
-Requires Hugo v0.160.0+.
+Requires Node 22+ and Hugo v0.168.0, the version pinned as `HUGO_VERSION` in the workflows (see Toolchain Pins).
+The npm scripts use `.tools/hugo/hugo` when it exists, otherwise `hugo` on the `PATH`.
+`npm run check` also needs `pdfinfo` from poppler (`brew install poppler` on macOS).
 
 ## Visual QA
 
@@ -67,6 +71,8 @@ npx playwright install chromium
 - site styles in `assets/css/custom.css`
 - small progressive enhancements in `assets/js/site.js`
 - content remains markdown-first across blog, experience, education, projects, and skills
+
+`CLAUDE.md` describes the current layout, the pixel skin and the content rules in more detail.
 
 ## Analytics
 

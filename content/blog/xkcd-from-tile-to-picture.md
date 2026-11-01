@@ -1,6 +1,8 @@
 ---
 title: "XKCD: From Tile to Picture - Seeing the Full Image"
 date: 2024-06-26T00:00:00+01:00
+aliases:
+  - /he/blog/xkcd-from-tile-to-picture/
 draft: false
 type: "blog"
 featured: true

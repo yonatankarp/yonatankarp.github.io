@@ -171,6 +171,14 @@
 }
 /* Links are text: a floor whose paint is too dark to read on the panel sets a lighter --accent-text (#38). */
 .pixel .floor-card a { color: var(--accent-text, var(--accent, var(--amber))); text-underline-offset: 4px; }
+/* The Copy chip beside the email address (#153); wide enough for "Copied" so the line does not shift. */
+.pixel .copy-email {
+  min-width: 64px; min-height: 28px; padding: 0 8px; border: 0; cursor: pointer; vertical-align: middle;
+  font: 500 14px/28px 'Outfit', system-ui, sans-serif; color: var(--text); background: var(--panel-hi); box-shadow: inset 0 0 0 2px var(--ink);
+}
+.pixel .with-copy { white-space: nowrap; }   /* the chip stays beside its address, never alone on a line */
+.pixel .copy-email:hover { box-shadow: inset 0 0 0 2px var(--amber); }
+.pixel .copy-email:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--text), inset 0 0 0 4px var(--ink); }
 
 /* The street view: its hero card and the windows, which are buttons over the painted ones. */
 .pixel .exterior-windows { position: fixed; inset: 0; z-index: 2; pointer-events: none; visibility: hidden; }
@@ -196,7 +204,7 @@
   .pixel .floor-card h1 { font-size: 30px; }
 }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* outside, the windows are the way in: the card sits under the street */
-  html.at-street .pixel .elevator { visibility: hidden; }
+  html.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
   /* On a short phone the street sinks to keep its top window clear of the name (pixel.js): the card gives way, so
      the bottom windows (P and L, 310 art pixels down) stay out from under it and the card scrolls instead (#45). */
   .pixel .building-stop--hero { padding-top: max(clamp(116px, calc(100svh - 216px), calc(62svh + 12px)), calc(var(--street-top) + 310px)); }
@@ -293,6 +301,8 @@ html:not(.building--guided) .pixel .elevator, html:not(.building--guided) .pixel
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px rgba(255, 255, 255, 0.35);
   transition: transform 80ms steps(1);
 }
+/* Ink on floor 8's #C94F33 is 4.35:1, short of AA for its 15px label on smaller screens; this red is 5.77:1 (#131). */
+.pixel [data-floor="8"] .floor-card .step-in { background: #E0664A; }
 .pixel .floor-card .step-in::after {   /* a 10x10 pixel arrow, drawn at 2x */
   content: ''; width: 20px; height: 20px; margin-left: 10px; background: currentColor;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10' shape-rendering='crispEdges'%3E%3Cpath d='M0 4h5V2h1v1h1v1h1v2H7v1H6v1H5V6H0z'/%3E%3C/svg%3E") center / 20px 20px no-repeat;

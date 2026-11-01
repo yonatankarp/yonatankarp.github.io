@@ -27,7 +27,8 @@
      error listener replaces the module tag's onerror attribute, which the CSP would block: capture phase, as a script's
      error event does not bubble, and registered before the tag, so no failure comes too early for it. */}}
 {{ $guided := resources.FromString "js/home-guided.js" `
-addEventListener('error', function (e) { if (e.target.type === 'module') document.documentElement.classList.remove('building--guided'); }, true);
+addEventListener('error', function (e) { if (e.target.type === 'module') { document.documentElement.classList.remove('building--guided'); document.querySelector('[data-building-pause]').hidden = true; } }, true);
+addEventListener('pagereveal', function (e) { if (e.viewTransition) { document.documentElement.classList.add('px-arrive'); document.dispatchEvent(new Event('building:reveal')); } });
 if ('noModule' in HTMLScriptElement.prototype && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
 if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.add('at-street');
 ` | minify | fingerprint "sha256" }}
@@ -38,7 +39,8 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
 (function(){%s
 var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(p==='dusk'?'':'-'+p)+'.png';document.head.appendChild(l)})();
 ` (partial "time-pick.html" .) $base) | minify | fingerprint "sha256" }}
-{{ $street := resources.FromString "js/home-street.js" `document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');` | minify | fingerprint "sha256" }}
+{{ $street := resources.FromString "js/home-street.js" `document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');
+document.documentElement.classList.contains('building--guided') && !matchMedia('(prefers-reduced-motion: reduce)').matches && (document.querySelector('[data-building-pause]').hidden = false);` | minify | fingerprint "sha256" }}
 {{ .Store.Set "inlineScripts" (slice $time $guided $street) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}

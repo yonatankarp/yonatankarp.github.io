@@ -86,13 +86,13 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
   <main class="building-stops" id="building-stops">
     <section class="building-stop building-stop--hero is-here" id="floor-E" data-floor="E" aria-labelledby="fE">
       <article class="floor-card floor-card--hero" style="--accent:{{ index $accent "E" }}">
-        <p class="floor-how"><span class="floor-how-why">Every floor is a chapter of my CV. </span><span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, or pick a window.</p>
         {{ $role := split $home.hero.eyebrow " · " }}
         <p class="floor-eyebrow">{{ index $role 0 }} <span class="floor-eyebrow-more">· {{ partial "nobreak.html" (delimit (after 1 $role) " · ") }}</span></p>
         <h1 id="fE" tabindex="-1">{{ $home.hero.title }}</h1>
         <p class="floor-open">{{ $home.hero.availability }}</p>
         <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <span class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</span></p>
         <p class="floor-lead">{{ index (split $home.hero.lede ". ") 0 }}.</p>
+        <p class="floor-how"><span class="floor-how-why">Every floor is a chapter of my CV. </span><span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, or pick a window.</p>
       </article>
     </section>
     {{- /* The street is where the lift starts, so its card is there at the first paint; not under a floor's address. */}}

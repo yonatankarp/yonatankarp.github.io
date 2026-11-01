@@ -15,6 +15,7 @@ import math
 import sys
 from itertools import product
 from pathlib import Path
+from random import Random
 
 from PIL import Image
 
@@ -235,12 +236,12 @@ class Layer:
                 if is_light(self.get(x, y)) and (x * 7 + y * 3 + f * 5) % every < lit:
                     self.put(x, y, off)
 
-    def twinkle(self, box, f, count=9, dark_below=330, col=GLOW["city"]):
-        """A few dark pixels light up for a while: city windows, stars."""
+    def twinkle(self, box, f, count=9, dark_below=330, col=GLOW["city"], on=None):
+        """A few dark pixels (or only pixels of the colours in on) light up for a while: city windows, stars."""
         x0, y0, x1, y1 = box
         for k in range(count):
             x, y = x0 + (k * 37 + 11) % (x1 - x0), y0 + (k * 13) % (y1 - y0)
-            if sum(self.get(x, y)) < dark_below and (k + f // 3) % 3:
+            if (self.get(x, y) in on if on else sum(self.get(x, y)) < dark_below) and (k + f // 3) % 3:
                 self.put(x, y, col)
 
 
@@ -765,24 +766,137 @@ FLOORS = {  # key: (painting, accent ramp, animation), bottom to top
 }
 
 
-def build(key, out):
+# --- Night (#151): baked variants of the only two pictures with open sky, never a filter or a runtime recolour ---------
+# One scheme for the street and the roof, so their dissolve shows no seam. "sky": the dusk bands, top to horizon (the
+# street's end at sky 5, the roof's run on to amber 5), and the darkest is sky 1, as sky 0 is almost the cards' panel.
+# "skyline": the roof's far city, under SKYLINE. "tone": what stands against the sky, past the two steps down every
+# ramp takes anyway (night_tone). The rooms stay as they are: they are lit indoors, and the flight in lands on them.
+SKYLINE = 103   # the roof strip's row where the far city starts
+_BANDS = (c("magenta", 2), c("violet", 3), c("magenta", 5), c("sky", 4), c("sky", 5), c("coral", 5), c("wood", 5), c("amber", 5))
+_CITY = (c("sky", 4), c("sky", 5), c("coral", 5), c("violet", 3), c("violet", 2), c("sky", 2), c("magenta", 2))
+
+
+def _bands(*to):
+    return dict(zip(_BANDS, to))
+
+
+NIGHTS = {
+    "indigo": {   # the issue's: warm brick under plain navy, the horizon a dusty mauve
+        "sky": _bands(c("sky", 1), c("sky", 1), c("sky", 2), c("sky", 2), c("sky", 3), c("sky", 3), c("sky", 3), c("sky", 4)),
+        "skyline": dict(zip(_CITY, (c("sky", 3), c("sky", 3), c("sky", 3), c("sky", 1), c("sky", 1), c("sky", 1), c("dark", 2)))),
+        "tone": {},
+    },
+    "moonlit": {  # cold: blue walls under a moon, the windows the only warm thing left
+        "sky": _bands(c("sky", 1), c("sky", 1), c("blue", 2), c("blue", 2), c("blue", 2), c("blue", 2), c("blue", 3), c("blue", 3)),
+        "skyline": dict(zip(_CITY, (c("blue", 2), c("blue", 2), c("blue", 2), c("blue", 1), c("blue", 1), c("blue", 1), c("dark", 2)))),
+        "tone": {c("wall", 3): c("dark", 3), c("wall", 2): c("dark", 2), c("wall", 4): c("dark", 4), c("wall", 5): c("dark", 5),
+                 c("plank", 5): c("dark", 4), c("plank", 4): c("dark", 3), c("plank", 3): c("dark", 3), c("cream", 0): c("dark", 2)},
+        "moon": True,
+    },
+    "cityglow": {  # the dusk's own purple, burnt down: the city's light on the haze, warmest at the horizon
+        "sky": _bands(c("sky", 1), c("violet", 1), c("violet", 2), c("violet", 2), c("magenta", 1), c("magenta", 1), c("magenta", 2), c("red", 2)),
+        "skyline": dict(zip(_CITY, (c("magenta", 1), c("magenta", 1), c("magenta", 2), c("violet", 1), c("violet", 1), c("violet", 1), c("dark", 2)))),
+        "tone": {},
+    },
+}
+NIGHT = "moonlit"   # the picked one: what gen_exterior.py build --time night bakes
+assert all(n["sky"][c("magenta", 2)] == c("sky", 1) for n in NIGHTS.values()), "pixel.js paints the night sky sky 1 until the art loads"
+
+
+def night_tone(scheme):
+    """Everything on the palette, two steps down its ramp, then the scheme's own. INK and the GLOW lights have no ramp."""
+    tone = {col: ramp[max(0, i - 2)] for ramp in R.values() for i, col in enumerate(ramp)}
+    return tone | scheme["tone"] | scheme["sky"]
+
+
+def recolour(img, table, box):
+    q, (x0, y0, x1, y1) = img.load(), box
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            q[x, y] = table.get(q[x, y][:3], q[x, y])
+
+
+def night_sky(scheme):
+    return frozenset(scheme["sky"].values())
+
+
+def scatter(layer, box, count, seed, on):
+    """The still stars: mostly the sky ramp's own dim points, thinning toward the horizon, a few bright."""
+    rnd, (x0, y0, x1, y1) = Random(seed), box
+    for k in range(count):
+        x, y = rnd.randrange(x0, x1), min(rnd.randrange(y0, y1), rnd.randrange(y0, y1))
+        if layer.get(x, y) in on:
+            layer.put(x, y, c("cream", 5) if k % 7 == 0 else c("sky", 4) if k % 3 else c("sky", 3))
+
+
+def big_star(layer, x, y, on):
+    """A hand-placed star with four dim points; only ever on open sky."""
+    if all(layer.get(x + dx, y + dy) in on for dx, dy in ((0, 0), (1, 0), (-1, 0), (0, 1), (0, -1))):
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            layer.put(x + dx, y + dy, c("sky", 3))
+        layer.put(x, y, c("cream", 5))
+
+
+def moon(layer, x, y, on):
+    """The crescent in two dithered rings of haze, painted where the sky shows."""
+    for j in range(-9, 18):
+        for i in range(-9, 18):
+            d = ((i - 4) ** 2 + (j - 4) ** 2) ** 0.5
+            if layer.get(x + i, y + j) in on and d < 13 and BAYER[(y + j) % 4][(x + i) % 4] < 16 - d:
+                layer.put(x + i, y + j, c("blue", 3) if layer.get(x + i, y + j) == c("blue", 2) else c("blue", 2))
+    for j in range(-3, 12):
+        for i in range(-3, 12):
+            d, bite = ((i - 4) ** 2 + (j - 4) ** 2) ** 0.5, ((i - 7) ** 2 + (j - 3) ** 2) ** 0.5
+            if d < 6.6 and bite > 5.6:
+                layer.put(x + i, y + j, c("cream", 4) if d > 5.6 else c("cream", 5))
+
+
+def night_roof(base, scheme):
+    """The roof's dusk baked to night, before the crane and the city lights go on: the lift housing stays lit."""
+    tone = night_tone(scheme)
+    recolour(base, tone, (HOUSING_X + 2, 0, W, SKYLINE))
+    recolour(base, tone | scheme["skyline"], (HOUSING_X + 2, SKYLINE, W, H - 12))
+    cv, sky = Layer(base), night_sky(scheme)
+    for y in (108, 112):                                                    # more of the far city is home
+        for x in range(HOUSING_X + 5, 466, 7):
+            if (x * 5 + y * 3) % 11 < 3 and cv.get(x, y) in scheme["skyline"].values():
+                cv.rect(x, y, x + 2, y + 1, GLOW["amber"])
+    cv.rect(365, 49, 369, 54, GLOW["amber"])                                # someone's still up in the crane's cab
+    for x in range(296, 356, 9):                                            # and a string of work lights on the scaffold
+        cv.rect(x, 78, x + 1, 80, GLOW["city"])
+    scatter(cv, (HOUSING_X + 4, 1, 466, 16), 10, 150, sky)                  # as sparse as the rows pixel.js tiles above the strip
+    scatter(cv, (HOUSING_X + 4, 16, 466, 96), 130, 151, sky)
+    for x, y in ((150, 12), (204, 40), (262, 9), (300, 44), (433, 15), (412, 52)):
+        big_star(cv, x, y, sky)
+    if scheme.get("moon"):
+        moon(cv, 164, 20, sky)
+
+
+def build(key, out, night=None):
     name, accent, animate = FLOORS[key]
     base = frame_base(key, name, accent)
+    if night:
+        night_roof(base, night)
     strip = Image.new("RGBA", (W * FRAMES + 2 * EDGE, H))
     for f in range(FRAMES):
         img = base.copy()
         room = Layer(img.crop((ROOM_X, CEIL, W - 8, H - 12)))
         animate(room, f)
         img.paste(room.img, (ROOM_X, CEIL))
+        if night:                                                           # off the columns the edge runs read
+            Layer(img).twinkle((HOUSING_X + 6, 2, 466, 96), f, 21, col=c("cream", 5), on=night_sky(night))
         strip.paste(img, (f * W, 0))
     edges = margins(strip.crop((0, 0, W, H)), key)    # from the rest frame: the runs carry on from every frame alike,
     (left, _), (right, _) = EDGES[key]                 # as nothing they read from, or meet, moves
     for y0, y1, bx, bw, *_ in left + right + [(0, H, LOBBY_X, 1), (0, H, W - 9, 1)]:
         for f, x, y in product(range(1, FRAMES), range(bx, bx + bw), range(y0, y1)):
             assert strip.getpixel((x, y)) == strip.getpixel((f * W + x, y)), (key, f, x, y)
+    if night:
+        scatter(Layer(edges), (EDGE, 1, 2 * EDGE, 16), 14, 152, night_sky(night))   # the sky past the strip has stars too,
+        scatter(Layer(edges), (EDGE, 16, 2 * EDGE, 96), 80, 153, night_sky(night))   # its top rows also the sky above it
     strip.paste(edges, (W * FRAMES, 0))
-    strip.save(out / f"floor-{key}.png")
-    print("drew floor", key)
+    strip.save(out / f"floor-{key}{'-night' if night else ''}.png")
+    print("drew floor", key, "at night" if night else "")
 
 
 if __name__ == "__main__":

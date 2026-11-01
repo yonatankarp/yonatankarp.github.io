@@ -7,6 +7,8 @@ Run: uv run web3d/pixel/gen_exterior.py blockout            # the code blockout,
      uv run web3d/pixel/gen_exterior.py paint [--count N]   # Draw Things repaints the blockout (port 7860)
      uv run web3d/pixel/gen_exterior.py build OUT           # OUT/exterior.png (12 frames) + exterior.json,
                                                             # and backdrop.png: the street without the tower
+     uv run web3d/pixel/gen_exterior.py build OUT --time night [--night NAME]   # exterior-night.png + floor-R-night.png,
+                                                            # scheme NAME of gen_floors.NIGHTS; dusk files untouched
 
 The blockout fixes what the model must not move: the number of storeys, the window grid, the entrance, the garage
 and the crane. The model repaints it into the rooms' style; the picked painting is pixelated with the floors'
@@ -49,6 +51,8 @@ LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (250, 64), "5": (22
 NEIGHBOURS = ((0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
               (314, 348, 196), (348, 398, 160), (398, 440, 206), (440, 480, 172))   # x0, x1, roof
 LAMPS = (40, 142, 338, 440)
+BEDTIME = [(x, y) for x0, x1, top in NEIGHBOURS for y in range(top + 8, GROUND - 6, 10) for x in range(x0 + 4, x1 - 4, 8)
+           if (x * 3 + y) % 7 < 4 and (x + y * 3) % 29 == 0]
 INFILL = ((166, 216, 6), (216, 274, 5), (274, 314, 3))   # the backdrop's blocks in the tower's lot: x0, x1, the
                                                           # neighbour each copies, a window column (8 px) wider or narrower;
                                                           # the last drops the column under the lamp at 142, drawn into it
@@ -66,7 +70,7 @@ def windows():
     return out
 
 
-def blockout():
+def blockout(lit=3):
     img = Image.new("RGB", (EW, EH))
     cv = G.Layer(img)
     roof = Image.open(HERE / "picks" / "roof-px.png").convert("RGB")
@@ -81,7 +85,9 @@ def blockout():
         cv.rect(x0, top, x1, top + 2, c("sky", 2))
         for y in range(top + 8, GROUND - 6, 10):
             for x in range(x0 + 4, x1 - 4, 8):
-                cv.rect(x, y, x + 4, y + 5, GLOW_WIN if (x * 3 + y) % 7 < 3 else c("sky", 0))
+                cv.rect(x, y, x + 4, y + 5, GLOW_WIN if (x * 3 + y) % 7 < lit else c("sky", 0))
+                if lit > 3 and (x * 5 + y * 3) % 7 == 0 and (x * 3 + y) % 7 < lit:   # at night: a lamp, not the big light
+                    cv.rect(x, y, x + 4, y + 5, c("amber", 3))
     top = GROUND - STOREY * len(STOREYS)
     cv.rect(BX0, top, BX1, GROUND, c("wall", 3))                     # the facade
     cv.rect(BX0, top - 4, BX1, top, c("wall", 5))                    # parapet
@@ -151,9 +157,12 @@ def paint(count, start, host):
         print("painted", path.name, flush=True)
 
 
-def street(tower=True):
-    """The street without its windows' rooms; without the tower, its lot is built up with the neighbours' blocks."""
-    blk = blockout()
+def street(tower=True, night=None):
+    """The street without its windows' rooms; without the tower, its lot is built up with the neighbours' blocks.
+    At night (a gen_floors.NIGHTS scheme) the same street is toned before the lamps' light goes on, so it stays bright."""
+    blk = blockout(4 if night else 3)
+    tone = G.night_tone(night) if night else {}
+    dim = lambda col: tone.get(col, col)
     if PICK is None:
         art = blk.copy()
     else:
@@ -189,11 +198,12 @@ def street(tower=True):
                     px[x, y] = px[sx, y]
                 elif BX0 - 2 <= x < BX1 + 2 or y < 150:                  # sky where the tower stood, from a clear
                     px[x, y] = px[76 + x % 4, y]                         # column down to the lowest roof
+    G.recolour(art, tone, (0, 0, EW, EH))
     if PICK is not None:
         def glow(x, y, col, cy, r):                                      # a 3-step Bayer ramp toward the lamp light
             d = min(((x - lx) ** 2 + (y - cy) ** 2) ** 0.5 for lx in LAMPS)
             lv = min(3, int((1 - d / r) * 3 + G.BAYER[y % 4][x % 4] / 16))
-            return col if lv <= 0 else tuple(round(v + (g - v) * (0, 0.35, 0.65, 0.95)[lv]) for v, g in zip(col, c("amber", 5)))
+            return col if lv <= 0 else tuple(round(v + (g - v) * (0, 0.35, 0.65, 0.95)[lv]) for v, g in zip(col, c("amber", 3 if night else 5)))
 
         for x0, x1, top in NEIGHBOURS + infill:                          # the lamps' halos, on wall pixels only
             for y in range(top + 3, GROUND):
@@ -206,7 +216,7 @@ def street(tower=True):
         for x in range(196, 322):                                        # the crane, on the painting's own sky
             for y in range(6, GROUND - STOREY * len(STOREYS) - 5):       # (its dither repeats every 4 px)
                 col = blk.getpixel((x, y))
-                px[x, y] = col if tower and col != blk.getpixel((0, y)) else px[x % 4, y]
+                px[x, y] = dim(col) if tower and col != blk.getpixel((0, y)) else px[x % 4, y]
         for x0, y0 in ((166, 272), (311, 280)) if tower else ():         # the slots beside the ground floor
             for y in range(y0 + 1, GROUND):
                 for x in range(x0, x0 + 3):
@@ -216,19 +226,45 @@ def street(tower=True):
                 d = min(abs(x - lx) for lx in LAMPS)
                 b = G.BAYER[y % 4][x % 4] / 16
                 if y < GROUND + 6:                                       # slabs, lit under the lamps
-                    col = glow(x, y, c("wall", 4), y, 30)
-                    col = c("cream", 1) if x % 24 == 0 else col
+                    col = glow(x, y, dim(c("wall", 4)), y, 30)
+                    col = dim(c("cream", 1)) if x % 24 == 0 else col
                 elif y < GROUND + 8:
-                    col = c("cream", 2) if y == GROUND + 6 else c("wall", 3)
+                    col = dim(c("cream", 2)) if y == GROUND + 6 else dim(c("wall", 3))
                 elif y == GROUND + 8:
                     col = INK
                 elif y < GROUND + 16 and (1 - d / 7) * (1 - (y - GROUND - 9) / 7) > b:
                     col = c("amber", 2)                                  # the lamps' reflections
                 elif y == GROUND + 17 and (x - 6) % 24 < 10:
-                    col = c("grey", 4)
+                    col = dim(c("grey", 4))
                 else:
-                    col = c("dark", 2)
+                    col = c("dark", 2)                                   # the road stays: darker sits on the cards' panel
                 px[x, y] = col
+    return art
+
+
+def night_street(scheme):
+    """The street after dark, its windows still empty: each sign's colour spilling onto the facade round its frame, the
+    lobby's light on the pavement, and the stars."""
+    art = street(night=scheme)
+    px, cv, sky = art.load(), G.Layer(art), G.night_sky(scheme)
+    for key, (x0, y0, x1, y1) in windows().items():
+        if key in G.SIGNS:
+            for y in range(y0 - 6, y1 + 6):
+                for x in range(x0 - 2, x1 + 2):
+                    d = max(y0 - 2 - y, y - y1 - 1)                      # how far above or below the frame
+                    if 0 < d <= 4 and px[x, y] != INK and G.BAYER[y % 4][x % 4] < 15 - 3 * d:
+                        px[x, y] = c(G.FLOORS[key][1], 2)
+    x0, _, x1, _ = windows()["L"]
+    for y in range(GROUND + 1, GROUND + 6):
+        for x in range(x0, x1):
+            if G.BAYER[y % 4][x % 4] < 15 - 3 * (y - GROUND):
+                px[x, y] = c("amber", 1 if y > GROUND + 2 else 2)
+    for box, count, seed in (((0, 1, 170, 150), 70, 1), ((170, 1, 310, 78), 40, 2), ((310, 1, EW, 150), 70, 3)):
+        G.scatter(cv, box, count, seed, sky)
+    for x, y in ((38, 14), (116, 52), (148, 22), (184, 58), (262, 44), (344, 16), (396, 60), (452, 30)):
+        G.big_star(cv, x, y, sky)
+    if scheme.get("moon"):                                               # low: clear of what pixel.js repeats (x < 96, x >= 408,
+        G.moon(cv, 150, 96, sky)                                         # the phones' sky patch) and of the bar, on a phone too
     return art
 
 
@@ -255,8 +291,8 @@ def lit_sign(room, key):
     return out
 
 
-def build(out):
-    art = street()
+def build(out, night=None):
+    art = night_street(night) if night else street()
     wins = windows()
     strip = Image.new("RGB", (EW * G.FRAMES, EH))
     missing = [f"floor-{k}.png" for k in LOOK if k != "R" and not (out / f"floor-{k}.png").exists()]
@@ -271,7 +307,21 @@ def build(out):
             sx, sy = LOOK[key]
             room = floors[key].crop((f * G.W + sx, sy, f * G.W + sx + x1 - x0, sy + y1 - y0))
             img.paste(lit_sign(room, key) if key in G.SIGNS else room, (x0, y0))
+        if night:
+            cv = G.Layer(img)
+            for box in ((0, 2, 170, 120), (170, 2, 310, 78), (310, 2, EW, 120)):
+                cv.twinkle(box, f, 11, col=c("cream", 5), on=G.night_sky(night))
+            if f % 4 < 2:
+                cv.rect(285, 9, 287, 11, G.GLOW["red"])                  # the crane's warning light, as on the roof
+            for k, (x, y) in enumerate(BEDTIME):                         # and the street goes to bed, a window at a time
+                if (k + f // 3) % 3 == 0:
+                    cv.rect(x, y, x + 4, y + 5, c("sky", 0))
         strip.paste(img, (f * EW, 0))
+    if night:
+        strip.save(out / "exterior-night.png")
+        G.build("R", out, night)
+        print("drew exterior at night")
+        return
     strip.save(out / "exterior.png")
     (out / "exterior.json").write_text(json.dumps({"size": [EW, EH], "windows": wins}))
     street(tower=False).save(out / "backdrop.png")                       # the other pages' scene: one still frame
@@ -285,6 +335,8 @@ if __name__ == "__main__":
     ap.add_argument("--count", type=int, default=4)
     ap.add_argument("--start", type=int, default=400)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
+    ap.add_argument("--time", choices=["dusk", "night"], default="dusk")
+    ap.add_argument("--night", choices=list(G.NIGHTS), default=G.NIGHT)
     a = ap.parse_args()
     if a.cmd == "blockout":
         blockout().resize((EW * 3, EH * 3), Image.NEAREST).save(Path(a.out) / "exterior-blockout.png")
@@ -292,4 +344,4 @@ if __name__ == "__main__":
     elif a.cmd == "paint":
         paint(a.count, a.start, a.host)
     else:
-        build(Path(a.out))
+        build(Path(a.out), G.NIGHTS[a.night] if a.time == "night" else None)

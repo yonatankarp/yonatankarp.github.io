@@ -180,8 +180,12 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
     <section class="building-stop" id="floor-L" data-floor="L" aria-labelledby="fL">
       <article class="floor-card" style="--accent:{{ index $accent "L" }}">
         <header><span class="floor-badge">L</span><span class="floor-company">Lobby</span><span class="floor-when">{{ $home.about.kicker }}</span></header>
-        {{- /* The garage is off the ride up (guide.js): its sign is in the lobby. */}}
-        <p class="floor-end"><a href="#floor-P" data-goto="P">Down to the garage: projects ↓</a></p>
+        {{- /* The garage is off the ride up (guide.js): its sign is in the lobby. Under it, the blog's newsstand, drawn in
+             the lobby's painting: the newest post, its title up to any subtitle. */}}
+        <div class="floor-signs">
+          <p class="floor-end"><a href="#floor-P" data-goto="P">Down to the garage: projects ↓</a></p>
+          {{ with index $posts 0 }}<p class="floor-end">Latest writing: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a> · <a href="{{ "blog/" | relURL }}">All posts</a></p>{{ end }}
+        </div>
         {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
         <h2 id="fL" tabindex="-1">{{ $home.testimonials.title }}</h2>
         <ul class="floor-quotes">
@@ -189,8 +193,6 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
           <li><q>{{ strings.TrimSuffix "." .Params.pullQuote }}</q> <cite>{{ .Params.name }}, {{ .Params.position }}</cite></li>
           {{ end }}
         </ul>
-        {{- /* The blog's newsstand, drawn in the lobby's painting: the newest post, its title up to any subtitle. */}}
-        {{ with index $posts 0 }}<p class="floor-end">Latest writing: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a> · <a href="{{ "blog/" | relURL }}">All posts</a></p>{{ end }}
         {{ with $skills }}<p class="floor-skills">Stack: {{ delimit .Params.working_set ", " }}</p>{{ end }}
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">Step inside</button></div>
       </article>

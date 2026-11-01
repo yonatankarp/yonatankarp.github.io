@@ -1,7 +1,7 @@
 # /// script
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]   # numpy: pixelate
 # ///
-"""The street view: the whole building at dusk, its windows showing the live rooms. The landing view.
+"""The street view: the whole building at dusk, its windows lit with each floor's company sign. The landing view.
 
 Run: uv run web3d/pixel/gen_exterior.py blockout            # the code blockout, for a look
      uv run web3d/pixel/gen_exterior.py paint [--count N]   # Draw Things repaints the blockout (port 7860)
@@ -11,7 +11,8 @@ Run: uv run web3d/pixel/gen_exterior.py blockout            # the code blockout,
 The blockout fixes what the model must not move: the number of storeys, the window grid, the entrance, the garage
 and the crane. The model repaints it into the rooms' style; the picked painting is pixelated with the floors'
 palette and colour match, then the blockout's windows are pasted back and filled with 1:1 crops of each floor's
-strip, frame by frame, so the street view animates in step with the floors. Build the floors first.
+strip, frame by frame, so the street view animates in step with the floors: floors 1-7 dimmed behind their company's
+lit sign (G.SIGNS), the lobby and the garage as they are. Build the floors first.
 """
 import argparse
 import base64
@@ -41,7 +42,8 @@ c, INK = G.c, G.INK
 GLOW_WIN = G.GLOW["amber"]
 
 # Where each window looks into its floor's strip (x, y of the slice's top-left, in strip pixels): the room's
-# signature props. The window's size decides the slice's size.
+# signature props, dimmed behind the sign on 1-7, so flying in, the sign fades into the room. The window's size
+# decides the slice's size.
 LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (250, 64), "5": (222, 54), "6": (230, 96),
         "7": (205, 86), "R": (0, 0), "L": (246, 122), "P": (166, 78)}
 NEIGHBOURS = ((0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
@@ -230,6 +232,29 @@ def street(tower=True):
     return art
 
 
+def lit_sign(room, key):
+    """A storey's window at dusk: its room dimmed to the floor's accent, and the company's sign lit in front of it,
+    its light spilling a few pixels onto the room."""
+    accent, ww, wh = G.FLOORS[key][1], room.width, room.height
+    sign = Image.new("RGBA", (ww, wh), (0, 0, 0, 0))
+    probe = G.sign(G.Layer(Image.new("RGBA", (ww, wh))), key, 0, 0)       # its size, to centre it
+    x, y = (ww - probe[2]) // 2, (wh - probe[3]) // 2
+    x0, y0, x1, y1 = G.sign(G.Layer(sign), key, x, y)
+    out, px, sp = room.copy(), room.load(), sign.load()
+    q = out.load()
+    for j in range(wh):
+        for i in range(ww):
+            if sp[i, j][3]:
+                q[i, j] = sp[i, j][:3]
+                continue
+            r, g, b = px[i, j]
+            lv = 0 if r * 3 + g * 6 + b < 900 else 1 if r * 3 + g * 6 + b < 1700 else 2
+            d = max(x0 - i, i - x1 + 1, y0 - j, j - y1 + 1)                  # how far outside the sign
+            lv += d <= 3 and G.BAYER[j % 4][i % 4] < 16 - 4 * d
+            q[i, j] = c(accent, lv)
+    return out
+
+
 def build(out):
     art = street()
     wins = windows()
@@ -244,7 +269,8 @@ def build(out):
             if key == "R":
                 continue
             sx, sy = LOOK[key]
-            img.paste(floors[key].crop((f * G.W + sx, sy, f * G.W + sx + x1 - x0, sy + y1 - y0)), (x0, y0))
+            room = floors[key].crop((f * G.W + sx, sy, f * G.W + sx + x1 - x0, sy + y1 - y0))
+            img.paste(lit_sign(room, key) if key in G.SIGNS else room, (x0, y0))
         strip.paste(img, (f * EW, 0))
     strip.save(out / "exterior.png")
     (out / "exterior.json").write_text(json.dumps({"size": [EW, EH], "windows": wins}))

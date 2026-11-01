@@ -66,6 +66,105 @@ FONT = {  # 3x5 glyphs for the lift display
     "P": ["##.", "#.#", "##.", "#..", "#.."],
 }
 
+# --- Company signs: each storey's logo on a cream plaque, lit in its street window (gen_exterior.lit_sign) ---------
+# Traced from the companies' own artwork, box-filtered to the plaque's height and cleaned by hand (baked like FONT):
+# Inuitive, inuitive-tech.com's 2017 logo; NiCE, nice.com's header; SumUp, Wikimedia Commons File:SumUp Logo.svg;
+# Billie, billie.io's header; Reichman University, en.wikipedia File:Reichman University.svg (its wordmark lettered at
+# this size, without the arc of stars, which reads as dots).
+# 'k' is INK, 'b' the brand's blue, 'B' its lit top, 'd' its shade, '.' the plaque.
+LOGOS = {
+    "reichman": [
+        "bbbb.............b........................b...b.....................................",
+        "b...b......b.....b........................b...b......b....................b..b......",
+        "b...b..bb.....bb.bbb..bbbb...bb..bbb......b...b.bbb....b...b..bb..b.b..bb...bbb.b..b",
+        "bbbb..b..b.b.b...b..b.b.b.b....b.b..b.....b...b.b..b.b.b...b.b..b.bb..b...b..b..b..b",
+        "b.b...bbbb.b.b...b..b.b.b.b..bbb.b..b.....b...b.b..b.b..b.b..bbbb.b....b..b..b..b..b",
+        "b..b..b....b.b...b..b.b.b.b.b..b.b..b.....b...b.b..b.b..b.b..b....b.....b.b..b...bbb",
+        "b...b..bbb.b..bb.b..b.b.b.b..bbb.b..b......bbb..b..b.b...b....bbb.b...bb..b...b....b",
+        "................................................................................b..b",
+        ".................................................................................bb.",
+    ],
+    "inuitive": [
+        "...............bBBBBBBBb...............",
+        ".............bbbbbbbbbbbbb.............",
+        "............bbbbbbbbbbbbbbb............",
+        "...........bbbbbbbbbbbbbbbbd...........",
+        "............bbbbbbbbbbbbbbd............",
+        "..............ddddddddddd..............",
+        ".......................................",
+        ".......................................",
+        "k..k..k..k..k..k..kkkkk..k..k...k..kkkk",
+        "k..kk.k..k..k..k....k....k..k...k..k...",
+        "k..k.kk..k..k..k....k....k...k.k...kkk.",
+        "k..k..k..k..k..k....k....k...k.k...k...",
+        "k..k..k...kk...k....k....k....k....kkkk",
+    ],
+    "nice": [
+        ".........BB...............",
+        "kkk...kk.Bb...kkkk..kkkkkk",
+        "kkk...kk.....kkkkkk.kkkkkk",
+        "kkkk..kk.kk.kkk..kk.kk....",
+        "kk.k..kk.kk.kk......kk....",
+        "kk.kk.kk.kk.kk......kkkkk.",
+        "kk..k.kk.kk.kk......kk....",
+        "kk..kkkk.kk.kkk..kk.kk....",
+        "kk...kkk.kk..kkkkkk.kkkkkk",
+        "kk...kkk.kk...kkkk..kkkkkk",
+    ],
+    "sumup": [
+        ".kkkkkkkkkkkkk....................................",
+        "kkkkkkkkkkkkkkk...................................",
+        "kkkkkk..kkkkkkk...................................",
+        "kkkk....kkkkkkk...................................",
+        "kkkk...kkkkkkkk.....kk...k..k...kk.kk...k..k...kk.",
+        "kkk...kkkkkkkkk....k..k..k..k..k..k..k..k..k..k..k",
+        "kkk...kkkkkkkkk....k.....k..k..k..k..k..k..k..k..k",
+        "kkkk.kkkkk.kkkk.....kk...k..k..k..k..k..k..k..k..k",
+        "kkkkkkkkk...kkk.......k..k..k..k..k..k..k..k..k..k",
+        "kkkkkkkkk...kkk....k..k..k..k..k..k..k..k..k..k..k",
+        "kkkkkkkk...kkkk.....kk....kk...k..k..k...kk...kkk.",
+        "kkkkkkk....kkkk...............................k...",
+        "kkkkkkk..kkkkkk...............................k...",
+        "kkkkkkkkkkkkkkk...............................k...",
+        ".kkkkkkkkkkkkk....................................",
+    ],
+    "billie": [
+        "..kkkk......kk..kk...kk...kk.........",
+        ".kkkkkk.....kk..kk...kk...kk.........",
+        "kkk..kkk........kk...kk..............",
+        "kk....kk........kk...kk..............",
+        "kk....kk....kk..kk...kk...kk....kkk..",
+        "kkkkkkkk....kk..kk...kk...kk...kk.kk.",
+        "kk....kkkk..kk..kk...kk...kk..kk...kk",
+        "kk...k..kk..kk..kk...kk...kk..kk...kk",
+        "kk..k...kk..kk..kk...kk...kk..kkkkkkk",
+        "kk.k....kk..kk..kk...kk...kk..kk.....",
+        "kkk.....kk..kk..kk...kk...kk..kk.....",
+        "kkkkkkkkk...kk..kkk..kkk..kk...kkkkkk",
+        "kkkkkkkk....kk...kkk..kkk.kk....kkkk.",
+    ],
+}
+LETTERS = {  # 5x7 caps for the team plates
+    "A": [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+    "C": [".###.", "#...#", "#....", "#....", "#....", "#...#", ".###."],
+    "D": ["####.", "#...#", "#...#", "#...#", "#...#", "#...#", "####."],
+    "E": ["####", "#...", "#...", "###.", "#...", "#...", "####"],
+    "I": ["###", ".#.", ".#.", ".#.", ".#.", ".#.", "###"],
+    "K": ["#...#", "#..#.", "#.#..", "##...", "#.#..", "#..#.", "#...#"],
+    "M": ["#...#", "##.##", "#.#.#", "#.#.#", "#...#", "#...#", "#...#"],
+    "N": ["#...#", "##..#", "##..#", "#.#.#", "#..##", "#..##", "#...#"],
+    "O": [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+    "P": ["####.", "#...#", "#...#", "####.", "#....", "#....", "#...."],
+    "R": ["####.", "#...#", "#...#", "####.", "#.#..", "#..#.", "#...#"],
+    "S": [".###.", "#...#", "#....", ".###.", "....#", "#...#", ".###."],
+    "T": ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."],
+    "Y": ["#...#", "#...#", ".#.#.", "..#..", "..#..", "..#..", "..#.."],
+    " ": ["..", "..", "..", "..", "..", "..", ".."],
+}
+# key: (logo, its team's plate or None). Billie's three floors share its logo, so each names its team in the floor's accent.
+SIGNS = {"1": ("reichman", None), "2": ("inuitive", None), "3": ("nice", None), "4": ("sumup", None),
+         "5": ("billie", "CREDIT"), "6": ("billie", "RISK CORE"), "7": ("billie", "PAYMENTS")}
+
 
 def c(name, i):
     return R[name][i]
@@ -269,6 +368,38 @@ def margins(img, key):
             q[i, y] = (*edge_px(get, band_at(left, y), LOBBY_X - EDGE + i, y), 255)
             q[EDGE + i, y] = (*edge_px(get, band_at(right, y), W - 8 + i, y), 255)
     return out
+
+
+def panel(cv, x, y, w, h, face, shade):
+    """An inked board, lit from above: its bottom row in shade."""
+    cv.rect(x, y, x + w, y + h, INK)
+    cv.rect(x + 1, y + 1, x + w - 1, y + h - 1, face)
+    cv.rect(x + 1, y + h - 2, x + w - 1, y + h - 1, shade)
+
+
+def sign(cv, key, x, y):
+    """A floor's sign with its top-left at (x, y): the logo's plaque, and its team's plate beside it in the floor's
+    accent. Returns its box (x0, y0, x1, y1)."""
+    logo, team = SIGNS[key]
+    rows, accent = LOGOS[logo], FLOORS[key][1]
+    w, h = len(rows[0]) + 6, len(rows) + 4
+    panel(cv, x, y, w, h, c("cream", 5), c("cream", 4))
+    ink = {"k": INK, "b": c("blue", 3), "B": c("blue", 4), "d": c("blue", 2)}
+    for dy, row in enumerate(rows):
+        for dx, ch in enumerate(row):
+            if ch in ink:
+                cv.put(x + 3 + dx, y + 2 + dy, ink[ch])
+    if not team:
+        return x, y, x + w, y + h
+    word = ["".join(("." if i else "") + LETTERS[ch][r] for i, ch in enumerate(team)) for r in range(7)]
+    px, py, pw = x + w + 3, y + (h - 11) // 2, len(word[0]) + 6
+    panel(cv, px, py, pw, 11, c(accent, 4), c(accent, 3))
+    cv.rect(px + 1, py + 1, px + pw - 1, py + 2, c(accent, 5))                # its lit top row
+    for dy, row in enumerate(word):
+        for dx, ch in enumerate(row):
+            if ch == "#":
+                cv.put(px + 3 + dx, py + 2 + dy, INK)
+    return x, y, px + pw, y + h
 
 
 def frame_base(key, room_name, accent):

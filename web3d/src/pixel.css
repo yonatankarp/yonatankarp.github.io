@@ -408,7 +408,8 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
 }
 /* P says it is the bottom of the line; the lobby signs the way down to it. */
 .pixel .floor-end { margin: 16px 0 0; padding: 10px 14px; font-size: 15px; color: var(--text-soft); background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
-.pixel header + .floor-end { margin: 12px 0 16px; padding: 6px 14px; }   /* the lobby's sign, kept small above the title */
+.pixel .floor-signs { display: grid; gap: 8px; margin: 12px 0 16px; }   /* the lobby's signs, kept small above the title, */
+.pixel .floor-signs .floor-end { margin: 0; padding: 6px 14px; }        /* where the step-in bar cannot cover them */
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* the street leaves the card ~38svh: keep the how-to, the title and the way to get in touch in view */
   .pixel .building-stop--hero .floor-eyebrow, .pixel .building-stop--hero .floor-lead { display: none; }
   .pixel .floor-how { margin-bottom: 8px; padding-bottom: 0; border-bottom: 0; font-size: 13px; line-height: 20px; }

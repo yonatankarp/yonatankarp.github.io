@@ -239,7 +239,8 @@ function drawDoors(ctx, img, f, x0, y0, s, open) {
   ctx.restore();
 }
 
-// The street view: the whole building at dusk (web3d/pixel/gen_exterior.py), its windows live crops of the rooms.
+// The street view: the whole building at dusk (web3d/pixel/gen_exterior.py), its windows live crops of the rooms,
+// 1-7 dimmed behind each floor's company sign.
 // Its windows are buttons laid over the canvas; the street left and right of the picture repeats its neighbours.
 function streetView(base, box, stops, loaded, then) {
   const view = { img: null, since: 0, size: [480, 336], windows: {}, top: SKY, bottom: '#2a2226', at: null };
@@ -285,21 +286,31 @@ function streetView(base, box, stops, loaded, then) {
   // dashes and joints run on across the seams (art columns 95|0 on the left, 479|408 on the right).
   const SIDE = [96, 72];
   const PAD = 4;     // art pixels around each window that still take its tap: half the gap to the next floor (#45)
-  let clear = 0, sized = '';   // CSS --street-top: the bottom of whatever sits over the top of the street, read per size
+  const TOWER = 160; // on phones, the art width kept in view: the tower (x 170-310) and a sliver of its neighbours
+  const hero = stops.find((s) => s.dataset.floor === 'E');
+  let clear = 0, card = 0, sized = '';   // CSS --street-top: the bottom of whatever sits over the top of the street; card: the phone's hero card top, read per size
   function layout(w, h, dpr, wide) {   // in device pixels, sized by the CSS height; the building centred beside the card, the street under it
     const [EW, EH] = view.size, W = w / dpr, H = h / dpr, rects = Object.values(view.windows);
+    if (!wide) {   // phones: only the tower, as big as whole device pixels allow between the top bar and the card; the roof may go under the bar
+      const floors = Object.entries(view.windows).filter(([k]) => k !== 'R').map(([, r]) => r);
+      const top = Math.min(...floors.map((r) => r[1])) - PAD, bottom = Math.max(...floors.map((r) => r[3])) + PAD;
+      const foot = card || H * 0.62, s = Math.max(Math.round(dpr), Math.floor(Math.min(w / TOWER, (foot - clear) * dpr / (bottom - top))));
+      // The road's foot on the card, or, where that leaves no room, the top window just under the bar.
+      return { s, x: Math.round(w / 2 - (EW / 2) * s), y: Math.round(Math.max(clear * dpr - top * s, foot * dpr - EH * s)) };
+    }
     const top = Math.min(...rects.map((r) => r[1])) - PAD, bottom = Math.max(...rects.map((r) => r[3])) + PAD;   // the roof's window, the ground floor's
     const fit = rects.length ? (H - clear) / (bottom - top) : Infinity;   // every window between the top bar and the bottom edge
-    const s = Math.round(dpr * Math.max(1, Math.floor(Math.min(fit, wide ? Math.min(H / EH, (W - 440) / 200) : Math.min(H * 0.62 / EH, W / 200)))));
-    const cx = (wide ? 440 + (W - 440) / 2 : W / 2) * dpr;
+    const s = Math.round(dpr * Math.max(1, Math.floor(Math.min(fit, H / EH, (W - 440) / 200))));
+    const cx = (440 + (W - 440) / 2) * dpr;
     // The street at the bottom; on a short screen it sinks until the top window is clear of the top bar.
-    return { s, x: Math.round(cx - (EW / 2) * s), y: Math.max(Math.round((wide ? h : h * 0.62) - EH * s), Math.round(clear * dpr) - top * s) };
+    return { s, x: Math.round(cx - (EW / 2) * s), y: Math.max(Math.round(h - EH * s), Math.round(clear * dpr) - top * s) };
   }
   return {
     alpha: (p, at) => (at < 0 ? 0 : clamp01(1 - Math.abs(p - at))),
-    // Flying in at a floor's window (t: 0 on the street, 1 in the room). Each window is a 1:1 slice of its room,
-    // so at any whole scale the two line up through it: the camera closes in on it in whole-pixel steps, then
-    // the window opens out over the room. null without the window: the plain dissolve.
+    // Flying in at a floor's window (t: 0 on the street, 1 in the room). Each window is a 1:1 slice of its room
+    // (on 1-7 dimmed behind the company's sign, which fades into the room), so at any whole scale the two line up
+    // through it: the camera closes in on it in whole-pixel steps, then the window opens out over the room. null
+    // without the window: the plain dissolve.
     fly(key, t, w, h, dpr, wide, room) {
       const win = view.windows[key], look = LOOK[key];
       if (!win || !look) return null;
@@ -325,7 +336,7 @@ function streetView(base, box, stops, loaded, then) {
     },
     draw(ctx, f, w, h, a, dpr, wide, cam) {   // cam: a flight's scale and place, else the street's own
       if (a <= 0) return;
-      if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; }
+      if (sized !== `${w},${h}`) { sized = `${w},${h}`; clear = parseFloat(getComputedStyle(ctx.canvas).getPropertyValue('--street-top')) || 0; card = hero ? parseFloat(getComputedStyle(hero).paddingTop) : 0; }
       const [EW, EH] = view.size, { s, x, y } = cam ?? layout(w, h, dpr, wide), src = f * EW, [L, R] = SIDE;
       ctx.globalAlpha = a;   // the sky and the road's flat colours, all there is until the picture arrives
       ctx.fillStyle = view.top; ctx.fillRect(0, 0, w, y + EH * s - s);
@@ -342,7 +353,10 @@ function streetView(base, box, stops, loaded, then) {
       view.at = at;
       for (const [b, [x0, y0, x1, y1]] of buttons) {
         const css = (v) => `${v / dpr}px`;
-        Object.assign(b.style, { left: css(x + (x0 - PAD) * s), top: css(y + (y0 - PAD) * s), width: css((x1 - x0 + 2 * PAD) * s), height: css((y1 - y0 + 2 * PAD) * s) });
+        // A window under the top bar (the roof, on phones) keeps only what shows below it, or goes.
+        const top = Math.max(y + (y0 - PAD) * s, clear * dpr), bottom = y + (y1 + PAD) * s;
+        b.hidden = bottom <= top;
+        Object.assign(b.style, { left: css(x + (x0 - PAD) * s), top: css(top), width: css((x1 - x0 + 2 * PAD) * s), height: css(bottom - top) });
       }
     },
   };

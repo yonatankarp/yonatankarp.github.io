@@ -3,7 +3,7 @@ date: 2022-10-01T00:00:00+01:00
 title: "kotlin-design-patterns"
 weight: 50
 projectKind: "Technical writing / docs"
-group: "project"
+group: "library"
 draft: false
 link: "https://yonatankarp.com/kotlin-design-patterns/"
 tech: ["Kotlin", "MkDocs"]

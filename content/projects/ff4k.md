@@ -4,7 +4,7 @@ title: "ff4k"
 weight: 10
 description: "A Kotlin Multiplatform feature flag library, started after my ff4j Jakarta migration work, with typed properties and a coroutine-first API."
 projectKind: "Open source library"
-group: "project"
+group: "library"
 draft: false
 link: "https://yonatankarp.github.io/ff4k/"
 caseStudy: true

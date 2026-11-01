@@ -4,7 +4,7 @@ title: "Lorekeeper"
 weight: 14
 description: "Hotkey session notes for D&D players, kept as plain Markdown, with end-to-end encrypted sync for a party. A Tauri app with a small Rust sync server."
 projectKind: "Desktop app"
-group: "project"
+group: "app"
 draft: false
 link: "https://yonatankarp.github.io/lorekeeper/"
 caseStudy: true

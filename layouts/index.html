@@ -110,7 +110,7 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
         <p class="floor-lead">{{ $home.contact.text }}</p>
         <ul>{{ range $home.contact.priorities }}<li>{{ . }}</li>{{ end }}</ul>
         <p class="floor-skills">{{ with $home.contact.email.address }}<span class="with-copy"><a href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</span>{{ end }}{{ range $home.contact.links }}, <a href="{{ .url }}">{{ .label }}</a>{{ end }}</p>
-        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Step inside</button></div>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Read where I fit</button></div>
       </article>
       {{- /* The dialog's title, one heading on screen at a time (the card's h2 hides under it), but only one h2 on the floor.
            The lobby's panel has its own title, so it keeps its h2. */}}
@@ -149,7 +149,7 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
         {{ range $cases }}<p class="floor-case"><b>Case study · {{ .label }}</b> <span>{{ .title }}</span></p>{{ end }}
         <p class="floor-lead">{{ .Params.summary }}</p>
         <ul>{{ range first 3 .Params.highlights }}<li>{{ partial "nobreak.html" . }}</li>{{ end }}</ul>
-        {{ if $more }}<div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">{{ if not $cases }}Step inside{{ else if eq (len $cases) 1 }}Read the case study{{ else }}Read the case studies{{ end }}</button></div>{{ end }}
+        {{ if $more }}<div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">{{ if not $cases }}Read what I did{{ else if eq (len $cases) 1 }}Read the case study{{ else }}Read the case studies{{ end }}</button></div>{{ end }}
       </article>
       {{ if $more }}
       <div class="floor-panel" id="panel-{{ $floor }}" style="--accent:{{ index $accent $floor }}" tabindex="-1" role="region" aria-labelledby="pt{{ $floor }}">
@@ -182,7 +182,7 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
         <p class="floor-lead">{{ $home.education.title }}</p>
         <p class="panel-soft">Courses and workshops:</p>
         <ul>{{ range first 4 $courses }}<li>{{ .Title }} <span class="panel-soft">· {{ .Params.degree }}, {{ .Params.year }}</span></li>{{ end }}</ul>
-        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-1" aria-expanded="false">Step inside</button></div>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-1" aria-expanded="false">See all courses</button></div>
       </article>
       <div class="floor-panel" id="panel-1" style="--accent:{{ index $accent "1" }}" tabindex="-1" role="region" aria-labelledby="pt1">
         <button class="panel-back" type="button">Back to the lift</button>
@@ -215,7 +215,7 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
           <li><q>{{ strings.TrimSuffix "." .Params.pullQuote }}</q> <cite>{{ .Params.name }}, {{ .Params.position }}</cite></li>
           {{ end }}
         </ul>
-        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">Step inside</button></div>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">Read how I work</button></div>
       </article>
       <div class="floor-panel" id="panel-L" style="--accent:{{ index $accent "L" }}" tabindex="-1" role="region" aria-labelledby="ptL">
         <button class="panel-back" type="button">Back to the lift</button>
@@ -256,7 +256,7 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
           <li>Games: {{ partial "nobreak.html" (delimit $games ", ") }}.</li>
         </ul>
         <p class="floor-skills"><a href="{{ "projects/" | relURL }}">All projects</a></p>
-        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-P" aria-expanded="false">Step inside</button></div>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-P" aria-expanded="false">Read project details</button></div>
         <p class="floor-end">Bottom of the building: scroll either way to ride back up to the <a href="#floor-L" data-goto="L">lobby</a>, or <a href="#floor-R" data-goto="R">ride to the roof</a> to get in touch.</p>
       </article>
       <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }};--accent-text:#FFD77A" tabindex="-1" role="region" aria-labelledby="ptP">

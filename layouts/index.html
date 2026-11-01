@@ -43,7 +43,7 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
-{{ range $projects }}{{ if not .Params.link }}{{ errorf "%s: add `link`, where the parking panel sends the reader." .File.Path }}{{ end }}{{ end }}
+{{ range $projects }}{{ if not .Params.link }}{{ errorf "%s: add `link`, where the parking panel sends the reader." .File.Path }}{{ end }}{{ if not (in (slice "app" "library" "game" "contribution") .Params.group) }}{{ errorf "%s: set `group` to app, library, game or contribution, the sections of /projects/." .File.Path }}{{ end }}{{ end }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">
 <head>
@@ -246,7 +246,7 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
         {{ $upstream := slice }}{{ $tools := slice }}{{ $games := slice }}
         {{ range $projects }}
           {{ if eq .Params.group "contribution" }}{{ $upstream = $upstream | append (partial "project-title.html" .Title) }}
-          {{ else if in (lower .Params.projectKind) "game" }}{{ $games = $games | append .Title }}
+          {{ else if eq .Params.group "game" }}{{ $games = $games | append .Title }}
           {{ else }}{{ $tools = $tools | append .Title }}{{ end }}
         {{ end }}
         <ul>
@@ -267,8 +267,7 @@ var l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriorit
         <h3>{{ $label }}</h3>
         <ul class="panel-projects">
           {{ range $projects }}
-          {{ $isGame := in (lower .Params.projectKind) "game" }}
-          {{ $group := cond (eq .Params.group "contribution") "contribution" (cond $isGame "game" "tool") }}
+          {{ $group := cond (in (slice "contribution" "game") .Params.group) .Params.group "tool" }}
           {{ if eq $group $kind }}
           {{- /* A case study's own page first, its repository or docs second (#33). */}}
           {{ $name := partial "nobreak.html" (partial "project-title.html" .Title) }}

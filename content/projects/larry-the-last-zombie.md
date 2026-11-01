@@ -2,7 +2,7 @@
 date: 2015-11-01T00:00:00+01:00
 title: "Larry the Last Zombie"
 weight: 110
-group: "project"
+group: "game"
 projectKind: "Game"
 draft: false
 link: "https://www.youtube.com/watch?v=g5oVn83AvBI"

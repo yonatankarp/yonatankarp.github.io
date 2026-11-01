@@ -1,7 +1,10 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    directory: "/"
+    # "/" only reaches .github/workflows, not the local composite action.
+    directories:
+      - "/"
+      - "/.github/actions/build-site"
     schedule:
       interval: "weekly"
 

@@ -1,14 +1,18 @@
-/* Pixel skin: every interface element in the same language as the rooms. Stepped 4px corners, hard 4px
-   outlines, flat fills, hard offset shadows, Jersey 15 for display, Outfit for reading. Layered over styles.css (layout and behaviour). */
+/* Career building: scrolling floor cards over the pixel scene, the elevator panel in the top bar. The pixel skin: every
+   interface element in the same language as the rooms. Stepped 4px corners, hard 4px outlines, flat fills, hard offset
+   shadows, Jersey 15 for display, Outfit for reading. */
 .building.pixel {
   --ink: #0a0b10;
   --panel: #151923;
   --panel-hi: #2b3344;
+  --well: #10131b;
   --text: #f2ece0;
   --text-soft: #d3cabb;
   --steel: #4a525c;
   --steel-hi: #97a2ac;
+  --steel-lo: #30363e;
   --amber: #ffb547;
+  --amber-hi: #ffd77a;
   --px: 4px;
   --street-top: 88px;   /* what pixel.js keeps the street's top window under: the lift's plate in the top bar */
   --display: 'Jersey 15', system-ui, sans-serif;   /* headings, floor numbers, buttons: at 15 or 30px (its grid) */
@@ -16,6 +20,43 @@
   color: var(--text);
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;   /* card and panel text the same weight */
 }
+.building-top {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px clamp(16px, 3vw, 36px);
+  pointer-events: none;
+}
+.building-top > * { pointer-events: auto; }
+
+/* Each stop is one viewport tall; its card sits over the lift core on the left. */
+.building-stops { position: relative; z-index: 2; }
+.building-stop {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+}
+.building-stop.is-here .floor-card { opacity: 1; transform: none; }
+.floor-card header { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; align-items: center; margin-bottom: 16px; }
+
+/* Guided mode (the building script is running): the page does not scroll; each stop is a fixed layer shown on arrival. */
+html.building--guided, html.building--guided body { height: 100%; overflow: hidden; }
+html.building--guided .building-stop { position: fixed; inset: 0; box-sizing: border-box; min-height: 0; pointer-events: none; visibility: hidden; transition: visibility 0s linear 560ms; }
+html.building--guided .building-stop.is-here { visibility: visible; transition-delay: 0s; }
+html.building--guided .building-stop.is-here .floor-card { pointer-events: auto; }   /* a departing card fades out, unclickable */
+.building-hint { position: fixed; bottom: 22px; transform: translateX(-50%); z-index: 3; color: #f4f1ea; pointer-events: none; transition: opacity 180ms steps(4); }   /* in whole steps, as the cards */
+html:not(.building--guided) .building-hint { display: none; }
+/* A touch screen has no arrow keys to mention, and it swipes. */
+.hint-coarse { display: none; }
+@media (pointer: coarse) { .hint-fine { display: none; } .hint-coarse { display: inline; } }
+.elevator-arrow[data-dir="down"] { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { html.building--guided .building-stop, .building-hint { transition: none; } }
+
 .pixel #pixel-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; image-rendering: pixelated; }
 /* A quiet zone for reading: the card's side of the scene is dimmed (left on wide screens, bottom on phones). */
 .pixel .building-scrim {
@@ -24,11 +65,10 @@
 }
 
 /* Stepped corners: the outline of a pixel-art box, one step of --px at each corner. */
-.pixel .px-box, .pixel .floor-card, .pixel .floor-badge, .pixel .building-download, .pixel .building-name,
+.pixel .floor-card, .pixel .floor-badge, .pixel .building-download, .pixel .building-name,
 .pixel .elevator, .pixel .building-floor-btn, .pixel .elevator-display, .pixel .building-hint, .pixel .step-in,
 .pixel .panel-back, .pixel .building-links a, .pixel .panel-case, .pixel .panel-chips i, .pixel .panel-quote img,
 .pixel .floor-card .hero-cta, .pixel .floor-panel, .pixel .building-pause, .pixel .floor-case, .pixel .floor-end, .pixel .building-social a {
-  border-radius: 0;
   clip-path: polygon(
     var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
     100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%,
@@ -54,6 +94,8 @@
 .pixel .floor-card::-webkit-scrollbar, .pixel .floor-panel::-webkit-scrollbar { width: 8px; background: var(--ink); }   /* Safari */
 .pixel .floor-card::-webkit-scrollbar-thumb, .pixel .floor-panel::-webkit-scrollbar-thumb { background: var(--steel-hi); }
 .pixel .floor-card {
+  box-sizing: border-box;
+  opacity: 0;
   transform: translateY(16px); transition: opacity 180ms steps(4), transform 180ms steps(4);   /* whole 4px steps */
   background: var(--panel);
   width: min(400px, 30vw);       /* ends over the lift lobby, clear of the room */
@@ -64,15 +106,17 @@
   scroll-padding: 12px 0 72px;   /* a link tabbed to stops clear of the pinned Step inside and keeps its focus ring */
 }
 @media (prefers-reduced-motion: reduce) { .pixel .floor-card, html.building--guided .pixel .building-stop.is-here .floor-card { transition: none; } }
-.pixel .floor-card h2 { font-family: var(--display); font-weight: 400; font-stretch: normal; font-size: 30px; line-height: 1; letter-spacing: 0.01em; }
+.pixel .floor-card h2 { margin: 0 0 12px; font-family: var(--display); font-weight: 400; font-size: 30px; line-height: 1; letter-spacing: 0.01em; }
 .pixel .floor-company { font-size: 15px; font-weight: 500; }
-.pixel .floor-when { font-size: 15px; color: var(--text-soft); }
-.pixel .floor-lead { font-size: 16px; line-height: 24px; }
-.pixel .floor-card ul { font-size: 15px; line-height: 24px; color: var(--text); padding-left: 0; list-style: none; }
-.pixel .floor-card li { position: relative; padding-left: 20px; }
+.pixel .floor-when { font-size: 15px; font-variant-numeric: tabular-nums; color: var(--text-soft); }
+.pixel .floor-lead { margin: 0 0 16px; font-size: 16px; line-height: 24px; color: #fff; }
+.pixel .floor-card ul { margin: 0; font-size: 15px; line-height: 24px; color: var(--text); padding-left: 0; list-style: none; }
+.pixel .floor-card li { position: relative; padding-left: 20px; margin-bottom: 8px; }
 .pixel .floor-card li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 8px; height: 8px; background: var(--accent, var(--amber)); }
-.pixel .floor-skills { font-size: 15px; line-height: 24px; color: var(--text-soft); border-top: 4px solid var(--panel-hi); }
+.pixel .floor-skills { margin: 16px 0 0; padding-top: 14px; font-size: 15px; line-height: 24px; color: var(--text-soft); border-top: 4px solid var(--panel-hi); }
 .pixel .floor-badge {
+  grid-row: span 2;
+  display: grid; place-items: center;
   width: 48px; height: 48px;
   background: var(--accent, var(--amber));
   color: var(--ink);
@@ -85,16 +129,15 @@
   background: var(--panel);
   box-shadow: inset 0 0 0 4px var(--ink);
   display: flex; align-items: center; box-sizing: border-box; height: 56px; padding: 0 18px;
-  font-family: var(--display); font-weight: 400; font-stretch: normal; font-size: 30px; letter-spacing: 0; color: var(--text);
-  backdrop-filter: none;
+  font-family: var(--display); font-weight: 400; font-size: 30px; letter-spacing: 0; color: var(--text); text-decoration: none;
 }
 .pixel .building-download {
-  border-radius: 0;
+  display: inline-flex; align-items: center; gap: 10px;
   background: var(--amber);
-  color: var(--ink);
+  color: var(--ink); text-decoration: none;
   font-family: var(--display); font-size: 30px; font-weight: 400;
   padding: 0 20px; min-height: 56px;
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a, inset -4px -4px 0 4px #d38f1b;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--amber-hi), inset -4px -4px 0 4px #d38f1b;
   transition: transform 80ms steps(1);
 }
 .pixel .building-download:hover { background: #ffc46a; }
@@ -104,37 +147,36 @@
 /* Elevator: a steel plate in the top bar (it never covers the current room), the display first, then the floors
    top to bottom, in DOM order so Tab follows what the eye sees. */
 .pixel .elevator {
+  position: fixed;
+  z-index: 3;
   top: 20px;
-  right: auto;
   left: 50%;
   transform: translateX(-50%);
-  flex-direction: row;
-  width: auto;
-  border: 0;
-  border-radius: 0;
+  display: flex;
+  align-items: center;
   background: var(--steel);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--steel-hi), inset -4px -4px 0 4px #30363e;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--steel-hi), inset -4px -4px 0 4px var(--steel-lo);
   padding: 8px 14px;
   gap: 8px;
 }
-.pixel .elevator-display { margin: 0 4px 0 0; }
 .pixel .elevator-display {
-  border-radius: 0;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  margin: 0 4px 0 0;
   width: 48px; height: 40px;
   background: #1a1208;
   box-shadow: inset 0 0 0 4px var(--ink);
-  font: 400 30px/1 var(--display); font-variant-numeric: normal;
-  text-shadow: none;
+  color: var(--amber);
+  font: 400 30px/1 var(--display);
 }
-.pixel .elevator-arrow { border-left-width: 6px; border-right-width: 6px; border-bottom-width: 8px; }
+.pixel .elevator-arrow { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid var(--amber); }
 .pixel .building-floor-btn {
   width: 44px; height: 40px;
   display: grid; place-items: center; text-decoration: none;   /* a link, for the plain page */
-  border: 0; border-radius: 0;
-  background: #30363e;
+  background: var(--steel-lo);
   color: var(--text);
+  cursor: pointer;
   font: 400 30px/1 var(--display);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #4a525c;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--steel);
   transition: transform 80ms steps(1);
 }
 .pixel .building-floor-btn:hover { background: #3c434c; }
@@ -142,7 +184,7 @@
 .pixel .building-floor-btn[aria-current="true"] {
   background: var(--amber);
   color: var(--ink);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--amber-hi);
 }
 /* The stepped clip-path cuts any outline away, so focus is a ring drawn inside the box: cream, then ink. */
 .pixel .building-name:focus-visible, .pixel .building-floor-btn:focus-visible, .pixel .building-download:focus-visible,
@@ -150,7 +192,7 @@
 .pixel .floor-card .hero-cta:focus-visible, .pixel .building-pause:focus-visible, .pixel .building-social a:focus-visible {
   outline: none; box-shadow: inset 0 0 0 4px var(--text), inset 0 0 0 8px var(--ink);
 }
-.pixel .building-hint { left: calc(50% + 12px + min(200px, 15vw)); white-space: nowrap; border-radius: 0; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; }
+.pixel .building-hint { left: calc(50% + 12px + min(200px, 15vw)); white-space: nowrap; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; }
 
 /* Registered as a length so pixel.js reads it in pixels: the room's floor sits behind the elevator, above the card. */
 @property --card-top { syntax: '<length>'; inherits: true; initial-value: 0px; }
@@ -193,7 +235,6 @@
   content: attr(aria-label); position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); white-space: nowrap;
   padding: 6px 10px; font: 500 15px/1 'Outfit', system-ui, sans-serif; color: var(--text); background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink);
 }
-.pixel .building-stop--hero .floor-card { width: min(400px, 30vw); }
 .pixel .floor-eyebrow { margin: 0 0 12px; font-size: 15px; line-height: 24px; font-weight: 500; color: var(--accent, var(--amber)); }
 .pixel .floor-card h1 { margin: 0 0 16px; font-family: var(--display); font-weight: 400; font-size: 45px; line-height: 1; }
 .pixel .floor-quotes li { margin-bottom: 12px; padding-left: 0; }
@@ -202,15 +243,15 @@
 .pixel .floor-quotes cite { display: block; font-style: normal; color: var(--text-soft); }
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
   .pixel .elevator { padding: 6px 4px; gap: 2px; }   /* 326px wide: it fits the narrowest guided screen (360px) */
-  .pixel .building-floor-btn { width: 30px; height: 44px; font-size: 30px; }
+  .pixel .building-floor-btn { width: 30px; height: 44px; }
   .pixel .floor-card h1 { font-size: 30px; }
-}
-@media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* outside, the windows are the way in: the card sits under the street */
+  /* Outside, the windows are the way in: the card sits under the street. */
   html.building--guided.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
   /* The card takes its own height at the bottom and the street stands on it (pixel.js). Only on a short phone does it
      stop rising: the bottom windows (P and L, 235 art pixels under the cornice) stay out from under it and it scrolls (#45). */
   .pixel .building-stop--hero { padding-top: calc(var(--street-top) + 240px); }
-  .pixel .building-stop--hero .floor-card { width: 100%; padding-top: 12px; padding-bottom: 10px; }
+  .pixel .building-stop--hero .floor-card { padding-top: 12px; padding-bottom: 10px; }
+  .pixel .building-download span { display: none; }   /* a portrait monitor over 1279px wide: the icon alone */
 }
 @media (max-width: 1279px) {   /* ten lift buttons leave no room for the label between the name and the panel */
   .pixel .building-download span { display: none; }
@@ -222,8 +263,7 @@
 @media (min-width: 761px) and (max-width: 1279px) and (min-aspect-ratio: 1201/1000) {   /* tablets: a wider hero card with a smaller title, so it is not six lines */
   .pixel .building-stop--hero .floor-card { width: min(400px, 40vw); }
   .pixel .floor-card h1 { font-size: 30px; }
-}
-@media (min-width: 761px) and (max-width: 1279px) and (min-aspect-ratio: 1201/1000) {   /* the panel moves beside the download button, clear of the name */
+  /* The panel moves beside the download button, clear of the name. */
   .pixel .elevator { left: auto; right: 96px; transform: none; padding: 8px 10px; gap: 4px; }
   .pixel .building-floor-btn { width: 36px; height: 40px; }   /* 56px tall like the name and download, the plate's bevel showing as on desktop */
 }
@@ -334,16 +374,16 @@ html.panel-open .pixel .building-hint { visibility: hidden; }
 .pixel .floor-panel ul { list-style: none; padding: 0; margin: 0; font-size: 15px; line-height: 24px; }
 .pixel .floor-panel li { position: relative; padding-left: 20px; margin-bottom: 9px; }
 .pixel .floor-panel li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 8px; height: 8px; background: var(--accent, var(--amber)); }
-.pixel .panel-case { background: #10131b; padding: 18px 20px; box-shadow: inset 0 0 0 4px var(--ink); }
+.pixel .panel-case { background: var(--well); padding: 18px 20px; box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .panel-case h4 { font-size: 17px; line-height: 24px; font-weight: 600; margin: 4px 0 8px; }
-.pixel .panel-k { font: 400 15px/1 var(--display) !important; color: var(--text-soft); margin: 14px 0 4px !important; }
-.pixel .panel-case .panel-k:first-child { margin-top: 0 !important; }
+.pixel .floor-panel .panel-k { font: 400 15px/1 var(--display); color: var(--text-soft); margin: 14px 0 4px; }
+.pixel .panel-case .panel-k:first-child { margin-top: 0; }
 .pixel .panel-facts { display: grid; grid-template-columns: 120px 1fr; gap: 6px 16px; font-size: 15px; line-height: 24px; margin: 4px 0 0; }
 .pixel .panel-facts dt { color: var(--text-soft); } .pixel .panel-facts dd { margin: 0; }
 .pixel .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
 .pixel .panel-grid b { display: block; font-weight: 600; font-size: 15px; line-height: 24px; }
 .pixel .panel-grid span { display: block; font-size: 15px; line-height: 24px; color: var(--text-soft); }
-.pixel .panel-chips { display: flex !important; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.pixel span.panel-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
 .pixel .panel-chips i { font-style: normal; font-size: 13px; line-height: 20px; padding: 2px 8px; color: var(--text); background: var(--panel-hi); box-shadow: inset 0 0 0 2px var(--ink); --px: 2px; }
 /* The lobby's framed portrait: ink line, a gilt frame in the floor's accent, ink line, then the photo. */
 .pixel .floor-portrait {
@@ -384,7 +424,7 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
   position: fixed; z-index: 10; transform: translateY(-200%);
   top: 20px; left: clamp(16px, 3vw, 36px); padding: 12px 18px;
   background: var(--amber); color: var(--ink); font: 400 30px/1 var(--display); text-decoration: none;
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px #ffd77a;
+  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--amber-hi);
 }
 .pixel .skip-link:focus { transform: none; }
 .pixel .skip-link:focus-visible { outline: 4px solid var(--text); outline-offset: 4px; }
@@ -400,7 +440,7 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
   box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px rgba(255, 255, 255, 0.35);
 }
 /* A floor with a case study says so before its summary; the button opens it (#34). */
-.pixel .floor-case { margin: 0 0 14px; padding: 10px 14px; font-size: 15px; line-height: 1.45; background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
+.pixel .floor-case { margin: 0 0 14px; padding: 10px 14px; font-size: 15px; line-height: 1.45; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .floor-case b { display: block; font-weight: 500; color: var(--accent-text, var(--accent, var(--amber))); }
 /* The phone's short card, and any screen under 920px tall (#127): the case study's name, its title inside. */
 @media (max-width: 760px), (max-aspect-ratio: 6/5), (max-height: 920px) {
@@ -410,10 +450,10 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
 /* "Read the case studies" needs a 310px button at 30px: the 30vw cards under 1280px and phones under 390px take 15px. */
 @media (min-width: 761px) and (max-width: 1279px) and (min-aspect-ratio: 1201/1000), (max-width: 389px) {
   .pixel .floor-card .step-in { font-size: 15px; min-height: 44px; }
-  .pixel .floor-card .step-in::after { width: 10px; height: 10px; margin-left: 8px; mask-size: 10px 10px; }   /* the arrow at 1x, like the text */
+  .pixel .floor-card .step-in::after { width: 10px; height: 10px; margin-left: 8px; }   /* the arrow at 1x, like the text */
 }
 /* P says it is the bottom of the line; the lobby signs the way down to it. */
-.pixel .floor-end { margin: 16px 0 0; padding: 10px 14px; font-size: 15px; color: var(--text-soft); background: #10131b; box-shadow: inset 0 0 0 4px var(--ink); }
+.pixel .floor-end { margin: 16px 0 0; padding: 10px 14px; font-size: 15px; color: var(--text-soft); background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
 .pixel .floor-signs { display: grid; gap: 8px; margin: 12px 0 16px; }   /* the lobby's signs, kept small above the title, */
 .pixel .floor-signs .floor-end { margin: 0; padding: 6px 14px; }        /* where the step-in bar cannot cover them */
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {   /* the street leaves the card ~38svh: keep the how-to, the title and the way to get in touch in view */
@@ -462,7 +502,7 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
 }
 /* Short desktops (1280x720): the card widens over the lift lobby and sets its text tighter, so none scrolls (#127). */
 @media (min-width: 1280px) and (min-aspect-ratio: 1201/1000) and (max-height: 800px) {
-  .pixel .floor-card, .pixel .building-stop--hero .floor-card { width: min(440px, 34vw); }
+  .pixel .floor-card { width: min(440px, 34vw); }
   .pixel .floor-card :is(.floor-lead, ul, .floor-skills) { line-height: 22px; }
   .pixel .floor-card header { margin-bottom: 12px; }
   .pixel .floor-card h2 { margin-bottom: 8px; }

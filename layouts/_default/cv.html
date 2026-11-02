@@ -99,7 +99,7 @@
             <h3>{{ .Params.university }}</h3>
             <span>{{ .Params.year }}</span>
           </div>
-          <p class="cv-sub">{{ .Params.degree }}{{ with .Params.link }} · <a href="{{ . }}">credential</a>{{ end }}</p>
+          <p class="cv-sub">{{ .Params.degree }}{{ with .Params.link }} · <a href="{{ . | absURL }}">credential</a>{{ end }}</p>
           {{ with .Params.teaching }}<ul class="cv-teaching">{{ range . }}<li>{{ .title }} <span>{{ replace .when " - " " – " }}</span></li>{{ end }}</ul>{{ end }}
         </article>
         {{ end }}

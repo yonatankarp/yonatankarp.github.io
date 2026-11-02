@@ -119,9 +119,15 @@ Create `content/projects/name.md` with a `link` and a `group` of `app`, `library
 ### New experience
 Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `duration`, `summary`, and:
 - `floor`: a quoted storey, such as `floor: "5"`, that no other entry uses. Floors 2 to 7 are the roles;
-  `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey needs art: its entry in `FLOORS` in
-  `web3d/pixel/gen_floors.py` (which writes its colour into `data/floor_accents.yaml`), a place in `ORDER` in
-  `web3d/src/art.js`, and its painting in `web3d/pixel/`.
+  `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey (a single character: `8`, `9`) needs its room:
+  its painting in `web3d/pixel/`, and in `web3d/pixel/gen_floors.py` its entry in `FLOORS` (which writes its colour
+  into `data/floor_accents.yaml`), `EDGES` and `SIGNS`, and in `gen_exterior.py` its `LOOK` (where its street window
+  looks into its strip). Then rebuild all the art, as CI does. The street needs no repaint: `stack_tower()` in
+  `gen_exterior.py` builds the tower from the painting's own storeys, and the lift's order (`ORDER` in
+  `web3d/src/art.js`) comes from `exterior.json`. Past nine storeys above ground the street's picture grows taller at
+  its top (`RISE`, also in `exterior.json`, which `web3d/src/` slides the street's rows by), so the street shows
+  smaller: with two more floors, a 1920x1080 screen goes from 3x to 2x and a 1280x720 one from 2x to 1x (1440x900
+  stays 2x).
 - `highlights`: a list; the first three show on the floor's card, the rest inside it.
 
 `layouts/index.html` fails the build naming the file when `floor` or `highlights` is wrong.

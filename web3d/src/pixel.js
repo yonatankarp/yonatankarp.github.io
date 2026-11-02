@@ -28,9 +28,13 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read l
 const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
 // The old one-page site's anchors, still linked from elsewhere, land on the floor that took their place (#29); the
 // closed newsroom's (floor 8) on the lobby, whose newsstand has the writing now.
+// A floor that exists again (a new floor 8) wins over its old anchor.
 const LEGACY = { about: 'L', testimonial: 'L', contact: 'R', experience: '7', proof: '7', 'client-and-work-section': 'P', 'floor-8': 'L' };
 // Hugo lowercases menu URLs, so the site menu's About arrives as #floor-l.
-const hashKey = () => { const h = location.hash.slice(1); return LEGACY[h] ?? (h.match(/^floor-(\w+)$/) || [])[1]?.toUpperCase(); };
+const hashKey = () => {
+  const h = location.hash.slice(1), own = (h.match(/^floor-(\w+)$/) || [])[1]?.toUpperCase();
+  return ORDER.includes(own) ? own : LEGACY[h] ?? own;
+};
 
 export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pauseButton }) {
   const ctx = canvas.getContext('2d');

@@ -4,13 +4,15 @@
 // Three still layers, one per plane a flight parts the street into (street.js): far (the weather's clouds), near (the
 // neighbours' roofs) and front (the tower and the pavement), as tall and wide as the street's picture; then what moves
 // with the street's frames: the flames and the bulbs, and the rain, the snow, the fog and the fireworks.
-import { TIME, BAYER, ART } from './art.js';
+import { TIME, BAYER, ART, SIZE } from './art.js';
 import { OUTSIDE } from './outside.js';
 
-const [EW, EH] = [480, 336];   // the street's picture (exterior.json size)
-const CORNICE = 80;     // the row just above the tower's cornice (its top line is 81): what stands on the roof's edge
-const PAVEMENT = 316;   // the pavement's front row, between its top line (310) and the kerb (318): what stands on it
-const POSTS = [40, 142, 338, 440];   // the street lamps, each with its head at rows 265-269
+const [EW, EH] = SIZE;               // the street's picture
+const RISE = ART.rise ?? 0;          // the rows a taller tower grew it by at its top: the street's sky and scenery slide down by as many
+const GROUND = ART.ground;           // the pavement's top line; the kerb is 8 rows down
+const CORNICE = ART.crane[2] - 1;    // the row just above the tower's cornice: what stands on the roof's edge
+const PAVEMENT = GROUND + 6;         // the pavement's front row: what stands on it
+const POSTS = [40, 142, 338, 440];   // the street lamps, each with its head at rows GROUND - 45 to - 41
 const TREES = [108, 372];            // clear of the 96 and 72 columns the street repeats at its ends (street.js SIDE)
 // Not lit by itself, a colour falls with the light: noon's own colours, dawn's and dusk's a little darker, night's half.
 const DIM = { day: 1, dawn: 0.82, dusk: 0.72, night: 0.5 }[TIME] ?? 0.72;
@@ -88,14 +90,14 @@ function snow(near, front) {
   };
   for (const [x0, x1, roof] of ART.neighbours) cap(near, x0 - 1, x1 + 1, roof - 1);
   cap(front, 167, 314, CORNICE + 1);
-  POSTS.forEach((x) => cap(front, x - 2, x + 3, 265));
-  for (let x = 0; x < EW; x++) for (let y = 311; y < 318; y++) if (BAYER[y & 3][x & 3] < (y < 313 ? 13 : 9)) dot(front, x, y, (x + y) % 7 ? white : blue);
+  POSTS.forEach((x) => cap(front, x - 2, x + 3, GROUND - 45));
+  for (let x = 0; x < EW; x++) for (let y = GROUND + 1; y < GROUND + 8; y++) if (BAYER[y & 3][x & 3] < (y < GROUND + 3 ? 13 : 9)) dot(front, x, y, (x + y) % 7 ? white : blue);
 }
 
 // ---- the weather's clouds: clear of the tower and the crane, and of the columns the street repeats at its ends ----
 function clouds(far, dark) {
   const top = dark ? ['#6d7480', '#565c68', '#3f444e'] : ['#d3d8df', '#aab2bd', '#878f9c'];
-  for (const [cx, cy, r] of [[128, 40, 12], [112, 112, 8], [364, 58, 12], [374, 128, 8]]) {
+  for (const [cx, cy, r] of [[128, 40 + RISE, 12], [112, 112 + RISE, 8], [364, 58 + RISE, 12], [374, 128 + RISE, 8]]) {
     for (let y = cy - r; y <= cy + 3; y++) for (let x = cx - r * 2; x <= cx + r * 2; x++) {
       const bumps = Math.min(...[-1, 0, 1].map((k) => ((x - cx - k * r) / r) ** 2 + ((y - cy + (k ? 0 : r * 0.35)) / (r * 0.8)) ** 2));
       if (bumps > 1 - 0.25 * hash(x, y, 8)) continue;
@@ -201,15 +203,15 @@ function diyas(c, glints) {
 function lanterns(c, eid) {
   const pal = eid ? { d: ['#d9a93a'], r: ['#2a9a9a', DARK], R: ['#ffe28a', DARK], t: ['#d9a93a'] } : { d: ['#d9a93a'], r: ['#d8282a', DARK], R: ['#ff6a4a', DARK], t: ['#ffcc3a'] };
   const one = ['..d..', '.ddd.', 'rrrrr', 'rRrRr', 'rRrRr', 'rrrrr', '.ddd.', '..t..', '..t..'];
-  POSTS.forEach((x) => { dot(c, x + 1, 271, '#30363e', false, 4); sprite(c, x + 3, 272, one, pal); });
-  sprite(c, 170, 276, one, pal); sprite(c, 304, 276, one, pal);
+  POSTS.forEach((x) => { dot(c, x + 1, GROUND - 39, '#30363e', false, 4); sprite(c, x + 3, GROUND - 38, one, pal); });
+  sprite(c, 170, GROUND - 34, one, pal); sprite(c, 304, GROUND - 34, one, pal);
 }
 
 // ---- what moves ----
 const RAIN = { tile: 64, count: 7, fall: 9 }, SNOW = { tile: 64, count: 9, fall: 2 };
 const drops = (k, n, tile) => Array.from({ length: n }, (_, i) => [Math.floor(hash(i, k, 11) * tile), Math.floor(hash(i, k, 12) * tile)]);
 const RAIN_AT = drops(1, RAIN.count, RAIN.tile), SNOW_AT = drops(2, SNOW.count, SNOW.tile);
-const BURSTS = [[66, 58, 0, '#ff6a6a'], [412, 46, 5, '#7ad8ff'], [118, 126, 8, '#ffe066'], [384, 118, 3, '#b48aff']];
+const BURSTS = [[66, 58, 0, '#ff6a6a'], [412, 46, 5, '#7ad8ff'], [118, 126, 8, '#ffe066'], [384, 118, 3, '#b48aff']].map(([x, y, ...rest]) => [x, y + RISE, ...rest]);
 const fogs = new Map();
 function fogPattern(ctx, s, level, colour) {
   const id = `${s},${level},${colour}`;
@@ -269,7 +271,7 @@ export function decor() {
       if (sky === 'snow') fall(SNOW, SNOW_AT, (ax, ay, i) => { const sway = ((f + i) >> 2) & 1; cell(ax + sway, ay, i % 3 ? '#eef2f6' : '#c3cfdc'); if (i % 4 === 0) cell(ax + sway + 1, ay, '#eef2f6'); });
       if (sky === 'fog') {
         const colour = tone('#c6ccd4');
-        [[200, 1], [250, 2], [290, 3]].forEach(([from, level], i, all) => {
+        [[RISE + 200, 1], [RISE + 250, 2], [RISE + 290, 3]].forEach(([from, level], i, all) => {
           const to = all[i + 1]?.[0] ?? EH, pat = fogPattern(ctx, s, level, colour);
           pat.setTransform(new DOMMatrix().translate(x, y));
           ctx.fillStyle = pat; ctx.fillRect(0, y + from * s, w, (to - from) * s);

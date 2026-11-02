@@ -8,7 +8,7 @@ Run: uv run web3d/pixel/gen_floors.py <out_dir> [KEY ...]
 Every floor is a 480x180 side-on cutaway: slab, room, slab. Between the slabs is one Draw Things painting
 (paint_rooms.py: the lift lobby carried on into that floor's room) pixelated onto this palette (install_picks.py);
 the slabs, the floor number and everything that moves are drawn here, in the painting's own colours. Each floor writes
-floor-<key>.png, a horizontal strip of FRAMES animation frames. The browser (web3d/src/pixel.js) slides the
+floor-<key>.webp, a horizontal strip of FRAMES animation frames. The browser (web3d/src/pixel.js) slides the
 lift doors itself, using DOOR below.
 """
 import math
@@ -26,6 +26,26 @@ LOBBY_X, ROOM_X = 8, 140      # the lobby painting spans 8..140 (under the text 
 HOUSING_X = LOBBY_X + 107   # on the roof, the lift housing ends with the pasted lift (install_picks.LIFT)
 DOOR = dict(x0=51, x1=96, mid=74, y0=72, y1=153)   # lift doors in floor pixels; pixel.js mirrors these numbers
 PICKS = Path(__file__).resolve().parent / "paintings" / "picks"
+
+
+def save_lossless(im, path):
+    """Write the art as small as it goes without changing a pixel (#184): lossless WebP for a .webp path, else a PNG
+    indexed on the picture's own colours (the art has well under 256). Read back and checked before it returns."""
+    path = Path(path)
+    ref = im.convert("RGBA" if "A" in im.getbands() or "transparency" in im.info else "RGB")
+    if path.suffix == ".webp":
+        ref.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)   # exact: keeps a clear pixel's colour
+    elif colours := ref.getcolors(256):
+        pal = [c for _, c in colours]
+        index = {c: i for i, c in enumerate(pal)}
+        p = Image.new("P", ref.size)
+        p.putdata([index[c] for c in ref.getdata()])
+        p.putpalette([v for c in pal for v in c], rawmode=ref.mode)
+        p.save(path, optimize=True)
+    else:
+        ref.save(path, optimize=True)
+    with Image.open(path) as back:
+        assert back.convert("RGBA").tobytes() == ref.convert("RGBA").tobytes(), f"{path} does not read back as drawn"
 
 
 def ramp(*hexes):
@@ -767,8 +787,8 @@ FLOORS = {  # key: (painting, accent ramp, animation), bottom to top
 
 
 # --- The time of day (#151): baked variants, never a filter or a runtime recolour --------------------------------------
-# Dusk is the plain files. Each entry of PHASES bakes exterior-<name>.png, floor-R-<name>.png and floor-P-<name>.png (and
-# floor-L-<name>.png with a "door"), so one more entry is one more variant; pixel.js lists the phases it picks from.
+# Dusk is the plain files. Each entry of PHASES bakes exterior-<name>.webp, floor-R-<name>.webp and floor-P-<name>.webp (and
+# floor-L-<name>.webp with a "door"), so one more entry is one more variant; pixel.js lists the phases it picks from.
 # "sky": the dusk bands, top to horizon (the street's end at sky 5, the roof's run on to amber 5), shared by every picture,
 # so their dissolve shows no seam. "skyline": the roof's far city, under SKYLINE. "down": the steps down every ramp takes;
 # "tone": what stands against the sky, after that. "lit": how many sevenths of the neighbours' windows are on; "lamp": the
@@ -1000,7 +1020,7 @@ def build(key, out, phase=None):
             scatter(Layer(edges), (EDGE, 16, 2 * EDGE, 96), 80, 153, open_sky(scheme))   # its top rows also the sky above it
         clouds(Layer(edges), [(EDGE + x, y, w) for x, y, w in EDGE_CLOUDS], scheme, open_sky(scheme))
     strip.paste(edges, (W * FRAMES, 0))
-    strip.save(out / f"floor-{key}{'-' + phase if phase else ''}.png")
+    save_lossless(strip, out / f"floor-{key}{'-' + phase if phase else ''}.webp")
     print("drew floor", key, phase or "")
 
 

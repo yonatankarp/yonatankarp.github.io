@@ -27,7 +27,7 @@ The building's art follows the visitor's local clock: dawn 06:00-07:59, day 08:0
 20:00-05:59, picked once at load by the inline script in `layouts/index.html` (`html[data-time]`). `/?time=dawn|day|dusk|night`
 overrides it for testing; anything else means the clock. Dusk is the plain files; a variant is one more entry in
 `PHASES` in `web3d/pixel/gen_floors.py`, baked with `uv run web3d/pixel/gen_exterior.py build static/building/pixel --time NAME`
-into `exterior-NAME.png`, `floor-{R,P,L}-NAME.png` (only those rooms show outside) and `backdrop-NAME.png`, the street
+into `exterior-NAME.webp`, `floor-{R,P,L}-NAME.webp` (only those rooms show outside) and `backdrop-NAME.webp`, the street
 without the tower behind every other page. The pick is `layouts/partials/time-pick.html`, shared by the homepage and
 `head.html`, so the other pages follow the same clock: `assets/css/custom.css` maps `html[data-time]` to the backdrop. To
 show a new phase, add it to that pick, to `BAKED` and `SKY` in `web3d/src/pixel.js`, to the backdrop rules in `custom.css`,

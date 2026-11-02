@@ -276,14 +276,14 @@ def install():
         jpg, png = COVERS_DIR / f"{slug}.jpg", COVERS_DIR / "pixel" / f"{slug}.png"
         if sky is None and slug not in TOUCH_UPS:
             painting.save(jpg, quality=90)                             # and the PNG comes from it, as the hint does
-            P.pixelate(Image.open(jpg), SIZE, 24).save(png)
+            P.G.save_lossless(P.pixelate(Image.open(jpg), SIZE, 24), png)
             continue
         im = P.pixelate(painting, SIZE, 24)
         if sky:
             im = sky_dither(im, *sky)
         if slug in TOUCH_UPS:
             im = TOUCH_UPS[slug](im)
-        im.save(png)
+        P.G.save_lossless(im, png)
         im.resize((SIZE[0] * 6, SIZE[1] * 6), Image.NEAREST).save(jpg, quality=95)
         print("touched up:", slug)
 

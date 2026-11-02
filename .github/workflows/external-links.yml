@@ -1,0 +1,72 @@
+name: External links
+
+# Every off-site link the built site carries, probed weekly. Third-party sites go
+# down, rate-limit and block bots, so this never runs on a pull request: a broken
+# link opens one issue, edited in place while it stays broken and closed by the
+# first clean run, the way Pin staleness reports the Hugo pin.
+
+on:
+  schedule:
+    # Weekly and off the hour, a day after Pin staleness.
+    - cron: "41 6 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  LABEL: external-links
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  external-links:
+    name: Probe the external links
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build and check the site
+        uses: ./.github/actions/build-site
+
+      - name: Probe the external links
+        id: check
+        run: npm run --silent check:links:external -- --github-output
+
+      - name: Open or update the one issue
+        if: steps.check.outputs.status == 'broken'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TITLE: ${{ steps.check.outputs.title }}
+          BODY: ${{ steps.check.outputs.body }}
+        run: |
+          gh label create "$LABEL" --color D93F0B --force \
+            --description "An off-site link the site carries is broken"
+          number=$(gh issue list --label "$LABEL" --state open --limit 1 \
+            --json number --jq '.[0].number // empty')
+          if [[ -n "$number" ]]; then
+            gh issue edit "$number" --title "$TITLE" --body "$BODY"
+          else
+            gh issue create --label "$LABEL" --title "$TITLE" --body "$BODY"
+          fi
+
+      - name: Close it once the links work
+        if: steps.check.outputs.status == 'clean'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue list --label "$LABEL" --state open --json number --jq '.[].number' |
+            while read -r number; do
+              gh issue close "$number" --comment \
+                "Every external link answered on the last run. Closed by \`External links\`."
+            done

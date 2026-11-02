@@ -1,16 +1,16 @@
 name: Pin staleness
 
-# Hugo is installed from a GitHub release by ci.yml and deploy.yml, so its
-# version is a string inside a workflow rather than a dependency: Dependabot
-# updates npm and the action refs and never sees it. Left alone, the site
-# keeps being built by whatever Hugo was current on the day somebody typed the
-# pin. This reports that, and reports the two copies of the pin disagreeing,
-# which is the other failure keeping it in two files allows. It also fails, and
-# reports, when HUGO_SHA256 is not the release's published checksum of the .deb.
+# Hugo is installed from a GitHub release by the build-site action, at the version
+# pinned in .github/hugo.env, so it is a string in a file rather than a dependency:
+# Dependabot updates npm and the action refs and never sees it. Left alone, the site
+# keeps being built by whatever Hugo was current on the day somebody typed the pin.
+# This reports that, and fails, and reports, when HUGO_SHA256 is not the release's
+# published checksum of the .deb.
 
 on:
   schedule:
-    # Weekly, and off the hour -- scheduled runs queue hardest on the boundary.
+    # Weekly, and off the hour -- scheduled runs queue hardest on the boundary, and
+    # even so they have started hours late (06:23 has meant 13:00 to 16:00 UTC).
     # A pin like this moves when a human decides to move it, so a daily run would
     # only repeat a finding already sitting on the issue.
     - cron: "23 6 * * 1"
@@ -18,7 +18,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 defaults:
   run:
@@ -33,14 +32,19 @@ jobs:
     name: Hugo pin against its newest release
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version-file: .nvmrc
 
       - name: Compare the pin with the newest Hugo release
         id: check
@@ -75,7 +79,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         # Whoever bumps the pin should not also have to tidy up after the report.
         # A status of "unknown" reaches neither step: an unreachable release API
-        # is not evidence that the pin is stale, nor that it is current.
+        # is not evidence that the pin is stale, nor that it is current. The check
+        # flags it as a warning on the run instead.
         run: |
           gh issue list --label "$LABEL" --state open --json number --jq '.[].number' |
             while read -r number; do

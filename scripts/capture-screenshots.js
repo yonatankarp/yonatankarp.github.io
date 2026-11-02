@@ -12,7 +12,10 @@ const dateStamp = new Date().toISOString().slice(0, 10);
 const options = parseArgs(process.argv.slice(2));
 const screenshotDir = path.resolve(rootDir, options.out || path.join("artifacts", "visual-smoke", dateStamp));
 let baseUrl = options.base || process.env.SITE_URL || "http://127.0.0.1:1313/";
-const shouldStartServer = !options.base && !process.env.SITE_URL;
+// --public serves the built public/ the way check-csp.js does, so CI captures the minified files that ship.
+const servePublic = Boolean(options.public) && !options.base && !process.env.SITE_URL;
+const shouldStartServer = !options.base && !process.env.SITE_URL && !servePublic;
+const serverMode = servePublic ? "built-public" : shouldStartServer ? "local-hugo-render-to-memory" : "existing-server";
 
 const viewports = [
   { name: "desktop", width: 1440, height: 1100 },
@@ -141,6 +144,11 @@ function parseArgs(args) {
     const arg = args[index];
     const [flag, inlineValue] = arg.split("=", 2);
 
+    if (flag === "--public") {
+      parsed.public = true;
+      continue;
+    }
+
     if (flag === "--base" || flag === "--out" || flag === "--port") {
       parsed[flag.slice(2)] = inlineValue || args[index + 1];
 
@@ -243,7 +251,7 @@ function buildManifestData() {
     date: dateStamp,
     baseUrl,
     outputDirectory: `${relativeDir}/`,
-    serverMode: shouldStartServer ? "local-hugo-render-to-memory" : "existing-server",
+    serverMode,
     routes: routes.map((route) => ({
       name: route.name,
       path: route.path,
@@ -267,7 +275,7 @@ function writeManifest() {
     "",
     `Base URL: ${baseUrl}`,
     `Output directory: ${manifest.outputDirectory}`,
-    `Server mode: ${shouldStartServer ? "local Hugo server with --renderToMemory" : "existing server"}`,
+    `Server mode: ${serverMode}`,
     "",
     "## Routes",
     "",
@@ -523,9 +531,20 @@ async function assertPauseLabel(page, route, viewport) {
 async function main() {
   const { chromium } = await loadPlaywright();
   let browser = null;
+  let staticServer = null;
 
   try {
-    if (shouldStartServer) {
+    if (servePublic) {
+      const { publicDir, serve } = require("./serve-public");
+
+      if (!fs.existsSync(path.join(publicDir, "404.html"))) {
+        fail("--public requires a built public/ directory. Run npm run build first.");
+      }
+
+      const served = await serve();
+      staticServer = served.server;
+      baseUrl = `${served.baseUrl}/`;
+    } else if (shouldStartServer) {
       const port = await findAvailablePort(preferredPort());
       const hugo = resolveHugoCommand();
       baseUrl = localBaseUrl(port);
@@ -641,6 +660,7 @@ async function main() {
     await browser?.close();
     hugoServer?.removeAllListeners("exit");
     hugoServer?.kill("SIGTERM");
+    staticServer?.close();
   }
 
   writeManifest();

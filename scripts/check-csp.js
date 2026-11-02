@@ -9,15 +9,16 @@
 // every goatcounter.com request is answered by a stub, and Chromium cannot resolve the host anyway.
 // count.js itself still loads from gc.zgo.at, and Mermaid from jsdelivr, as on the live site.
 //
+// The same pass runs axe-core on each page as it loads, before anything is clicked, and fails on any
+// serious or critical violation (#193).
+//
 // Usage: node scripts/check-csp.js [--only /blog/some-post/] [--base http://127.0.0.1:1313]
 // Without --base it serves public/ itself, answering missing paths with 404.html like GitHub Pages.
 
 const fs = require("fs");
-const http = require("http");
 const path = require("path");
+const { publicDir, serve } = require("./serve-public");
 
-const rootDir = path.resolve(__dirname, "..");
-const publicDir = path.join(rootDir, "public");
 const missingRoute = "/this-page-does-not-exist/";
 const arrivalRoute = "/projects/?arrive";   // leaves for the homepage, under the view transition that page's styles animate
 const workers = Number(process.env.CSP_WORKERS || 4);   // pages mostly wait on the network, so CI runs 8
@@ -26,24 +27,8 @@ if (!Number.isInteger(workers) || workers < 1) {
   process.exit(1);
 }
 const pixel = Buffer.from("R0lGODlhAQABAAAAACw=", "base64");
-const types = {
-  ".css": "text/css; charset=utf-8",
-  ".html": "text/html; charset=utf-8",
-  ".ico": "image/x-icon",
-  ".jpeg": "image/jpeg",
-  ".jpg": "image/jpeg",
-  ".js": "text/javascript; charset=utf-8",
-  ".json": "application/json",
-  ".mp4": "video/mp4",
-  ".pdf": "application/pdf",
-  ".png": "image/png",
-  ".svg": "image/svg+xml",
-  ".txt": "text/plain; charset=utf-8",
-  ".webmanifest": "application/manifest+json",
-  ".webp": "image/webp",
-  ".woff2": "font/woff2",
-  ".xml": "application/xml",
-};
+const blockingImpacts = new Set(["serious", "critical"]);
+let AxeBuilder;
 
 function option(name) {
   const index = process.argv.indexOf(`--${name}`);
@@ -56,60 +41,6 @@ function fail(message, details = []) {
     console.error(`- ${detail}`);
   }
   process.exit(1);
-}
-
-function serve() {
-  const server = http.createServer((req, res) => {
-    let pathname;
-
-    try {
-      pathname = decodeURIComponent(new URL(req.url, "http://127.0.0.1").pathname);
-    } catch {
-      res.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
-      res.end("Bad request");
-      return;
-    }
-
-    let file = path.normalize(path.join(publicDir, pathname));
-
-    if (file !== publicDir && !file.startsWith(publicDir + path.sep)) {
-      file = publicDir;
-    }
-    if (fs.existsSync(file) && fs.statSync(file).isDirectory()) {
-      file = path.join(file, "index.html");
-    }
-
-    const found = fs.existsSync(file);
-    const served = found ? file : path.join(publicDir, "404.html");
-    const body = fs.readFileSync(served);
-    const headers = {
-      "accept-ranges": "bytes",
-      "content-type": types[path.extname(served).toLowerCase()] || "application/octet-stream",
-    };
-    const range = found && req.headers.range && /bytes=(\d+)-(\d*)/.exec(req.headers.range);   // the videos ask for ranges
-
-    if (range) {
-      const start = Number(range[1]);
-      const end = Math.min(range[2] ? Number(range[2]) : body.length - 1, body.length - 1);
-
-      if (start > end) {
-        res.writeHead(416, { ...headers, "content-range": `bytes */${body.length}` });
-        res.end();
-        return;
-      }
-
-      res.writeHead(206, { ...headers, "content-range": `bytes ${start}-${end}/${body.length}`, "content-length": end - start + 1 });
-      res.end(body.subarray(start, end + 1));
-      return;
-    }
-
-    res.writeHead(found ? 200 : 404, headers);
-    res.end(body);
-  });
-
-  return new Promise((resolve) => {
-    server.listen(0, "127.0.0.1", () => resolve({ server, baseUrl: `http://127.0.0.1:${server.address().port}` }));
-  });
 }
 
 function builtRoutes() {
@@ -150,6 +81,19 @@ function recordViolations() {
       settings = Object.assign(value || {}, { allow_local: true });
     },
   });
+}
+
+// Axe's serious and critical findings, one line per rule.
+async function accessibility(page) {
+  const { violations } = await new AxeBuilder({ page }).analyze();
+
+  return violations
+    .filter((violation) => blockingImpacts.has(violation.impact))
+    .map((violation) => {
+      const targets = violation.nodes.slice(0, 3).map((node) => node.target.join(" ")).join(", ");
+      const more = violation.nodes.length > 3 ? ` and ${violation.nodes.length - 3} more` : "";
+      return `axe ${violation.impact} ${violation.id}: ${violation.help} (${targets}${more})`;
+    });
 }
 
 async function exercise(page, route) {
@@ -224,7 +168,7 @@ async function exercise(page, route) {
 
 async function check(context, baseUrl, route) {
   const page = await context.newPage();
-  const result = { route, csp: false, violations: [], errors: [], goatcounter: 0, did: [] };
+  const result = { route, csp: false, violations: [], errors: [], a11y: [], goatcounter: 0, did: [] };
 
   page.on("console", (message) => {
     if (/Content.Security.Policy|Refused to|integrity/i.test(message.text())) {
@@ -241,6 +185,8 @@ async function check(context, baseUrl, route) {
     await page.goto(baseUrl + route, { waitUntil: "load" });
     await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
     result.csp = (await page.$('meta[http-equiv="Content-Security-Policy"]')) !== null;
+    result.violations.push(...(await page.evaluate(() => window.__csp.splice(0))));
+    result.a11y = await accessibility(page);
     result.did = await exercise(page, route).catch((error) => {
       result.errors.push(`exercise: ${error.message.split("\n")[0]}`);
       return [];
@@ -265,8 +211,9 @@ async function check(context, baseUrl, route) {
   let chromium;
   try {
     ({ chromium } = require("playwright"));
+    ({ AxeBuilder } = require("@axe-core/playwright"));
   } catch (error) {
-    fail("The CSP check requires Playwright.", ["Install local dependencies with npm install.", "Install a browser with npx playwright install chromium."]);
+    fail("The CSP check requires Playwright and @axe-core/playwright.", ["Install local dependencies with npm install.", "Install a browser with npx playwright install chromium."]);
   }
 
   const started = Date.now();
@@ -294,13 +241,14 @@ async function check(context, baseUrl, route) {
   }
 
   results.sort((left, right) => left.route.localeCompare(right.route));
-  const failed = results.filter((result) => result.violations.length || result.errors.length);
+  const problems = (result) => [...result.violations, ...result.errors, ...result.a11y];
+  const failed = results.filter((result) => problems(result).length);
 
   for (const result of results) {
-    const flag = result.violations.length || result.errors.length ? "FAIL" : "ok  ";
+    const flag = problems(result).length ? "FAIL" : "ok  ";
     const did = result.did.length ? ` [${result.did.join("; ")}]` : "";
     console.log(`${flag} ${result.route} csp=${result.csp} goatcounter=${result.goatcounter}${did}`);
-    for (const line of [...result.violations, ...result.errors]) {
+    for (const line of problems(result)) {
       console.log(`     ${line}`);
     }
   }
@@ -310,7 +258,7 @@ async function check(context, baseUrl, route) {
     + `${results.reduce((sum, result) => sum + result.goatcounter, 0)} GoatCounter hits stubbed`;
 
   if (failed.length) {
-    fail(`CSP check failed on ${failed.length} of ${summary}.`, failed.map((result) => result.route));
+    fail(`CSP and accessibility check failed on ${failed.length} of ${summary}.`, failed.map((result) => result.route));
   }
-  console.log(`CSP check passed: ${summary}.`);
+  console.log(`CSP and accessibility check passed: ${summary}.`);
 })();

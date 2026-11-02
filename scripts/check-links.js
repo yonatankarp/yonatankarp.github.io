@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
@@ -8,8 +9,12 @@ const publicDir = path.join(rootDir, "public");
 const checkExternal = process.argv.includes("--external") || process.env.CHECK_EXTERNAL_LINKS === "1";
 const htmlFiles = [];
 const failures = [];
-const externalUrls = new Set();
+const externalUrls = new Map();   // URL -> the first page linking to it
 const externalConcurrency = Number(process.env.LINK_CHECK_CONCURRENCY || 8);
+const wantsOutput = process.argv.includes("--github-output");
+// Rate limiting, an overloaded server and LinkedIn's bot wall say nothing about whether the page exists.
+const softStatuses = [429, 503, 999];
+const retryDelayMs = 3000;
 const ignoredSchemes = /^(?:mailto:|tel:|javascript:)/i;
 const localOrigins = new Set(["https://yonatankarp.com", "http://yonatankarp.com"]);
 const externallyManagedLocalPrefixes = ["/kotlin-design-patterns/", "/ff4k/", "/mimic/", "/lorekeeper/", "/TaleKeeper/"];
@@ -166,18 +171,67 @@ async function requestUrl(url, method) {
   }
 }
 
-async function checkExternalUrl(url) {
+function addExternalUrl(url, route) {
+  if (!externalUrls.has(url)) {
+    externalUrls.set(url, route);
+  }
+}
+
+async function probeExternalUrl(url) {
   let result = await requestUrl(url, "HEAD");
 
-  if (!result.ok && (result.statusCode === 405 || result.statusCode === 403 || result.statusCode === 404)) {
+  if (!result.ok && [403, 404, 405, ...softStatuses].includes(result.statusCode)) {
     result = await requestUrl(url, "GET");
   }
 
   return result;
 }
 
+// One retry, a moment later, before a link counts as broken: third-party sites drop the odd request.
+async function checkExternalUrl(url) {
+  const result = await probeExternalUrl(url);
+
+  if (isPassingExternalResult(result)) {
+    return result;
+  }
+
+  await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+  return probeExternalUrl(url);
+}
+
 function isPassingExternalResult(result) {
   return result.ok || result.statusCode === 401 || result.statusCode === 403;
+}
+
+function warn(message) {
+  console.warn(process.env.GITHUB_ACTIONS ? `::warning title=External link::${message}` : `warning: ${message}`);
+}
+
+// The weekly External links workflow turns failures into one issue, edited in place.
+function writeGithubOutput(entries) {
+  const delimiter = `EOF_${crypto.randomBytes(8).toString("hex")}`;
+  let payload = "";
+
+  for (const [key, value] of Object.entries(entries)) {
+    payload += value.includes("\n") ? `${key}<<${delimiter}\n${value}\n${delimiter}\n` : `${key}=${value}\n`;
+  }
+
+  fs.appendFileSync(process.env.GITHUB_OUTPUT, payload);
+}
+
+function renderIssue(urlCount) {
+  const body = [
+    `The weekly external link check of ${urlCount} URLs found ${failures.length === 1 ? "a link" : "links"} that failed twice:`,
+    "",
+    ...failures.map((failure) => `- ${failure}`),
+    "",
+    `Rate limits and bot blocking (HTTP ${softStatuses.join(", ")}) are left out; they show as warnings on the run.`,
+    "Fix or remove each link, and this issue closes itself on the next clean run.",
+    "",
+    "<!-- opened and updated by .github/workflows/external-links.yml -->",
+  ];
+
+  return { title: `${failures.length} external ${failures.length === 1 ? "link is" : "links are"} broken`, body: body.join("\n") };
 }
 
 function shouldCheckExternalUrl(value) {
@@ -240,14 +294,14 @@ for (const filePath of htmlFiles) {
 
     if (!localOrigins.has(url.origin)) {
       if (/^https?:$/.test(url.protocol) && shouldCheckExternalUrl(url.href)) {
-        externalUrls.add(stripFragment(url.href));
+        addExternalUrl(stripFragment(url.href), route);
       }
       continue;
     }
 
     if (isExternallyManagedLocalUrl(url)) {
       if (shouldCheckExternalUrl(url.href)) {
-        externalUrls.add(stripFragment(url.href));
+        addExternalUrl(stripFragment(url.href), route);
       }
       continue;
     }
@@ -259,22 +313,36 @@ for (const filePath of htmlFiles) {
 
 if (checkExternal) {
   (async () => {
-    const urls = Array.from(externalUrls).sort();
+    const urls = Array.from(externalUrls.keys()).sort();
+    const warnings = [];
 
     await mapWithConcurrency(urls, externalConcurrency, async (url) => {
       const result = await checkExternalUrl(url);
 
       if (!isPassingExternalResult(result)) {
         const reason = result.statusCode ? `HTTP ${result.statusCode}` : result.error;
-        failures.push(`external link failed ${url}: ${reason}`);
+        const line = `${externalUrls.get(url)} links to ${url}: ${reason}`;
+        (softStatuses.includes(result.statusCode) ? warnings : failures).push(line);
       }
     });
 
+    warnings.sort().forEach(warn);
+    failures.sort();
+
+    if (wantsOutput) {
+      writeGithubOutput(failures.length ? { status: "broken", ...renderIssue(urls.length) } : { status: "clean" });
+    }
+
     if (failures.length > 0) {
+      // With --github-output the issue is the report, so the run itself stays green.
+      if (wantsOutput) {
+        console.error(["Link check failed:", ...failures.map((failure) => `- ${failure}`)].join("\n"));
+        process.exit(0);
+      }
       fail("Link check failed:", failures);
     }
 
-    console.log(`Link check passed across ${htmlFiles.length} HTML files and ${externalUrls.size} external URLs.`);
+    console.log(`Link check passed across ${htmlFiles.length} HTML files and ${externalUrls.size} external URLs, ${warnings.length} warned.`);
   })();
 } else {
   if (failures.length > 0) {

@@ -60,8 +60,6 @@ flights, `art.js` what they share.
 - Experience, education and testimonial entries have no pages of their own: the `[[cascade]]` in `hugo.toml` renders
   them with `layouts/_default/redirect.html`, a noindex redirect to their homepage floor
 - `content/skills/_index.md` — skills page
-- `content/uses.md` — the /uses page (`layouts/uses/single.html`); a draft until its TODOs are filled, and the footer
-  links it once it is published
 - `content/cv.md` — printable CV page
 
 ## Languages

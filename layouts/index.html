@@ -7,6 +7,10 @@
 {{ $education := sort (where .Site.RegularPages "Type" "education") "Date" "desc" }}
 {{ $degree := index (where $education "Params.floor" "1") 0 }}
 {{ $courses := where $education "Params.floor" "!=" "1" }}
+{{- /* The role he holds now, the one whose duration runs to the present: the street and the lobby sign the way to it, as
+     it is the last stop of the ride up (#189). The highest such floor, should two ever overlap. */}}
+{{ $now := false }}
+{{ range $experience }}{{ if and (not $now) (strings.HasSuffix .Params.duration "Present") }}{{ $now = dict "floor" .Params.floor "label" (printf "%s · %s" (replace .Title " - " ", ") .Params.company) "company" .Params.company }}{{ end }}{{ end }}
 {{ $testimonials := sort (where .Site.RegularPages "Type" "testimonial") "Date" "desc" }}
 {{ $projects := (.Site.GetPage "/projects").RegularPages.ByWeight }}{{/* most are listed locally only, so not in .Site.RegularPages */}}
 {{- /* The parking's groups, in order: the card's label, the panel's heading, and the projects (apps and libraries are tools). */}}
@@ -100,6 +104,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         <p class="floor-eyebrow">{{ index $role 0 }} <span class="floor-eyebrow-more">· {{ partial "nobreak.html" (delimit (after 1 $role) " · ") }}</span></p>
         <p class="floor-title">{{ $home.hero.title }}</p>
         <p class="floor-open">{{ $home.hero.availability }}</p>
+        {{ with $now }}<p class="floor-now"><a href="#floor-{{ .floor }}" data-goto="{{ .floor }}">Now: {{ .label }} →</a></p>{{ end }}
         <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <span class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</span></p>
         <p class="floor-lead">{{ index (split $home.hero.lede ". ") 0 }}.</p>
         <p class="floor-how"><span class="floor-how-why">Every floor is a chapter of my CV. </span><span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, or pick a window.</p>
@@ -229,6 +234,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
             </ul>
           </div>
           <div class="floor-signs">
+            {{ with $now }}<p class="floor-end"><a href="#floor-{{ .floor }}" data-goto="{{ .floor }}">Up to floor {{ .floor }}: now at {{ .company }} ↑</a></p>{{ end }}
             <p class="floor-end"><a href="#floor-P" data-goto="P">Down to the garage: projects ↓</a></p>
             {{ with index $posts 0 }}<p class="floor-end">Latest writing: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a> · <a href="{{ "blog/" | relURL }}">All posts</a></p>{{ end }}
           </div>

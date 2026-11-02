@@ -4,13 +4,14 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches-ignore:
-      - main
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
 
 defaults:
   run:
@@ -33,6 +34,8 @@ jobs:
         uses: ./.github/actions/build-site
 
       - name: Check the Content-Security-Policy in Chromium
+        env:
+          CSP_WORKERS: 8
         run: npm run check:csp
 
       - name: Capture visual smoke screenshots

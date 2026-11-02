@@ -18,8 +18,9 @@ Node 22 or later (`.nvmrc`) and Hugo 0.169.0, the release pinned in `.github/hug
 it is another version. `npm run lint` and the art pipeline also need [uv](https://docs.astral.sh/uv/).
 
 `npm run serve` and `npm run build` first run `npm run build:building`, which bundles the homepage's script and styles
-(`web3d/src/`) with Vite into `assets/building/` and copies Mermaid into `static/vendor/`. A plain `hugo` fails until it
-has run.
+(`web3d/src/`) with Vite into `assets/building/` and draws the blog's Mermaid diagrams to SVG in `assets/diagrams/`
+(`scripts/render-diagrams.js`, in Playwright's Chromium). So both need Playwright's browser
+(`npx playwright install chromium`). A plain `hugo` fails until it has run, and again after a diagram changes.
 
 ## Checks
 
@@ -31,7 +32,7 @@ npm run lint    # ESLint over the JavaScript, Ruff over the art pipeline
 
 `npm run check` runs `check:blog-assets` and `check:phases` on the sources, builds, then checks the site metadata, the
 generated HTML, the CV PDF (one A4 page, no local links), the internal links, and finally `check:csp`: every built page
-in Chromium with its Content-Security-Policy enforced, axe-core on each, and the paths that load late (Mermaid, video,
+in Chromium with its Content-Security-Policy enforced, axe-core on each, and the paths that load late (the diagram zoom, video,
 search, the lift). It needs the network for GoatCounter's `count.js`; redirect pages are held where they are, so it never
 follows a link out to the live site.
 

@@ -733,9 +733,9 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   .px-prose pre:not(.mermaid) { padding-top: 48px; }   /* every pre site.js gives a button; set before it runs, so nothing shifts */
 }
 
-/* A diagram fits the column, its text as small as that makes it, under a Zoom in button on a row of its own. Until
-   Mermaid draws it, its source wraps. In the dialog, outside .mermaid, the svg is its natural size and scrolls there. */
-.px-prose pre.mermaid { padding-top: 48px; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; cursor: zoom-in; }
+/* A diagram, drawn at build time (#250), fits the column, its text as small as that makes it, under a Zoom in button on
+   a row of its own. In the dialog, outside .mermaid, the svg is its natural size and scrolls there. */
+.px-prose pre.mermaid { padding-top: 48px; overflow: visible; cursor: zoom-in; }
 .px-prose .mermaid svg { display: block; max-width: 100%; height: auto; margin-inline: auto; }
 .diagram-zoom {
   max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); margin: auto; padding: 0; border: 0;

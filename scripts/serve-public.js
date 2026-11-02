@@ -5,8 +5,8 @@
 const fs = require("fs");
 const http = require("http");
 const path = require("path");
+const { publicDir } = require("./lib");
 
-const publicDir = path.resolve(__dirname, "..", "public");
 const types = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",

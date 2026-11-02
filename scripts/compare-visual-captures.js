@@ -5,7 +5,8 @@ const fs = require("fs");
 const path = require("path");
 const zlib = require("zlib");
 
-const rootDir = path.resolve(__dirname, "..");
+const { rootDir, fail } = require("./lib");
+
 const options = parseArgs(process.argv.slice(2));
 
 function parseArgs(args) {
@@ -81,11 +82,6 @@ function usage() {
     "  --max-average-channel-delta <number>",
     "  --max-channel-delta <number>",
   ].join("\n");
-}
-
-function fail(message) {
-  console.error(message);
-  process.exit(1);
 }
 
 function requireOption(name) {

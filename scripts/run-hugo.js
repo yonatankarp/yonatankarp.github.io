@@ -3,10 +3,8 @@
 const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
+const { rootDir, hugoBinary } = require("./lib");
 
-const rootDir = path.resolve(__dirname, "..");
-const localHugo = path.join(rootDir, ".tools", "hugo", "hugo");
-const hugoBinary = fs.existsSync(localHugo) ? localHugo : "hugo";
 const args = process.argv.slice(2);
 
 // A local build with another Hugo than CI's can render differently, so say so; it is not worth failing over.

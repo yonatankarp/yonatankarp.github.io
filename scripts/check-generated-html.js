@@ -4,36 +4,13 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
-const rootDir = path.resolve(__dirname, "..");
-const publicDir = path.join(rootDir, "public");
-const htmlFiles = [];
+const { rootDir, publicDir, fail, walk, collectAttribute } = require("./lib");
+
 const failures = [];
 const placeholderPattern = /\b(?:TODO|FIXME|Lorem ipsum|Coming soon)\b/i;
 
-function walk(dir) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = path.join(dir, entry.name);
-
-    if (entry.isDirectory()) {
-      walk(fullPath);
-      continue;
-    }
-
-    if (entry.isFile() && entry.name.endsWith(".html")) {
-      htmlFiles.push(fullPath);
-    }
-  }
-}
-
 function stripTags(value) {
   return value.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-}
-
-function collectAttribute(tag, attributeName) {
-  const pattern = new RegExp(`\\b${attributeName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, "i");
-  const match = tag.match(pattern);
-
-  return match ? match[1] ?? match[2] ?? match[3] ?? "" : null;
 }
 
 function isRedirectPage(html) {
@@ -101,15 +78,8 @@ function checkProjectsPage(route, html) {
       }
     }
 
-    const images = Array.from(card.matchAll(/<img\b[^>]*>/g)).map((match) => match[0]);
-    const hasPainting = fs.existsSync(path.join(rootDir, "assets", "images", "projects", "pixel", `${project.slug}.png`));
-
-    if (!hasPainting && images.length > 0) {
-      failures.push(`${route}: ${title} has an image but no assets/images/projects/pixel/${project.slug}.png`);
-    }
-
-    if (hasPainting && (images.length !== 1 || !/class=["']?px-painting[\s"'>]/.test(images[0]) || !stripTags(collectAttribute(images[0], "alt") ?? ""))) {
-      failures.push(`${route}: ${title} should have exactly one img.px-painting with alt text`);
+    if (/<img\b/.test(card)) {
+      failures.push(`${route}: ${title} has an image; project cards have none`);
     }
   }
 
@@ -164,13 +134,6 @@ function checkCaseStudyPage(route, html, slug) {
 
   if (/article__cover/.test(html) || /\bsrc=(?:""|''|(?=[\s>]))/.test(html)) {
     fail("has article__cover or an empty src");
-  }
-
-  const paintings = Array.from(html.matchAll(/<img\b[^>]*>/g)).map((match) => match[0]).filter((tag) => /class=["']?px-painting[\s"'>]/.test(tag));
-  const hasPainting = fs.existsSync(path.join(rootDir, "assets", "images", "projects", "pixel", `${slug}.png`));
-
-  if (paintings.length !== (hasPainting ? 1 : 0)) {
-    fail(`expected ${hasPainting ? "one" : "no"} img.px-painting, got ${paintings.length}`);
   }
 
   const footer = html.match(/<footer\b[^>]*class=["']?site-footer["']?[\s\S]*?<\/footer>/)?.[0] ?? "";
@@ -319,11 +282,10 @@ function checkTopBar(route, html) {
 }
 
 if (!fs.existsSync(publicDir)) {
-  console.error("Generated HTML check requires a built public/ directory. Run npm run build first.");
-  process.exit(1);
+  fail("Generated HTML check requires a built public/ directory. Run npm run build first.");
 }
 
-walk(publicDir);
+const htmlFiles = walk(publicDir, ".html");
 
 for (const filePath of htmlFiles) {
   const html = fs.readFileSync(filePath, "utf8");

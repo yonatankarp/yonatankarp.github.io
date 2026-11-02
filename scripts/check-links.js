@@ -4,10 +4,9 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
-const rootDir = path.resolve(__dirname, "..");
-const publicDir = path.join(rootDir, "public");
+const { publicDir, fail, walk, collectAttribute } = require("./lib");
+
 const checkExternal = process.argv.includes("--external") || process.env.CHECK_EXTERNAL_LINKS === "1";
-const htmlFiles = [];
 const failures = [];
 const externalUrls = new Map();   // URL -> the first page linking to it
 const externalConcurrency = Number(process.env.LINK_CHECK_CONCURRENCY || 8);
@@ -26,36 +25,6 @@ const ignoredExternalPatterns = [
   /^https:\/\/bsky\.app\/intent\//i,
   /^https:\/\/www\.getyourguide\.com\//i,
 ];
-
-function fail(message, details = []) {
-  console.error(message);
-  for (const detail of details) {
-    console.error(`- ${detail}`);
-  }
-  process.exit(1);
-}
-
-function walk(dir) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const fullPath = path.join(dir, entry.name);
-
-    if (entry.isDirectory()) {
-      walk(fullPath);
-      continue;
-    }
-
-    if (entry.isFile() && entry.name.endsWith(".html")) {
-      htmlFiles.push(fullPath);
-    }
-  }
-}
-
-function collectAttribute(tag, attributeName) {
-  const pattern = new RegExp(`\\b${attributeName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, "i");
-  const match = tag.match(pattern);
-
-  return match ? match[1] ?? match[2] ?? match[3] ?? "" : null;
-}
 
 function decodeHtml(value) {
   return value
@@ -264,7 +233,7 @@ if (!fs.existsSync(publicDir)) {
   fail("Link check requires a built public/ directory.", ["Run npm run build first."]);
 }
 
-walk(publicDir);
+const htmlFiles = walk(publicDir, ".html");
 
 for (const filePath of htmlFiles) {
   const html = fs.readFileSync(filePath, "utf8");

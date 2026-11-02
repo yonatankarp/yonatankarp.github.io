@@ -172,56 +172,6 @@ h4 a,
 .blog-px .post-row__body > p:last-child { display: -webkit-box; margin: 0.4rem 0 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .blog-px .post-row__aside { display: grid; gap: 0.9rem; align-content: start; justify-items: start; }
 .blog-px .post-row__thumb { position: relative; display: grid; align-content: space-between; width: 100%; overflow: hidden; }
-/* A post with no cover: its first tag and title on a dotted plate. */
-.blog-px .post-row__thumb--fallback { isolation: isolate; min-height: 162px; padding: 16px; color: var(--px-text); background: var(--well); box-shadow: inset 0 0 0 4px var(--ink); }
-.post-row__thumb--fallback::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background:
-    linear-gradient(90deg, color-mix(in srgb, var(--px-text) 8%, transparent) 1px, transparent 1px),
-    linear-gradient(0deg, color-mix(in srgb, var(--px-text) 8%, transparent) 1px, transparent 1px);
-  background-size: 1.05rem 1.05rem;
-  mask-image: radial-gradient(circle at 32% 28%, black, transparent 64%);
-  opacity: 0.48;
-}
-.post-row__fallback-kicker,
-.post-row__fallback-title {
-  position: relative;
-  z-index: 1;
-}
-.post-row__fallback-kicker {
-  max-width: max-content;
-  padding: 0.28rem 0.5rem;
-  background: color-mix(in srgb, var(--amber) 18%, oklch(0.225 0.012 280));
-  color: var(--amber);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1;
-  text-transform: uppercase;
-}
-.post-row__fallback-title {
-  max-width: 12ch;
-  font-size: clamp(1.35rem, 2.4vw, 1.95rem);
-  font-weight: 800;
-  line-height: 0.98;
-  text-wrap: balance;
-}
-.post-row__fallback-mark {
-  position: absolute;
-  right: 0.9rem;
-  bottom: 0.9rem;
-  width: 2.1rem;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--amber) 62%, transparent);
-  background:
-    linear-gradient(90deg, transparent 47%, color-mix(in srgb, var(--amber) 80%, transparent) 47% 53%, transparent 53%),
-    linear-gradient(0deg, transparent 47%, color-mix(in srgb, var(--amber) 80%, transparent) 47% 53%, transparent 53%);
-  opacity: 0.72;
-}
-.blog-px .post-row:is(:hover, :focus-within) .post-row__thumb--fallback { color: var(--amber); }
 
 /* Tabs: the homepage's steel tabs. */
 .blog-px .chip-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
@@ -350,20 +300,6 @@ h4 a,
 .blog-px .related-card:is(:hover, :focus-visible) { outline: none; box-shadow: inset 0 0 0 4px var(--post), inset 16px 0 0 0 var(--post), inset 4px 4px 0 4px var(--panel-hi); }
 .blog-px .related-card:is(:hover, :focus-visible) h3 { color: var(--post); }
 
-@media (max-width: 1024px) {
-  .blog-px .blog-layout,
-  .blog-px .article__footer {
-    grid-template-columns: 1fr;
-  }
-  .blog-px .blog-layout > :is(.post-list, .blog-sidebar) { grid-area: auto; }
-  /* One column: the sidebar is a plate above the list, its search box and tags with no headings or reading tracks. */
-  .blog-px .blog-sidebar { position: static; padding: 16px 16px 16px 36px; }
-  .blog-px .blog-sidebar h2 { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .blog-sidebar section + section { margin-top: 12px; }
-  .blog-px .blog-sidebar .chip-row { margin-top: 0; }
-  .blog-sidebar__tracks { display: none; }
-}
-
 @media (max-width: 760px) {
   .blog-px .page-head__copy { padding: 24px 20px 24px 36px; }
   .blog-px .page-head__copy h1 { font-size: 40px; }
@@ -439,7 +375,7 @@ h4 a,
     color: #111 !important;
   }
 
-  a {
+  a:where(:not(.cv-page a)) {   /* the CV keeps its live blue links, below; :where keeps this rule as weak as a plain a */
     color: #111 !important;
     text-decoration: none;
   }
@@ -591,15 +527,6 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   .px-download::after { content: 'PDF'; font-size: 15px; line-height: 15px; }
 }
 
-@media screen and (max-width: 760px) {
-  .px-sheet { width: calc(100% - 24px); padding: 26px 20px 30px; }
-  .px-skin::before { display: none; }
-  .cv-page h1 { font-size: 36px; }   /* the whole name on one line at 375px */
-  .cv-focus, .cv-bullets, .cv-edu { grid-template-columns: 1fr; }
-  .cv-role-item { grid-template-columns: 36px minmax(0, 1fr); gap: 14px; }
-  .cv-floor { width: 36px; height: 36px; }
-}
-
 @media screen and (max-width: 579px) {   /* phones: the tabs take the row, the social row gets its own under them */
   .px-bar { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; }
 }
@@ -696,8 +623,7 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   .cv-bullets { grid-template-columns: 1fr; }   /* side-by-side bullets come out of the PDF as interleaved lines for ATS parsers */
 }
 
-/* Projects (/projects/, layouts/projects/list.html): the skin's cards in a grid, the whole card one link.
-   A card shows a pixel painting only when assets/images/projects/pixel/<slug>.png exists. */
+/* Projects (/projects/, layouts/projects/list.html): the skin's cards in a grid, the whole card one link. */
 .px-projects .px-sheet { width: min(1200px, calc(100% - 2 * clamp(16px, 3vw, 36px))); }
 .px-projects__head { padding-bottom: 28px; border-bottom: 4px solid var(--panel-hi); }
 .px-projects h1 { margin: 0 0 12px; font-size: 60px; }
@@ -705,7 +631,6 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
 .px-card { position: relative; display: flex; flex-direction: column; background: var(--well); clip-path: var(--stepped); box-shadow: inset 0 0 0 4px var(--ink); }
 .px-card:hover { box-shadow: inset 0 0 0 4px var(--amber); }
-.px-painting { display: block; width: calc(100% - 8px); height: auto; margin: 4px 4px 0; border-bottom: 4px solid var(--ink); image-rendering: pixelated; }
 .px-card__body { display: flex; flex-direction: column; gap: 8px; flex: 1; padding: 16px 20px 20px; }
 .px-card__meta { display: flex; justify-content: space-between; gap: 12px; margin: 0; font-size: 13px; color: var(--px-soft); }
 .px-card__meta b { color: var(--amber); font-weight: 500; }
@@ -723,8 +648,7 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 @media screen and (max-width: 1000px) { .px-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media screen and (max-width: 640px) { .px-grid { grid-template-columns: 1fr; } .px-projects h1 { font-size: 44px; } }
 
-/* Case study (/projects/<slug>/, layouts/projects/single.html): a sheet with the title block, the painting when one
-   exists, and the article body in .px-prose. */
+/* Case study (/projects/<slug>/, layouts/projects/single.html): a sheet with the title block and the article body in .px-prose. */
 .px-case__head { display: grid; justify-items: start; gap: 14px; padding-bottom: 28px; border-bottom: 4px solid var(--panel-hi); }
 .px-case__head > * { margin: 0; }
 .px-case h1 { font-size: 60px; overflow-wrap: anywhere; }
@@ -735,9 +659,6 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-skin .archived-tag { display: inline-block; align-self: flex-start; margin: 0; padding: 2px 8px; font: 400 18px/1 var(--pixel-font); color: var(--px-soft);
   background: var(--panel); box-shadow: inset 0 0 0 2px var(--panel-hi); }
 .px-case .px-cta { text-decoration: none; }
-.px-case__art { margin-top: 28px; background: var(--well); clip-path: var(--stepped); box-shadow: inset 0 0 0 4px var(--ink); }
-.px-case__art .px-painting { border-bottom: 0; }
-.px-case__art + .px-prose { margin-top: 8px; }
 
 /* The reusable article body: Jersey 15 headings, Outfit text, amber links, code and tables in well frames. */
 .px-well, .px-prose pre, .px-prose table { background: var(--well); clip-path: var(--stepped); }
@@ -799,6 +720,18 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-page .site-footer__copy { margin: 0; font-size: 15px; color: var(--px-soft); }
 .footer-social { display: flex; justify-content: flex-end; gap: 0.5rem; }
 @media (max-width: 1024px) {
+  .blog-px .blog-layout,
+  .blog-px .article__footer {
+    grid-template-columns: 1fr;
+  }
+  .blog-px .blog-layout > :is(.post-list, .blog-sidebar) { grid-area: auto; }
+  /* One column: the sidebar is a plate above the list, its search box and tags with no headings or reading tracks. */
+  .blog-px .blog-sidebar { position: static; padding: 16px 16px 16px 36px; }
+  .blog-px .blog-sidebar h2 { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .blog-sidebar section + section { margin-top: 12px; }
+  .blog-px .blog-sidebar .chip-row { margin-top: 0; }
+  .blog-sidebar__tracks { display: none; }
+
   .px-page .site-footer__inner { grid-template-columns: 1fr; }
   .footer-social { justify-content: flex-start; }
 }
@@ -864,6 +797,13 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-cta:focus-visible { outline: none; box-shadow: inset 0 0 0 3px var(--px-text), inset 0 0 0 6px var(--ink); }
 
 @media screen and (max-width: 760px) {
+  .px-sheet { width: calc(100% - 24px); padding: 26px 20px 30px; }
+  .px-skin::before { display: none; }
+  .cv-page h1 { font-size: 36px; }   /* the whole name on one line at 375px */
+  .cv-focus, .cv-bullets, .cv-edu { grid-template-columns: 1fr; }
+  .cv-role-item { grid-template-columns: 36px minmax(0, 1fr); gap: 14px; }
+  .cv-floor { width: 36px; height: 36px; }
+
   .px-case h1, .px-search h1, .px-skills h1, .px-notfound h1 { font-size: 40px; }
   .px-prose { font-size: 16.5px; }
   .px-prose h2 { font-size: 28px; }

@@ -7,7 +7,8 @@ const net = require("net");
 const path = require("path");
 const { spawn } = require("child_process");
 
-const rootDir = path.resolve(__dirname, "..");
+const { rootDir, hugoBinary, loadPlaywright } = require("./lib");
+
 const dateStamp = new Date().toISOString().slice(0, 10);
 const options = parseArgs(process.argv.slice(2));
 const screenshotDir = path.resolve(rootDir, options.out || path.join("artifacts", "visual-smoke", dateStamp));
@@ -172,16 +173,6 @@ let hugoServer = null;
 
 process.on("exit", () => hugoServer?.kill("SIGTERM"));
 
-function resolveHugoCommand() {
-  const localHugo = path.join(rootDir, ".tools", "hugo", "hugo");
-
-  if (fs.existsSync(localHugo)) {
-    return { command: localHugo, args: [] };
-  }
-
-  return { command: "hugo", args: [] };
-}
-
 function requestUrl(url) {
   return new Promise((resolve) => {
     const client = new URL(url).protocol === "https:" ? https : http;
@@ -315,20 +306,6 @@ async function waitForUrl(url, timeoutMs, timeoutMessage) {
   }
 
   fail(timeoutMessage || `Timed out waiting for ${url}`);
-}
-
-async function loadPlaywright() {
-  try {
-    return require("playwright");
-  } catch (error) {
-    fail(
-      [
-        "Playwright is required for visual capture but is not installed.",
-        "Install it locally with: npm install --save-dev playwright",
-        "Then install a browser with: npx playwright install chromium",
-      ].join("\n")
-    );
-  }
 }
 
 async function scrollThroughPage(page) {
@@ -535,7 +512,7 @@ async function assertPauseLabel(page, route, viewport) {
 }
 
 async function main() {
-  const { chromium } = await loadPlaywright();
+  const { chromium } = loadPlaywright("Visual capture");
   let browser = null;
   let staticServer = null;
 
@@ -552,12 +529,10 @@ async function main() {
       baseUrl = `${served.baseUrl}/`;
     } else if (shouldStartServer) {
       const port = await findAvailablePort(preferredPort());
-      const hugo = resolveHugoCommand();
       baseUrl = localBaseUrl(port);
       hugoServer = spawn(
-        hugo.command,
+        hugoBinary,
         [
-          ...hugo.args,
           "server",
           "--bind",
           "127.0.0.1",

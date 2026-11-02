@@ -26,7 +26,6 @@
         {{ $href := cond $case .RelPermalink .Params.link }}
         {{ $label := cond $case "Case study" (.Params.button.btnText | default "View") }}
         <li class="px-card">
-          {{ partial "project-painting.html" (dict "page" . "max" 640) }}
           <div class="px-card__body">
             <p class="px-card__meta">{{ with .Params.projectKind }}<b>{{ . }}</b>{{ end }}<span>{{ if .Params.archived }}<span class="archived-tag">Archived</span> {{ end }}{{ .Params.years | default (.Date.Format "2006") }}</span></p>
             {{- /* The CTA under the title is aria-hidden, so the link describes where it goes; the name stays the title (#131). */}}

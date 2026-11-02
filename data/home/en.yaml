@@ -85,7 +85,6 @@ contact:
   email:
     label: "Email"
     address: "me@yonatankarp.com"
-    note: "The most direct way to start a useful conversation."
   links:
     - label: "GitHub"
       text: "github.com/yonatankarp"

@@ -7,6 +7,8 @@
     {{ errorf "%s: no pixel cover at static/%s. Make it with: uv run web3d/pixel/pixelate.py static/%s static/%s --size 192x108 --colours 24" $.File.Path $px (strings.TrimPrefix "/" .) $px }}
   {{ end }}
   {{ $cover = $px | relURL }}
+{{ else }}
+  {{ errorf "%s: set images.featured_image, the post's cover painting in static/images/blog/covers/ (web3d/pixel/paint_covers.py)" .File.Path }}
 {{ end }}
 {{ $floors := slice "7" "6" "5" "4" "3" "2" }}
 {{ $accent := index hugo.Data.floor_accents (index $floors (mod (len .Title) (len $floors))) }}

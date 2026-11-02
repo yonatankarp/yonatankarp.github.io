@@ -131,7 +131,7 @@ const assertions = [
   "Visible images are loaded with non-zero natural dimensions.",
   "Every page renders the shared top bar (layouts/partials/pixel-bar.html): name plate, four tabs, CV download and the social row.",
   "Home page renders the building: its canvas, every floor and the street view's windows.",
-  "Home page rides the lift: a floor button (the hero's CTA on mobile) rides to the roof or floor 8, the name plate rides back to the street.",
+  "Home page rides the lift: a floor button (the hero's CTA on mobile) rides to the roof or floor 8, the name plate rides back to the street, and scrolling and the garage door's sign both reach the garage.",
   "Home page pause button shows a Pause label that turns to Play on click, on mobile inside the top bar's Menu.",
   "CV page renders every role.",
   "Blog index contains multiple article rows/cards.",
@@ -489,6 +489,12 @@ async function assertRide(page, route, viewport) {
   await arrive("E", ".building-name");
   await arrive("L", "ArrowDown");   // the way in from the street is the lobby (web3d/src/guide.js)
   await arrive("1", "ArrowDown");
+  await arrive("L", "ArrowUp");
+  await arrive("P", "ArrowUp");   // the garage is on the ride: back from the lobby, out to the street, on from the roof
+  await arrive("E", "ArrowUp");
+  await arrive("P", ".building-window[data-goto='P']");   // the sign on its door, a phone's only control for it at the street
+  await arrive("R", "#floor-P a[data-goto='R']");
+  await arrive("P", "ArrowDown");
 }
 
 async function assertPauseLabel(page, route, viewport) {

@@ -28,10 +28,10 @@ export function guide(api, root = document) {
   }
 
   // Stops are in page order, top to bottom as the building stands, but the ride runs one way: in from the street (E)
-  // at the lobby, then up floor by floor to the roof. Scrolling down (+1) rides on, up (-1) back. The garage (P) is
-  // off the ride: its button, the lobby's sign or #floor-P go down to it, and either way out is back to the lobby.
-  const path = ['E', ...keys.filter((k) => k !== 'E' && k !== 'P').reverse()];
-  const neighbour = (key, dir) => keys.indexOf(key === 'P' ? 'L' : path[path.indexOf(key) + dir]);
+  // at the lobby, then up floor by floor to the roof. Scrolling down (+1) rides on, up (-1) back. Back from the lobby
+  // goes down to the garage (P) and out its door to the street; on from the roof drops to the garage, the ride's last stop.
+  const path = ['E', ...keys.filter((k) => k !== 'E').reverse()];
+  const neighbour = (key, dir) => keys.indexOf((dir > 0 && { E: 'L', R: 'P' }[key]) || path[path.indexOf(key) + dir]);
   // Step inside: a floor's full story opens over its room. While it is open the lift stays put and the wheel and
   // keys scroll the panel; "Back to the lift", Escape or riding away close it.
   let open = null, afterPop = null, moving = null;
@@ -159,7 +159,9 @@ export function guide(api, root = document) {
   // and presses add up into one longer ride instead of being dropped (#41).
   const step = (dir) => {
     if (open) return;
-    const to = neighbour(keys[api.index()], dir);
+    const here = keys[api.index()];
+    if (api.moving() && (here === 'P' || (here === 'R' && dir > 0))) return;   // adding up must not fly past the roof or the garage
+    const to = neighbour(here, dir);
     if (to >= 0) api.go(to);
   };
 

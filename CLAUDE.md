@@ -93,6 +93,9 @@ A Mermaid diagram needs a text alternative on its fence, ```` ```mermaid {title=
 
 A cover (`images.featured_image`, a painting in `static/images/blog/covers/`, made with `web3d/pixel/paint_covers.py`) also needs its pixel-art version in
 `static/images/blog/covers/pixel/`, which the blog shows; the build fails with the `pixelate.py` command to make it.
+The post shows it across the page behind its head, about 40 of its 108 rows on a wide screen: `coverFocus`, a row from 25 to 78 (default 54), picks the one to centre on, and a phone shows all of it.
+
+Art inside a post goes in `static/images/blog/pixel/`, painted from `INLINE` in `paint_covers.py` at the covers' 192x108, which keeps it crisp: anything wider than 480px would get smeared webp sizes.
 
 ### New project
 Create `content/projects/name.md` with a `link` and a `group` of `app`, `library`, `game` or `contribution`, which picks its section on `/projects/` (the build fails without either). Projects render via the custom homepage project list and can expose their CTA through `params.button`. Set `archived: true` once the repository is archived: the project stays listed, with an "Archived" label on `/projects/`, its case study and the homepage's Parking floor, and "(archived)" after its name in the Parking card and `llms.txt`.

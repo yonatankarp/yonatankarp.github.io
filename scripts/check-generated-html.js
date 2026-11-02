@@ -492,8 +492,13 @@ for (const filePath of htmlFiles) {
 }
 
 {
-  const photo = fs.readFileSync(path.join(publicDir, "blog", "how-hashmap-works-java", "index.html"), "utf8").match(/<img\b[^>]*\bsrc=["']?\/images\/blog\/desk-macbook-code\.jpeg[^>]*>/)?.[0] ?? "";
-  if (!/\.webp 480w/.test(collectAttribute(photo, "srcset") ?? "")) failures.push("/blog/how-hashmap-works-java/: the photo should have webp sizes in a srcset");
+  const post = fs.readFileSync(path.join(publicDir, "blog", "our-errors-your-gain-a-system-design-cautionary-tale", "index.html"), "utf8");
+  const diagram = post.match(/<img\b[^>]*\bsrc=["']?\/images\/blog\/our-errors-day-management\.jpg[^>]*>/)?.[0] ?? "";
+  if (!/\.webp 480w/.test(collectAttribute(diagram, "srcset") ?? "")) failures.push("/blog/our-errors-your-gain-a-system-design-cautionary-tale/: the diagram should have webp sizes in a srcset");
+  const hashmap = fs.readFileSync(path.join(publicDir, "blog", "how-hashmap-works-java", "index.html"), "utf8");
+  const art = hashmap.match(/<img\b[^>]*\bsrc=["']?\/images\/blog\/pixel\/[^>]*>/g) ?? [];
+  // A resized webp would smear the pixels, and without the class they would not scale crisply.
+  if (!art.length || art.some((tag) => collectAttribute(tag, "srcset") !== null || !/px-art/.test(collectAttribute(tag, "class") ?? ""))) failures.push("/blog/how-hashmap-works-java/: inline pixel art needs the px-art class and no srcset");
 }
 
 {

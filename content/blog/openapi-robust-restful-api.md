@@ -33,7 +33,7 @@ As a backend engineer, I have developed numerous REST APIs during my career. One
 <!--more-->
 
 
-![Silhouette of a person at the far end of a long meeting table, against a bright window](/images/blog/kb-alex-mccarthy-zmDbLyW7VQg-unsplash-1024x683.jpg)
+![Two spider webs built out from opposite branches at different heights, with a wide gap between them](/images/blog/pixel/openapi-mismatched-webs.png)
 
 
 ## Use OpenAPI Spec for Our New API
@@ -167,7 +167,7 @@ In the `components` section, we define the API models. In our case, we define a 
 ## Step 2: Use OpenAPI Generator to Create the Code
 
 
-![Wind turbines at sunset](/images/blog/wind-turbines-sunset.jpg)
+![A spider web with only bare spokes on its upper right, and a spider where the spiral stops](/images/blog/pixel/openapi-spinning-spiral.png)
 
 
 ### Setting Up OpenAPI Spec to The Project
@@ -309,7 +309,7 @@ Running the `build` command in Gradle should generate the code in your project f
 ## Step 3: Implementation of the API! 🎉
 
 
-![Person in headphones working at a laptop and monitors showing code, in a dark room](/images/blog/kb-jefferson-santos-9SoCnyQmkzI-unsplash-1024x683.jpg)
+![A finished spider web holding a fly, with the spider walking towards it](/images/blog/pixel/openapi-first-catch.png)
 
 
 ### Implementing The Code
@@ -416,9 +416,3 @@ You can find the complete code for this project on my GitHub repository. Feel fr
 
 
 By using OpenAPI, you can allow yourself, your team, and your potential clients a smoother, more robust, and efficient integration process. You can always use this approach when designing a new API (by applying the [API first principle](https://apidog.com/articles/what-is-api-first/)), considering it for existing API to ensure the robustness of your system and future integrators with it.
-
-
-## Credits
-
-
-- Photos by [Karsten Würth](https://unsplash.com/@karsten_wuerth) and [Jefferson Santos](https://unsplash.com/@jefflssantos) on [Unsplash](https://unsplash.com/).

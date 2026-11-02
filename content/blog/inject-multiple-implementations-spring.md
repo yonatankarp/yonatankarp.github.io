@@ -16,6 +16,7 @@ tags:
   - spring-framework
 images:
   featured_image: "/images/blog/covers/inject-multiple-implementations-spring.jpg"
+coverFocus: 38
 ---
 
 <div class="editors-note">

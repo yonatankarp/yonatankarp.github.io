@@ -14,6 +14,7 @@ tags:
   - data-structures
 images:
   featured_image: "/images/blog/covers/how-hashmap-works-java.jpg"
+coverFocus: 56
 ---
 
 As an interviewer, I often ask the question about how HashMap works in Java. It helps me assess a candidate's understanding of data structures, JVM internals, and their problem-solving approach. I've encountered many candidates, including juniors, mid-levels, and seniors, who couldn't answer this question correctly. So, I decided to share the answer with everyone.
@@ -24,7 +25,7 @@ In this article, I will explain the HashMap question step by step.
 
 ## What is the contract between the equals() and hashCode() functions in Java?
 
-![Desk with a laptop showing code](/images/blog/desk-macbook-code.jpeg)
+![Two identical bees landing on the same empty cell of a honeycomb](/images/blog/pixel/hashmap-same-cell.png)
 
 In Java, all objects inherit the `equals()` and `hashCode()` functions from the `Object` class. According to the documentation of `equals()`, it's necessary to override the `hashCode()` method as well. This ensures that equal objects have equal hash codes.
 
@@ -38,7 +39,7 @@ It means that if we have two objects considered equal, they must have the same h
 
 ## What is the complexity of retrieving an element from a HashMap?
 
-![Modular synthesizer patch cables as a metaphor for HashMap lookup paths](/images/blog/modular-synth-patch-cables.jpeg)
+![A bee flying straight to a honeycomb, while a few more queue at its far corner](/images/blog/pixel/hashmap-straight-to-cell.png)
 
 Retrieving an element from a HashMap has a constant time complexity of `O(1)`.
 
@@ -156,7 +157,7 @@ In fact, since Java 8, the internal implementation of HashMap was changed exactl
 
 ## Bonus: Implementing HashSet using HashMap
 
-![Dollar bill and coins representing set membership](/images/blog/dollar-bill-and-coins.jpeg)
+![A honeycomb with no honey and at most one bee in each cell](/images/blog/pixel/hashset-one-per-cell.png)
 
 Let’s start with the question, what is a HashSet?
 

@@ -131,12 +131,13 @@ h4 a,
   --accent-strong: var(--amber);
   padding-bottom: 64px;
 }
-/* Covers at whole multiples of their 192x108 pixels, the most that fit, so no pixel is wider than its neighbour (#123).
+/* Covers and a post's inline art at whole multiples of their 192x108 pixels, the most that fit, so no pixel is wider than its neighbour (#123).
    The ink frame is a shadow in the margin: a border would eat into the image. */
-.blog-px .px-cover {
+.blog-px :is(.px-cover, .px-art) {
   display: block; width: 192px; width: max(192px, round(down, 100% - 8px, 192px)); height: auto; margin: 4px;
   image-rendering: pixelated; box-shadow: 0 0 0 4px var(--ink);
 }
+.blog-px .px-art { margin-block: 16px; }
 
 /* Panels: the floor card's frame. */
 .blog-px :is(.page-head__copy, .post-row, .blog-sidebar, .article, .related-card) {
@@ -207,7 +208,29 @@ h4 a,
 .blog-px .article__header h1 { font-size: 60px; overflow-wrap: anywhere; hyphens: none; }
 .blog-px .article__summary { margin: 0; max-width: 68ch; font-size: 17px; line-height: 1.6; color: var(--px-soft); }
 .blog-px .article__header .chip-row { margin-top: 0; }
-.blog-px .article__cover { max-width: 384px; margin: 4px 4px 36px; }   /* 2x at most: wider pushes a shared post's text off the first screen (#185) */
+/* The post's cover across the page behind its head, at a whole multiple of its pixels. The band above the panel is about 40
+   of its 108 rows on any wide screen, centred on --focus (coverFocus in the front matter), so the text still starts on the
+   first screen (#185). A phone has the width for all of the picture at 2x, with ink at the sides where it runs out. */
+.blog-px { --scene-w: 100vw; --scene-band: clamp(240px, 21vw, 420px); --scene-overlap: 24px; position: relative; }
+@supports (width: round(up, 1px, 1px)) {
+  .blog-px { --scene-w: max(960px, round(up, 100vw, 192px)); }   /* 5x at least: below that the band runs past the art */
+}
+.blog-px .post-scene {
+  position: absolute; inset: 0 0 auto; height: calc(var(--scene-band) + var(--scene-overlap));
+  overflow: clip; background: var(--ink); border-bottom: 4px solid var(--ink);
+}
+.blog-px .article__cover {
+  position: absolute; left: 50%; top: calc(var(--scene-band) / 2 - var(--scene-w) * var(--focus) / 192); transform: translateX(-50%);
+  width: var(--scene-w); max-width: none; margin: 0; box-shadow: none;
+}
+.blog-px .post-scene + .article-shell { position: relative; padding-top: var(--scene-band); }
+@media screen and (max-width: 760px) {
+  .blog-px { --scene-w: 384px; --scene-band: 216px; --scene-overlap: 0px; }
+  @supports (width: round(up, 1px, 1px)) {
+    .blog-px { --scene-w: max(384px, round(down, 100vw, 192px)); --scene-band: calc(var(--scene-w) * 9 / 16); }
+  }
+  .blog-px .article__cover { top: 0; }
+}
 /* Posts with 3 headings or more: closed above the text, and the old card, so code keeps its width; a sticky column beside
    the text once the card fits at 1144px (a code column of 800px: wider adds little, narrower scrolls many more blocks). */
 .blog-px .article--toc { width: min(1000px, 100%); }
@@ -353,6 +376,7 @@ h4 a,
   .blog-px .px-prose :is(pre, pre code) { white-space: pre-wrap; overflow-wrap: anywhere; }   /* paper cannot scroll sideways */
   .blog-px .px-prose pre.mermaid { padding-top: 20px; }   /* no Zoom in on paper */
   .blog-px :is(.px-cover, .px-prose img) { break-inside: avoid; }
+  .blog-px .post-scene { display: none; }
 }
 
 /* Printable CV: force light, ink-friendly output and drop screen-only chrome. */

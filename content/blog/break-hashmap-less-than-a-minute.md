@@ -15,6 +15,7 @@ tags:
   - gotchas
 images:
   featured_image: "/images/blog/covers/break-hashmap-less-than-a-minute.jpg"
+coverFocus: 50
 ---
 
 > **TL;DR:** Never use mutable objects as keys in your HashMap!
@@ -114,7 +115,7 @@ flowchart LR
 
 ## Can we avoid this problem?
 
-![Person holding a stack of papers up in front of their face](/images/blog/004-avoid-at-all-cost.jpeg)
+![A squirrel on a boulder too big to move, gripped by tree roots, with its acorn buried right underneath](/images/blog/pixel/break-hashmap-fixed-stone.png)
 
 Yes, we can! To avoid this issue, we should use an immutable class instead of a mutable one. This means that once the class creates its state, it cannot be changed.
 

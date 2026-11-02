@@ -11,6 +11,7 @@ tags:
   - software-engineering
 images:
   featured_image: "/images/blog/covers/our-errors-your-gain-a-system-design-cautionary-tale.jpg"
+coverFocus: 64
 ---
 
 > **TL;DR:** This article shares my experience with a temporary solution that turned into a long-term issue. I discuss the evolution of a service and how it improved its performance by over 450% in a few hours. The story highlights the importance of addressing temporary solutions and constantly evaluating system design to optimize performance.

@@ -22,7 +22,8 @@ const SHOT_KEY = 'building-shot', SHOT_MS = 2000;               // the opening s
 const ARRIVE_FROM = 0.25, ARRIVE_MS = 1000;                     // on every arrival from another page: the same shot, picked up where the crane is about to enter (flat sky before that would only be a wait), and faster
 const LAMPS_AFTER = 180;                                        // arriving on a floor: the old page is still over the room until about now
 const SHOT_BY = 1500;                                           // ms after the card's first paint: art later than this just appears, under someone already reading
-const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
+const DOORS = 3.3;
+const ROOF_FROM = 117, ROOF_DECK = 155;                         // the roof strip's open air: right of this art x, above this row                                              // the lift doors' speed, in full travels per second
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
 const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
 // The old one-page site's anchors, still linked from elsewhere, land on the floor that took their place (#29); the
@@ -322,6 +323,8 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
         }
       }
       drawDoors(ctx, img, f, x0, y, s, open.get(key));
+      // The roof is outdoors: the street's weather falls on it too, right of the lift's lobby (art x 117) and down to its deck.
+      if (key === 'R') street.weather(ctx, f, { s, x: x0, y }, w, h, [x0 + ROOF_FROM * s, 0, w, y + ROOF_DECK * s]);
       ctx.globalAlpha = 1;
     } }
   }

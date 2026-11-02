@@ -43,6 +43,22 @@ without the tower behind every other page. The pick is `layouts/partials/time-pi
 `web3d/src/pixel.css` and to the backdrop rules in `custom.css`: `npm run check:phases` (part of `npm run check`) fails
 until those agree with `phases.json`, and `gen_floors.py` checks `phases.json` against its `PHASES` on every run.
 
+The street is also dressed for the visitor's season, holidays and weather, drawn in code over the baked art (no new
+art per season): `web3d/src/outside.js` works out what is going on, `web3d/src/decor.js` draws it (two pavement trees
+that follow the season, snow on the roofs in a cold winter, each holiday's decoration, and rain, snow, fog or clouds,
+which fall on the roof's strip too). The visitor is placed by their browser's timezone alone, through
+`data/timezones.json` (country and main city per IANA zone, made from tzdata by `node scripts/gen-timezones.js`); an
+unknown zone gets Berlin. Seasons flip south of the equator, and the tropics stay summer. Holidays are
+`web3d/src/calendar.js`: the ones in `HOME` (Israel's and Germany's: Hanukkah, Sukkot, Christmas, Easter) show for
+everyone, plus the new year, and the visitor's country adds its own (Halloween, Diwali, Lunar New Year, both Eids).
+Jewish, Chinese and Islamic dates come from the browser's `Intl` calendars; Diwali is the `DIWALI` table, and
+`npm test` fails once it no longer covers next year. The weather is the site's one call to a third party besides
+GoatCounter: Open-Meteo, from the homepage only (its `connect-src` in `head.html`), at most once an hour per browser
+session, after load. If it fails, the street just goes without weather. `?season=`, `?weather=clear|cloudy|fog|rain|snow`
+and `?holiday=none` or a list such as `hanukkah:3,christmas` (the number is the day, from 0) pin each one, like
+`?time=`. The visual captures pin a plain summer's day, plus one dressed capture. `npm run check:csp` answers the weather
+call itself.
+
 The art's numbers that `web3d/src/` draws by (strip size, lift doors, dither, each room's lamps, where each window looks
 in, the street's geometry) are written into `static/building/pixel/exterior.json` by `gen_exterior.py` (`json OUT` writes
 only that file) and bundled from there, and `data/floor_accents.yaml` is written by `gen_floors.py` from `FLOORS`: change

@@ -3,9 +3,13 @@
 // window, the crane to the roof and the opening shot down from the sky.
 // Its windows are buttons laid over the canvas; the street left and right of the picture repeats its neighbours.
 import { ART, FW, FH, ORDER, BAYER, LOOK, TIME, HOUR, SHADES, narrow, easeInOut, clamp01, colourAt, shade } from './art.js';
+import { decor } from './decor.js';
+import { OUTSIDE } from './outside.js';
 
 export function streetView(sky, base, box, stops, loaded, then, has) {
   const view = { img: null, size: [480, 336], windows: {}, top: sky, bottom: '#2a2226', at: null };
+  const dressing = decor();   // the season, the holidays and the weather, over the picture
+  OUTSIDE.changed(loaded);    // the weather has come: draw it
   const img = new Image();
   img.onload = () => {
     then();
@@ -150,7 +154,8 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
   return {
     alpha: (p, at) => (at < 0 ? 0 : clamp01(1 - Math.abs(p - at))),
     ready: () => !!view.img && Object.keys(view.windows).length > 0,
-    prime() { clearSky(); SHADES.forEach((lv) => dark(lv)); },
+    prime() { clearSky(); SHADES.forEach((lv) => dark(lv)); dressing.layers(); },
+    weather: (ctx, f, at, w, h, clip) => dressing.weather(ctx, f, at, w, h, clip),   // the roof's, from pixel.js
     // Flying in at a floor's window (t: 0 on the street, 1 in the room), the camera only ever going forward. Three
     // planes part: the far street barely moves, the neighbours slide by, and the tower rushes past until the window's
     // frame has gone off the screen's edges. Behind the glass the room, further away, is still settling into place.
@@ -225,6 +230,7 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
       };
       const shade = (a) => { ctx.globalAlpha = a; ctx.fillStyle = '#151923'; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; };
       const { near, front } = fly;
+      const dress = (src) => { blit(src, 0, 0, EW, EH, front); repeats(front, ROAD, src); dressing.glints(ctx, f, front); };   // the front layer: the tower's and the pavement's
       if (fly.key === 'E') {
         // lv of the lights still off for what starts coming on at t = a; 0 once on.
         const off = (a) => { const u = (fly.t - a) / 0.1; return u >= 1 ? 0 : SHADES[Math.max(0, Math.floor(u * SHADES.length))]; };
@@ -232,8 +238,9 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
         this.draw(ctx, 0, w, h, 1, dpr, wide, fly.far, sky.canvas);
         const plane = (src) => { blit(src, 0, 0, SHAFT[0], EH, near); blit(src, SHAFT[1], 0, EW - SHAFT[1], EH, near); repeats(near, 0, src); };
         plane(plates);
-        const n = off(0.55);
+        const n = off(0.55), d = dressing.layers();
         if (n) plane(dark(n));
+        plane(d.near);
         const r = off(0.72), road = (src) => { blit(src, 0, ROAD, EW, EH - ROAD, front); repeats(front, ROAD, src); };
         road(plates);
         if (r) road(dark(r));
@@ -248,6 +255,7 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
           const a = i ? roofAt + (i - 1) * STOREY : top, lv = off(0.1 + i * 0.07);
           if (lv) blit(dark(lv), SHAFT[0], a, SHAFT[1] - SHAFT[0], roofAt + i * STOREY - a, front);
         }
+        dress(d.front);
         return;
       }
       if (fly.over) { measure(ctx, w, h); room(fly.room.s, fly.room.x, fly.room.y); }   // the street has gone behind the brick; measured all the same, for a page opened on the roof, whose first way back to the street starts here
@@ -255,11 +263,13 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
         this.draw(ctx, f, w, h, 1, dpr, wide && fly.key !== 'R', fly.far);   // climbing, the far picture goes without its crane, as on phones: a copy would part from the one on the tower
         shade(fly.dim);
         blit(plates, 0, 0, SHAFT[0], EH, near); blit(plates, SHAFT[1], 0, EW - SHAFT[1], EH, near); repeats(near, 0);
+        blit(dressing.layers().near, 0, 0, EW, EH, near); repeats(near, 0, dressing.layers().near);
         shade(fly.dim * 0.5);
         blit(plates, 0, ROAD, EW, EH - ROAD, front); repeats(front, ROAD);   // the road is nearest of all, and runs under the camera
       }
       const top = wide && !fly.over ? 0 : CRANE[2];   // past the peak the street's crane has left the top of the frame: only the roof's comes back
       blit(plates, SHAFT[0], top, SHAFT[1] - SHAFT[0], ROAD - top, front);
+      if (!fly.over) dress(dressing.layers().front);
       const glass = (key, [x, y, gw, gh], r) => {
         ctx.save();
         ctx.beginPath(); ctx.rect(Math.round(x), Math.round(y), Math.round(x + gw) - Math.round(x), Math.round(y + gh) - Math.round(y)); ctx.clip();
@@ -293,6 +303,14 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
         if (!wide) { ctx.restore(); ctx.drawImage(pic, src, 0, cw, roof, x + cx * s, y, cw * s, roof * s); }
         for (let gx = x - L * s; gx > -L * s; gx -= L * s) ctx.drawImage(pic, src, 0, L, EH, gx, y, L * s, EH * s);
         for (let gx = x + EW * s; gx < w; gx += R * s) ctx.drawImage(pic, src + EW - R, 0, R, EH, gx, y, R * s, EH * s);
+        // The dressing, repeated down the street as the picture is; a flight's far picture takes only its far layer.
+        const d = dressing.layers();
+        for (const lay of cam ? [d.far] : [d.far, d.near, d.front]) {
+          ctx.drawImage(lay, x, y, EW * s, EH * s);
+          for (let gx = x - L * s; gx > -L * s; gx -= L * s) ctx.drawImage(lay, 0, 0, L, EH, gx, y, L * s, EH * s);
+          for (let gx = x + EW * s; gx < w; gx += R * s) ctx.drawImage(lay, EW - R, 0, R, EH, gx, y, R * s, EH * s);
+        }
+        if (!cam) { dressing.glints(ctx, f, { s, x, y }); dressing.weather(ctx, f, { s, x, y }, w, h); }
       }
       ctx.globalAlpha = 1;
       const at = `${s},${x},${y},${dpr}`;

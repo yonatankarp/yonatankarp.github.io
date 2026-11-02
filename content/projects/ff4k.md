@@ -6,7 +6,7 @@ description: "A Kotlin Multiplatform feature flag library, started after my ff4j
 projectKind: "Open source library"
 group: "library"
 draft: false
-link: "https://yonatankarp.github.io/ff4k/"
+link: "https://yonatankarp.com/ff4k/"
 caseStudy: true
 tech: ["Kotlin", "Multiplatform", "Coroutines"]
 years: "2026–present"
@@ -61,7 +61,7 @@ Kotlin Multiplatform pushes platform-specific storage and runtime details behind
 
 ## Current shape
 
-- Docs: [yonatankarp.github.io/ff4k/](https://yonatankarp.github.io/ff4k/)
+- Docs: [yonatankarp.com/ff4k/](https://yonatankarp.com/ff4k/)
 - Repository: [github.com/yonatankarp/ff4k](https://github.com/yonatankarp/ff4k)
 - Status: alpha, pre-1.0, with the JVM target shipping today
 - License: Apache-2.0

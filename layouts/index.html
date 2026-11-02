@@ -113,7 +113,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         <div class="floor-top">
           <h2 id="fR" tabindex="-1">{{ $home.contact.title }}</h2>
           <div class="floor-signs">
-            <p class="floor-end">{{ with index $posts 0 }}Latest post: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a>{{ end }}{{ with $home.contact.podcast }} · Podcast: <a href="{{ .url }}" data-goatcounter-click="podcast-roof">{{ .title }}</a>{{ end }} · Garage: <a href="#floor-P" data-goto="P">projects ↓</a></p>
+            <p class="floor-end">{{ with index $posts 0 }}Latest post: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a>{{ end }}{{ with $home.contact.podcast }} · Podcast: <a href="{{ .url }}"{{ with .text }} title="{{ . }}"{{ end }} data-goatcounter-click="podcast-roof">{{ .title }}</a>{{ end }} · Garage: <a href="#floor-P" data-goto="P">projects ↓</a></p>
           </div>
         </div>
         <p class="floor-lead">{{ $home.contact.text }}</p>
@@ -221,7 +221,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
             <h2 id="fL" tabindex="-1">{{ $home.testimonials.title }}</h2>
             <ul class="floor-quotes">
               {{ range $testimonials }}
-              <li><q>{{ strings.TrimSuffix "." .Params.pullQuote }}</q> <cite>{{ .Params.name }}, {{ .Params.position }}</cite></li>
+              {{ $t := . }}<li><q>{{ strings.TrimSuffix "." .Params.pullQuote }}</q> <cite>{{ .Params.name }}, {{ .Params.position }}</cite>{{ with .Params.source }}<span class="floor-quote-source">{{ . }}, {{ $t.Date.Format "Jan 2006" }}</span>{{ end }}</li>
               {{ end }}
             </ul>
           </div>
@@ -242,8 +242,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         {{ range $testimonials }}
         {{ $t := . }}
         <figure class="panel-quote">
-          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "30x30 Center" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" loading="lazy" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
-          <blockquote>{{ .Plain | htmlUnescape }}<cite>{{ .Params.name }}, {{ .Params.position }}</cite></blockquote>
+          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "120x120 Center webp" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" loading="lazy" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
+          <blockquote>{{ .Content }}<cite>{{ .Params.name }}, {{ .Params.position }}</cite>{{ with .Params.source }}<span class="panel-quote-source">{{ . }}, {{ $t.Date.Format "Jan 2006" }}</span>{{ end }}</blockquote>
         </figure>
         {{ end }}
         {{ with $skills }}

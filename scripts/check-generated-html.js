@@ -389,7 +389,7 @@ for (const filePath of htmlFiles) {
   const cv = fs.readFileSync(path.join(publicDir, "cv", "index.html"), "utf8");
   const basedIn = home.match(/<dt>Based in<\/dt>\s*<dd>([\s\S]*?)<\/dd>/)?.[1];
   const role = cv.match(/<p\b[^>]*class=["']?cv-role(?=["'\s>])[^>]*>([\s\S]*?)<\/p>/)?.[1];
-  const cvLocation = role && decodeEntities(stripTags(role)).match(/·\s*(.+?)(?:\s*\(|$)/)?.[1];
+  const cvLocation = role && decodeEntities(stripTags(role)).match(/·\s*(.+?)\s*$/)?.[1];
   const description = collectAttribute(home.match(/<meta\b[^>]*name=["']?description["'\s>][^>]*>/)?.[0] ?? "", "content");
 
   if (!basedIn || !cvLocation || decodeEntities(stripTags(basedIn)) !== cvLocation) {

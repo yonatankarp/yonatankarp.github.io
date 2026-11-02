@@ -8,7 +8,7 @@ source: "LinkedIn recommendation"   # the line under the cite, with the date
 pullQuote: "He sets the bar for what a Staff Engineer should be."   # an exact excerpt, shown in the building's lobby
 params:
     image:
-        src: "images/testimonials/mohamed-bouallegue.jpg"
+        src: "images/testimonials/mohamed-bouallegue.png"
         scale: 0.5
 ---
 

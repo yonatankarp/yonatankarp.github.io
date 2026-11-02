@@ -109,6 +109,23 @@ async function exercise(page, route) {
     await page.locator(".mermaid").first().scrollIntoViewIfNeeded();
     await page.waitForFunction(() => [...document.querySelectorAll(".mermaid")].every((block) => block.querySelector(":scope > svg[aria-roledescription]")), null, { timeout: 30000 });
     did.push(`mermaid ${await page.locator(".mermaid > svg[aria-roledescription]").count()}/${await page.locator(".mermaid").count()}`);
+    const wide = await page.evaluate(() => [...document.querySelectorAll(".mermaid")].filter((block) => block.scrollWidth > block.clientWidth).length);
+    if (wide) throw new Error(`${wide} diagrams do not fit the column`);
+    await page.locator(".mermaid > button").first().click();
+    const natural = await page.evaluate(() => {
+      const svg = document.querySelector("dialog[open] svg");
+      return svg && Math.abs(svg.getBoundingClientRect().width - Number(svg.getAttribute("width"))) < 1;
+    });
+    if (!natural) throw new Error("the zoom dialog did not open with the diagram at its natural size");
+    await page.keyboard.press("Escape");
+    // Waited for: a dialog fires close a task after it shuts, and that is when the diagram and the focus come back
+    await page.waitForFunction(() => {
+      const button = document.querySelector(".mermaid > button");
+      return document.activeElement === button && !document.querySelector("dialog[open]") && button.previousElementSibling?.localName === "svg";
+    }, null, { timeout: 5000 }).catch(() => {
+      throw new Error("Escape did not close the zoom dialog and return the diagram and the focus");
+    });
+    did.push("zoomed");
   }
 
   if (await page.$("video")) {

@@ -351,7 +351,7 @@ h4 a,
     break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .blog-px .px-prose :is(pre, pre code) { white-space: pre-wrap; overflow-wrap: anywhere; }   /* paper cannot scroll sideways */
-  .blog-px .px-prose .mermaid svg { max-width: 100%; height: auto; }
+  .blog-px .px-prose pre.mermaid { padding-top: 20px; }   /* no Zoom in on paper */
   .blog-px :is(.px-cover, .px-prose img) { break-inside: avoid; }
 }
 
@@ -708,6 +708,23 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 @media (hover: none) {
   .px-prose pre:not(.mermaid) { padding-top: 48px; }   /* every pre site.js gives a button; set before it runs, so nothing shifts */
 }
+
+/* A diagram fits the column, its text as small as that makes it, under a Zoom in button on a row of its own. Until
+   Mermaid draws it, its source wraps. In the dialog, outside .mermaid, the svg is its natural size and scrolls there. */
+.px-prose pre.mermaid { padding-top: 48px; overflow: visible; white-space: pre-wrap; overflow-wrap: anywhere; cursor: zoom-in; }
+.px-prose .mermaid svg { display: block; max-width: 100%; height: auto; margin-inline: auto; }
+.diagram-zoom {
+  max-width: calc(100vw - 32px); max-height: calc(100dvh - 32px); margin: auto; padding: 0; border: 0;
+  color: var(--px-text); background: var(--well); box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi); clip-path: var(--stepped);
+}
+.diagram-zoom[open] { display: flex; flex-direction: column; }
+.diagram-zoom::backdrop { background: rgb(10 11 16 / 0.85); }
+.diagram-zoom__head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 18px 10px; }
+.px-prose .diagram-zoom__head p { margin: 0; font: 400 24px/1 var(--pixel-font); color: var(--amber); }
+.px-prose .diagram-zoom__head .code-copy { position: static; flex: none; }
+.diagram-zoom__body { margin: 0 6px 6px; padding: 0 12px 12px; overflow: auto; overscroll-behavior: contain; }
+.diagram-zoom__body:focus-visible { outline: 4px solid var(--px-text); outline-offset: -4px; }
+.diagram-zoom__body svg { display: block; }
 
 /* The footer: a panel as wide as the sheet, with square link buttons. */
 .px-page .site-footer { padding-bottom: 48px; }

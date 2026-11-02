@@ -476,8 +476,8 @@ for (const filePath of htmlFiles) {
     if (!/\bcontrols\b/.test(tag) || !collectAttribute(tag, "aria-label") || /\bautoplay\b/.test(tag)) failures.push(`${route}: videos need controls and aria-label, and no autoplay`);
   }
   const diagrams = Array.from(html.matchAll(/<pre\b[^>]*class=["']?mermaid\b[^>]*>/g)).map((match) => match[0]);
-  if (diagrams.some((tag) => collectAttribute(tag, "tabindex") !== "0" || collectAttribute(tag, "role") !== "region" || !collectAttribute(tag, "aria-label"))) {
-    failures.push(`${route}: a Mermaid diagram needs tabindex=0, role=region and an aria-label`);
+  if (diagrams.some((tag) => collectAttribute(tag, "role") !== "region" || !collectAttribute(tag, "aria-label"))) {
+    failures.push(`${route}: a Mermaid diagram needs role=region and an aria-label`);
   }
   if (diagrams.length && !/<script\b[^>]*type=["']?module\b[^>]*src=["']?\/js\/mermaid-loader\./.test(html)) failures.push(`${route}: Mermaid should load lazily through js/mermaid-loader.js`);
   const loader = html.match(/src=["']?(\/js\/mermaid-loader\.[^"'\s>]+)/)?.[1];

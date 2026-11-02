@@ -559,6 +559,10 @@ for (const filePath of htmlFiles) {
     else if (/^\/[^/]+\/$/.test(route) ? target !== "https://yonatankarp.com/" : !floor || !new RegExp(`id=["']?${floor}["'\\s>]`).test(home)) failures.push(`${route}: redirects to ${target}, not to its floor on the homepage`);
     if (sitemap.includes(`<loc>https://yonatankarp.com${route}<`)) failures.push(`sitemap.xml: lists ${route}`);
   }
+  // /about is a noindex redirect to the lobby, not an alias of the blog (#187).
+  const about = fs.existsSync(path.join(publicDir, "about", "index.html")) ? fs.readFileSync(path.join(publicDir, "about", "index.html"), "utf8") : "";
+  if (!isRedirectPage(about) || !/content=["']?noindex/.test(about) || !about.includes('url=https://yonatankarp.com/#floor-L"') || !/id=["']?floor-L["'\s>]/.test(home)) failures.push("/about/: should be a noindex redirect to /#floor-L");
+  if (sitemap.includes("<loc>https://yonatankarp.com/about/<")) failures.push("sitemap.xml: lists /about/");
 }
 
 if (failures.length > 0) {

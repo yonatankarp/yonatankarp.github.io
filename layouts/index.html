@@ -85,13 +85,15 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 
   <main class="building-stops" id="building-stops">
     {{- /* Guided, the other floors are hidden, the street's card and its h1 too: inside, this stands in for it (#191). */}}
-    <h1 class="sr-only page-h1">{{ $home.hero.title }}</h1>
+    <h1 class="sr-only page-h1">{{ site.Title }}</h1>
     <p class="building-hint" style="opacity:0"><span class="hint-fine">Scroll, swipe or use the arrow keys to ride the lift</span><span class="hint-coarse">Swipe to ride the lift</span></p>
     <section class="building-stop building-stop--hero is-here" id="floor-E" data-floor="E" aria-labelledby="fE">
       <article class="floor-card floor-card--hero" style="--accent:{{ index $accent "E" }}">
         {{ $role := split $home.hero.eyebrow " · " }}
+        {{- /* The page's h1 is his name, in the eyebrow's small type above his role; the tagline keeps the big type (#187). */}}
+        <h1 class="floor-eyebrow floor-name" id="fE" tabindex="-1">{{ site.Title }}</h1>
         <p class="floor-eyebrow">{{ index $role 0 }} <span class="floor-eyebrow-more">· {{ partial "nobreak.html" (delimit (after 1 $role) " · ") }}</span></p>
-        <h1 id="fE" tabindex="-1">{{ $home.hero.title }}</h1>
+        <p class="floor-title">{{ $home.hero.title }}</p>
         <p class="floor-open">{{ $home.hero.availability }}</p>
         <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <span class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</span></p>
         <p class="floor-lead">{{ index (split $home.hero.lede ". ") 0 }}.</p>

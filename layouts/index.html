@@ -80,7 +80,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
     {{ end }}
     {{ with $degree }}<a class="building-floor-btn" href="#floor-1" data-goto="1" aria-keyshortcuts="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</a>{{ end }}
     <a class="building-floor-btn" href="#floor-L" data-goto="L" aria-keyshortcuts="L" aria-label="L, Lobby, recommendations, skills and writing" title="L, Lobby, recommendations, skills and writing">L</a>
-    <a class="building-floor-btn" href="#floor-P" data-goto="P" aria-keyshortcuts="P" aria-label="P, Parking, projects" title="P, Parking, projects">P</a>
+    <a class="building-floor-btn" href="#floor-P" data-goto="P" aria-keyshortcuts="P" aria-label="P, Projects, parking" title="P, Projects, parking">P</a>
   </nav>
 
   <main class="building-stops" id="building-stops">
@@ -270,7 +270,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         </ul>
         <p class="floor-skills"><a href="{{ "projects/" | relURL }}">All projects</a></p>
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-P" aria-expanded="false">Read project details</button></div>
-        <p class="floor-end">Bottom of the building: scroll either way to ride back up to the <a href="#floor-L" data-goto="L">lobby</a>, or <a href="#floor-R" data-goto="R">ride to the roof</a> to get in touch.</p>
+        <p class="floor-end">Bottom of the building: ride back up to the <a href="#floor-L" data-goto="L">lobby</a>, or <a href="#floor-R" data-goto="R">to the roof</a> to get in touch.</p>
       </article>
       <div class="floor-panel" id="panel-P" style="--accent:{{ index $accent "P" }};--accent-text:#FFD77A" tabindex="-1">
         <button class="panel-back" type="button">Back to the lift</button>

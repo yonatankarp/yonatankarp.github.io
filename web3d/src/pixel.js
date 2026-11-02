@@ -216,6 +216,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     if (shot < 0 && street.ready()) roll();
     const take = shot > 0 ? clamp01(shotFrom + (now - shot) / shotMs) : 0;
     if (take === 1) { shot = 0; epoch = now - loopMs; }   // the room's loop starts on its rest, the shot's last picture
+    document.documentElement.classList.toggle('in-shot', !!shot);   // the garage's sign waits for the street to land (pixel.css)
 
     const u = rideU(now);
     const p = ride.fade ? (u < 0.5 ? ride.from : ride.to) : Math.min(keys.length - 1, Math.max(0, pos(u)));

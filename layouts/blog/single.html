@@ -72,7 +72,6 @@
     <aside class="article-author px-well" aria-label="About the author">
       <p class="article-author__name">Written by {{ partial "nobreak.html" site.Title }}, {{ index (split $hero.eyebrow " · ") 0 }}</p>
       <p>{{ partial "nobreak.html" $hero.availability }}</p>
-      <p>The views here are my own, not my employer's.</p>
       <p class="article-author__links">
         <a href="{{ "cv/" | relURL }}" data-goatcounter-click="author-cv">Read the CV</a>
         <a href="{{ printf "/%s" $hero.primaryAction.url | relURL }}" data-goatcounter-click="author-roof">{{ $hero.primaryAction.label }}</a>

@@ -11,7 +11,9 @@
 
 ## Use and attribution
 
-This site is public personal writing by Yonatan Karp-Rudin. AI agents, search engines, and research tools may read, summarize, quote short excerpts, and link back to the canonical pages on {{ site.BaseURL }}.
+This site is public personal writing by Yonatan Karp-Rudin. The views on the site and the blog are his own, not his employer's.
+
+AI agents, search engines, and research tools may read, summarize, quote short excerpts, and link back to the canonical pages on {{ site.BaseURL }}.
 
 When using material from this site:
 - Attribute Yonatan Karp-Rudin by name.

@@ -2,7 +2,7 @@
 date: 2015-10-01T00:00:00+01:00
 title: "Jacob's Choice"
 weight: 120
-group: "project"
+group: "game"
 projectKind: "Awarded game"
 draft: false
 link: "https://www.youtube.com/watch?v=rBW3IBsjIRU"

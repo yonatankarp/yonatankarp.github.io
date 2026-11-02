@@ -2,7 +2,7 @@
 date: 2023-06-01T00:00:00+01:00
 title: "xkcd-click-and-drag"
 weight: 70
-group: "project"
+group: "library"
 projectKind: "Data reconstruction"
 draft: false
 link: "https://github.com/yonatankarp/xkcd-click-and-drag"

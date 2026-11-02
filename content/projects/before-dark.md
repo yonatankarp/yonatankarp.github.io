@@ -2,7 +2,7 @@
 date: 2026-01-01T00:00:00+01:00
 title: "Before Dark"
 weight: 95
-group: "project"
+group: "game"
 projectKind: "Game"
 draft: false
 link: "https://yonatankarp.itch.io/before-dark"

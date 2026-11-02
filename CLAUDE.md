@@ -78,7 +78,7 @@ A cover (`images.featured_image`, a painting in `static/images/blog/covers/`, ma
 `static/images/blog/covers/pixel/`, which the blog shows; the build fails with the `pixelate.py` command to make it.
 
 ### New project
-Create `content/projects/name.md` with a `link` (the build fails without one). Projects render via the custom homepage project list and can expose their CTA through `params.button`.
+Create `content/projects/name.md` with a `link` and a `group` of `app`, `library`, `game` or `contribution`, which picks its section on `/projects/` (the build fails without either). Projects render via the custom homepage project list and can expose their CTA through `params.button`.
 
 ### New experience
 Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `duration`, `summary`, and:

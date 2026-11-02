@@ -1,7 +1,5 @@
 {{- /* The projects page in the pixel skin: a standalone page (no baseof), like cv.html. */ -}}
 {{ $pages := .Pages.ByWeight }}
-{{ $mine := where $pages "Params.group" "!=" "contribution" }}
-{{ $contributions := where $pages "Params.group" "contribution" }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">
 <head>
@@ -18,11 +16,11 @@
       {{ with .Content }}<p class="px-projects__lede">{{ . | plainify }}</p>{{ end }}
     </header>
 
-    {{ range slice (slice "My projects" $mine) (slice "Open-source contributions" $contributions) }}
+    {{ range slice (slice "Apps" "app") (slice "Libraries and tools" "library") (slice "Games" "game") (slice "Open-source contributions" "contribution") }}
     <section class="px-section">
       <h2>{{ index . 0 }}</h2>
       <ol class="px-grid">
-        {{ range index . 1 }}
+        {{ range where $pages "Params.group" (index . 1) }}
         {{ $title := partial "project-title.html" .Title }}
         {{ $case := .Params.caseStudy }}
         {{ $href := cond $case .RelPermalink .Params.link }}

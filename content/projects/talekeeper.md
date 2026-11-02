@@ -4,7 +4,7 @@ title: "TaleKeeper"
 weight: 60
 description: "An experiment in tabletop RPG memory: a self-hosted tool that turns local session audio into transcripts, summaries, and searchable campaign records."
 projectKind: "Self-hosted experiment"
-group: "project"
+group: "app"
 draft: false
 link: "https://yonatankarp.github.io/TaleKeeper/"
 caseStudy: true

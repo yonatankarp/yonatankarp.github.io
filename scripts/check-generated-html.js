@@ -60,8 +60,8 @@ function decodeEntities(value) {
 function checkProjectsPage(route, html) {
   const headings = Array.from(html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)).map((match) => stripTags(match[1]));
 
-  if (headings.join("|") !== "My projects|Open-source contributions") {
-    failures.push(`${route}: h2s are [${headings.join(", ")}], expected [My projects, Open-source contributions]`);
+  if (headings.join("|") !== "Apps|Libraries and tools|Games|Open-source contributions") {
+    failures.push(`${route}: h2s are [${headings.join(", ")}], expected [Apps, Libraries and tools, Games, Open-source contributions]`);
   }
 
   const projects = fs.readdirSync(projectsDir).filter((file) => file.endsWith(".md") && file !== "_index.md").map(frontMatter);

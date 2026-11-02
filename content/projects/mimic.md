@@ -4,7 +4,7 @@ title: "Mimic"
 weight: 12
 description: "A Mac app and CLI that turns a picture or a description into a 3D-printable miniature, with local models and print prep written in Swift."
 projectKind: "Mac app"
-group: "project"
+group: "app"
 draft: false
 link: "https://yonatankarp.github.io/mimic/"
 caseStudy: true

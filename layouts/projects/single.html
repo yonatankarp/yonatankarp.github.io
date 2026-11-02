@@ -3,6 +3,7 @@
 <article class="px-sheet px-case">
   <header class="px-case__head">
     {{ with .Params.projectKind }}<p class="px-kicker">{{ . }}</p>{{ end }}
+    {{ if .Params.archived }}<p class="archived-tag">Archived</p>{{ end }}
     <h1>{{ $title }}</h1>
     {{ with .Description }}<p class="px-case__lede">{{ . }}</p>{{ end }}
     <ul class="px-case__meta" aria-label="Project years and technologies">

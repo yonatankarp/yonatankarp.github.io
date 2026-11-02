@@ -435,6 +435,9 @@ html.building--guided .pixel .building-stop:not(.is-here) .floor-portrait { disp
 .pixel .panel-quote img { width: 60px; height: 60px; border: 4px solid var(--ink); object-fit: cover; image-rendering: pixelated; }
 .pixel .panel-quote blockquote { margin: 0; font-size: 15px; line-height: 24px; }
 .pixel .panel-quote cite { display: block; margin-top: 6px; font-style: normal; font-size: 13px; line-height: 20px; color: var(--text-soft); }
+/* An archived project (archived: true in its front matter), beside its kind in the Parking panel. */
+.pixel .archived-tag { display: inline-block; padding: 0 6px; font: 400 15px/20px var(--display); color: var(--text-soft); white-space: nowrap;
+  background: var(--panel-hi); box-shadow: inset 0 0 0 2px var(--ink); }
 .pixel .panel-projects .panel-desc { display: block; color: var(--text-soft); font-size: 15px; line-height: 24px; }
 .pixel .panel-soft, .pixel .nowrap { white-space: nowrap; }   /* "· Jun 2024" keeps its dot; names keep their hyphens */
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {

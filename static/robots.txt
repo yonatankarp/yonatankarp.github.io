@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-# Derivative media: no content of its own
-Disallow: /guillotine-archive/generated/derivatives/
+# A separate project on this domain: keep it out of search
+Disallow: /guillotine-archive/
 
 Sitemap: https://yonatankarp.com/sitemap.xml

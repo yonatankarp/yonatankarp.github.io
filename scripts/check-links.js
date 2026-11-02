@@ -15,6 +15,8 @@ const wantsOutput = process.argv.includes("--github-output");
 const softStatuses = [429, 503, 999];
 const retryDelayMs = 3000;
 const ignoredSchemes = /^(?:mailto:|tel:|javascript:)/i;
+const subresourceTags = /<(?:img|source|video|audio|script|iframe|track|embed|input|link)\b[^>]*>/gi;
+const fetchingLinkRels = new Set(["stylesheet", "preload", "modulepreload", "prefetch", "icon", "apple-touch-icon", "mask-icon", "manifest"]);
 const localOrigins = new Set(["https://yonatankarp.com", "http://yonatankarp.com"]);
 const externallyManagedLocalPrefixes = ["/kotlin-design-patterns/", "/ff4k/", "/mimic/", "/lorekeeper/", "/TaleKeeper/"];
 const ignoredExternalHosts = new Set(["localhost", "127.0.0.1"]);
@@ -104,6 +106,59 @@ function checkLocalTarget(route, href, url, kind) {
 
 function isExternallyManagedLocalUrl(url) {
   return externallyManagedLocalPrefixes.some((prefix) => url.pathname === prefix || url.pathname.startsWith(prefix));
+}
+
+// The URLs a tag makes the browser load with the page: src, poster, each srcset candidate, and a <link>'s href when its
+// rel fetches something. Canonical, alternate and the like name pages rather than load them.
+function subresourceUrls(tag) {
+  const name = tag.match(/^<([a-z]+)/i)[1].toLowerCase();
+
+  if (name === "link") {
+    const rels = (collectAttribute(tag, "rel") ?? "").toLowerCase().split(/\s+/);
+    const href = collectAttribute(tag, "href");
+    return href !== null && rels.some((rel) => fetchingLinkRels.has(rel)) ? [["link href", href]] : [];
+  }
+
+  const urls = [];
+
+  for (const attribute of ["src", "poster"]) {
+    const value = collectAttribute(tag, attribute);
+    if (value !== null) urls.push([`${name} ${attribute}`, value]);
+  }
+
+  for (const candidate of (collectAttribute(tag, "srcset") ?? "").split(",")) {
+    const url = candidate.trim().split(/\s+/)[0];
+    if (url) urls.push([`${name} srcset`, url]);
+  }
+
+  return urls;
+}
+
+function checkSubresource(route, pageUrl, what, rawValue) {
+  const value = decodeHtml(rawValue.trim());
+
+  if (value === "" || /^(?:data|blob):/i.test(value)) {
+    return;
+  }
+
+  let url;
+  let targetPath;
+
+  try {
+    url = new URL(value, pageUrl);
+    targetPath = routeToPublicPath(url.pathname);
+  } catch {
+    failures.push(`${route}: ${what} has a malformed URL ${value}`);
+    return;
+  }
+
+  if (!localOrigins.has(url.origin) || isExternallyManagedLocalUrl(url)) {
+    return;
+  }
+
+  if (!fs.existsSync(targetPath)) {
+    failures.push(`${route}: ${what} points to missing file ${value}`);
+  }
 }
 
 async function requestUrl(url, method) {
@@ -216,7 +271,12 @@ if (!fs.existsSync(publicDir)) {
   fail("Link check requires a built public/ directory.", ["Run npm run build first."]);
 }
 
+if (wantsOutput && !process.env.GITHUB_OUTPUT) {
+  fail("--github-output needs GITHUB_OUTPUT set; run this without the flag locally.");
+}
+
 const htmlFiles = walk(publicDir, ".html");
+let subresourceCount = 0;
 
 for (const filePath of htmlFiles) {
   const html = fs.readFileSync(filePath, "utf8");
@@ -261,6 +321,16 @@ for (const filePath of htmlFiles) {
     const kind = absolute ? "local absolute" : href.startsWith("/") ? "root-relative" : href.startsWith("#") ? "same-page" : "relative";
     checkLocalTarget(route, href, url, kind);
   }
+
+  // An inline script's text is code, not markup, so its tag-like strings are left out.
+  const markup = html.replace(/(<script\b[^>]*>)[\s\S]*?<\/script>/gi, "$1</script>");
+
+  for (const tagMatch of markup.matchAll(subresourceTags)) {
+    for (const [what, value] of subresourceUrls(tagMatch[0])) {
+      checkSubresource(route, pageUrl, what, value);
+      subresourceCount += 1;
+    }
+  }
 }
 
 if (checkExternal) {
@@ -294,12 +364,12 @@ if (checkExternal) {
       fail("Link check failed:", failures);
     }
 
-    console.log(`Link check passed across ${htmlFiles.length} HTML files and ${externalUrls.size} external URLs, ${warnings.length} warned.`);
+    console.log(`Link check passed across ${htmlFiles.length} HTML files, ${subresourceCount} subresources and ${externalUrls.size} external URLs, ${warnings.length} warned.`);
   })();
 } else {
   if (failures.length > 0) {
     fail("Link check failed:", failures);
   }
 
-  console.log(`Link check passed across ${htmlFiles.length} HTML files. External probing skipped.`);
+  console.log(`Link check passed across ${htmlFiles.length} HTML files and ${subresourceCount} subresources. External probing skipped.`);
 }

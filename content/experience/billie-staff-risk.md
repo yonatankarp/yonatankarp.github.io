@@ -7,7 +7,7 @@ company: "Billie"
 location: "Berlin, Germany"
 floor: "6"   # its storey in the building on the homepage
 duration: "Apr 2025 - Oct 2025"
-summary: "Led Staff-level risk work: moving risk decisions from Purchases into a dedicated orchestrator, the graph fraud integration, and the target architecture for buyer risk."
+summary: "Moved risk decisions from Purchases into a dedicated orchestrator, took the graph fraud integration to production, and set the target architecture for buyer risk."
 highlights:
   - "Moved risk decisions from Purchases to a Risk-owned orchestrator, from RFC to production."
   - "Led the graph fraud integration to production, reducing fraud by 4-6%."

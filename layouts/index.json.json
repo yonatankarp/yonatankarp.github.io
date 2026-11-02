@@ -11,6 +11,7 @@
   {{- $href := .RelPermalink -}}
   {{- $summary := .Description | default (.Summary | plainify) -}}
   {{- $content := .Plain -}}
+  {{- $tags := .Params.tags | default slice -}}
   {{- if .IsHome -}}
     {{- $summary = site.Params.description -}}
   {{- else if eq .Path "/skills" -}}
@@ -24,6 +25,7 @@
     {{- $type = cond (eq .Params.group "contribution") "Contribution" "Project" -}}
     {{- $title = partial "project-title.html" $title -}}
     {{- $href = .RelPermalink | default .Params.link -}}
+    {{- $tags = .Params.tech | default slice -}}
   {{- else if eq .Section "experience" -}}
     {{- $type = "Role" -}}
     {{- $href = printf "%s#floor-%s" $home .Params.floor -}}
@@ -44,6 +46,7 @@
     "type" $type
     "permalink" $href
     "summary" (replace (replace ($summary | strings.TrimSpace | htmlUnescape) "&ndash;" "-") "&mdash;" "-")
+    "tags" $tags
     "content" (replace (replace ($content | htmlUnescape) "&ndash;" "-") "&mdash;" "-" | replaceRE `\s+` " ")
   ) -}}
 {{- end -}}

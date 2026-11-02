@@ -2,7 +2,7 @@ hero:
   eyebrow: "Staff Software Engineer · Kotlin, Spring Boot, Kafka · openapi-generator contributor"
   title: "I turn messy backend domains into systems a team can run and change."
   lede: "I work where product rules, vendor integrations, event flows, and operational risk meet. Recently that has meant compliance services, risk orchestration, API contracts, internal tools, and migrations that leave each team clear on which part is theirs."
-  availability: "Open to Staff+ backend roles in central Israel, on-site or hybrid."
+  availability: "Open to Staff+ backend roles in Israel, on-site or hybrid."
   primaryAction:
     label: "Discuss Staff+ backend work"
     url: "#floor-R"   # the roof: contact
@@ -12,8 +12,8 @@ about:
   title: "I like the moment when a domain becomes specific enough to build."
   paragraphs:
     - "In backend work the hard part is usually finding the real boundary: whose rule it is, which event is authoritative, what happens when a vendor disagrees, and how the next engineer will debug the failure at 2 a.m."
-    - "That is where I tend to be useful. I ask until the domain is crisp enough to model, then turn it into production code, API contracts, migration plans, dashboards, runbooks, or diagrams that survive the handoff."
-    - "Good implementation matters, but the bigger payoff is making the system easier for the whole team to operate, extend, and argue about with evidence."
+    - "That is usually where I help. I keep asking until the domain is crisp enough to model, then turn it into production code, API contracts, migration plans, dashboards, runbooks, or diagrams that survive the handoff."
+    - "Good code is part of it. Most of the payoff comes later, when the whole team can run the system, extend it, and argue about it with evidence."
   facts:
     - label: "Works across"
       text: "Backend systems, Kotlin/JVM, service design, OpenAPI, Kafka, internal tools, docs, and OSS"
@@ -50,7 +50,7 @@ proof:
 
 outcomes:
   title: "What I try to leave behind on a team."
-  text: "People use the same words for the system and lean less on folklore. Tradeoffs are written down where the team can challenge and revisit them. A problem that keeps coming back turns into an example, a library, or a template that anyone can use, and the system gets easier to change because more people understand how and why it works."
+  text: "People use the same words for the system and rely less on folklore. Tradeoffs are written down where the team can find and challenge them later. A problem that keeps coming back becomes an example, a library or a template anyone can pick up, and the system gets easier to change because more people know why it works the way it does."
 
 fit:
   title: "I am useful when the team needs clarity as much as code."
@@ -65,10 +65,10 @@ testimonials:
 
 contact:
   kicker: "Writing, podcast, contact"
-  title: "If your backend domain is still a tangle, let's talk."
+  title: "If your backend domain needs untangling, let's talk."
   text: "My strongest fit is Staff+ backend work where the domain has to become one system the whole team understands."
   priorities:
-    - "Staff+ backend roles in central Israel, on-site or hybrid."
+    - "Staff+ backend roles in Israel, on-site or hybrid."
     - "Payments, risk, compliance, or platform architecture."
     - "OSS, technical writing, and teaching."
   location: &location "Berlin, Germany"   # where Yonatan lives now: the roof, CV, footer, share alt and JSON-LD read it; hugo.toml's descriptions repeat it by hand

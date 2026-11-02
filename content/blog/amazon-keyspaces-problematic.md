@@ -7,7 +7,7 @@ aliases:
   - /he/blog/amazon-keyspaces-problematic/
 draft: false
 type: "blog"
-description: "Four concrete production problems the author encountered with Amazon Keyspaces (managed Cassandra), and why the service may not be ready for every workload."
+description: "Four concrete production problems I ran into with Amazon Keyspaces (managed Cassandra), and why the service may not be ready for every workload."
 tags:
   - aws
   - cassandra

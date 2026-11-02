@@ -3,7 +3,7 @@
 // Loads every built page in Chromium with its Content-Security-Policy meta enforced and fails on any
 // securitypolicyviolation, CSP console error or page error (#149). It also runs the paths that load
 // late: Mermaid, video, search, the homepage lift and a floor panel, the arrival at the homepage from
-// another page, and the 404's GoatCounter setup.
+// another page, leaving it, and the 404's GoatCounter setup.
 //
 // GoatCounter is made to fire on localhost (allow_local) so its CSP is exercised, but no hit reaches it:
 // every goatcounter.com request is answered by a stub, and Chromium cannot resolve the host anyway.
@@ -20,6 +20,7 @@ const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
 const missingRoute = "/this-page-does-not-exist/";
 const arrivalRoute = "/projects/?arrive";   // leaves for the homepage, under the view transition that page's styles animate
+const leaveRoute = "/?leave";   // leaves the homepage for a page, then that page for another
 const workers = 4;
 const pixel = Buffer.from("R0lGODlhAQABAAAAACw=", "base64");
 const types = {
@@ -107,7 +108,7 @@ function builtRoutes() {
   })(publicDir);
 
   // The homepage at every hour: this script runs at wall-clock time, so "/" alone would only ever see one (#151).
-  return routes.sort().concat(missingRoute, arrivalRoute, ...["dawn", "day", "dusk", "night"].map((time) => `/?time=${time}`));
+  return routes.sort().concat(missingRoute, arrivalRoute, leaveRoute, ...["dawn", "day", "dusk", "night"].map((time) => `/?time=${time}`));
 }
 
 // Runs in every page before its own scripts.
@@ -181,6 +182,22 @@ async function exercise(page, route) {
     }
     await page.waitForFunction(() => !document.documentElement.classList.contains("px-arrive"), null, { timeout: 5000 });
     did.push("arrived at the homepage");
+  }
+
+  if (route === leaveRoute) {
+    const transitionAfter = async (href, expected) => {
+      await page.click(`a[href="${href}"]`);
+      await page.waitForURL(`**${href}`, { timeout: 5000 });
+      await page.waitForFunction(() => window.__transition, null, { timeout: 5000 });
+      const ran = await page.evaluate(() => window.__transition);
+      if (!ran.includes(expected)) {
+        throw new Error(`going to ${href} ran ${ran.join(", ")}, not ${expected}`);
+      }
+    };
+    await transitionAfter("/projects/", "px-fall");
+    await page.waitForFunction(() => !document.getAnimations().length, null, { timeout: 5000 });
+    await transitionAfter("/blog/", "px-wipe");
+    did.push("left the homepage, then moved between pages");
   }
 
   if (route === "/" || route.startsWith("/?time=")) {

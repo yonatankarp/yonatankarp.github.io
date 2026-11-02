@@ -52,7 +52,8 @@
      .Store "inlineScripts" and it is allowed by its hash (layouts/index.html does). Mermaid's version is pinned in
      js/mermaid-loader.js too. */}}
 {{- /* Every other page's backdrop follows the hour too (custom.css, .px-skin): the same pick, before the first paint. */}}
-{{ if not .IsHome }}{{ .Store.Set "inlineScripts" (slice (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256")) }}{{ end }}
+{{- /* Leaving the homepage has its own transition (the end of custom.css): the type must be on before the reveal, and only this document knows where it came from. */}}
+{{ if not .IsHome }}{{ .Store.Set "inlineScripts" (slice (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256") (resources.FromString "js/page-leave.js" `addEventListener('pagereveal', function (e) { var from = window.navigation && navigation.activation && navigation.activation.from; if (e.viewTransition && from && new URL(from.url).pathname === '/') e.viewTransition.types.add('px-leave'); });` | minify | fingerprint "sha256")) }}{{ end }}
 {{ $hashes := "" }}{{ range .Store.Get "inlineScripts" }}{{ $hashes = printf "%s '%s'" $hashes .Data.Integrity }}{{ end }}
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'{{ $hashes }} https://gc.zgo.at https://cdn.jsdelivr.net/npm/mermaid@11.17.2/; style-src 'self' 'unsafe-inline'; img-src 'self' https://yonatankarp.goatcounter.com; connect-src 'self' https://yonatankarp.goatcounter.com; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 {{ if not .IsHome }}{{ range .Store.Get "inlineScripts" }}<script>{{ .Content | safeJS }}</script>{{ end }}{{ end }}

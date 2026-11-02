@@ -905,3 +905,29 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   from { mask-size: 100% 0, var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile); mask-position: 0 0, 0 0, 0 var(--tile), 0 calc(2 * var(--tile)); }
   to { mask-size: 100% var(--wiped), var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile); mask-position: 0 0, 0 var(--wiped), 0 calc(var(--wiped) + var(--tile)), 0 calc(var(--wiped) + 2 * var(--tile)); }
 }
+
+/* Leaving the homepage (the px-leave type, set in partials/head.html) is its arrival backwards: the camera lifts off the
+   street, so the street sinks a row at a time, and this page, the nearest thing in the shot, comes down over it twice as
+   fast. Same band as the arrival in web3d/src/pixel.css, shrinking off under the screen as the page lands. Rows are whole
+   pixels, just over a screen in all: more would keep the page out of frame while the top of the old one, which has
+   nothing above it, comes into view. So the street also waits a row, for the page to be over its top edge. */
+html:active-view-transition-type(px-leave)::view-transition { --row: round(up, 100vh / 14, 2px); }
+html:active-view-transition-type(px-leave)::view-transition-new(root) {
+  mask-size: 100% calc(100% - 3 * var(--tile)), var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile);
+  mask-position: 0 0, 0 calc(100% - 2 * var(--tile)), 0 calc(100% - var(--tile)), 0 100%;
+  animation: px-fall 350ms steps(14) both, px-land 75ms 275ms steps(3) forwards;
+}
+html:active-view-transition-type(px-leave)::view-transition-old(root) { animation: px-sink 325ms 25ms steps(13) both; }
+@keyframes px-fall { from { transform: translateY(calc(-14 * var(--row))); } }
+@keyframes px-land { to { mask-size: 100% 100%, var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile); mask-position: 0 0, 0 calc(100% + var(--tile)), 0 calc(100% + 2 * var(--tile)), 0 calc(100% + 3 * var(--tile)); } }
+@keyframes px-sink { to { transform: translateY(calc(6.5 * var(--row))); } }
+/* Where the homepage has its icons somewhere else (web3d/src/pixel.css), they stay there until the page comes past, then
+   are in place: a name only for this transition, as these are not the icons' moves between other pages. */
+@media (min-width: 761px) and (max-width: 919px) and (min-aspect-ratio: 1201/1000) {
+  html:active-view-transition-type(px-leave) .px-bar__social { view-transition-name: px-social; }
+  html:active-view-transition-type(px-leave)::view-transition-group(px-social) { animation-duration: 100ms; animation-timing-function: step-end; }
+  html:active-view-transition-type(px-leave)::view-transition-old(px-social) { display: block; mix-blend-mode: normal; animation: px-gone 100ms step-end both; }
+  html:active-view-transition-type(px-leave)::view-transition-new(px-social) { mix-blend-mode: normal; animation: px-late 100ms step-end both; }
+}
+@keyframes px-gone { to { opacity: 0; } }
+@keyframes px-late { from { opacity: 0; } }

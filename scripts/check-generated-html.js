@@ -541,7 +541,9 @@ for (const filePath of htmlFiles) {
     "advent-of-code-2022-day-1-kotlin-edition": "https://dev.to/yonatankarp/advent-of-code-2022-day-1-kotlin-edition-5f41",
     "kotlin-code-smells-010-null": "https://dev.to/yonatankarp/kotlin-code-smells-010-null-22j2",
     "kotlin-code-smell-10-null": "https://dev.to/yonatankarp/kotlin-code-smells-010-null-22j2",
-    "unleashing-chatgpt-the-art-of-ai-misdirection": "https://dev.to/yonatankarp/how-to-make-chatgpt-lie-3mjo",
+    // Posts the owner retired: their slugs stay on the blog, not on dev.to.
+    "how-to-make-chatgpt-lie": "/blog/",
+    "kotlin-code-smell-29-regular-expression-abusers": "/blog/",
   });
   for (const [from, to] of Object.entries(redirects)) {
     const html = read(`${from}/index.html`);

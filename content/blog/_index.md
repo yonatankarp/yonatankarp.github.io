@@ -9,6 +9,11 @@ aliases:
   - /blog/page/2
   - /blog/page/3
   - /blog/page/4
+  - /how-to-make-chatgpt-lie
+  - /kotlin-code-smell-29-regular-expression-abusers
+  - /kotlin-code-smell-29-taming-the-regex-beast-for-cleaner-code
+  - /kotlin-code-smell-30-avoiding-concrete-class-subclassification-pitfalls
+  - /kotlin-code-smell-30-concrete-classes-subclassified
   - /newsletter
   - /page/about
   - /recommendations
@@ -69,6 +74,7 @@ aliases:
   - /tag/testing
   - /tag/twitter
   - /tag/vacation
+  - /unleashing-chatgpt-the-art-of-ai-misdirection
   - /he/
   - /he/blog/
 draft: false

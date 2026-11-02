@@ -421,7 +421,7 @@ async function assertPageBasics(page, route, viewport) {
       brokenVisibleImages: visibleImages
         .filter((image) => !image.complete || image.naturalWidth === 0 || image.naturalHeight === 0)
         .map((image) => image.currentSrc || image.src),
-      blogCards: document.querySelectorAll(".post-row, .featured-article").length,
+      blogCards: document.querySelectorAll(".post-row").length,
       requiredSelectorCounts: requiredSelectors.map(([selector, minimum, label]) => ({
         selector,
         minimum,

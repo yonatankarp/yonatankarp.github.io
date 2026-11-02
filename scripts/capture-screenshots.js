@@ -8,6 +8,7 @@ const path = require("path");
 const { spawn } = require("child_process");
 
 const { rootDir, hugoBinary, loadPlaywright } = require("./lib");
+const phases = require("../data/phases.json");
 
 const dateStamp = new Date().toISOString().slice(0, 10);
 const options = parseArgs(process.argv.slice(2));
@@ -41,7 +42,7 @@ const routes = [
     ride: true,
     requiredSelectors: [...homeSelectors, ["html[data-time='dusk']", 1, "dusk art"]],
   },
-  ...["dawn", "day", "night"].map((time) => ({
+  ...Object.keys(phases).filter((time) => time !== "dusk").map((time) => ({
     name: `home-${time}`,
     path: `/?time=${time}`,
     requiredSelectors: [...homeSelectors, [`html[data-time='${time}']`, 1, `${time} art`]],

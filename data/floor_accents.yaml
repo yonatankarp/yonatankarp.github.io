@@ -1,5 +1,5 @@
-# The colour of each storey's accent band, as painted (web3d/pixel/gen_floors.py FLOORS).
-# Read by the homepage building and the CV, so a role keeps its colour in both.
+# The colour of each storey's accent band, as painted: written by web3d/pixel/gen_floors.py (accents()) from
+# FLOORS. Read by the homepage building and the CV, so a role keeps its colour in both. Do not edit by hand.
 E: "#F2B13B"
 R: "#F2B13B"
 "7": "#FF6B5A"

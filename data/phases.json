@@ -1,0 +1,6 @@
+{
+  "dawn": { "from": 6, "sky": "#5d5a86", "baked": "RPL", "dark": [0.42, 0.42, 0.52] },
+  "day": { "from": 8, "sky": "#2f5c96", "baked": "RPL", "dark": [0.5, 0.52, 0.58] },
+  "dusk": { "from": 18, "sky": "#74228a", "baked": "", "dark": [0.34, 0.34, 0.44] },
+  "night": { "from": 20, "sky": "#232a4d", "baked": "RP", "dark": [0.34, 0.34, 0.44] }
+}

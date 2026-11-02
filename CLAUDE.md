@@ -31,9 +31,17 @@ overrides it for testing; anything else means the clock. Dusk is the plain files
 `PHASES` in `web3d/pixel/gen_floors.py`, baked with `uv run web3d/pixel/gen_exterior.py build static/building/pixel --time NAME`
 into `exterior-NAME.webp`, `floor-{R,P,L}-NAME.webp` (only those rooms show outside) and `backdrop-NAME.webp`, the street
 without the tower behind every other page. The pick is `layouts/partials/time-pick.html`, shared by the homepage and
-`head.html`, so the other pages follow the same clock: `assets/css/custom.css` maps `html[data-time]` to the backdrop. To
-show a new phase, add it to that pick, to `BAKED` and `SKY` in `web3d/src/pixel.js`, to the backdrop rules in `custom.css`,
-and to the phase lists in `scripts/capture-screenshots.js` and `scripts/check-csp.js`.
+`head.html`, so the other pages follow the same clock: `assets/css/custom.css` maps `html[data-time]` to the backdrop.
+`data/phases.json` lists the phases (start hour, the sky above the roof, the baked rooms, how far a dark room falls), and
+`web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the street's sky in
+`web3d/src/pixel.css` and to the backdrop rules in `custom.css`: `npm run check:phases` (part of `npm run check`) fails
+until those agree with `phases.json`, and `gen_floors.py` checks `phases.json` against its `PHASES` on every run.
+
+The art's numbers that `web3d/src/` draws by (strip size, lift doors, dither, each room's lamps, where each window looks
+in, the street's geometry) are written into `static/building/pixel/exterior.json` by `gen_exterior.py` (`json OUT` writes
+only that file) and bundled from there, and `data/floor_accents.yaml` is written by `gen_floors.py` from `FLOORS`: change
+the Python, rerun it, never the copies. `pixel.js` is the lift and the floors, `street.js` the street view and its
+flights, `art.js` what they share.
 
 ## Content Structure
 
@@ -88,8 +96,9 @@ Create `content/projects/name.md` with a `link` and a `group` of `app`, `library
 ### New experience
 Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `duration`, `summary`, and:
 - `floor`: a quoted storey, such as `floor: "5"`, that no other entry uses. Floors 2 to 7 are the roles;
-  `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey needs art: a key in
-  `data/floor_accents.yaml`, a place in `ORDER` in `web3d/src/pixel.js`, and its painting in `web3d/pixel/`.
+  `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey needs art: its entry in `FLOORS` in
+  `web3d/pixel/gen_floors.py` (which writes its colour into `data/floor_accents.yaml`), a place in `ORDER` in
+  `web3d/src/art.js`, and its painting in `web3d/pixel/`.
 - `highlights`: a list; the first three show on the floor's card, the rest inside it.
 
 `layouts/index.html` fails the build naming the file when `floor` or `highlights` is wrong.

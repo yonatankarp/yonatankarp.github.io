@@ -27,6 +27,7 @@ const fs = require("fs");
 const path = require("path");
 const { publicDir, fail, walk } = require("./lib");
 const { serve } = require("./serve-public");
+const phases = require("../data/phases.json");
 
 const missingRoute = "/this-page-does-not-exist/";
 const arrivalRoute = "/projects/?arrive";   // leaves for the homepage, under the view transition that page's styles animate
@@ -55,7 +56,7 @@ function builtRoutes() {
   const routes = walk(publicDir, ".html").map((file) => `/${path.relative(publicDir, file).split(path.sep).join("/").replace(/index\.html$/, "")}`);
 
   // The homepage at every hour: this script runs at wall-clock time, so "/" alone would only ever see one (#151).
-  return routes.sort().concat(missingRoute, arrivalRoute, ...["dawn", "day", "dusk", "night"].map((time) => `/?time=${time}`));
+  return routes.sort().concat(missingRoute, arrivalRoute, ...Object.keys(phases).map((time) => `/?time=${time}`));
 }
 
 // Runs in every page before its own scripts.

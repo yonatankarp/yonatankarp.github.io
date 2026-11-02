@@ -7,6 +7,7 @@ Run: uv run web3d/pixel/gen_exterior.py blockout            # the code blockout,
      uv run web3d/pixel/gen_exterior.py paint [--count N]   # Draw Things repaints the blockout (port 7860)
      uv run web3d/pixel/gen_exterior.py build OUT           # OUT/exterior.webp (12 frames) + exterior.json,
                                                             # and backdrop.webp: the street without the tower
+     uv run web3d/pixel/gen_exterior.py json OUT            # only OUT/exterior.json (art_json())
      uv run web3d/pixel/gen_exterior.py build OUT --time PHASE   # a gen_floors.PHASES entry: exterior-PHASE.webp,
                                                             # backdrop-PHASE.webp and its floor-R, floor-P and (with a
                                                             # door) floor-L; dusk files untouched
@@ -42,6 +43,7 @@ BX0, BX1 = 170, 310              # the building, in the middle of the street
 STOREY = 28
 STOREYS = ["L", "1", "2", "3", "4", "5", "6", "7"]   # bottom to top above ground; P is below the street
 WIN_X0, WIN_X1 = 180, 300        # each storey's ribbon window
+JIB = (200, 316)                 # the crane's jib, first column and end: what phones patch in under the top bar
 c, INK = G.c, G.INK
 GLOW_WIN = G.GLOW["amber"]
 
@@ -108,9 +110,9 @@ def blockout(lit=3):
     cv.rect(212, GROUND - STOREY, 306, GROUND - STOREY + 3, c("amber", 3))       # the lobby's brass awning
     for x in range(284, 287):                                        # the crane on the roof
         cv.rect(x, 12, x + 1, top - 4, c("amber", 4) if x != 285 else c("amber", 2))
-    cv.rect(200, 13, 316, 14, c("amber", 5))                         # the jib: a light top chord,
-    cv.rect(200, 16, 316, 17, c("amber", 3))                         # a dark bottom chord, diagonals between
-    for x in range(200, 316):
+    cv.rect(JIB[0], 13, JIB[1], 14, c("amber", 5))                   # the jib: a light top chord,
+    cv.rect(JIB[0], 16, JIB[1], 17, c("amber", 3))                   # a dark bottom chord, diagonals between
+    for x in range(*JIB):
         cv.put(x, 14 if x % 4 in (0, 3) else 15, c("amber", 3))
     cv.rect(306, 17, 316, 22, c("steel", 2))
     cv.rect(240, 17, 241, 34, INK)
@@ -136,6 +138,27 @@ def blockout(lit=3):
             cv.rect(x0, y0, x1, y1, c("amber", 5))
     return img
 
+
+
+def art_json():
+    """exterior.json: the street's size and windows, and under "art" the numbers web3d/src/pixel.js draws and flies by,
+    so it never keeps its own copy of them: the strips' size and frames, the lift doors (G.DOOR), the dither (G.BAYER),
+    each room's lamps by strip x, the lift's own first (install_picks.LAMPS, laid at G.LOBBY_X), where each window looks
+    into its room (LOOK; the roof's is painted, not a slice), the neighbours, the pavement, a storey's height, the
+    tower's brick and the crane (its first column, width and the cornice's row under it)."""
+    from install_picks import LAMPS   # numpy: only here
+
+    lamps = {key: [G.DOOR["mid"], *(lamp[0] + G.LOBBY_X for lamp in LAMPS[name])]
+             for key, (name, *_) in G.FLOORS.items() if name in LAMPS}
+    art = {"frame": [G.W, G.H], "frames": G.FRAMES, "door": G.DOOR, "bayer": G.BAYER, "lamps": lamps,
+           "look": {k: list(v) for k, v in LOOK.items() if k != "R"}, "neighbours": [list(n) for n in NEIGHBOURS],
+           "ground": GROUND, "storey": STOREY, "brick": [BX0, BX1],
+           "crane": [JIB[0], JIB[1] - JIB[0], GROUND - STOREY * len(STOREYS) - 5]}
+    return {"size": [EW, EH], "windows": windows(), "art": art}
+
+
+def write_json(out):
+    (out / "exterior.json").write_text(json.dumps(art_json()))
 
 
 def paint(count, start, host):
@@ -371,14 +394,14 @@ def build(out, phase=None):
         print("drew exterior", phase)
         return
     G.save_lossless(strip, out / "exterior.webp")
-    (out / "exterior.json").write_text(json.dumps({"size": [EW, EH], "windows": wins}))
+    write_json(out)
     G.save_lossless(street(tower=False), out / "backdrop.webp")                      # the other pages' scene: one still frame
     print("drew exterior", "from blockout" if PICK is None else f"from seed {PICK}")
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["blockout", "paint", "build"])
+    ap.add_argument("cmd", choices=["blockout", "paint", "build", "json"])
     ap.add_argument("out", nargs="?", default="static/building/pixel")
     ap.add_argument("--count", type=int, default=4)
     ap.add_argument("--start", type=int, default=400)
@@ -390,5 +413,7 @@ if __name__ == "__main__":
         print("wrote", Path(a.out) / "exterior-blockout.png")
     elif a.cmd == "paint":
         paint(a.count, a.start, a.host)
+    elif a.cmd == "json":
+        write_json(Path(a.out))
     else:
         build(Path(a.out), None if a.time == "dusk" else a.time)

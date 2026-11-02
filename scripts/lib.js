@@ -36,12 +36,31 @@ function walk(dir, ext) {
   return files;
 }
 
-// An attribute's value in an HTML tag, quoted or not; "" for a bare attribute, null when the tag has none.
+// An attribute's value in an HTML tag, quoted or not; "" when it is empty, null when the tag has no value for it.
 function collectAttribute(tag, attributeName) {
   const pattern = new RegExp(`\\b${attributeName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, "i");
   const match = tag.match(pattern);
 
   return match ? match[1] ?? match[2] ?? match[3] ?? "" : null;
+}
+
+// The built file a site path is served from: a folder's index.html, or the file itself when the path has an extension.
+// Takes a URL's pathname, so the query and fragment are already gone; percent escapes are decoded.
+function routeToPublicPath(pathname) {
+  const normalizedPath = decodeURIComponent(pathname);
+
+  if (normalizedPath === "" || normalizedPath === "/") {
+    return path.join(publicDir, "index.html");
+  }
+
+  const withoutLeadingSlash = normalizedPath.replace(/^\/+/, "");
+  const directPath = path.join(publicDir, withoutLeadingSlash);
+
+  if (path.extname(withoutLeadingSlash)) {
+    return directPath;
+  }
+
+  return path.join(directPath, "index.html");
 }
 
 // Playwright, or a failure that says how to install it; what names the script's job in that message.
@@ -56,4 +75,4 @@ function loadPlaywright(what) {
   }
 }
 
-module.exports = { rootDir, publicDir, hugoBinary, fail, walk, collectAttribute, loadPlaywright };
+module.exports = { rootDir, publicDir, hugoBinary, fail, walk, collectAttribute, routeToPublicPath, loadPlaywright };

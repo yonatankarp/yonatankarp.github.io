@@ -1,4 +1,5 @@
 # /// script
+# requires-python = ">=3.11"
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """Paint the blog's covers with the local model in Draw Things (HTTP API, Settings > API Server, port 7860), and install the picks.
@@ -198,7 +199,7 @@ def clones(img):
     res = a.copy()
     res[84:] = a[106, 2]                                               # the painted legs go; only grass behind them
     for i, X in enumerate((1, 47, 93, 139)):
-        for y, x in zip(*np.nonzero(~outside)):
+        for y, x in zip(*np.nonzero(~outside), strict=True):
             c = crop[y, x].copy()
             if i == 3 and c.sum() > 560:
                 c = np.array((30, 28, 34) if c.sum() > 640 else (20, 18, 24))
@@ -247,12 +248,12 @@ def moved_stone(img):
     mask = np.asarray(shape) > 0
     ys, xs = np.nonzero(mask)
     stone = a[ys, xs].copy()
-    for y, x in zip(ys, xs):
+    for y, x in zip(ys, xs, strict=True):
         a[y, x] = a[y, 124 + (x - 124) % 4] if x < 178 else a[y, 186]  # the sky beside it, in the dither's phase
     a[60:70, 128:188] = a[60:70, 68:128]                               # the leaf litter runs on where the stone sat
     a[ys, xs - 72] = stone
     edge = mask & ~(np.roll(mask, 1, 0) & np.roll(mask, -1, 0) & np.roll(mask, 1, 1) & np.roll(mask, -1, 1))
-    for y, x in zip(*np.nonzero(edge)):
+    for y, x in zip(*np.nonzero(edge), strict=True):
         if (x + y) % 4 < 2:
             a[y, x] = CREAM
     for i in range(0, 41, 3):                                          # the way it went, ending in a head at the stone

@@ -1,4 +1,5 @@
 # /// script
+# requires-python = ">=3.11"
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]   # numpy: pixelate
 # ///
 """The street view: the whole building at dusk, its windows lit with each floor's company sign. The landing view.
@@ -234,7 +235,7 @@ def street(tower=True, night=None):
                 return col
             d = min(((x - lx) ** 2 + (y - cy) ** 2) ** 0.5 for lx in LAMPS)
             lv = min(3, int((1 - d / (r * lamp[1])) * 3 + G.BAYER[y % 4][x % 4] / 16))
-            return col if lv <= 0 else tuple(round(v + (g - v) * (0, 0.35, 0.65, 0.95)[lv]) for v, g in zip(col, c("amber", lamp[0])))
+            return col if lv <= 0 else tuple(round(v + (g - v) * (0, 0.35, 0.65, 0.95)[lv]) for v, g in zip(col, c("amber", lamp[0]), strict=True))
 
         for x0, x1, top in NEIGHBOURS + infill:                          # the lamps' halos, on wall pixels only
             for y in range(top + 3, GROUND):
@@ -331,7 +332,7 @@ def phase_street(scheme, tower=True):
                     px[x + dx, y + dy] = scheme["glint"]
     if scheme.get("daylit"):
         shade = {col: ramp[max(0, i - 1)] for ramp in (G.R["wall"], G.R["plank"]) for i, col in enumerate(ramp)}
-        for x0, x1, top in NEIGHBOURS:                                   # the sun is on the left: each block's right edge
+        for _, x1, top in NEIGHBOURS:                                    # the sun is on the left: each block's right edge
             for x in range(x1 - 9, x1):                                  # turns from it, in a dither
                 for y in range(top + 3, GROUND):
                     if px[x, y] in shade and G.BAYER[y % 4][x % 4] < (x - x1 + 10) * 2:

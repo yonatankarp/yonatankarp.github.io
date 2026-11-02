@@ -1,4 +1,5 @@
 # /// script
+# requires-python = ">=3.11"
 # dependencies = ["pillow==12.1.0"]
 # ///
 """Pixel-art floors for the career building (same approach as Before Dark's gen_art.py).
@@ -773,8 +774,8 @@ def reichman(room, f):
         room.put(gx + dx, gy + dy, INK if edge else c("plant" if land else "blue", min(lit, 4) if land else lit))
     if f:                                                                  # the hierarchy is drawn again on the board
         room.rect(200, 60 + min(14, 3 + (f - 1) * 3 // 2), 221, 74, c("chalk", 2))
-    for i, (y, n) in enumerate(((69, 10), (71, 10), (73, 7))):            # a note typed on the lectern laptop
-        n = n if f == 0 else max(0, min(n, (f - 1 - 3 * i) * 4))
+    for i, (y, full) in enumerate(((69, 10), (71, 10), (73, 7))):         # a note typed on the lectern laptop
+        n = full if f == 0 else max(0, min(full, (f - 1 - 3 * i) * 4))
         room.rect(247, y, 247 + n, y + 1, c("dark", 3))
 
 
@@ -810,7 +811,7 @@ def _names(*to):
 
 
 def _phase(sky, city, **rest):
-    return {"sky": dict(zip(_BANDS, _names(*sky))), "skyline": dict(zip(_CITY, _names(*city))), "tone": {}} | rest
+    return {"sky": dict(zip(_BANDS, _names(*sky), strict=True)), "skyline": dict(zip(_CITY, _names(*city), strict=True)), "tone": {}} | rest
 
 
 _B, _S, _ST, _CR = "blue", "sky", "steel", "cream"
@@ -976,7 +977,7 @@ def phase_door(img, scheme):
 def phase_ramp(img, scheme):
     """The garage's exit: its dither of sky 1-4 takes the street's bands; the street lamp beyond it goes off with theirs."""
     x, y, lamp_y, lamp_xs = RAMP
-    bands = dict(zip(R["sky"][1:5], (scheme["sky"][b] for b in (c("magenta", 2), c("violet", 3), c("sky", 4), c("sky", 5)))))
+    bands = dict(zip(R["sky"][1:5], (scheme["sky"][b] for b in (c("magenta", 2), c("violet", 3), c("sky", 4), c("sky", 5))), strict=True))
     road = {c("steel", 1): scheme.get("road", c("steel", 1)), c("steel", 3): c("steel", 3)}
     q, seen, todo = img.load(), set(), [(x, y)]
     while todo:                                                             # the opening, from inside it

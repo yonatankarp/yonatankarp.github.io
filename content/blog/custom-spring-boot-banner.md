@@ -52,7 +52,7 @@ To convert images into ASCII art, follow these steps:
 <img src="/images/blog/sumup-logo.webp" alt="SumUp logo" width="220" height="220" style="display:block;width:220px;max-width:100%;height:auto;margin-inline:auto;">
 
 
-* Add the following configuration to your [`application.properties`](http://application.properties) or `application.yml` file to specify the location of your image:
+* Add the following configuration to your `application.properties` or `application.yml` file to specify the location of your image:
     
 
 ```yaml

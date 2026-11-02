@@ -1,4 +1,4 @@
-Copyright (c) 2024 Yonatan Karp-Rudin
+Copyright (c) 2024-2026 Yonatan Karp-Rudin
 
 This repository contains two types of content under different terms:
 
@@ -37,3 +37,25 @@ form without prior written permission.
 Some images are sourced from Unsplash and remain under the Unsplash License
 (https://unsplash.com/license), with copyright held by their respective
 photographers. These are attributed in the blog posts where they appear.
+
+## Generated Art
+
+The blog covers and the paintings of the building's rooms on the homepage are
+AI-generated with a local image model in Draw Things (the blog covers with
+FLUX.2 [klein]), then pixelated in code by the scripts in web3d/pixel/.
+
+## Testimonials
+
+The recommendation quotes under content/testimonial/ belong to their authors,
+whose photos are in assets/images/testimonials/.
+
+## Trademarks
+
+Company names and logos shown on the site, including the logos traced in
+web3d/pixel/gen_floors.py, are trademarks of their respective owners.
+
+## Fonts
+
+The fonts in static/fonts/ (Jersey 15, JetBrains Mono and Outfit) are licensed
+under the SIL Open Font License, Version 1.1. Each font's licence ships beside
+it as an OFL-*.txt file.

@@ -1,6 +1,8 @@
 {
   "name": "Yonatan Karp-Rudin",
   "short_name": "Karp-Rudin",
+  "start_url": "/",
+  "display": "browser",
   "icons": [
     { "src": "images/favicon.png", "sizes": "96x96", "type": "image/png" },
     { "src": "images/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }

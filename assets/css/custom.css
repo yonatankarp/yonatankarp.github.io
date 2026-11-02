@@ -290,7 +290,7 @@ h4 a,
 .blog-px .article__header h1 { font-size: 60px; overflow-wrap: anywhere; hyphens: none; }
 .blog-px .article__summary { margin: 0; max-width: 68ch; font-size: 17px; line-height: 1.6; color: var(--px-soft); }
 .blog-px .article__header .chip-row { margin-top: 0; }
-.blog-px .article__cover { max-width: 768px; margin: 4px 4px 36px; }
+.blog-px .article__cover { max-width: 384px; margin: 4px 4px 36px; }   /* 2x at most: wider pushes a shared post's text off the first screen (#185) */
 /* Posts with 3 headings or more: closed above the text, and the old card, so code keeps its width; a sticky column beside
    the text once the card fits at 1144px (a code column of 800px: wider adds little, narrower scrolls many more blocks). */
 .blog-px .article--toc { width: min(1000px, 100%); }

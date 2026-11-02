@@ -1,8 +1,14 @@
 baseURL = "https://yonatankarp.com/"
 title = "Yonatan Karp-Rudin"
 
-[pagination]
-pagerSize = 5
+# Post images stay in static/ at their URLs, which old posts and other sites link, and are assets too, so
+# layouts/_default/_markup/render-image.html can resize them. A mount drops its component's default, hence the first one.
+[[module.mounts]]
+  source = "assets"
+  target = "assets"
+[[module.mounts]]
+  source = "static/images/blog"
+  target = "assets/images/blog"
 
 [outputs]
   page = ["HTML"]

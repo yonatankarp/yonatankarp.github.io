@@ -5,9 +5,6 @@
 {{ $isPost := and .IsPage (eq .Type "blog") }}
 {{ $is404 := eq .Kind "404" }}
 {{ $noindex := or .Params.noindex (in (slice "taxonomy" "term" "404") .Kind) }}
-{{ $pager := false }}
-{{ if and (eq .Kind "section") (eq .Section "blog") }}{{ $pager = partial "blog-pager.html" . }}{{ end }}
-{{ $pageNumber := 1 }}{{ with $pager }}{{ $pageNumber = .PageNumber }}{{ end }}
 
 {{ $name := .Params.seoTitle | default .Title }}
 {{ $description := .Description | default .Summary | plainify | default $homeDescription }}
@@ -20,10 +17,6 @@
   {{ $terms := slice }}{{ range first 8 .Data.Terms.ByCount }}{{ $terms = $terms | append .Page.Title }}{{ end }}
   {{ $description = printf "Browse %s's blog by %s: %s." $siteName .Data.Singular (delimit $terms ", ") }}
 {{ end }}
-{{ if gt $pageNumber 1 }}
-  {{ $name = printf "%s, page %d" $name $pageNumber }}
-  {{ $description = printf "Page %d of %d. %s" $pageNumber $pager.TotalPages $description }}
-{{ end }}
 {{- /* Search results cut a title near 60 characters and a description near 160, so the site name goes when it does not fit. */}}
 {{ $title := printf "%s | %s" $name $siteTitle }}
 {{ if gt (strings.RuneCount $title) 65 }}{{ $title = $name }}{{ end }}
@@ -34,7 +27,6 @@
 {{ $ogTitle := cond $isPost .Title $title }}
 
 {{ $canonical := .Permalink }}
-{{ if gt $pageNumber 1 }}{{ $canonical = $pager.URL | absURL }}{{ end }}
 
 {{ $imagePath := "/images/og-default.png" }}
 {{ $imageAlt := printf "Yonatan Karp-Rudin, Staff Software Engineer, %s, in front of the pixel-art building of his CV" hugo.Data.home.en.contact.location }}

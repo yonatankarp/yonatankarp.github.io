@@ -63,6 +63,7 @@ Kotlin Multiplatform pushes platform-specific storage and runtime details behind
 
 - Docs: [yonatankarp.com/ff4k/](https://yonatankarp.com/ff4k/)
 - Repository: [github.com/yonatankarp/ff4k](https://github.com/yonatankarp/ff4k)
+- Maven Central: [`com.yonatankarp:ff4k-core`](https://central.sonatype.com/artifact/com.yonatankarp/ff4k-core), 7 releases as of November 2026, the latest 0.4.0 in October 2026
 - Status: alpha, pre-1.0, with the JVM target shipping today
 - License: Apache-2.0
 - Stack: Kotlin Multiplatform, JVM 17, kotlinx.serialization, JDBC and SQLite storage adapters

@@ -44,7 +44,43 @@ jobs:
           # Without it the action drops dot-directories, and /.well-known/security.txt (#190) with them.
           include-hidden-files: true
 
-      # The baseline pull requests compare their screenshots with. It never holds up the deploy.
+  # The baseline pull requests compare their screenshots with (ci.yml downloads visual-smoke-main from the newest
+  # successful run). It captures the Pages artifact that ships, in parallel with deploy, and never fails the run.
+  visual_capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the built site
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/pages
+
+      - name: Unpack it into public/
+        run: |
+          mkdir -p public
+          tar -xf "${RUNNER_TEMP}/pages/artifact.tar" -C public
+
+      - name: Setup Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install Node.js dependencies
+        run: npm ci
+
+      - name: Set up Playwright's Chromium
+        uses: ./.github/actions/setup-playwright
+
       - name: Capture visual smoke screenshots
         continue-on-error: true
         env:
@@ -52,7 +88,6 @@ jobs:
         run: npm run visual:capture -- --public --out artifacts/visual-smoke/main
 
       - name: Upload visual smoke screenshots
-        continue-on-error: true
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: visual-smoke-main

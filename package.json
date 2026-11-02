@@ -11,6 +11,7 @@
     "check:generated-html": "node scripts/check-generated-html.js",
     "check:hugo-pin": "node scripts/check-hugo-pin.js",
     "check:phases": "node scripts/check-phases.js",
+    "check:security-txt": "node scripts/check-security-txt.js",
     "check:links": "node scripts/check-links.js",
     "check:links:external": "node scripts/check-links.js --external",
     "check:site-metadata": "node scripts/check-site-metadata.js",

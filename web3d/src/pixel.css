@@ -257,7 +257,10 @@ html:not(.in-shot) .pixel .building-window[data-goto="P"]::after {
   padding: 7px 10px; font: 400 15px/1 var(--display); color: #fff; background: #1f5fae; box-shadow: inset 0 0 0 4px var(--ink);
 }
 .pixel .floor-eyebrow { margin: 0 0 12px; font-size: 15px; line-height: 24px; font-weight: 500; color: var(--accent, var(--amber)); }
-.pixel .floor-card h1 { margin: 0 0 16px; font-family: var(--display); font-weight: 400; font-size: 45px; line-height: 1; }
+/* The street card's tagline, in the big type; the h1 is his name (#187). */
+.pixel .floor-card .floor-title { margin: 0 0 16px; font-family: var(--display); font-weight: 400; font-size: 45px; line-height: 1; }
+/* The name, in the eyebrow's type, sits close over the role line under it. */
+.pixel .floor-card .floor-name { margin-bottom: 0; }
 .pixel .floor-quotes li { margin-bottom: 12px; padding-left: 0; }
 .pixel .floor-quotes li::before { content: none; }
 .pixel .floor-quotes q { color: var(--text); }
@@ -265,7 +268,7 @@ html:not(.in-shot) .pixel .building-window[data-goto="P"]::after {
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
   .pixel .elevator { padding: 6px 4px; gap: 2px; }   /* 326px wide: it fits the narrowest guided screen (360px) */
   .pixel .building-floor-btn { width: 30px; height: 44px; }
-  .pixel .floor-card h1 { font-size: 30px; }
+  .pixel .floor-card .floor-title { font-size: 30px; }
   /* Outside, the windows are the way in: the card sits under the street. */
   html.building--guided.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
   /* The card takes its own height at the bottom and the street stands on it (pixel.js). Only on a short phone does it
@@ -289,7 +292,7 @@ html.building--guided .pixel .elevator:has([data-elevator-floor]:empty):has(.ele
 }
 @media (min-width: 761px) and (max-width: 1279px) and (min-aspect-ratio: 1201/1000) {   /* tablets: a wider hero card with a smaller title, so it is not six lines */
   .pixel .building-stop--hero .floor-card { width: min(400px, 40vw); }
-  .pixel .floor-card h1 { font-size: 30px; }
+  .pixel .floor-card .floor-title { font-size: 30px; }
   /* The panel moves beside the download button, clear of the name. */
   .pixel .elevator { left: auto; right: 96px; transform: none; padding: 8px 10px; gap: 4px; }
   .pixel .building-floor-btn { width: 36px; height: 40px; }   /* 56px tall like the name and download, the plate's bevel showing as on desktop */
@@ -504,7 +507,7 @@ html.building--guided .pixel .floor-top .floor-quotes li:last-child { margin-bot
 @media (max-width: 760px), (max-aspect-ratio: 6/5), (max-height: 499px) {   /* the phone's hero: who, what he does, whether he is free, how to reach him, then the how-to */
   .pixel .building-stop--hero .floor-eyebrow-more, .pixel .building-stop--hero .floor-lead { display: none; }
   .pixel .floor-eyebrow { margin-bottom: 4px; font-size: 16px; }
-  .pixel .building-stop--hero .floor-card h1 { margin-bottom: 8px; }
+  .pixel .building-stop--hero .floor-card .floor-title { margin-bottom: 8px; }
   .pixel .floor-open { margin-bottom: 8px; font-size: 15px; line-height: 20px; }
   .pixel .floor-cta { margin-bottom: 0; gap: 8px 16px; }
   .pixel .floor-card .hero-cta { white-space: nowrap; }

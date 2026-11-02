@@ -86,12 +86,21 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then((pages) => {
           pages.forEach((page) => {
-            page.haystack = [page.title, page.type, page.summary, page.content].join(' ');
+            page.tags = (page.tags || []).join(' ');
+            page.haystack = [page.title, page.type, page.summary, page.tags, page.content].join(' ');
           });
 
-          // Matches from the start of a word: in full text, "ai" should not find "email". $2 is the term itself.
+          // Matches from the start of a word or a camelCase hump: in full text, "ai" should not find "email", but
+          // "coroutines" finds "useCoroutines". Case is folded by hand, as with the i flag \p{Lu} matches any letter.
+          // $2 is the term itself.
+          const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const fold = (term) => [...term].map((char) => {
+            const lower = char.toLowerCase();
+            const upper = char.toUpperCase();
+            return lower === upper ? escape(char) : `(?:${escape(lower)}|${escape(upper)})`;
+          }).join('');
           const finder = (terms) => new RegExp(
-            `(^|[^\\p{L}\\p{N}])(${terms.map((term) => term.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&')).join('|')})`, 'giu');
+            `(^|[^\\p{L}\\p{N}]|(?<=\\p{Ll})(?=\\p{Lu}))(${terms.map(fold).join('|')})`, 'gu');
 
           // The summary, unless a term is only in the body: then the words around that match.
           const excerpt = (item, finders) => {
@@ -107,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const score = (page, finders) => finders.reduce((sum, find) => sum
             + (page.title.search(find) >= 0 ? 100 : 0)
             + (page.summary.search(find) >= 0 ? 10 : 0)
+            + (page.tags.search(find) >= 0 ? 10 : 0)
             + Math.min((page.content.match(find) || []).length, 9), 0);
 
           const render = (items, terms, finders) => {

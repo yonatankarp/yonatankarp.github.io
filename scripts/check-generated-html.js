@@ -508,8 +508,14 @@ for (const filePath of htmlFiles) {
   const projects = fs.readdirSync(projectsDir).filter((file) => file.endsWith(".md") && file !== "_index.md").length;
   if (index.filter((page) => ["Project", "Contribution"].includes(page.type)).length !== projects) failures.push(`index.json: should list all ${projects} projects`);
   if (!index.some((page) => page.type === "Post" && /\bkafka\b/i.test(page.content))) failures.push("index.json: posts should carry their full text, so \"kafka\" finds a post");
+  // Tags are searchable too (#186): posts carry their tags, projects their tech.
+  const tagsOf = (permalink) => index.find((page) => page.permalink === permalink)?.tags || [];
+  if (!tagsOf("/blog/fix-misconfigurations-redistemplate/").includes("redistemplate")) failures.push("index.json: posts should carry their tags, so \"redistemplate\" is on the RedisTemplate post");
+  if (!tagsOf("/projects/ff4k/").includes("Coroutines")) failures.push("index.json: projects should carry their tech as tags, so \"Coroutines\" is on ff4k");
   for (const page of index) {
     if (!page.type) failures.push(`index.json: ${page.permalink} has no type`);
+    if (!Array.isArray(page.tags)) failures.push(`index.json: ${page.permalink} has no tags array`);
+    else if (page.type === "Post" && !page.tags.length) failures.push(`index.json: ${page.permalink} has no tags`);
     if (/\/(?:search|experience|education|testimonial)\//.test(page.permalink)) failures.push(`index.json: should not link to ${page.permalink}`);
     if (/\(contributor\)/i.test(page.title)) failures.push(`index.json: "${page.title}" keeps "(contributor)"`);
     const floor = page.permalink.match(/#(floor-[^/]+)$/)?.[1];

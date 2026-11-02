@@ -100,6 +100,14 @@
 @font-face { font-family: 'Outfit'; font-style: normal; font-weight: 400 800; font-display: swap; src: url({{ $fonts }}outfit-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: 'Outfit'; font-style: normal; font-weight: 400 800; font-display: swap; src: url({{ $fonts }}outfit-latin-ext.woff2) format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 @font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400 700; font-display: swap; src: url({{ $fonts }}jetbrains-mono-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+{{- /* Until a face arrives its text is set in a local font sized to the same widths and line metrics, so the swap moves
+     nothing (the hero card's layout shift, #184): Arial, or Linux's Liberation Sans and Arimo, which share its widths;
+     else Android's Roboto. The figures come from each face's average advance over the homepage cards' text, and its
+     ascender and descender, against the local font's. */}}
+@font-face { font-family: 'Outfit Arial'; font-weight: 400 800; src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('LiberationSans-Regular'), local('Arimo'); size-adjust: 98.86%; ascent-override: 101.15%; descent-override: 26.3%; line-gap-override: 0%; }
+@font-face { font-family: 'Outfit Roboto'; font-weight: 400 800; src: local('Roboto'), local('Roboto-Regular'); size-adjust: 99.89%; ascent-override: 100.11%; descent-override: 26.03%; line-gap-override: 0%; }
+@font-face { font-family: 'Jersey 15 Arial'; src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('LiberationSans-Regular'), local('Arimo'); size-adjust: 82.56%; ascent-override: 94.21%; descent-override: 26.92%; line-gap-override: 0%; }
+@font-face { font-family: 'Jersey 15 Roboto'; src: local('Roboto'), local('Roboto-Regular'); size-adjust: 84.02%; ascent-override: 92.58%; descent-override: 26.45%; line-gap-override: 0%; }
 </style>
 
 {{ $personId := printf "%s#person" .Site.BaseURL }}

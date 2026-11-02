@@ -64,7 +64,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const loaded = () => { loads++; fading = performance.now() + FADE_IN_MS; wake(); };
   const started = new Set();
   const load = (key) => {
-    if (key === 'E' || started.has(key)) return;   // the street is exterior.webp, not a strip
+    if (key === 'E' || !keys.includes(key) || started.has(key)) return;   // the street is exterior.webp, not a strip
     started.add(key);
     const url = `${base}pixel/floor-${key}${BAKED?.includes(key) ? HOUR : ''}.webp`;
     // Decoded off the main thread, as a bitmap: an <img> is decoded by the first drawImage, the whole strip there and then (#184).
@@ -73,13 +73,32 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       : new Promise((ok, fail) => Object.assign(new Image(), { onload() { ok(this); }, onerror: fail, src: url }));
     art.then((img) => {
       if (key === 'R') SKY = colourAt(img, 300, 0);
-      if (LAMPS[key] && !held()) darkenSoon(img);   // before the first frame of a flight, which has every storey in range at once
+      if (LAMPS[key]) { img.dark = () => { if (img.waited) img.since = performance.now(); loaded(); }; if (!held()) darkenSoon(img, urgent.has(key)); }   // before the first frame of a flight, which has every storey in range at once
       img.since = performance.now(); strips.set(key, img); loaded();
     }, () => { strips.set(key, null); loaded(); });
   };
-  const loadAll = () => keys.forEach(load);
+  // Until the first ride only what the next move can show loads (#184): from the street, the lobby (the first step), the
+  // garage (its door) and the roof (the hero's button); from a floor, the storeys above and below, which show at the
+  // screen's edges, and the next stop of the ride (the roof's is the garage), and around a floor theirs too, for the
+  // edges after one step. The rest waits for the lift to move.
+  const nearby = (key) => (key === 'E' ? ['L', 'P', 'R'] : [ORDER[ORDER.indexOf(key) - 1], ORDER[ORDER.indexOf(key) + 1], key === 'R' && 'P']);
+  const around = (key) => [...new Set([key, ...nearby(key), ...nearby(key).filter(Boolean).flatMap(nearby)])];
+  // A ride shows its stop and that stop's neighbours, which are darkened first, and every storey it passes on the way;
+  // going in or out through a window passes none.
+  let urgent = new Set();
+  const need = (from, to) => {
+    urgent = new Set([keys[to], ...nearby(keys[to])]);
+    const [a, b] = [level(keys[Math.round(from)]), level(keys[to])].sort((x, y) => x - y);
+    const fade = keys[Math.round(from)] === 'E' || keys[to] === 'E';
+    [...urgent, ...(fade ? [] : ORDER.filter((k) => level(k) >= a && level(k) <= b)), ...around(keys[to])].forEach(load);
+    if (!held()) urgent.forEach((k) => strips.get(k) && LAMPS[k] && darkenSoon(strips.get(k), true));
+  };
+  let riding = false;   // once the lift has moved, the other floors follow in idle time
+  const loadRest = () => { if (!riding) { riding = true; idle(() => keys.forEach(load), 2000); } };
   // The street is the first screen: the other floors wait until it has arrived (or failed), or the lift moves (#130).
-  const street = streetView(base, windowsBox, stops, loaded, loadAll);
+  const street = streetView(base, windowsBox, stops, loaded, () => (keys[ride.to] === 'E' ? nearby : around)(keys[ride.to]).forEach(load), (key, dark) => !!strips.get(key) && (!dark || !!strips.get(key).shades?.[16]));
+  // A floor about to be asked for, by a pointer over its control or the focus on it, starts loading what its ride will show.
+  for (const type of ['pointerover', 'focusin']) document.addEventListener(type, (e) => { const i = keys.indexOf(e.target.closest?.('[data-goto]')?.dataset.goto); if (i >= 0) need(cab(rideU(performance.now())), i); }, { passive: true });
 
   // ---- the ride ----
   // v: the speed carried over from a ride retargeted mid-way (floors per unit of u), so the cab never stops dead.
@@ -110,9 +129,10 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const emit = (name, detail) => document.dispatchEvent(new CustomEvent(name, { detail }));
   function go(index) {
     shot = 0;
-    loadAll();
     const now = performance.now(), u = rideU(now);
     const to = Math.max(0, Math.min(keys.length - 1, index));
+    need(cab(u), to);
+    loadRest();
     if (to === ride.to || (ride.fade && u < 1)) return false;   // already on its way there; a dissolve runs to its end
     const here = cab(u), vel = u < 1 ? (here - cab(rideU(now - 16))) / 16 : 0;   // floors per ms
     const fade = eAt >= 0 && (to === eAt || Math.abs(here - eAt) < 1e-3);   // going in or out: through a window, not a ride
@@ -286,6 +306,9 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       ctx.fillStyle = '#1f2532';   // a plain storey until its picture arrives (or if it never does)
       if (!img || now - img.since < FADE_IN_MS) ctx.fillRect(0, y, w, FH * s);
       if (!img) continue;
+      // A storey passed with its lights off, whose dark picture idle time has not made yet, stays plain until it has, rather
+      // than making it in this frame; only the ride's own stop is worth that (#184). Then it fades in, like a late arrival.
+      if (LAMPS[key] && lit.get(key) < 1 && !still && !img.shades?.[16] && key !== keys[ride.to]) { img.waited = true; darkenSoon(img); ctx.fillRect(0, y, w, FH * s); continue; }
       ctx.globalAlpha = clamp01((now - img.since) / FADE_IN_MS);
       // The room runs on to the screen's edges over the facade posts: after its frames the strip holds a run of t
       // columns that carries on left of art x 8 and another right of 472 (gen_floors.EDGES), tiled outwards.
@@ -410,26 +433,32 @@ function* darken(img) {
 // Floors waiting for their lights-off picture, made a step at a time in the browser's idle time; where there is no
 // requestIdleCallback (Safari), on timers. Either way in slices of at most SLICE ms, short enough for a tap to wait out.
 const dim = [], SLICE = 8;
-const idle = 'requestIdleCallback' in window ? (f) => requestIdleCallback(f) : (f) => setTimeout(f, 1);
-function darkenSoon(img) {
-  if (dim.push(img) === 1) idle(darkenSome);
+const idle = 'requestIdleCallback' in window ? (f, timeout) => requestIdleCallback(f, { timeout }) : (f) => setTimeout(f, 1);
+let darkening = false;
+function darkenSoon(img, first) {   // first: one the next ride shows, ahead of the queue
+  const at = dim.indexOf(img);
+  if (img.shades?.[16] || (at >= 0 && !first)) return;
+  if (at >= 0) dim.splice(at, 1);
+  if (first) dim.unshift(img); else dim.push(img);
+  if (!darkening) { darkening = true; idle(darkenSome, 100); }
 }
 function darkenSome(deadline) {
-  const stop = performance.now() + Math.min(SLICE, deadline?.timeRemaining() ?? SLICE);
+  // A page busy with a ride may have no idle time: after 100 ms it gets a slice anyway, before a frame.
+  const stop = performance.now() + (deadline && !deadline.didTimeout ? Math.min(SLICE, deadline.timeRemaining()) : SLICE);
   do {   // at least one step a call, so a busy page still gets there
     const img = dim[0];
     if (img.shades?.[16]) { dim.shift(); continue; }   // a flight needed it first
     img.darkening ??= darken(img);
     const step = img.darkening.next();
-    if (step.done) { (img.shades ??= {})[16] = step.value; img.darkening = null; dim.shift(); }
+    if (step.done) { (img.shades ??= {})[16] = step.value; img.darkening = null; dim.shift(); img.dark?.(); }
   } while (dim.length && performance.now() < stop);
-  if (dim.length) idle(darkenSome);
+  if (dim.length) idle(darkenSome, 100); else darkening = false;
 }
 
 // The street view: the whole building at this hour (web3d/pixel/gen_exterior.py), its windows live crops of the rooms,
 // 1-7 dimmed behind each floor's company sign.
 // Its windows are buttons laid over the canvas; the street left and right of the picture repeats its neighbours.
-function streetView(base, box, stops, loaded, then) {
+function streetView(base, box, stops, loaded, then, has) {
   const view = { img: null, size: [480, 336], windows: {}, top: SKY, bottom: '#2a2226', at: null };
   const img = new Image();
   img.onload = () => {
@@ -605,8 +634,8 @@ function streetView(base, box, stops, loaded, then) {
         win: [front.x + x0 * z, front.y + y0 * z, ww * z, wh * z],
         dim: (TIME === 'day' ? 0.3 : 0.6) * easeInOut(Math.min(1, t * 2)),   // at noon a full dim reads as the lights going out
         // How much of the sign is still up, of 16. The lobby and the garage have none: their windows are plain slices
-        // of the room, which would double it as the two scales part.
-        veil: /\d/.test(key) ? Math.round(clamp01(1 - (t - 0.08) / 0.3) * 16) : 0,
+        // of the room, which would double it as the two scales part. A room still on its way keeps the sign up (#184).
+        veil: /\d/.test(key) ? (has(key) ? Math.round(clamp01(1 - (t - 0.08) / 0.3) * 16) : 16) : 0,
       };
     },
     // Rising to the roof (t: 0 on the street, 1 on the deck): the camera pushes in at street level and then climbs. The
@@ -697,6 +726,7 @@ function streetView(base, box, stops, loaded, then) {
       else if (fly.veil < 16) for (const [key, [x0, y0, x1, y1]] of Object.entries(view.windows)) {
         const gw = (x1 - x0) * front.s, gh = (y1 - y0) * front.s, x = front.x + x0 * front.s, y = front.y + y0 * front.s, rs = fly.room.s;
         if (!/\d/.test(key) || y > h || y + gh < 0) continue;   // the lobby's and the garage's are plain slices of the room, and have no sign to lose
+        if (!has(key, true)) continue;   // its room, dark, not here yet: the sign stays up (#184)
         const rx = Math.round(x + gw / 2 - (LOOK[key][0] + (x1 - x0) / 2) * rs), ry = Math.round(y + gh / 2 - (LOOK[key][1] + (y1 - y0) / 2) * rs);
         // tower() places the storeys from the roof's camera; phones have no edge runs, so the strip stays across the screen, as at rest.
         glass(key, [x, y, gw, gh], { s: rs, x: wide ? rx : Math.min(0, Math.max(w - FW * rs, rx)), y: ry - (ORDER.length - 1 - ORDER.indexOf(key)) * FH * rs });

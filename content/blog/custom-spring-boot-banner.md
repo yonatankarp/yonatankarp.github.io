@@ -11,7 +11,6 @@ description: "A fun walkthrough of how to replace the default Spring Boot startu
 tags:
   - kotlin
   - spring-boot
-  - customization
 images:
   featured_image: "/images/blog/covers/custom-spring-boot-banner.jpg"
 coverFocus: 46

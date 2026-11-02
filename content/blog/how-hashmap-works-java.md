@@ -10,7 +10,6 @@ description: "How Java's HashMap works internally: the equals/hashCode contract,
 tags:
   - java
   - kotlin
-  - hashmap
   - data-structures
 images:
   featured_image: "/images/blog/covers/how-hashmap-works-java.jpg"

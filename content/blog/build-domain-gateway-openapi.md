@@ -11,8 +11,6 @@ tags:
   - kotlin
   - spring-boot
   - openapi
-  - api-gateway
-  - rest-api
 images:
   featured_image: "/images/blog/covers/build-domain-gateway-openapi.jpg"
 coverFocus: 78

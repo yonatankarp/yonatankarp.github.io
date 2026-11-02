@@ -103,6 +103,7 @@ aliases:
   - /tag/chatgpt
   - /tag/ci-cd
   - /tag/clean-code
+  - /tags/clean-code
   - /tag/cloud
   - /tag/code-smell-1
   - /tag/concurrency

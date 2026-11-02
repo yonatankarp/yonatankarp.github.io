@@ -14,8 +14,6 @@ tags:
   - kotlin
   - spring-boot
   - observability
-  - opentelemetry
-  - monitoring
 images:
   featured_image: "/images/blog/covers/observability-in-action-opentelemetry.jpg"
 coverFocus: 38

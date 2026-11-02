@@ -10,9 +10,8 @@ type: "blog"
 description: "A beginner-friendly tutorial for building and deploying a fully functional Twitter bot from scratch using Kotlin and the Twitter4J library."
 tags:
   - kotlin
-  - twitter
-  - bot
-  - twitter4j
+  - automation
+  - side-projects
 images:
   featured_image: "/images/blog/covers/build-twitter-bot-kotlin.jpg"
 coverFocus: 46

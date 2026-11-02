@@ -10,10 +10,7 @@ type: "blog"
 description: "Four concrete production problems I ran into with Amazon Keyspaces (managed Cassandra), and why the service may not be ready for every workload."
 tags:
   - aws
-  - cassandra
-  - amazon-keyspaces
   - databases
-  - cloud
 images:
   featured_image: "/images/blog/covers/amazon-keyspaces-problematic.jpg"
 coverFocus: 52

@@ -13,7 +13,6 @@ tags:
   - kotlin
   - spring-boot
   - openapi
-  - rest-api
 images:
   featured_image: "/images/blog/covers/openapi-robust-restful-api.jpg"
 ---

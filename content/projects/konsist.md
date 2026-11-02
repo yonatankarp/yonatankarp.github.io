@@ -21,23 +21,23 @@ I fixed null-aware type matching in Konsist, tightened its snippet verification,
 
 ## Context
 
-Konsist gives Kotlin teams architectural assertions over their codebase. A tool like that has to be precise at its small API edges and keep its examples honest: if snippets drift or CI is noisy, users start treating it as aspirational documentation.
+Konsist gives Kotlin teams architectural assertions over their codebase. A tool like that has to get small API details right and keep its examples working: if snippets drift or CI is noisy, users stop trusting the documentation.
 
-My contributions covered two things: making `representsType()` handle nullable values correctly, and making the project's own verification pipeline less wasteful.
+I made `representsType()` handle nullable values correctly and made the project's own verification pipeline less wasteful.
 
 ## Work shipped
 
 - Allowed `null` values in `representsType()` so type checks could model nullable Kotlin usage more accurately.
 - Improved snippet CI verification so examples stay closer to executable documentation.
-- Limited duplicate CI pipeline runs per pull request, reducing reviewer noise and wasted automation.
+- Limited duplicate CI pipeline runs per pull request, which cut reviewer noise and wasted runs.
 
 A small API mismatch can make an assertion suite feel flaky, and a noisy pipeline makes maintainers slower to review real changes.
 
-## Keeping the changes small
+## Scope
 
 Each PR stayed small enough to review. The API fix stayed close to the affected type representation path, and the CI changes did not touch the library's public contract.
 
-## Current shape
+## Details
 
 - Project: [LemonAppDev/konsist](https://github.com/LemonAppDev/konsist)
 - Area: Kotlin static-analysis API behavior and repository CI

@@ -15,7 +15,7 @@ params:
         btnText: "GitHub"
 ---
 
-I fixed Retrofit and Jackson converter templates and hashmap model generation in the Kotlin generators. Later I added Spring Boot 4 and Jackson 3 support to the Kotlin Spring generator, followed by a fix for its Jackson 3 imports. The work covers generator behavior, test fixtures, and compatibility paths.
+I fixed Retrofit and Jackson converter templates and hashmap model generation in the Kotlin generators. Later I added Spring Boot 4 and Jackson 3 support to the Kotlin Spring generator, followed by a fix for its Jackson 3 imports.
 
 <!--more-->
 
@@ -23,7 +23,7 @@ I fixed Retrofit and Jackson converter templates and hashmap model generation in
 
 Many service teams run OpenAPI Generator in their build pipelines. A generator bug can create compile failures, invalid Spring contracts, or client code that drifts away from the runtime stack a team is migrating to.
 
-Spring Boot 4 and Jackson 3 support needed more than version bumps, because generated source, build files, imports, tests, serialization modules, and compatibility templates all have to move together.
+Supporting Spring Boot 4 and Jackson 3 meant moving generated source, build files, imports, tests, serialization modules, and compatibility templates together.
 
 ## Work shipped
 
@@ -33,15 +33,15 @@ Spring Boot 4 and Jackson 3 support needed more than version bumps, because gene
 - Jackson 3 compatibility across generated Kotlin/Spring output, including a follow-up fix for the annotation package in model imports.
 - Fixture updates that make the generator's behavior easier for maintainers to review.
 
-A sample can compile while another option combination breaks, so the work also tightened the generated cases around the new support.
+A sample can compile while another option combination breaks, so I also tightened the generated cases around the new support.
 
 ## Constraints
 
 This was maintenance inside a large shared tool, where a small template change can affect many downstream repositories. I worked incrementally: make the target stack compile, keep generated output readable, preserve compatibility where possible, and add tests close to the templates that could regress.
 
-OpenAPI Generator has many cross-cutting switches. Framework version, serialization library, client/server mode, model shape, and generator language all interact, so I treated them as a matrix to protect.
+OpenAPI Generator has many cross-cutting switches. Framework version, serialization library, client/server mode, model shape, and generator language all interact, so I treated them as a matrix.
 
-## Current shape
+## Details
 
 - Project: [OpenAPITools/openapi-generator](https://github.com/OpenAPITools/openapi-generator)
 - Area: Kotlin Spring generator and related Kotlin/JVM templates

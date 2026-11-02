@@ -22,13 +22,13 @@ Software design patterns implemented in idiomatic Kotlin. A teaching/reference p
 
 ## Why it exists
 
-Most design-pattern references are written for Java or language-agnostic UML examples. That leaves Kotlin developers translating the idea and the syntax at the same time: null-safety, data classes, top-level functions, sealed types, extension functions, and coroutine-aware APIs all change how a pattern should feel in real code.
+Most design-pattern references are written for Java or language-agnostic UML examples. That leaves Kotlin developers translating the idea and the syntax at the same time: null-safety, data classes, top-level functions, sealed types, extension functions, and coroutine-aware APIs all change how a pattern should look in real code.
 
-This project keeps the pattern vocabulary familiar while making the examples readable as Kotlin, not Java with different file extensions.
+This project keeps the pattern vocabulary familiar and writes the examples as idiomatic Kotlin.
 
-## Project shape
+## What's in it
 
 - Kotlin/JVM examples organized by pattern, with a documentation site generated from the repository.
 - Category-level navigation for creational, structural, behavioral, and other design pattern families.
-- CI and GitHub Pages workflows keep examples and published docs on the same path.
+- CI and GitHub Pages workflows keep the examples and the published docs in step.
 - Public repository under the MIT license, so examples are reusable in teaching, interviews, and engineering discussions.

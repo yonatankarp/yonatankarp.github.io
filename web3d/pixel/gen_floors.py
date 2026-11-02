@@ -4,6 +4,10 @@
 """Pixel-art floors for the career building (same approach as Before Dark's gen_art.py).
 
 Run: uv run web3d/pixel/gen_floors.py <out_dir> [KEY ...]
+     uv run web3d/pixel/gen_floors.py --data       # only data/floor_accents.yaml, and the PHASES check
+
+Every run also writes data/floor_accents.yaml from FLOORS (accents()) and checks data/phases.json against PHASES
+(check_phases()), so the site's copies of the art's values cannot drift from it.
 
 Every floor is a 480x180 side-on cutaway: slab, room, slab. Between the slabs is one Draw Things painting
 (paint_rooms.py: the lift lobby carried on into that floor's room) pixelated onto this palette (install_picks.py);
@@ -11,6 +15,7 @@ the slabs, the floor number and everything that moves are drawn here, in the pai
 floor-<key>.webp, a horizontal strip of FRAMES animation frames. The browser (web3d/src/pixel.js) slides the
 lift doors itself, using DOOR below.
 """
+import json
 import math
 import sys
 from itertools import product
@@ -26,6 +31,7 @@ LOBBY_X, ROOM_X = 8, 140      # the lobby painting spans 8..140 (under the text 
 HOUSING_X = LOBBY_X + 107   # on the roof, the lift housing ends with the pasted lift (install_picks.LIFT)
 DOOR = dict(x0=51, x1=96, mid=74, y0=72, y1=153)   # lift doors in floor pixels; pixel.js mirrors these numbers
 PICKS = Path(__file__).resolve().parent / "paintings" / "picks"
+ROOT = Path(__file__).resolve().parents[2]   # the repository
 
 
 def save_lossless(im, path):
@@ -1024,8 +1030,48 @@ def build(key, out, phase=None):
     print("drew floor", key, phase or "")
 
 
+# --- What the site reads of the art -------------------------------------------------------------------------------------
+# Each storey's accent band, top to bottom, the street (E) taking the roof's: the step of its ramp the band is painted in,
+# ramp[4], but for the lobby's, whose #9E7441 was muddy on the button and under AA as link text.
+ACCENT_STEP = {"L": 5}
+ACCENT_NOTE = {"L": "the wood ramp's top step: its #9E7441 was muddy on the button, under AA as link text"}
+
+
+def accents():
+    """data/floor_accents.yaml as text: read by the homepage building and the CV, so a role keeps its colour in both."""
+    lines = ["# The colour of each storey's accent band, as painted: written by web3d/pixel/gen_floors.py (accents()) from",
+             "# FLOORS. Read by the homepage building and the CV, so a role keeps its colour in both. Do not edit by hand."]
+    for key in ["E", *reversed(FLOORS)]:
+        accent = FLOORS["R" if key == "E" else key][1]
+        hexed = "#{:02X}{:02X}{:02X}".format(*R[accent][ACCENT_STEP.get(key, 4)])
+        name = f'"{key}"' if key.isdigit() else key
+        lines.append(f'{name}: "{hexed}"' + (f"   # {ACCENT_NOTE[key]}" if key in ACCENT_NOTE else ""))
+    return "\n".join(lines) + "\n"
+
+
+def check_phases(path=ROOT / "data" / "phases.json"):
+    """data/phases.json, which the site reads (the time pick, pixel.js, the backdrops' CSS and the scripts), against PHASES:
+    the same hours, each one's sky the first band of its own (the colour above the roof), and its baked rooms the roof
+    and the garage, with the lobby where its door has a view. Dusk is the plain files: none."""
+    site = json.loads(path.read_text())
+    hexed = lambda col: "#{:02x}{:02x}{:02x}".format(*col)
+    want = {"dusk": (hexed(_BANDS[0]), "")} | {name: (hexed(s["sky"][_BANDS[0]]), "RPL" if "door" in s else "RP")
+                                                for name, s in PHASES.items()}
+    have = {name: (p["sky"], p["baked"]) for name, p in site.items()}
+    assert have == want, f"{path} disagrees with gen_floors.PHASES: {have} != {want}"
+
+
+def write_data():
+    (ROOT / "data" / "floor_accents.yaml").write_text(accents())
+    check_phases()
+
+
 if __name__ == "__main__":
+    if sys.argv[1:] == ["--data"]:
+        write_data()
+        sys.exit()
     out = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
     out.mkdir(parents=True, exist_ok=True)
     for key in sys.argv[2:] or FLOORS:
         build(key, out)
+    write_data()

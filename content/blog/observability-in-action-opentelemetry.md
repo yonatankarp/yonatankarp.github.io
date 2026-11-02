@@ -23,12 +23,12 @@ coverFocus: 38
 
 
 
-In this article, we'll dive into the steps for adding observability to your codebase using OpenTelemtry. Initially, we'll develop a library that retrieves data from a remote API. Following that, we'll construct a service using this library to fetch and save this data in a database.
+In this article, we'll dive into the steps for adding observability to your codebase using OpenTelemetry. Initially, we'll develop a library that retrieves data from a remote API. Following that, we'll construct a service using this library to fetch and save this data in a database.
 
 <!--more-->
 
 
-As we progress, we'll infuse OpenTelemtry into our Kotlin backend service, demonstrating their behavior in an environment resembling production. Once the service is equipped with instrumentation, we'll introduce a filter to it that dismisses overly large requests. This filter, too, will be instrumented.
+As we progress, we'll infuse OpenTelemetry into our Kotlin backend service, demonstrating their behavior in an environment resembling production. Once the service is equipped with instrumentation, we'll introduce a filter to it that dismisses overly large requests. This filter, too, will be instrumented.
 
 
 All code examples for this series are available on GitHub:
@@ -911,7 +911,7 @@ $ docker compose up
 ## Conclusion
 
 
-In this article we've followed the steps of building our business logic in a library, integrating it into a REST service, and adding instrumentation to the system to monitor its behavior. I hope that in this article I helped you to see how enhancing your codebase with OpenTelemetry allows you to monitor your service and gain valuable insights into its behavior. By integrating [Honeycomb.io](http://honeycomb.io/), the OpenTelemetry SDK, and the agent, you can effectively set up observability for your service while also benefiting from Honeycomb's powerful analysis tools
+In this article we've followed the steps of building our business logic in a library, integrating it into a REST service, and adding instrumentation to the system to monitor its behavior. I hope that in this article I helped you to see how enhancing your codebase with OpenTelemetry allows you to monitor your service and gain valuable insights into its behavior. By integrating [Honeycomb.io](https://www.honeycomb.io/), the OpenTelemetry SDK, and the agent, you can effectively set up observability for your service while also benefiting from Honeycomb's powerful analysis tools
 
 
 ## Acknowledgments

@@ -2,6 +2,22 @@ document.addEventListener('DOMContentLoaded', () => {
   try {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+    // The copy buttons' results, for screen readers (#183): a button's own label or class change is not announced.
+    // In the page from the start, as a live region added at the moment it speaks may go unheard.
+    let copyStatus = null, copyTimer = 0;
+    if (document.querySelector('.article__content pre:not(.mermaid), .share-btn--copy')) {
+      copyStatus = document.createElement('p');
+      copyStatus.className = 'sr-only';
+      copyStatus.setAttribute('role', 'status');
+      document.body.append(copyStatus);
+    }
+    const announce = (said) => {
+      if (!copyStatus) return;
+      copyStatus.textContent = said;
+      clearTimeout(copyTimer);
+      copyTimer = setTimeout(() => { if (copyStatus.textContent === said) copyStatus.textContent = ''; }, 1600);   // so the next copy is announced again
+    };
+
     // Copy-to-clipboard buttons on code blocks; Mermaid reads its <pre> as diagram source, so skip those
     document.querySelectorAll('.article__content pre:not(.mermaid)').forEach((pre) => {
       if (pre.querySelector('.code-copy')) return;
@@ -15,9 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           await navigator.clipboard.writeText(code.innerText.replace(/\n$/, ''));
           btn.textContent = 'Copied';
+          announce('Code copied');
           setTimeout(() => { btn.textContent = 'Copy'; }, 1600);
         } catch {
           btn.textContent = 'Error';
+          announce('Could not copy the code');
         }
       });
       pre.appendChild(btn);
@@ -30,9 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           await navigator.clipboard.writeText(url);
           btn.classList.add('is-copied');
+          announce('Link copied');
           setTimeout(() => btn.classList.remove('is-copied'), 1600);
-        } catch {
-          /* clipboard unavailable; the social links still work */
+        } catch {   // clipboard unavailable; the social links still work
+          announce('Could not copy the link');
         }
       });
     });

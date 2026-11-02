@@ -360,9 +360,14 @@ h4 a,
 
 .blog-px .article-share { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem; margin: 2.75rem 0 0; padding-top: 1.6rem; border-top: 4px solid var(--panel-hi); }
 .blog-px .article-discuss { margin: 1.25rem 0 0; font-size: 17px; color: var(--px-soft); }
-.blog-px .article-discuss a { color: var(--amber); font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
-.blog-px .article-discuss a:hover { color: var(--amber-hi); }
-.blog-px .article-discuss a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.blog-px :is(.article-discuss, .article-author) a { color: var(--amber); font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.blog-px :is(.article-discuss, .article-author) a:hover { color: var(--amber-hi); }
+.blog-px :is(.article-discuss, .article-author) a:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.blog-px .article-author { display: grid; gap: 8px; margin: 1.25rem 0 0; padding: 20px; font-size: 17px; line-height: 1.5; color: var(--px-soft); }
+.blog-px .article-author p { margin: 0; max-width: 68ch; }
+.blog-px .article-author__name { font-weight: 600; color: var(--px-text); }
+.blog-px .article-author__links { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.blog-px .nowrap { white-space: nowrap; }   /* the nobreak partial's spans; the building's rule stops at .pixel */
 .blog-px .article-share__label { margin-inline-end: 0.25rem; font-size: 15px; font-weight: 600; color: var(--amber); }
 .blog-px .article__footer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 1.5rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 4px solid var(--panel-hi); }
 
@@ -424,7 +429,7 @@ h4 a,
   .blog-px :is(.page-head__copy, .featured-article, .post-row, .blog-sidebar, .article, .related-card) { clip-path: none; box-shadow: none; }
   .blog-px .article { width: auto; padding: 0; }
   .blog-px .article-shell { padding-top: 0; }
-  .blog-px :is(.reading-progress, .article-toc, .article-share, .article-discuss, .article__footer, .related-posts, .code-copy, .blog-sidebar, .pagination, .button) { display: none; }
+  .blog-px :is(.reading-progress, .article-toc, .article-share, .article-discuss, .article-author, .article__footer, .related-posts, .code-copy, .blog-sidebar, .pagination, .button) { display: none; }
   .blog-px .px-prose a { text-decoration: underline; }
   .blog-px .px-prose h2::before { display: none; }   /* paper drops the square's fill and keeps its shadow: a stray corner */
   .blog-px .px-prose pre {

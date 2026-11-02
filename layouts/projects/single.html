@@ -12,7 +12,6 @@
     </ul>
     {{ with .Params.link }}<a class="px-cta px-cta--out" href="{{ . }}" target="_blank" rel="noopener">Open project &#8599;<span class="sr-only">, opens in a new tab</span></a>{{ end }}
   </header>
-  {{ with partial "project-painting.html" (dict "page" . "max" 1200) }}<div class="px-case__art">{{ . }}</div>{{ end }}
   <div class="article__content px-prose">
     {{ .Content }}
   </div>

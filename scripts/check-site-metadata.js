@@ -3,8 +3,8 @@
 const fs = require("fs");
 const path = require("path");
 
-const rootDir = path.resolve(__dirname, "..");
-const publicDir = path.join(rootDir, "public");
+const { rootDir, publicDir, fail } = require("./lib");
+
 const expectedOrigin = "https://yonatankarp.com";
 const forbiddenOrigins = [
   "http://yonatankarp.com",
@@ -21,14 +21,6 @@ const routeFiles = [
   "llms.txt",
   "sitemap.xml",
 ];
-
-function fail(message, details = []) {
-  console.error(message);
-  for (const detail of details) {
-    console.error(`- ${detail}`);
-  }
-  process.exit(1);
-}
 
 function readPublicFile(relativePath) {
   const filePath = path.join(publicDir, relativePath);

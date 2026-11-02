@@ -12,12 +12,21 @@
 // The same pass runs axe-core on each page as it loads, before anything is clicked, and fails on any
 // serious or critical violation (#193).
 //
+// Every navigation stays on the local server: one to another origin is answered with 204 No Content, which leaves the
+// page where it is, so nothing here depends on the network or on what the live site has deployed. A redirect page (a
+// Hugo alias or an old address, a meta refresh) is held the same way, its refresh stopped, and checked for its own CSP
+// meta tag where it has one and for a target on yonatankarp.com or this server. Axe and the exercises skip it.
+//
+// A page that fails on a known transient error (its context destroyed by a navigation, or a timeout, such as Mermaid's
+// chunks under 8 workers) is loaded once more, and the retry is logged; any other failure fails at once.
+//
 // Usage: node scripts/check-csp.js [--only /blog/some-post/] [--base http://127.0.0.1:1313]
 // Without --base it serves public/ itself, answering missing paths with 404.html like GitHub Pages.
 
 const fs = require("fs");
 const path = require("path");
-const { publicDir, serve } = require("./serve-public");
+const { publicDir, fail, walk } = require("./lib");
+const { serve } = require("./serve-public");
 
 const missingRoute = "/this-page-does-not-exist/";
 const arrivalRoute = "/projects/?arrive";   // leaves for the homepage, under the view transition that page's styles animate
@@ -28,35 +37,22 @@ if (!Number.isInteger(workers) || workers < 1) {
 }
 const pixel = Buffer.from("R0lGODlhAQABAAAAACw=", "base64");
 const blockingImpacts = new Set(["serious", "critical"]);
+const transient = /Execution context was destroyed|Timeout \d+ms exceeded/;
 let AxeBuilder;
+
+// A built page that only sends the reader on: Hugo's alias pages and layouts/_default/redirect.html.
+function isRedirect(route) {
+  const file = path.join(publicDir, route.split("?")[0], "index.html");
+  return fs.existsSync(file) && /<meta\b[^>]*http-equiv=["']?refresh/i.test(fs.readFileSync(file, "utf8"));
+}
 
 function option(name) {
   const index = process.argv.indexOf(`--${name}`);
   return index === -1 ? null : process.argv[index + 1];
 }
 
-function fail(message, details = []) {
-  console.error(message);
-  for (const detail of details) {
-    console.error(`- ${detail}`);
-  }
-  process.exit(1);
-}
-
 function builtRoutes() {
-  const routes = [];
-
-  (function walk(dir) {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const file = path.join(dir, entry.name);
-
-      if (entry.isDirectory()) {
-        walk(file);
-      } else if (entry.name.endsWith(".html")) {
-        routes.push(`/${path.relative(publicDir, file).split(path.sep).join("/").replace(/index\.html$/, "")}`);
-      }
-    }
-  })(publicDir);
+  const routes = walk(publicDir, ".html").map((file) => `/${path.relative(publicDir, file).split(path.sep).join("/").replace(/index\.html$/, "")}`);
 
   // The homepage at every hour: this script runs at wall-clock time, so "/" alone would only ever see one (#151).
   return routes.sort().concat(missingRoute, arrivalRoute, ...["dawn", "day", "dusk", "night"].map((time) => `/?time=${time}`));
@@ -107,9 +103,11 @@ async function exercise(page, route) {
   });
 
   if (await page.$(".mermaid")) {
+    // Drawn, not started: while it draws, Mermaid holds an empty svg inside a div of its own; the finished diagram is the
+    // block's own child, named by aria-roledescription (sequence, flowchart-v2, ...).
     await page.locator(".mermaid").first().scrollIntoViewIfNeeded();
-    await page.waitForSelector(".mermaid svg", { timeout: 30000 });
-    did.push(`mermaid ${await page.locator(".mermaid svg").count()}/${await page.locator(".mermaid").count()}`);
+    await page.waitForFunction(() => [...document.querySelectorAll(".mermaid")].every((block) => block.querySelector(":scope > svg[aria-roledescription]")), null, { timeout: 30000 });
+    did.push(`mermaid ${await page.locator(".mermaid > svg[aria-roledescription]").count()}/${await page.locator(".mermaid").count()}`);
   }
 
   if (await page.$("video")) {
@@ -169,6 +167,7 @@ async function exercise(page, route) {
 async function check(context, baseUrl, route) {
   const page = await context.newPage();
   const result = { route, csp: false, violations: [], errors: [], a11y: [], goatcounter: 0, did: [] };
+  const redirect = isRedirect(route);
 
   page.on("console", (message) => {
     if (/Content.Security.Policy|Refused to|integrity/i.test(message.text())) {
@@ -181,11 +180,35 @@ async function check(context, baseUrl, route) {
     request.fulfill({ status: 200, contentType: "image/gif", body: pixel });
   });
 
+  let first = true;
+  await page.route("**/*", (request) => {
+    const asked = request.request();
+    if (asked.isNavigationRequest() && asked.frame() === page.mainFrame()) {
+      const away = new URL(asked.url()).origin !== new URL(baseUrl).origin;
+      if (away || (redirect && !first)) {
+        result.did.push(redirect ? "refresh held" : `held a navigation to ${asked.url()}`);
+        return request.fulfill({ status: 204 });   // No Content: the browser stays on the page; an abort would show an error page
+      }
+      first = false;
+    }
+    return request.fallback();
+  });
+
   try {
     await page.goto(baseUrl + route, { waitUntil: "load" });
     await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
     result.csp = (await page.$('meta[http-equiv="Content-Security-Policy"]')) !== null;
     result.violations.push(...(await page.evaluate(() => window.__csp.splice(0))));
+    if (redirect) {
+      await page.waitForTimeout(500);
+      result.violations.push(...(await page.evaluate(() => window.__csp)));
+      const target = (await page.getAttribute('meta[http-equiv="refresh"]', "content"))?.match(/url=(\S+)/i)?.[1] ?? "";
+      if (!target.startsWith("https://yonatankarp.com/") && !target.startsWith("/")) {
+        result.errors.push(`redirects to "${target}", not to a page of yonatankarp.com`);
+      }
+      await page.close();
+      return result;
+    }
     result.a11y = await accessibility(page);
     result.did = await exercise(page, route).catch((error) => {
       result.errors.push(`exercise: ${error.message.split("\n")[0]}`);
@@ -231,7 +254,14 @@ async function check(context, baseUrl, route) {
   const queue = [...routes];
   await Promise.all(Array.from({ length: workers }, async () => {
     while (queue.length) {
-      results.push(await check(context, baseUrl, queue.shift()));
+      const route = queue.shift();
+      let result = await check(context, baseUrl, route);
+      const flake = result.errors.find((error) => transient.test(error));
+      if (flake) {
+        console.log(`retry ${route}: ${flake}`);
+        result = await check(context, baseUrl, route);
+      }
+      results.push(result);
     }
   }));
 

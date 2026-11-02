@@ -4,17 +4,10 @@
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
+const { publicDir, fail } = require("./lib");
 
-const pdfPath = path.join(path.resolve(__dirname, ".."), "public", "yonatan-karp-rudin-cv.pdf");
+const pdfPath = path.join(publicDir, "yonatan-karp-rudin-cv.pdf");
 const maxPages = 1;
-
-function fail(message, details = []) {
-  console.error(message);
-  for (const detail of details) {
-    console.error(`- ${detail}`);
-  }
-  process.exit(1);
-}
 
 if (!fs.existsSync(pdfPath)) {
   fail("CV print check requires public/yonatan-karp-rudin-cv.pdf.", ["Run npm run build, then npm run pdf."]);

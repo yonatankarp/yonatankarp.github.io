@@ -1,4 +1,6 @@
 {
+  "name": "yonatankarp.github.io",
+  "private": true,
   "scripts": {
     "build": "npm run build:building && node scripts/run-hugo.js --gc --minify --cleanDestinationDir && npm run pdf",
     "check": "npm run check:static && npm run check:csp",

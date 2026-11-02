@@ -17,7 +17,7 @@
         {{ range .GetTerms "tags" }}<a class="chip" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
       </div>
     </header>
-    {{ with $art.cover }}<img class="px-cover article__cover" src="{{ . }}" alt="" width="192" height="108" fetchpriority="high" decoding="async">{{ end }}
+    <img class="px-cover article__cover" src="{{ $art.cover }}" alt="" width="192" height="108" fetchpriority="high" decoding="async">
 
     <div class="article__body">
       {{ if $toc }}
@@ -95,7 +95,7 @@
     {{ range . }}
     {{ $art := partial "blog-art.html" . }}
     <a class="related-card" href="{{ .RelPermalink }}" style="--post: {{ $art.accent | safeCSS }}">
-      {{ if $art.cover }}<img class="px-cover" src="{{ $art.cover }}" alt="" width="192" height="108" loading="lazy" decoding="async">{{ end }}
+      <img class="px-cover" src="{{ $art.cover }}" alt="" width="192" height="108" loading="lazy" decoding="async">
       <span class="related-card__date">{{ .Date.Format "Jan 2, 2006" }}</span>
       <h3>{{ .Title }}</h3>
     </a>

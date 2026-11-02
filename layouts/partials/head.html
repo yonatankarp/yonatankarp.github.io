@@ -87,8 +87,8 @@
 <link rel="apple-touch-icon" href="{{ "images/apple-touch-icon.png" | relURL }}">
 <link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
 {{ if not .IsHome }}{{/* the homepage (the building) brings its own styles */}}
-{{ if $css }}<link rel="stylesheet" href="{{ $css.RelPermalink }}">{{ end }}
-{{ if $chroma }}<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">{{ end }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}">
+<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">
 {{ end }}
 {{- /* Self-hosted Google Fonts latin subsets (OFL, licences in static/fonts/), here because the homepage skips custom.css (#142).
      Outfit and JetBrains Mono are variable, one file for every weight; a face only downloads once a glyph needs it,

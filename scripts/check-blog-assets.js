@@ -3,29 +3,10 @@
 const fs = require("fs");
 const path = require("path");
 
-const rootDir = path.resolve(__dirname, "..");
+const { rootDir, walk } = require("./lib");
+
 const blogDir = path.join(rootDir, "content", "blog");
 const staticDir = path.join(rootDir, "static");
-
-function walkMarkdownFiles(dir) {
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  const files = [];
-
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-
-    if (entry.isDirectory()) {
-      files.push(...walkMarkdownFiles(fullPath));
-      continue;
-    }
-
-    if (entry.isFile() && entry.name.endsWith(".md")) {
-      files.push(fullPath);
-    }
-  }
-
-  return files;
-}
 
 function normalizeAssetRef(ref) {
   return ref.split(/[?#]/, 1)[0];
@@ -134,7 +115,7 @@ function assetExists(ref) {
   return fs.existsSync(assetPath) && fs.statSync(assetPath).isFile();
 }
 
-const markdownFiles = walkMarkdownFiles(blogDir);
+const markdownFiles = walk(blogDir, ".md");
 const missingRefs = [];
 
 for (const filePath of markdownFiles) {

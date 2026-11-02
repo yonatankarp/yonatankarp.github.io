@@ -53,7 +53,7 @@ While at the beginning this question might sound tricky, it's actually possible 
 
 The following diagram shows a general example of a basic event loop:
 
-```mermaid
+```mermaid {title="Event loop" desc="Tasks go from the execution queue to execution. A blocked execution goes to the blocked queue, which returns it to the execution queue."}
 flowchart LR
     EQ[Execution Queue] -->|current execution| EX((Execution))
     EX -->|blocked execution| BQ[Blocked Queue]

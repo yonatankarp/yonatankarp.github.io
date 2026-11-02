@@ -82,7 +82,7 @@ What would be printed here? If your answer was `Sorry, nobody is home :(`, you'r
 
 The problem lies in using a mutable class as the key in a HashMap and then modifying it afterward. As I mentioned in my previous article, when you add a new key/value pair to a HashMap, the key's hash is calculated, and the pair is stored in the relevant bucket:
 
-```mermaid
+```mermaid {title="Key stored in bucket 1" desc="The key 1 | I am a nice int value! goes through the hash function into bucket 1, which stores the pair. Buckets 2 to 4 are empty."}
 flowchart LR
     k["1 | I am a nice int value!"] --> HF(("Hash Function"))
     subgraph Buckets
@@ -98,7 +98,7 @@ flowchart LR
 
 However, in our case, we changed the value of the class. So when we calculate the hash code of the updated object, it will likely end up in a different bucket. Consequently, when HashMap checks the bucket, it won't find the required object!
 
-```mermaid
+```mermaid {title="Changed key hashes to bucket 3" desc="After the change, the key 2 | I am a nice int value! goes through the hash function, and its new hash points to bucket 3, while the pair is still stored in bucket 1."}
 flowchart LR
     k["2 | I am a nice int value!"] --> HF(("Hash Function"))
     subgraph Buckets
@@ -196,7 +196,7 @@ If you are using an older version of Java, you can still achieve this functional
 
 ## Conclusion
 
-```mermaid
+```mermaid {title="Recap: the changed key hashes to bucket 3" desc="After the change, the key 2 | I am a nice int value! goes through the hash function, and its new hash points to bucket 3, while the pair is still stored in bucket 1."}
 flowchart LR
     k["2 | I am a nice int value!"] --> HF(("Hash Function"))
     subgraph Buckets

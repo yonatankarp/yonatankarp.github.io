@@ -77,7 +77,7 @@ To answer this question, we must first dig into how exactly HashMap is working i
 
 When we add a new element to our map, the hash code of this key is calculated first. According to its value, a bucket is selected. That bucket will contain the value (in this case, our object). In case of collision (2 or more objects with the same hash code), the key and the value are stored as a pair using some sort of data structure (e.g., a linked list).
 
-```mermaid
+```mermaid {title="Keys hashed into buckets" desc="Three keys, key_1, key_2 and key_3, go through the hash function into buckets 1 to 4. Bucket 1 holds key_3 | value_3, bucket 2 holds key_2 | value_2, bucket 3 holds key_1 | value_1, and bucket 4 is empty."}
 flowchart LR
     k1[key_1] --> HF(("Hash Function"))
     k2[key_2] --> HF
@@ -110,7 +110,7 @@ Note that, in general, the assumption is that the hash function is evenly distri
 
 Yet, in our example, all the keys are going to have the same hash code and, thus, end up in the same bucket. Hence, getting a value from the map will need (in the worst case) scanning the entire linked list. That would take a linear time of `O(n)`.
 
-```mermaid
+```mermaid {title="Every key in one bucket" desc="All three keys go through the hash function into bucket 1, where the pairs form a list: key_1 | value_1, then key_2 | value_2, then key_3 | value_3. Buckets 2 to 4 are empty."}
 flowchart LR
     k1[key_1] --> HF(("Hash Function"))
     k2[key_2] --> HF
@@ -134,7 +134,7 @@ Our problem now is that the bucket uses a linked list, a data structure that is 
 
 We can replace our bucket implementation with a balanced binary tree. By doing so, we can ensure that each element in the bucket could be found with the worst-case complexity of `O(log(n))`. This is much better than what we had before.
 
-```mermaid
+```mermaid {title="One bucket as a tree" desc="All three keys go through the hash function into bucket 1, which holds key_1 | value_1 with two branches, key_2 | value_2 and key_3 | value_3. Buckets 2 to 4 are empty."}
 flowchart LR
     k1[key_1] --> HF(("Hash Function"))
     k2[key_2] --> HF
@@ -162,7 +162,7 @@ Let’s start with the question, what is a HashSet?
 
 A HashSet is a set (an unordered collection of elements), where the same hash code only exists once.
 
-```mermaid
+```mermaid {title="A HashSet stored in a HashMap" desc="Three entries, entry_1, entry_2 and entry_3, go through the hash function into buckets, each stored as a key with a null value. Bucket 1 holds entry_3 | null, bucket 2 holds entry_2 | null, bucket 3 holds entry_1 | null, and bucket 4 is empty."}
 flowchart LR
     e1[entry_1] --> HF(("Hash Function"))
     e2[entry_2] --> HF

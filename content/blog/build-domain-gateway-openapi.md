@@ -38,7 +38,7 @@ A domain gateway is a private case of the API gateway pattern. The website [java
 Like an API gateway, a domain gateway acts as a facade for clients. It allows aggregating calls to the backend into a single call for the clients. Additionally, it enables replacing backend services without impacting the clients. The following illustration shows a possible example of the domain gateway pattern:
 
 
-```mermaid
+```mermaid {title="Domain flow" desc="The client asks the API gateway for A. The API gateway asks domain gateway 1, which calls services A and B and returns their results as the A response, back through the API gateway to the client. A request for B goes the same way through domain gateway 2, which calls services C and D."}
 sequenceDiagram
     participant C as Client
     participant AG as API Gateway
@@ -72,7 +72,7 @@ _Domain flow diagram_
 Otherwise, if you prefer a class diagram, this illustration might make more sense:
 
 
-```mermaid
+```mermaid {title="Domain components" desc="The client calls the company gateway, which calls domain gateways A and B. Domain gateway A calls services A and B, and domain gateway B calls services C and D."}
 flowchart LR
     Client([Client]) --> CG[Company Gateway]
     CG --> DGA[Domain Gateway A]
@@ -152,7 +152,7 @@ We will use the following tech stack:
 For simplicity, let's assume that we have only two services in our domain. Each service serves a single endpoint that is unrelated to the other. The illustration below shows an example of how our client will integrate with our domain:
 
 
-```mermaid
+```mermaid {title="Greetings API flow" desc="The client sends Hello Yonatan to the API gateway, which asks the greeting gateway for a hello response. The greeting gateway gets it from the hello service, and it goes back to the client as Hello Yonatan. Goodbyte Yonatan goes the same way, through the greeting gateway to the Goodbyte service."}
 sequenceDiagram
     participant C as Client
     participant AG as API Gateway
@@ -179,7 +179,7 @@ _Greetings API flow diagram_
 If we look at the service structure of our domain, it would look something like this:
 
 
-```mermaid
+```mermaid {title="Greetings API components" desc="The client calls the company gateway, which calls the domain gateway. The domain gateway calls services A and B."}
 flowchart LR
     Client([Client]) --> CG[Company Gateway]
     CG --> DG[Domain Gateway]

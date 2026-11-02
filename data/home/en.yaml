@@ -2,7 +2,7 @@ hero:
   eyebrow: "Staff Software Engineer · Kotlin, Spring Boot, Kafka · openapi-generator contributor"
   title: "I turn messy backend domains into systems teams can own."
   lede: "I work where product rules, vendor integrations, event flows, and operational risk meet. Recently that has meant compliance services, risk orchestration, API contracts, internal tools, and migrations that leave teams with clearer ownership."
-  availability: "Open to Staff+ backend roles in Tel Aviv and central Israel, on-site or hybrid."
+  availability: "Open to Staff+ backend roles in central Israel, on-site or hybrid."
   primaryAction:
     label: "Discuss Staff+ backend work"
     url: "#floor-R"   # the roof: contact
@@ -33,13 +33,13 @@ proof:
       floor: "7"   # the building floor whose panel tells this story
       title: "Creating a new service boundary for compliance workflows."
       context: "Transaction monitoring, screening, and sanction checks crossed product rules, vendor behavior, alerts, and audit expectations."
-      decision: "I authored the technical spec and interfaces, led the ComplyAdvantage integration, and covered Kafka DLT alerts, settlement reports, and compliance states in the service design."
+      decision: "I authored the technical spec and interfaces, led the transaction monitoring vendor integration, and covered Kafka DLT alerts, settlement reports, and compliance states in the service design."
       result: "Scattered operational knowledge became a service teams can reason about, monitor, and recover."
     - label: "Risk architecture"
       floor: "6"   # the building floor whose panel tells this story
       title: "Moving risk work toward explicit orchestration and contracts."
       context: "Risk decisions depended on multiple services, fraud providers, recurrent identification, tokenization, and direct debit behavior."
-      decision: "I co-designed the Risk Orchestrator, led the Ravelin integration, and authored the Buyer Risk Assessment target architecture."
+      decision: "I co-designed the Risk Orchestrator, led the fraud vendor integration, and authored the Buyer Risk Assessment target architecture."
       result: "Risk changes gained a clearer coordination model across providers, payment behavior, and service boundaries."
     - label: "Engineering leverage"
       floor: "7"   # the building floor whose panel tells this story

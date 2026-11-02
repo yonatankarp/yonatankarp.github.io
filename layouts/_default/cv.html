@@ -21,7 +21,7 @@
       <div class="cv-head__who">
         <p class="px-kicker">Curriculum vitae</p>
         <h1>Yonatan Karp-Rudin</h1>
-        <p class="cv-role">Staff Software Engineer · {{ hugo.Data.home.en.contact.location }} (relocating to Tel Aviv, Jan 2027)</p>
+        <p class="cv-role">Staff Software Engineer · {{ hugo.Data.home.en.contact.location }} (relocating to Israel, Jan 2027)</p>
         <ul class="cv-contact">
           {{ with hugo.Data.home.en.contact.email.address }}<li><a class="px-chip" href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</li>{{ end }}
           <li><a class="px-chip" href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
@@ -34,7 +34,7 @@
     <section class="px-section" aria-labelledby="cv-summary">
       <h2 id="cv-summary">Summary</h2>
       <p>I'm a Staff Software Engineer. I've been writing software for 12 years: first C++ on vision processing chips at Inuitive, then backend work at NICE, then backend services for SumUp's point-of-sale products, and for the last three years risk and compliance at Billie.</p>
-      <p>At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, Ravelin for graph-based fraud detection and ComplyAdvantage for transaction monitoring. I also started two services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
+      <p>At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, one for graph-based fraud detection and one for transaction monitoring. I also started two services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
     </section>
 
     <section class="px-section" aria-labelledby="cv-focus">

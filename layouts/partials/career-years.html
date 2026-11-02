@@ -1,0 +1,7 @@
+{{- /* Whole years since the earliest role in content/experience/ began (its `date`), as of the build. */ -}}
+{{- $start := (index (sort (where site.RegularPages "Type" "experience") "Date") 0).Date -}}
+{{- $years := sub now.Year $start.Year -}}
+{{- if or (lt (int now.Month) (int $start.Month)) (and (eq (int now.Month) (int $start.Month)) (lt now.Day $start.Day)) -}}
+  {{- $years = sub $years 1 -}}
+{{- end -}}
+{{- return $years -}}

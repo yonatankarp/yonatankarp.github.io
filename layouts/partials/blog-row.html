@@ -1,13 +1,10 @@
-{{/* A post's card in a list: the blog's pages and the tag pages. The title is its one link to the post, stretched over the card. */}}
+{{/* A post's row in a list: the blog and the tag pages. The title is its one link to the post, stretched over the row. */}}
 {{ $art := partial "blog-art.html" . }}
 <article class="post-row" style="--post: {{ $art.accent | safeCSS }}">
   <div class="post-row__body">
     <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ partial "reading-time.html" . }} min read</p>
     <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
     <p>{{ .Description | default (.Summary | plainify) }}</p>
-    <div class="chip-row">
-      {{ range .GetTerms "tags" }}<a class="chip" href="{{ .RelPermalink }}">{{ .LinkTitle }}</a>{{ end }}
-    </div>
   </div>
   <div class="post-row__aside">
     {{ $fallbackLabel := "Article" }}

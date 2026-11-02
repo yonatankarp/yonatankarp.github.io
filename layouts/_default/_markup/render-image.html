@@ -1,9 +1,20 @@
-{{- /* width/height reserve the image's box before it loads; any lookup that fails leaves them out rather than failing the build */ -}}
+{{- /* width/height reserve the image's box before it loads; any lookup that fails leaves them out rather than failing the build.
+     srcset: webp sizes below the image's own width and bytes (a lossless screenshot can grow), then the file itself at its own width, so nothing is upscaled and src stays as written.
+     SVG and GIF (may be animated) keep their one src. 1520 is the column at 2x, 1080 a phone at 3x. */ -}}
 {{- $size := dict -}}
+{{- $srcset := slice -}}
 {{- $u := urls.Parse .Destination -}}
 {{- if and (not $u.Scheme) (not $u.Host) $u.Path (not (strings.HasSuffix (lower $u.Path) ".svg")) -}}
   {{- with or (.PageInner.Resources.Get $u.Path) (resources.Get $u.Path) -}}
     {{- $r := . }}{{ with try ($r.Width) }}{{ with .Value }}{{ $size = dict "Width" . "Height" $r.Height }}{{ end }}{{ end -}}
+    {{- if and $size.Width (ne $r.MediaType.SubType "gif") -}}
+      {{- range $w := slice 480 800 1080 1520 -}}
+        {{- if lt $w $size.Width -}}
+          {{- with try ($r.Process (printf "resize %dx webp" $w)) }}{{ with .Value }}{{ if lt (len .Content) (len $r.Content) }}{{ $srcset = $srcset | append (printf "%s %dw" .RelPermalink $w) }}{{ end }}{{ end }}{{ end -}}
+        {{- end -}}
+      {{- end -}}
+      {{- with $srcset }}{{ $srcset = $srcset | append (printf "%s %dw" $.Destination $size.Width) }}{{ end -}}
+    {{- end -}}
   {{- else -}}
     {{- $static := path.Join "static" $u.Path -}}
     {{- if os.FileExists $static -}}
@@ -11,4 +22,5 @@
     {{- end -}}
   {{- end -}}
 {{- end -}}
-<img src="{{ .Destination | safeURL }}" alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ with $size.Width }} width="{{ . }}" height="{{ $size.Height }}"{{ end }} loading="lazy" decoding="async">
+{{- /* sizes: the article column in custom.css: padding by the 680px and 760px rules, the side table of contents' padding above that, capped by .article__content > * at 68ch (758px; measured). */ -}}
+<img src="{{ .Destination | safeURL }}"{{ with $srcset }} srcset="{{ delimit . ", " }}" sizes="(max-width: 680px) calc(100vw - 76px), (max-width: 760px) calc(100vw - 136px), (max-width: 950px) calc(100vw - 192px), 758px"{{ end }} alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ with $size.Width }} width="{{ . }}" height="{{ $size.Height }}"{{ end }} loading="lazy" decoding="async">

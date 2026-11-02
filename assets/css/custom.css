@@ -44,7 +44,7 @@ a {
 }
 
 /* Visible keyboard focus across the whole site. */
-:where(a, button, input, textarea, select, summary, .button, .chip, [tabindex]):focus-visible {
+:where(a, button, input, textarea, select, summary, .chip, [tabindex]):focus-visible {
   outline: 2px solid var(--accent-strong);
   outline-offset: 3px;
   border-radius: 4px;
@@ -116,7 +116,6 @@ h4 a,
   overflow-wrap: anywhere;
 }
 
-.button,
 .text-link,
 .search-input {
   transition: transform var(--transition), background-color var(--transition), color var(--transition), border-color var(--transition), box-shadow var(--transition);
@@ -140,11 +139,11 @@ h4 a,
 }
 
 /* Panels: the floor card's frame. */
-.blog-px :is(.page-head__copy, .featured-article, .post-row, .blog-sidebar, .article, .related-card) {
+.blog-px :is(.page-head__copy, .post-row, .blog-sidebar, .article, .related-card) {
   background: var(--panel); clip-path: var(--stepped);
   box-shadow: inset 0 0 0 4px var(--ink), inset 16px 0 0 0 var(--post), inset 4px 4px 0 4px var(--panel-hi);
 }
-.blog-px :is(.featured-article, .post-row):is(:hover, :focus-within) {
+.blog-px .post-row:is(:hover, :focus-within) {
   box-shadow: inset 0 0 0 4px var(--post), inset 16px 0 0 0 var(--post), inset 4px 4px 0 4px var(--panel-hi);
 }
 
@@ -154,23 +153,23 @@ h4 a,
 .blog-px .page-head__copy h1 { font-size: 60px; }
 .blog-px .page-head__copy p { margin: 0; max-width: 68ch; font-size: 17px; color: var(--px-soft); }
 
+/* The sidebar comes first in the markup, so phones get it above the list in reading order; wide screens place it beside. */
 .blog-px .blog-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); align-items: start; padding-top: 16px; gap: 16px; }
-.blog-px .post-list { display: grid; gap: 16px; }
-.blog-px .featured-article { display: grid; gap: 1.5rem; margin-bottom: 16px; padding: 32px 32px 32px 48px; align-items: center; grid-template-columns: minmax(0, 1fr) auto; }
-.blog-px .post-row { position: relative; display: grid; gap: 1rem 1.5rem; align-items: start; padding: 24px 24px 24px 40px; grid-template-columns: minmax(0, 1fr) auto; }
-.blog-px .featured-article h2 { font-size: 45px; }   /* on Jersey 15's 15px grid; 60px wraps to five lines beside the cover */
+.blog-px .blog-layout > .post-list { grid-area: 1 / 1; }
+.blog-px .blog-layout > .blog-sidebar { grid-area: 1 / 2; }
+.blog-px .post-list { display: grid; gap: 8px; }
+.blog-px .post-row { position: relative; display: grid; gap: 1rem 1.5rem; align-items: start; padding: 16px 16px 16px 36px; grid-template-columns: minmax(0, 1fr) auto; }
 .blog-px .post-row h2 { font-size: 30px; }
-.blog-px :is(.featured-article, .post-row) h2 a { color: var(--px-text); text-decoration: none; }
-.blog-px :is(.featured-article, .post-row) h2 a:hover { color: var(--post); }
-/* The title is a row's one link to its post; stretched over the card, it makes the cover clickable too. The chips sit above it. */
+.blog-px .post-row h2 a { color: var(--px-text); text-decoration: none; }
+.blog-px .post-row h2 a:hover { color: var(--post); }
+/* The title is a row's one link to its post; stretched over the row, it makes the cover clickable too. */
 .blog-px .post-row h2 a::after { content: ''; position: absolute; inset: 0; z-index: 1; }
-.blog-px .post-row .chip { position: relative; z-index: 2; }
-.blog-px .eyebrow, .blog-px .section-kicker { margin: 0 0 12px; font-size: 15px; font-weight: 500; color: var(--post); }
-.blog-px :is(.featured-article__meta, .post-row__meta, .article__meta) { font-size: 15px; font-weight: 500; color: var(--px-soft); }
-.blog-px .featured-article__meta { margin: 0.85rem 0 0.7rem; line-height: 1.35; }
+.blog-px .section-kicker { margin: 0 0 12px; font-size: 15px; font-weight: 500; color: var(--post); }
+.blog-px :is(.post-row__meta, .article__meta) { font-size: 15px; font-weight: 500; color: var(--px-soft); }
 .blog-px .post-row__meta { margin: 0 0 0.6rem; }
 .blog-px .article__meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 20px; }
-.blog-px :is(.featured-article, .post-row) p { max-width: 68ch; font-size: 16px; color: var(--px-soft); }
+.blog-px .post-row p { max-width: 68ch; font-size: 16px; color: var(--px-soft); }
+.blog-px .post-row__body > p:last-child { display: -webkit-box; margin: 0.4rem 0 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .blog-px .post-row__aside { display: grid; gap: 0.9rem; align-content: start; justify-items: start; }
 .blog-px .post-row__thumb { position: relative; display: grid; align-content: space-between; width: 100%; overflow: hidden; }
 /* A post with no cover: its first tag and title on a dotted plate. */
@@ -224,55 +223,23 @@ h4 a,
 }
 .blog-px .post-row:is(:hover, :focus-within) .post-row__thumb--fallback { color: var(--amber); }
 
-/* Buttons and tabs: the homepage's amber Download button, and its steel tabs. */
-.blog-px .button--primary {
-  display: inline-flex; align-items: center; justify-content: center; max-width: 100%; text-align: center; text-decoration: none;
-  min-height: 52px; padding: 0 20px; clip-path: var(--stepped);
-  background: var(--amber); color: var(--ink); font: 400 30px/1 var(--pixel-font);
-  box-shadow: inset 0 0 0 4px var(--ink), inset 4px 4px 0 4px var(--amber-hi), inset -4px -4px 0 4px var(--amber-lo);
-}
-.blog-px .button--primary:hover { background: var(--amber-hover); }
-.blog-px .button--primary:active { transform: translateY(4px); }
+/* Tabs: the homepage's steel tabs. */
 .blog-px .chip-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
 .blog-px .chip {
   display: inline-flex; gap: 0.35rem; align-items: center; padding: 4px 8px; font-size: 14px; text-decoration: none;
   background: var(--well); box-shadow: inset 0 0 0 2px var(--panel-hi); color: var(--px-soft);
 }
 .blog-px .chip span { color: var(--post); }
-.blog-px :is(.chip, .pagination__btn:not(.is-disabled), .pagination__page):is(:hover, :focus-visible) {
+.blog-px .chip:is(:hover, :focus-visible) {
   background: var(--well); box-shadow: inset 0 0 0 2px var(--post); color: var(--px-text);
-}
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  margin-top: 1.5rem;
-  flex-wrap: wrap;
-}
-.blog-px :is(.pagination__btn, .pagination__page) {
-  display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 44px; padding: 0 0.6rem;
-  box-shadow: inset 0 0 0 4px var(--ink); background: var(--panel-hi); color: var(--px-text); text-decoration: none; font-weight: 600; line-height: 1;
-}
-.pagination__btn { font-size: 1.2rem; }
-.blog-px .pagination__page.is-current { background: var(--amber); color: var(--ink); box-shadow: inset 0 0 0 4px var(--ink); cursor: default; }
-.pagination__btn.is-disabled { opacity: 0.4; cursor: default; }
-.pagination__ellipsis {
-  display: inline-flex;
-  align-items: flex-end;
-  justify-content: center;
-  min-width: 1.6rem;
-  height: 2.4rem;
-  color: var(--px-soft);
 }
 .blog-px .share-btn--copy.is-copied { color: var(--ink); background: var(--amber); }
 .blog-px .share-btn--copy.is-copied::after {
   content: "Copied!"; position: absolute; bottom: calc(100% + 0.45rem); left: 50%; transform: translateX(-50%); padding: 0.2rem 0.5rem;
   background: var(--amber); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); font-size: 0.7rem; font-weight: 600; white-space: nowrap;
 }
-/* Square corners, so the site's focus ring needs no rounding; the stepped button gets an inner ring (clip-path cuts outlines). */
+/* Square corners, so the site's focus ring needs no rounding. */
 .blog-px :focus-visible { border-radius: 0; }
-.blog-px .button--primary:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
 
 /* Sidebar */
 .blog-px .blog-sidebar { position: sticky; padding: 24px 24px 24px 40px; top: 112px; }
@@ -388,26 +355,37 @@ h4 a,
   .blog-px .article__footer {
     grid-template-columns: 1fr;
   }
+  .blog-px .blog-layout > :is(.post-list, .blog-sidebar) { grid-area: auto; }
+  /* One column: the sidebar is a plate above the list, its search box and tags with no headings or reading tracks. */
+  .blog-px .blog-sidebar { position: static; padding: 16px 16px 16px 36px; }
+  .blog-px .blog-sidebar h2 { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .blog-sidebar section + section { margin-top: 12px; }
+  .blog-px .blog-sidebar .chip-row { margin-top: 0; }
+  .blog-sidebar__tracks { display: none; }
 }
 
 @media (max-width: 760px) {
   .blog-px .page-head__copy { padding: 24px 20px 24px 36px; }
-  .blog-px .page-head__copy h1, .blog-px .featured-article h2 { font-size: 40px; }
-  .blog-px :is(.featured-article, .post-row) { padding: 20px 20px 20px 36px; grid-template-columns: 1fr; }
-  .blog-px .post-row__aside { order: -1; width: 100%; }
+  .blog-px .page-head__copy h1 { font-size: 40px; }
+  .blog-px .post-row { grid-template-columns: 1fr; }
+  .blog-px .post-row__aside { display: none; }   /* a cover is 192px at the least (#123), too tall for a compact row */
+  /* The tags: one row that scrolls sideways, dimming in hard steps at the plate's edge to show there is more. The padding keeps focus rings in. */
+  .blog-px .blog-sidebar .chip-row {
+    flex-wrap: nowrap; gap: 8px; margin: 0 -16px 0 -6px; padding: 6px 48px 6px 6px; overflow-x: auto; scrollbar-width: none;
+    mask-image: linear-gradient(to left, #0000 8px, #0005 8px 24px, #000a 24px 40px, #000 40px);
+  }
+  .blog-px .blog-sidebar .chip-row > * { flex: none; }
   .blog-px .article { padding: 28px 20px 28px 36px; }
   .blog-px .article__header h1 { font-size: 40px; }
 }
 
 @media (max-width: 720px) {
-  .blog-px :is(.featured-article, .post-row) { overflow-wrap: break-word; }
-  .blog-px .blog-sidebar { position: static; }
+  .blog-px .post-row { overflow-wrap: break-word; }
 }
 
 @media (max-width: 680px) {
   :root { --shell: min(100vw - 1.25rem, 1240px); }
   .blog-px .article__header .chip-row { gap: 0.45rem; }
-  .blog-px .featured-article { gap: 1.1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -426,10 +404,10 @@ h4 a,
     --panel: #fff; --well: #fff; --panel-hi: #bbb; --ink: #111; --px-text: #111; --px-soft: #333; --amber: #9a5a00;
     padding-bottom: 0;
   }
-  .blog-px :is(.page-head__copy, .featured-article, .post-row, .blog-sidebar, .article, .related-card) { clip-path: none; box-shadow: none; }
+  .blog-px :is(.page-head__copy, .post-row, .blog-sidebar, .article, .related-card) { clip-path: none; box-shadow: none; }
   .blog-px .article { width: auto; padding: 0; }
   .blog-px .article-shell { padding-top: 0; }
-  .blog-px :is(.reading-progress, .article-toc, .article-share, .article-discuss, .article-author, .article__footer, .related-posts, .code-copy, .blog-sidebar, .pagination, .button) { display: none; }
+  .blog-px :is(.reading-progress, .article-toc, .article-share, .article-discuss, .article-author, .article__footer, .related-posts, .code-copy, .blog-sidebar) { display: none; }
   .blog-px .px-prose a { text-decoration: underline; }
   .blog-px .px-prose h2::before { display: none; }   /* paper drops the square's fill and keeps its shadow: a stray corner */
   .blog-px .px-prose pre {
@@ -874,6 +852,8 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-chip--strong { color: var(--amber); }
 
 .px-notfound__lede { margin-bottom: 24px; }
+.px-notfound__search { margin-bottom: 16px; }
+.px-notfound h2 { margin: 32px 0 0; font-size: 30px; }
 .px-notfound__links { display: flex; flex-wrap: wrap; gap: 12px; }
 .px-notfound .px-cta { margin-top: 0; padding: 10px 18px; font-size: 26px; text-decoration: none; }
 .px-notfound .px-cta:hover { background: var(--amber-hover); }

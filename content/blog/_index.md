@@ -16,6 +16,10 @@ aliases:
   - /archive
   - /archive/2
   - /archive/3
+  - /blog/page/1
+  - /blog/page/2
+  - /blog/page/3
+  - /blog/page/4
   - /chatgpt-will-not-replace-engineers-any-time-soon
   - /design-patterns-factory-method
   - /design-patterns-singleton

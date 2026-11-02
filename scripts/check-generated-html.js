@@ -216,6 +216,14 @@ function checkPlainPixelPage(route, html) {
         fail(`should link to ${href}`);
       }
     }
+
+    if (!/<form\b[^>]*action=["']?\/search\/[^>]*method=["']?get[^>]*>[\s\S]*?<input\b[^>]*name=["']?q\b/.test(html)) {
+      fail("needs a GET form to /search/ with an input named q");
+    }
+
+    if (hrefs.filter((href) => /^\/blog\/[^/]+\/$/.test(href)).length < 3) {
+      fail("should link to three recent posts");
+    }
   }
 }
 
@@ -364,7 +372,7 @@ for (const filePath of htmlFiles) {
     checkCaseStudyPage(route, html, caseStudy[1]);
   }
 
-  if (/^\/blog(?:\/page\/\d+)?\/$/.test(route)) {
+  if (route === "/blog/") {
     const postRows = countMatches(html, /class=["'][^"']*\bpost-row\b/g);
     const rowThumbs = countMatches(html, /class=["'][^"']*\bpost-row__thumb\b/g);
 
@@ -429,9 +437,10 @@ for (const filePath of htmlFiles) {
   const blog = read("blog/index.html");
   if (!tags(blog, "a").some((tag) => collectAttribute(tag, "href") === "/blog/index.xml" && /\bchip\b/.test(collectAttribute(tag, "class") ?? ""))) fail("/blog/", "missing the RSS chip linking to /blog/index.xml");
 
-  const page2 = read("blog/page/2/index.html");
-  if (link(page2, "canonical").join() !== `${origin}/blog/page/2/`) fail("/blog/page/2/", `canonical is ${link(page2, "canonical")}`);
-  if (!/page 2/i.test(page2.match(/<title>([^<]*)/)?.[1] ?? "") || !/^Page 2 /.test(meta(page2, "description")[0] ?? "")) fail("/blog/page/2/", 'title and description should say "page 2"');
+  // One list, with the tags before it so phones get them near the top (#185); the old /blog/page/N/ URLs redirect, below.
+  const postCount = JSON.parse(read("index.json")).filter((page) => page.type === "Post").length;
+  if (countMatches(blog, /<article\b[^>]*\bpost-row\b/g) !== postCount || /\bpagination\b|rel=["']?next\b/.test(blog)) fail("/blog/", `should list all ${postCount} posts on one page, with no pager`);
+  if (!(blog.indexOf("blog-sidebar") < blog.indexOf("post-list"))) fail("/blog/", "the sidebar should come before the list");
 
   const home = read("index.html");
   const homeLd = jsonLd("/", home);
@@ -492,6 +501,14 @@ for (const filePath of htmlFiles) {
     if (/class=["']?article__content/.test(html) && src.startsWith("/images/blog/") && !src.endsWith(".svg") && (collectAttribute(tag, "width") === null || collectAttribute(tag, "height") === null)) {
       failures.push(`${route}: ${src} needs width and height`);
     }
+    // Responsive post images (#185): every size is published, none is wider than the file, and the file itself comes last.
+    const srcset = collectAttribute(tag, "srcset");
+    if (srcset !== null) {
+      const sizes = srcset.split(", ").map((candidate) => candidate.split(" "));
+      if (!collectAttribute(tag, "sizes") || /\.svg$/i.test(src)) failures.push(`${route}: ${src} has a bad srcset: needs sizes, and no SVG gets one`);
+      if (sizes.some(([url]) => !fs.existsSync(path.join(publicDir, url)))) failures.push(`${route}: ${src} has a srcset URL that is not published`);
+      if (sizes.at(-1)[0] !== src || sizes.at(-1)[1] !== `${collectAttribute(tag, "width")}w` || sizes.slice(0, -1).some(([, width]) => parseInt(width) >= parseInt(collectAttribute(tag, "width")))) failures.push(`${route}: ${src} srcset should end with the file at its own width, every other size below it`);
+    }
   }
   for (const [tag] of html.matchAll(/<video\b[^>]*>/gi)) {
     if (!/\bcontrols\b/.test(tag) || !collectAttribute(tag, "aria-label") || /\bautoplay\b/.test(tag)) failures.push(`${route}: videos need controls and aria-label, and no autoplay`);
@@ -504,6 +521,11 @@ for (const filePath of htmlFiles) {
   const loader = html.match(/src=["']?(\/js\/mermaid-loader\.[^"'\s>]+)/)?.[1];
   if (loader && !/useMaxWidth:\s*!?(?:false|1)/.test(fs.readFileSync(path.join(publicDir, loader), "utf8"))) failures.push(`${route}: Mermaid should draw with useMaxWidth false`);
   if (!diagrams.length && /mermaid-loader|mermaid\.esm/.test(html)) failures.push(`${route}: loads Mermaid without a diagram`);
+}
+
+{
+  const photo = fs.readFileSync(path.join(publicDir, "blog", "how-hashmap-works-java", "index.html"), "utf8").match(/<img\b[^>]*\bsrc=["']?\/images\/blog\/desk-macbook-code\.jpeg[^>]*>/)?.[0] ?? "";
+  if (!/\.webp 480w/.test(collectAttribute(photo, "srcset") ?? "")) failures.push("/blog/how-hashmap-works-java/: the photo should have webp sizes in a srcset");
 }
 
 {
@@ -534,7 +556,7 @@ for (const filePath of htmlFiles) {
 // --- Old Hashnode URLs (#117): aliases redirect to the blog, /rss.xml serves the blog feed. ---
 {
   const read = (file) => (fs.existsSync(path.join(publicDir, file)) ? fs.readFileSync(path.join(publicDir, file), "utf8") : "");
-  const redirects = { "how-does-hashmap-work-in-java": "/blog/how-hashmap-works-java/", "design-patterns-builder": "/blog/design-patterns-builder/", "design-patterns-singleton": "/blog/" };
+  const redirects = { "how-does-hashmap-work-in-java": "/blog/how-hashmap-works-java/", "design-patterns-builder": "/blog/design-patterns-builder/", "design-patterns-singleton": "/blog/", "blog/page/1": "/blog/", "blog/page/2": "/blog/", "blog/page/3": "/blog/", "blog/page/4": "/blog/" };
   for (const [from, to] of Object.entries(redirects)) {
     const html = read(`${from}/index.html`);
     const target = `https://yonatankarp.com${to}`;

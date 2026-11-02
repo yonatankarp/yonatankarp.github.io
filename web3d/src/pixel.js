@@ -5,6 +5,7 @@
 import { guide, roomy } from './guide.js';
 import { FW, FH, FRAMES, ORDER, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, narrow, easeInOut, clamp01, colourAt, shade, darken } from './art.js';
 import { streetView } from './street.js';
+import { floorKey, floorShaped } from './hash.js';
 import '../../assets/js/copy-email.js';
 import '../../assets/js/site-menu.js';
 import './pixel.css';
@@ -25,13 +26,10 @@ const SHOT_BY = 1500;                                           // ms after the 
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
 const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
-// The old one-page site's anchors, still linked from elsewhere, land on the floor that took their place (#29); the
-// closed newsroom's (floor 8) on the lobby, whose newsstand has the writing now.
-const LEGACY = { about: 'L', testimonial: 'L', contact: 'R', experience: '7', proof: '7', 'client-and-work-section': 'P', 'floor-8': 'L' };
-// Hugo lowercases menu URLs, so the site menu's About arrives as #floor-l.
-const hashKey = () => { const h = location.hash.slice(1); return LEGACY[h] ?? (h.match(/^floor-(\w+)$/) || [])[1]?.toUpperCase(); };
+const hashKey = () => floorKey(location.hash);
+const TRIES = 3, RETRY_MS = 2000;                                // a strip that failed to load is asked for again, this often and no sooner
 
-export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pauseButton }) {
+export function mountPixel({ canvas, stops, base = '/building/', version = '', windowsBox, pauseButton }) {
   const ctx = canvas.getContext('2d');
   const keys = stops.map((s) => s.dataset.floor);
   const strips = new Map();         // key -> ImageBitmap or Image (or null while loading / missing)
@@ -39,11 +37,16 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   const lit = new Map();            // key -> 0..1, its lamps: on only where the lift has arrived, or a flight lands
   let loads = 0, fading = 0;        // bumped by every image or file that arrives: the picture changes (and fades in)
   const loaded = () => { loads++; fading = performance.now() + FADE_IN_MS; wake(); };
-  const started = new Set();
+  // The art's URLs carry its version, computed from the files at build time (layouts/index.html): a strip cached from
+  // before a change of the art is never drawn by the numbers bundled for the new one (#65).
+  const artUrl = (name) => `${base}pixel/${name}.webp${version && `?v=${version}`}`;
+  const started = new Set(), failed = new Map();   // failed: key -> [tries, when]
   const load = (key) => {
     if (key === 'E' || !keys.includes(key) || started.has(key)) return;   // the street is exterior.webp, not a strip
+    const [tries, when] = failed.get(key) ?? [0, -Infinity];
+    if (tries >= TRIES || performance.now() - when < RETRY_MS) return;   // a strip that keeps failing is not fetched on every hover
     started.add(key);
-    const url = `${base}pixel/floor-${key}${BAKED?.includes(key) ? HOUR : ''}.webp`;
+    const url = artUrl(`floor-${key}${BAKED?.includes(key) ? HOUR : ''}`);
     // Decoded off the main thread, as a bitmap: an <img> is decoded by the first drawImage, the whole strip there and then (#184).
     const art = 'createImageBitmap' in window
       ? fetch(url).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.blob(); }).then((b) => createImageBitmap(b))
@@ -52,7 +55,10 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
       if (key === 'R') SKY = colourAt(img, 300, 0);
       if (LAMPS[key]) { img.dark = () => { if (img.waited) img.since = performance.now(); loaded(); }; if (!held()) darkenSoon(img, urgent.has(key)); }   // before the first frame of a flight, which has every storey in range at once
       img.since = performance.now(); strips.set(key, img); loaded();
-    }, () => { strips.set(key, null); loaded(); });
+    }, () => {   // drawn plain for now; the next ride that needs it asks again (#63)
+      started.delete(key); failed.set(key, [tries + 1, performance.now()]);
+      strips.set(key, null); loaded();
+    });
   };
   // Until the first ride only what the next move can show loads (#184): from the street, the lobby (the first step), the
   // garage (its door) and the roof (the hero's button); from a floor, the storeys above and below, which show at the
@@ -73,7 +79,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   let riding = false;   // once the lift has moved, the other floors follow in idle time
   const loadRest = () => { if (!riding) { riding = true; idle(() => keys.forEach(load), 2000); } };
   // The street is the first screen: the other floors wait until it has arrived (or failed), or the lift moves (#130).
-  const street = streetView(SKY, base, windowsBox, stops, loaded, () => (keys[ride.to] === 'E' ? nearby : around)(keys[ride.to]).forEach(load), (key, dark) => !!strips.get(key) && (!dark || !!strips.get(key).shades?.[16]));
+  const street = streetView(SKY, artUrl, windowsBox, stops, loaded, () => (keys[ride.to] === 'E' ? nearby : around)(keys[ride.to]).forEach(load), (key, dark) => !!strips.get(key) && (!dark || !!strips.get(key).shades?.[16]));
   // A floor about to be asked for, by a pointer over its control or the focus on it, starts loading what its ride will show.
   for (const type of ['pointerover', 'focusin']) document.addEventListener(type, (e) => { const i = keys.indexOf(e.target.closest?.('[data-goto]')?.dataset.goto); if (i >= 0) need(cab(rideU(performance.now())), i); }, { passive: true });
 
@@ -86,7 +92,8 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   ride.from = ride.to = Math.max(0, fromHash);
   lit.set(keys[ride.from], 1);   // a page opening on a floor opens with the lights on
   load(keys[ride.from]);   // a floor's own address shows that floor first, so it loads alongside the street
-  if (fromHash >= 0 && location.hash !== `#floor-${keys[fromHash]}`) {   // a legacy or lowercased anchor: show the floor's own
+  if (fromHash < 0 && floorShaped(location.hash)) history.replaceState(null, '', location.pathname + location.search);   // a floor there is not: the street, at the bare address
+  else if (fromHash >= 0 && location.hash !== `#floor-${keys[fromHash]}`) {   // a legacy or lowercased anchor: show the floor's own
     history.replaceState(null, '', `#floor-${keys[fromHash]}`);
     requestAnimationFrame(() => document.documentElement.classList.contains('building--guided') || stops[fromHash].scrollIntoView());
   }
@@ -326,8 +333,12 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     } }
   }
   wake();
-  // e.g. the site menu's About; a pick the lift ignores (it is already going there, or mid-dissolve) keeps its hash
-  addEventListener('hashchange', () => { const i = keys.indexOf(hashKey()); if (i >= 0 && !go(i)) history.replaceState(null, '', `#floor-${keys[ride.to]}`); });
+  // e.g. the site menu's About; a pick the lift ignores (it is already going there, or mid-dissolve), or a floor there is
+  // not, keeps the lift's own hash
+  addEventListener('hashchange', () => {
+    const i = keys.indexOf(hashKey());
+    if (i >= 0 ? !go(i) : floorShaped(location.hash)) history.replaceState(null, '', `#floor-${keys[ride.to]}`);
+  });
   return { go, index: () => ride.to, moving: () => arrived !== ride.to };
 }
 
@@ -379,7 +390,7 @@ function darkenSome(deadline) {
 const canvas = document.querySelector('#pixel-canvas');
 if (canvas) {
   const stops = [...document.querySelectorAll('section[data-floor]')];
-  const api = mountPixel({ canvas, stops, base: canvas.dataset.base || '/building/', windowsBox: document.querySelector('[data-exterior-windows]'), pauseButton: document.querySelector('[data-building-pause]') });
+  const api = mountPixel({ canvas, stops, base: canvas.dataset.base || '/building/', version: canvas.dataset.version, windowsBox: document.querySelector('[data-exterior-windows]'), pauseButton: document.querySelector('[data-building-pause]') });
   guide(api);
   if (import.meta.env?.DEV) window.__building = api;
 }

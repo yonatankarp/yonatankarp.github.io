@@ -13,12 +13,7 @@ export function guide(api, root = document) {
   const indicator = root.querySelector('[data-elevator-floor]');
   const arrow = root.querySelector('[data-elevator-arrow]');
   const status = root.querySelector('[data-building-status]');
-  const windows = root.querySelector('[data-exterior-windows]');
-  // pixel.js adds the windows in its art file's order, all at once: re-append them top to bottom for the Tab order.
-  if (windows) new MutationObserver((_, mo) => {
-    mo.disconnect();
-    windows.append(...[...windows.children].sort((a, b) => keys.indexOf(a.dataset.goto) - keys.indexOf(b.dataset.goto)));
-  }).observe(windows, { childList: true });
+  const windows = root.querySelector('[data-exterior-windows]');   // street.js adds them top to bottom, the Tab order
 
   // A window's name shows over it on hover and focus, and covers the floors around it: Escape puts it away until the
   // pointer or focus moves on to another window (WCAG 1.4.13, pixel.css .names-off).
@@ -92,6 +87,7 @@ export function guide(api, root = document) {
     panel.classList.remove('is-open');
     // in the plain page's flow it is the rest of its floor again, which the floor's own section names (#191)
     for (const a of ['role', 'aria-modal', 'aria-labelledby']) panel.removeAttribute(a);
+    for (const a of ['role', 'aria-level']) panel.querySelector('.panel-title').removeAttribute(a);
     button.setAttribute('aria-expanded', 'false');
     // back on Step inside, with the card where the reader left it (focus would scroll it to the end)
     const refocusNow = () => { button.focus({ preventScroll: true }); button.closest('.floor-card').scrollTop = top; };
@@ -113,7 +109,10 @@ export function guide(api, root = document) {
     // Open, it holds Tab until it is closed, so it says so: a modal dialog, named by its title (#131).
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
-    panel.setAttribute('aria-labelledby', panel.querySelector('.panel-title').id);
+    const title = panel.querySelector('.panel-title');
+    panel.setAttribute('aria-labelledby', title.id);
+    // and its title heads it: the card's h2 is inert under it, so the panel's h3s would follow no heading (#191's p, shut)
+    if (title.tagName === 'P') { title.setAttribute('role', 'heading'); title.setAttribute('aria-level', '2'); }
     button.setAttribute('aria-expanded', 'true');
     seal(true);
     document.documentElement.classList.add('panel-open');
@@ -124,7 +123,13 @@ export function guide(api, root = document) {
   };
   // Guided, the other floors are hidden="until-found": Ctrl+F still finds their text, and a match rides there (#131).
   // Hidden on arrival, not on departure, as a skipped subtree would cut the departing card's fade.
-  const conceal = (index) => stops.forEach((s, i) => { s.hidden = roomy.matches && i !== index ? 'until-found' : false; });
+  // Concealed, a floor is no named region either, or a screen reader's landmarks would list ten empty ones.
+  const label = new Map(stops.map((s) => [s, s.getAttribute('aria-labelledby')]));
+  const reveal = (s, on) => {
+    s.hidden = on ? false : 'until-found';
+    if (on) s.setAttribute('aria-labelledby', label.get(s)); else s.removeAttribute('aria-labelledby');
+  };
+  const conceal = (index) => stops.forEach((s, i) => reveal(s, !roomy.matches || i === index));
   // A dissolve runs to its end, so a match found during one waits for its arrival, or its floor would be hidden again.
   let sought = -1;
   root.addEventListener('beforematch', (e) => {
@@ -179,13 +184,19 @@ export function guide(api, root = document) {
   }, { passive: true });
 
   // Read when the finger lands: a swipe that shuts the menu, or scrolls a card to its end, is spent on that (#169).
-  let touchY = null, touchBox = null, touchTop = 0;
+  // Two fingers are a pinch, not a ride, until the last one lifts; so is any swipe around a page zoomed in.
+  let touchY = null, touchBox = null, touchTop = 0, pinch = false;
+  const zoomed = () => (visualViewport?.scale ?? 1) > 1.01;
   addEventListener('touchstart', (e) => {
-    touchY = menuOpen ? null : e.touches[0].clientY;
+    if (e.touches.length > 1) pinch = true;
+    touchY = menuOpen || pinch || zoomed() ? null : e.touches[0].clientY;
     touchBox = e.target.closest?.('.floor-card, .floor-panel');
     touchTop = touchBox?.scrollTop;
   }, { passive: true });
+  const lift = (e) => { if (!e.touches.length) pinch = false; };
+  addEventListener('touchcancel', (e) => { touchY = null; lift(e); }, { passive: true });
   addEventListener('touchend', (e) => {
+    if (pinch || zoomed()) { touchY = null; lift(e); return; }
     if (touchY === null || !roomy.matches) return;
     const dy = touchY - e.changedTouches[0].clientY;
     touchY = null;
@@ -268,7 +279,7 @@ export function guide(api, root = document) {
     closePanel(false);
     rest();
     show(-1);
-    stops[e.detail.index].hidden = false;   // before is-here lands, so its card fades in
+    reveal(stops[e.detail.index], true);   // before is-here lands, so its card fades in
     document.documentElement.classList.remove('at-street');
     if (hint) hint.style.opacity = '0';
     if (arrow) arrow.dataset.dir = e.detail.dir > 0 ? 'down' : e.detail.dir < 0 ? 'up' : '';   // a dissolve has no direction
@@ -287,7 +298,7 @@ export function guide(api, root = document) {
       if (follow) document.getElementById(`f${e.detail.key}`)?.focus({ preventScroll: true });
       const label = buttons.find((b) => b.dataset.goto === e.detail.key)?.getAttribute('aria-label') ?? 'Street, outside the building';
       if (status) status.textContent = label.replace(', ', ': ');
-      if (!reached.has(e.detail.key)) { reached.add(e.detail.key); count(`floor-${e.detail.key}`); }
+      if (roomy.matches && !reached.has(e.detail.key)) { reached.add(e.detail.key); count(`floor-${e.detail.key}`); }   // a ride: not a link followed on the plain page
       follow = null;
     }
     buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.goto === e.detail.key)));

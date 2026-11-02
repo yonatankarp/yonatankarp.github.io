@@ -7,7 +7,7 @@ company: "Billie"
 location: "Berlin, Germany"
 floor: "7"   # its storey in the building on the homepage
 duration: "Oct 2025 - Present"
-summary: "Owns payments/compliance platform reliability across service boundaries, vendor integrations, migration work, and operational tooling."
+summary: "Responsible for payments and compliance platform reliability across service boundaries, vendor integrations, migration work, and operational tooling."
 highlights:
   - "Took third-party transaction monitoring live, validated in shadow mode before blocking payments."
   - "Rebuilt the compliance service around hexagonal architecture and a transactional outbox."

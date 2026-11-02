@@ -134,7 +134,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         <h3>{{ strings.TrimSuffix "." $home.fit.title }}</h3>
         <ul>{{ range $home.fit.items }}<li>{{ . }}</li>{{ end }}</ul>
         <h3>{{ strings.TrimSuffix "." $home.outcomes.title }}</h3>
-        <div class="panel-grid">{{ range $home.outcomes.items }}<div><b>{{ .title }}</b><span>{{ .text }}</span></div>{{ end }}</div>
+        <p>{{ $home.outcomes.text }}</p>
         <h3>Get in touch</h3>
         <ul>{{ with $home.contact.email.address }}<li><a href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</li>{{ end }}{{ range $home.contact.links }}<li><a href="{{ .url }}">{{ .text }}</a></li>{{ end }}</ul>
         <h3>Latest writing</h3>

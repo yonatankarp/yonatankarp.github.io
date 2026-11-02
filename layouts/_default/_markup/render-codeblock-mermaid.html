@@ -1,5 +1,5 @@
 {{- /* A diagram's text alternative comes from its fence, ```mermaid {title="…" desc="…"} (#191): the title names the
-     scrolling region, unique on the page, and Mermaid writes both into the SVG as accTitle and accDescr, its <title> and
+     region and its zoom, unique on the page, and Mermaid writes both into the SVG as accTitle and accDescr, its <title> and
      <desc>. One line each, with no semicolon, which ends a statement in Mermaid. */ -}}
 {{- $title := .Attributes.title -}}
 {{- $desc := .Attributes.desc -}}
@@ -15,5 +15,5 @@
 {{- .Page.Store.Add "diagramTitles" (slice $title) -}}
 {{- $lines := split (strings.TrimLeft "\n" .Inner) "\n" -}}
 {{- $src := delimit ((slice (index $lines 0) (printf "    accTitle: %s" $title) (printf "    accDescr: %s" $desc)) | append (after 1 $lines)) "\n" -}}
-<pre class="mermaid" tabindex="0" role="region" aria-label="Diagram: {{ $title }}, scrolls sideways">{{ $src | htmlEscape | safeHTML }}</pre>
+<pre class="mermaid" role="region" aria-label="Diagram: {{ $title }}">{{ $src | htmlEscape | safeHTML }}</pre>
 {{ .Page.Store.Set "hasMermaid" true }}

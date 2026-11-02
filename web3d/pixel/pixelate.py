@@ -1,4 +1,5 @@
 # /// script
+# requires-python = ">=3.11"
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """Turn a room painting into pixel art on the site's palette (no model). Adapted from Before Dark's pixelate.py.

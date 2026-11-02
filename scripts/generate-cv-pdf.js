@@ -39,7 +39,7 @@ async function setMetadata() {
     await page.goto(`${baseUrl}/cv/?time=dusk`, { waitUntil: "domcontentloaded" });
     try {
       await page.waitForLoadState("networkidle", { timeout: 5000 });
-    } catch (error) {
+    } catch {
       console.warn("CV PDF generation continuing before networkidle.");
     }
     await page.emulateMedia({ media: "print" });

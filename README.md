@@ -1,111 +1,97 @@
 # yonatankarp.github.io
 
-Personal website and blog built with [Hugo](https://gohugo.io/). Fully custom English-only implementation.
+Yonatan Karp-Rudin's site and blog, https://yonatankarp.com: a [Hugo](https://gohugo.io/) site with custom layouts, English
+only. The homepage is a pixel-art building, one storey per chapter of the CV, ridden by lift. `CLAUDE.md` has the details
+on the layouts, the pixel skin and the content rules.
 
-## Quick Start
+## Quick start
 
 ```bash
-npm ci                            # install the build and check tools
-npx playwright install chromium   # the browser that prints the CV PDF
-npm run serve                     # dev server at http://localhost:1313: builds the pixel building bundle, then hugo server
-npm run build                     # production build: bundle, hugo --gc --minify, then the CV PDF
-npm run check                     # production build plus the generated-site checks
+npm ci                            # the build and check tools
+npx playwright install chromium   # the browser that prints the CV PDF and runs the browser checks
+npm run serve                     # dev server at http://localhost:1313
+npm run build                     # production build into public/, then the CV PDF
 ```
 
-Requires Node 22+ (`.nvmrc`) and Hugo v0.169.0, the version pinned as `HUGO_VERSION` in `.github/hugo.env` (see Toolchain Pins).
-The npm scripts use `.tools/hugo/hugo` when it exists, otherwise `hugo` on the `PATH`, and warn when that Hugo is not the pinned version.
-`npm run check` also needs `pdfinfo` from poppler (`brew install poppler` on macOS), Playwright's Chromium (`npx playwright install chromium`) and the network: its last step, `npm run check:csp`, loads every built page with its CSP enforced, fetching Mermaid and GoatCounter's `count.js` from their CDNs while stubbing GoatCounter's counter, and runs axe on each page, failing on any serious or critical finding.
+Node 22 or later (`.nvmrc`) and Hugo 0.169.0, the release pinned in `.github/hugo.env`. The npm scripts use
+`.tools/hugo/hugo` when it exists (gitignored: put that release there) and otherwise `hugo` on the `PATH`, and warn when
+it is another version. `npm run lint` and the art pipeline also need [uv](https://docs.astral.sh/uv/).
 
-`npm run check:links:external` probes every off-site link. It is not part of `npm run check`, since third-party sites fail for reasons of their own; the weekly `External links` workflow runs it and keeps one `external-links` issue open while a link is broken. HTTP 429, 503 and 999 (rate limits and bot walls) are warnings, and every failure gets one retry.
+`npm run serve` and `npm run build` first run `npm run build:building`, which bundles the homepage's script and styles
+(`web3d/src/`) with Vite into `assets/building/` and copies Mermaid into `static/vendor/`. A plain `hugo` fails until it
+has run.
+
+## Checks
+
+```bash
+npm run check   # the production build, then every check of the built site
+npm test        # node:test unit tests of the scripts' pure functions (scripts/test/)
+npm run lint    # ESLint over the JavaScript, Ruff over the art pipeline
+```
+
+`npm run check` runs `check:blog-assets` and `check:phases` on the sources, builds, then checks the site metadata, the
+generated HTML, the CV PDF (one A4 page, no local links), the internal links, and finally `check:csp`: every built page
+in Chromium with its Content-Security-Policy enforced, axe-core on each, and the paths that load late (Mermaid, video,
+search, the lift). It needs the network for GoatCounter's `count.js`; redirect pages are held where they are, so it never
+follows a link out to the live site.
+
+`npm run check:links:external` probes every off-site link. It stays out of `npm run check` because third-party sites fail
+for reasons of their own; the weekly `External links` workflow runs it and keeps one `external-links` issue open while a
+link is broken.
+
+## The pixel art
+
+The building's art is made by the Python scripts in `web3d/pixel/`, each a [PEP 723](https://peps.python.org/pep-0723/)
+script that `uv run` gives its own environment (Python 3.11 or later). The paintings come from a local model in
+[Draw Things](https://drawthings.ai/) through its HTTP API on port 7860 (Settings, API Server). Only the painting steps
+need it; everything after them is code and rebuilds from the committed files.
+
+```bash
+uv run web3d/pixel/paint_rooms.py ROOM                     # paint candidates (Draw Things)
+uv run web3d/pixel/install_picks.py                        # crop and pixelate the picked candidates into paintings/picks/
+uv run web3d/pixel/gen_floors.py static/building/pixel     # the floor strips, data/floor_accents.yaml
+uv run web3d/pixel/gen_exterior.py build static/building/pixel              # the street, exterior.json, the backdrop
+uv run web3d/pixel/gen_exterior.py build static/building/pixel --time dawn  # and again for day and night
+uv run web3d/pixel/compare_art.py OUT                      # a fresh build in OUT against the committed art
+```
+
+Build in that order: the street is cut from the floors, and each `--time` phase adds its own street, backdrop and baked
+rooms. The phases are listed in `data/phases.json`; `gen_floors.py` checks it against its `PHASES`, and `check:phases`
+checks the time pick and the CSS against it. The numbers the homepage's script draws by (doors, lamps, windows, the
+street's geometry) are written into `exterior.json`, so change them in the Python and rerun it. Blog covers are painted
+by `paint_covers.py` and pixelated by `pixelate.py`; `gen_icons.py` draws the favicon.
+
+CI rebuilds the floors and every phase of the street on each pull request and fails unless they match the committed
+files pixel for pixel and the data files come out unchanged.
 
 ## Visual QA
 
-Use the local screenshot helper when checking layout changes:
-
 ```bash
-npm run visual:capture
+npm run visual:capture                # starts Hugo on 127.0.0.1:1313 and captures it
+npm run visual:capture -- --public    # captures the built public/ instead, as CI does
+npm run visual:capture:live           # captures https://yonatankarp.com
+npm run visual:compare -- --baseline artifacts/<a>/manifest.json --candidate artifacts/<b>/manifest.json
 ```
 
-By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures for `/`, `/projects/`, `/blog/`, `/cv/`, a representative blog post, `/search/` and `/skills/` to `artifacts/visual-smoke/<YYYY-MM-DD>/`. It also checks basic page landmarks, mobile overflow, key home/blog sections, and broken visible images before writing screenshots. With `--public` it serves the built `public/` instead, the minified files that ship, which is what CI does: the deploy uploads its captures as `visual-smoke-main`, and each pull request compares its own with them in the job summary without failing (the homepage animates, so its captures always differ a little). To capture an already-running server, set `SITE_URL`:
+Captures go to `artifacts/visual-smoke/<YYYY-MM-DD>/` (gitignored), at 1440x1100 and 390x1200, for the homepage at
+dusk, dawn, day and night (`/?time=`), `/projects/`, the ff4k case study, `/blog/`, `/cv/`, a blog post, `/search/` and
+`/skills/`. Each capture also checks the page's landmarks, the top bar, mobile overflow and broken images, and on the
+homepage rides the lift and works the pause button. `visual:compare` matches captures by route and viewport and reports
+changed pixels; add `--fail-on-drift` with budgets such as `--max-changed-percent 0.5` to make drift fail. CI uploads a
+pull request's captures and compares them with the last deploy's in the job summary, without failing, as the homepage
+animates.
 
-```bash
-SITE_URL=http://127.0.0.1:1313/ npm run visual:capture
-```
+## Deployment and pins
 
-To check the current published GitHub Pages site directly:
+A push to `main` runs `.github/workflows/deploy.yml`, which builds and checks the site and deploys it to GitHub Pages.
 
-```bash
-npm run visual:capture:live
-```
-
-To compare two visual smoke manifests, usually local versus live or today versus a previous curated baseline:
-
-```bash
-npm run visual:compare -- --baseline artifacts/<baseline>/manifest.json --candidate artifacts/<candidate>/manifest.json
-```
-
-The comparator matches screenshots by route and viewport, verifies the referenced files exist, reports missing/unmatched pairs, and flags changed pairs by image hash or dimensions. When same-sized PNG screenshots drift, it also reports changed pixel count, changed percentage, average channel delta, and max channel delta so tiny rendering variance is easier to distinguish from real layout movement. Add `--fail-on-drift` when a CI-style non-zero exit is useful for changed screenshots.
-
-For known tiny rendering variance, combine `--fail-on-drift` with explicit drift budgets. Changed pairs are still reported, but the command exits successfully when every changed pair stays within all configured budgets:
-
-```bash
-npm run visual:compare -- --baseline artifacts/local/manifest.json --candidate artifacts/live/manifest.json --fail-on-drift --max-changed-percent 0.5 --max-average-channel-delta 0.01 --max-channel-delta 4
-```
-
-For repeat local captures that include long article/code pages, use a slightly looser starter budget until there is a newer curated baseline:
-
-```bash
-npm run visual:compare -- --baseline artifacts/local/manifest.json --candidate artifacts/live/manifest.json --fail-on-drift --max-changed-percent 1.0 --max-average-channel-delta 0.01 --max-channel-delta 24
-```
-
-Visual smoke captures are ignored by git: `artifacts/` and `screenshots/` stay local.
-
-The helper expects Playwright and a Chromium browser to be available locally:
-
-```bash
-npm install --save-dev playwright
-npx playwright install chromium
-```
-
-## Architecture
-
-- custom Hugo layouts in `layouts/`
-- site styles in `assets/css/custom.css`
-- small progressive enhancements in `assets/js/site.js`
-- content remains markdown-first across blog, experience, education, projects, and skills
-
-`CLAUDE.md` describes the current layout, the pixel skin and the content rules in more detail.
+Hugo is installed from its GitHub release by `.github/actions/build-site`, so its pin is `HUGO_VERSION` and
+`HUGO_SHA256` in `.github/hugo.env`, which Dependabot cannot bump. Change both together: the checksum is the
+`hugo_extended_<version>_linux-amd64.deb` line of the release's `hugo_<version>_checksums.txt`, and the install step
+fails when it does not match. The weekly `Pin staleness` workflow keeps one `toolchain-pin` issue open while the pin is
+behind or its checksum is wrong; `npm run check:hugo-pin` runs the same check locally.
 
 ## Analytics
 
-The site uses [GoatCounter](https://www.goatcounter.com/) for privacy-friendly analytics.
-
-- Dashboard: https://yonatankarp.goatcounter.com
-- Localhost and private IPs are automatically excluded
-- To exclude your own visits from a browser, visit your site with `#toggle-goatcounter` appended to the URL (e.g. `https://yonatankarp.com#toggle-goatcounter`). This sets a localStorage flag — built into GoatCounter's `count.js`
-
-## Toolchain Pins
-
-Hugo is installed from a GitHub release by the shared build action, so its version
-is a string in `.github/hugo.env`, not a dependency Dependabot can bump. The weekly
-`Pin staleness` workflow compares that pin with Hugo's newest release and keeps a
-single `toolchain-pin` issue in step with what it finds: it opens the issue when the
-pin falls behind or `HUGO_SHA256` is not the release's published checksum of the
-`.deb` (that one also fails the run), edits it as the answer changes, and closes it
-once the pin catches up. When the release API cannot be reached it says so as a
-warning on the run and leaves the issue alone. Run the same check locally:
-
-```bash
-npm run check:hugo-pin
-```
-
-It is deliberately outside `npm run check`: it needs the network, and its answer
-changes when Hugo releases rather than when this repository changes, so it has no
-business failing a pull request. Bumping Hugo means editing `HUGO_VERSION` and
-`HUGO_SHA256` together in `.github/hugo.env` (the sha is the
-`hugo_extended_<version>_linux-amd64.deb` line of the release's
-`hugo_<version>_checksums.txt`) and letting `Validate Hugo build` decide.
-
-## Deployment
-
-Push to `main` triggers the GitHub Actions workflow which builds and deploys to GitHub Pages.
+[GoatCounter](https://www.goatcounter.com/), dashboard at https://yonatankarp.goatcounter.com. Localhost and private IPs
+are not counted. To leave your own visits out, open https://yonatankarp.com#toggle-goatcounter once in that browser.

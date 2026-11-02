@@ -1,4 +1,5 @@
 # /// script
+# requires-python = ">=3.11"
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """Install the picked paintings: crop each candidate and pixelate it onto the palette.
@@ -124,7 +125,7 @@ def relight(px, lamps=(), gone=(), y_max=124, keep=(), unlit=()):
                     for p in comp:
                         a[p] = WALL
                 continue
-            ys, xs = zip(*comp)
+            ys, xs = zip(*comp, strict=True)
             if len(comp) >= 12 and len(comp) > 0.88 * (max(ys) - min(ys) + 1) * (max(xs) - min(xs) + 1):
                 continue                                                   # a filled rectangle: a whiteboard, a plaque
             if sum(lum[p] < 110 for p in edge) > 0.6 * len(edge):            # framed all round: a plaque, a screen
@@ -345,13 +346,13 @@ def foyer(px):
         around[(around == CONE).all(-1)] = WALL
         for i, col in enumerate((G.INK, G.c("wood", 2), G.c("wood", 2), G.INK)):
             a[y0 + i:y1 + 1 - i, x0 + i:x1 + 1 - i] = col
-        x0, y0, x1, y1 = x0 + 4, y0 + 4, x1 - 4, y1 - 4                    # the paper
-        a[y0:y1 + 1, x0:x1 + 1] = G.c("cream", 5)
-        a[y0 + 3:y0 + 5, x0 + 3:x1 - 2] = G.c("wood", 3)                   # the header
-        for k, y in enumerate(range(y0 + 9, y0 + 25, 4)):
-            a[y, x0 + 3:x1 - 2 - (x1 - x0) // 3 * (k == 3)] = G.INK
-        a[y1 - 4, x1 - 9:x1 - 3] = G.INK                                    # the signature, and its seal
-        a[y1 - 5:y1 - 3, x1 - 3:x1 - 1] = G.c("red", 3)
+        px0, py0, px1, py1 = x0 + 4, y0 + 4, x1 - 4, y1 - 4                # the paper
+        a[py0:py1 + 1, px0:px1 + 1] = G.c("cream", 5)
+        a[py0 + 3:py0 + 5, px0 + 3:px1 - 2] = G.c("wood", 3)               # the header
+        for k, y in enumerate(range(py0 + 9, py0 + 25, 4)):
+            a[y, px0 + 3:px1 - 2 - (px1 - px0) // 3 * (k == 3)] = G.INK
+        a[py1 - 4, px1 - 9:px1 - 3] = G.INK                                # the signature, and its seal
+        a[py1 - 5:py1 - 3, px1 - 3:px1 - 1] = G.c("red", 3)
     for x, _, y, _ in LAMPS["reception"][1:4]:                             # the three hung over the plaques: a short
         top = next(y0 for x0, y0, x1, _ in PLAQUES if x0 <= x <= x1)       # pool of light, two rows short of the frame
         a[y:top, x - 9:x + 10] = WALL
@@ -861,7 +862,7 @@ def decision_room(px):
     for i, j in G.LINKS:
         ring = G.NODES[i][2] and G.NODES[j][2]
         line(a, *nodes[i], *nodes[j], G.c("coral", 2) if ring else G.c("dark", 3))
-    for (x, y), (_, _, flagged) in zip(nodes, G.NODES):
+    for (x, y), (_, _, flagged) in zip(nodes, G.NODES, strict=True):
         if flagged:
             a[y - 1:y + 2, x - 1:x + 2] = G.c("coral", 4)
             a[y - 1, x - 1] = G.c("coral", 5)

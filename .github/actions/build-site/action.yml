@@ -38,8 +38,7 @@ runs:
         path: ~/.cache/ms-playwright
         key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
 
-    # Playwright's apt run updates the package lists, so poppler (pdfinfo, for the CV checks) needs no second update.
-    - name: Install Playwright browser and PDF tools
+    - name: Install Playwright browser
       shell: bash
       env:
         CACHED: ${{ steps.playwright-cache.outputs.cache-hit }}
@@ -49,7 +48,6 @@ runs:
         else
           npx playwright install --with-deps chromium
         fi
-        sudo apt-get install -y --no-install-recommends poppler-utils
 
     - name: Build and check the site
       shell: bash

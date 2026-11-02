@@ -246,10 +246,14 @@ async function main() {
   return problems.length ? 1 : 0;
 }
 
-main().then(
-  (code) => process.exit(code),
-  (error) => {
-    console.error(error.stack || String(error));
-    process.exit(1);
-  },
-);
+if (require.main === module) {
+  main().then(
+    (code) => process.exit(code),
+    (error) => {
+      console.error(error.stack || String(error));
+      process.exit(1);
+    },
+  );
+}
+
+module.exports = { versionOrder, isBehind, checksumProblems };

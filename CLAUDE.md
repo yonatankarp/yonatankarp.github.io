@@ -15,7 +15,13 @@
 ```bash
 npm run serve            # dev server (builds the pixel building bundle, then hugo server)
 npm run build            # production build: bundle, hugo --gc --minify, then the CV PDF
+npm run check            # the build plus every check of the built site
+npm test                 # node:test tests of the scripts (scripts/test/)
+npm run lint             # ESLint, and Ruff over web3d/pixel/ (needs uv)
 ```
+
+Scripts share their helpers through `scripts/lib.js`. CI also rebuilds the art and fails unless it matches the committed
+files pixel for pixel (`web3d/pixel/compare_art.py`).
 
 The homepage (`layouts/index.html`) is the pixel-art career building. Its script and styles live in
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until

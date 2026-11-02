@@ -236,7 +236,7 @@ async function check(context, baseUrl, route) {
   try {
     ({ chromium } = require("playwright"));
     ({ AxeBuilder } = require("@axe-core/playwright"));
-  } catch (error) {
+  } catch {
     fail("The CSP check requires Playwright and @axe-core/playwright.", ["Install local dependencies with npm install.", "Install a browser with npx playwright install chromium."]);
   }
 

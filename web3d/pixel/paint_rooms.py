@@ -1,4 +1,5 @@
 # /// script
+# requires-python = ">=3.11"
 # dependencies = ["pillow==12.1.0"]
 # ///
 """Paint floor candidates with the local model in Draw Things (HTTP API, Settings > API Server, port 7860).

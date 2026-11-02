@@ -192,7 +192,7 @@ function checkPlainPixelPage(route, html) {
 
 const barTabs = [["/projects/", "Projects"], ["/blog/", "Blog"], ["/cv/", "CV"], ["/search/", "Search"]];
 const socialHrefs = Array.from(
-  fs.readFileSync(path.join(rootDir, "data", "home", "en.yaml"), "utf8").match(/^  social:[^\n]*\n((?:    .*\n)+)/m)[1].matchAll(/url:\s*"([^"]+)"/g),
+  fs.readFileSync(path.join(rootDir, "data", "home", "en.yaml"), "utf8").match(/^ {2}social:[^\n]*\n((?: {4}.*\n)+)/m)[1].matchAll(/url:\s*"([^"]+)"/g),
 ).map((match) => match[1]);
 
 function currentTab(route) {

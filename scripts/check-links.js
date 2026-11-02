@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
-const { publicDir, fail, walk, collectAttribute } = require("./lib");
+const { publicDir, fail, walk, collectAttribute, routeToPublicPath } = require("./lib");
 
 const checkExternal = process.argv.includes("--external") || process.env.CHECK_EXTERNAL_LINKS === "1";
 const failures = [];
@@ -38,23 +38,6 @@ function decodeHtml(value) {
 function stripFragment(value) {
   const hashIndex = value.indexOf("#");
   return hashIndex === -1 ? value : value.slice(0, hashIndex);
-}
-
-function routeToPublicPath(pathname) {
-  const normalizedPath = decodeURIComponent(pathname);
-
-  if (normalizedPath === "" || normalizedPath === "/") {
-    return path.join(publicDir, "index.html");
-  }
-
-  const withoutLeadingSlash = normalizedPath.replace(/^\/+/, "");
-  const directPath = path.join(publicDir, withoutLeadingSlash);
-
-  if (path.extname(withoutLeadingSlash)) {
-    return directPath;
-  }
-
-  return path.join(directPath, "index.html");
 }
 
 const idCache = new Map();

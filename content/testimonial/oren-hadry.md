@@ -1,8 +1,8 @@
 ---
 date: 2018-10-16T00:00:00+01:00
 draft: false
-title: "Oren Hadry"
-name: "Oren Hadry"
+title: "Oren Hadri"
+name: "Oren Hadri"
 position: "Former Engineering Manager at Inuitive"
 source: "LinkedIn recommendation"   # the line under the cite, with the date
 pullQuote: "the go-to person for almost any problem"   # an exact excerpt, shown in the building's lobby

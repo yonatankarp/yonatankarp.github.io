@@ -33,3 +33,26 @@ test("collectAttribute reads quoted and unquoted values, and empty ones", () => 
   assert.equal(collectAttribute("<a class=x>", "href"), null);
   assert.equal(collectAttribute('<img alt="" src=x>', "alt"), "");
 });
+
+test("collectAttribute does not read another attribute that ends in the name (#252)", () => {
+  assert.equal(collectAttribute('<a data-href="/real/" href="/missing-page/">', "href"), "/missing-page/");
+  assert.equal(collectAttribute('<div data-id="x" id="y">', "id"), "y");
+  assert.equal(collectAttribute('<div data-id="x">', "id"), null);
+  assert.equal(collectAttribute("<a data-href=/real/>", "href"), null);
+});
+
+test("collectAttribute skips attribute-like text inside quoted values (#252)", () => {
+  assert.equal(collectAttribute('<a title="see href=z" href="/real/">', "href"), "/real/");
+  assert.equal(collectAttribute("<a title='see href=\"z\"' href=/real/>", "href"), "/real/");
+  assert.equal(collectAttribute('<a title="see href=z">', "href"), null);
+});
+
+test("collectAttribute reads unquoted values with = and ?, single quotes, spaces around =, any case (#252)", () => {
+  assert.equal(collectAttribute("<a href=/?time=day class=x>", "href"), "/?time=day");
+  assert.equal(collectAttribute("<a class=x href='/a b/'>", "href"), "/a b/");
+  assert.equal(collectAttribute('<a href = "/spaced/">', "href"), "/spaced/");
+  assert.equal(collectAttribute('<A HREF="/upper/">', "href"), "/upper/");
+  assert.equal(collectAttribute('<img alt src="/x.png">', "alt"), null);
+  assert.equal(collectAttribute('<a hidden href="/after-boolean/">', "href"), "/after-boolean/");
+  assert.equal(collectAttribute('<a href="/first/" href="/second/">', "href"), "/first/");
+});

@@ -30,7 +30,12 @@ SOFTWARE.
 All blog posts, articles, and original written content (primarily under the
 content/ directory) are copyright Yonatan Karp-Rudin. All rights reserved.
 No part of this content may be reproduced, distributed, or transmitted in any
-form without prior written permission.
+form without prior written permission, except as follows.
+
+People, search engines, AI agents and research tools may read and index the
+published site, as robots.txt allows, and may summarize it and quote short
+excerpts with attribution to Yonatan Karp-Rudin and a link to the original
+page, as llms.txt describes. Republishing full articles is not permitted.
 
 ## Third-Party Assets
 

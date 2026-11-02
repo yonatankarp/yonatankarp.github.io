@@ -248,8 +248,8 @@ html:is([data-time='day'], [data-time='dawn']) .pixel .building-scrim { backgrou
   width: max-content; max-width: calc(100vw - 52px); text-align: center;   /* one line, wrapped only where it would leave the screen (#191) */
   padding: 6px 10px; font: 500 15px/1 'Outfit', system-ui, sans-serif; color: var(--text); background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink);
 }
-/* Escape puts it away until the pointer or focus moves to another window (WCAG 1.4.13, guide.js). */
-.pixel .exterior-windows.names-off .building-window::after { display: none; }
+/* Escape puts it away until the pointer or focus moves to another window (WCAG 1.4.13, guide.js). Not the garage's sign, which hover and focus do not bring up. */
+.pixel .exterior-windows.names-off .building-window:not([data-goto="P"])::after { display: none; }
 /* The garage door's sign, always up: phones have no lift at the street, and no hover. On the door, as the room under it
    runs out on short screens. Not over the opening shot, whose picture is still flying in behind the windows' places. */
 html:not(.in-shot) .pixel .building-window[data-goto="P"]::after {

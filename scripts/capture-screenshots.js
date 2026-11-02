@@ -153,10 +153,16 @@ function parseArgs(args) {
   return parsed;
 }
 
+// Throws rather than exiting, so main's finally still closes the browser and stops the Hugo server.
+class CaptureFailure extends Error {}
+
 function fail(message) {
-  console.error(message);
-  process.exit(1);
+  throw new CaptureFailure(message);
 }
+
+let hugoServer = null;
+
+process.on("exit", () => hugoServer?.kill("SIGTERM"));
 
 function resolveHugoCommand() {
   const localHugo = path.join(rootDir, ".tools", "hugo", "hugo");
@@ -516,53 +522,54 @@ async function assertPauseLabel(page, route, viewport) {
 
 async function main() {
   const { chromium } = await loadPlaywright();
-  let server = null;
-
-  if (shouldStartServer) {
-    const port = await findAvailablePort(preferredPort());
-    const hugo = resolveHugoCommand();
-    baseUrl = localBaseUrl(port);
-    server = spawn(
-      hugo.command,
-      [
-        ...hugo.args,
-        "server",
-        "--bind",
-        "127.0.0.1",
-        "--port",
-        String(port),
-        "--disableFastRender",
-        "--renderToMemory",
-      ],
-      {
-        cwd: rootDir,
-        stdio: ["ignore", "pipe", "pipe"],
-      }
-    );
-
-    server.on("exit", (code) => {
-      if (code !== null && code !== 0) {
-        fail(`Hugo server exited early with code ${code}`);
-      }
-    });
-
-    await waitForUrl(baseUrl, 15000, `Timed out waiting for local Hugo server at ${baseUrl}`);
-  } else {
-    await waitForUrl(
-      baseUrl,
-      5000,
-      [
-        `Timed out waiting for existing server at ${baseUrl}`,
-        "Start Hugo separately before using --base or SITE_URL, or omit them so this helper starts the bundled server.",
-      ].join("\n")
-    );
-  }
-
-  fs.mkdirSync(screenshotDir, { recursive: true });
-
-  const browser = await chromium.launch(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {});
+  let browser = null;
 
   try {
+    if (shouldStartServer) {
+      const port = await findAvailablePort(preferredPort());
+      const hugo = resolveHugoCommand();
+      baseUrl = localBaseUrl(port);
+      hugoServer = spawn(
+        hugo.command,
+        [
+          ...hugo.args,
+          "server",
+          "--bind",
+          "127.0.0.1",
+          "--port",
+          String(port),
+          "--disableFastRender",
+          "--renderToMemory",
+        ],
+        {
+          cwd: rootDir,
+          stdio: "ignore",
+        }
+      );
+
+      hugoServer.on("exit", (code) => {
+        if (code !== null && code !== 0) {
+          console.error(`Hugo server exited early with code ${code}`);
+          process.exit(1);
+        }
+      });
+
+      await waitForUrl(baseUrl, 15000, `Timed out waiting for local Hugo server at ${baseUrl}`);
+    } else {
+      await waitForUrl(
+        baseUrl,
+        5000,
+        [
+          `Timed out waiting for existing server at ${baseUrl}`,
+          "Start Hugo separately before using --base or SITE_URL, or omit them so this helper starts the bundled server.",
+        ].join("\n")
+      );
+    }
+
+    fs.mkdirSync(screenshotDir, { recursive: true });
+
+    browser = await chromium.launch(process.env.PLAYWRIGHT_CHANNEL ? { channel: process.env.PLAYWRIGHT_CHANNEL } : {});
+
     for (const route of routes) {
       for (const viewport of viewports) {
         const page = await browser.newPage({
@@ -631,11 +638,9 @@ async function main() {
       }
     }
   } finally {
-    await browser.close();
-
-    if (server) {
-      server.kill("SIGTERM");
-    }
+    await browser?.close();
+    hugoServer?.removeAllListeners("exit");
+    hugoServer?.kill("SIGTERM");
   }
 
   writeManifest();
@@ -643,5 +648,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  fail(error && error.stack ? error.stack : String(error));
+  console.error(error instanceof CaptureFailure ? error.message : error?.stack ?? String(error));
+  process.exitCode = 1;
 });

@@ -66,8 +66,8 @@ function stripFragment(value) {
   return hashIndex === -1 ? value : value.slice(0, hashIndex);
 }
 
-function routeToPublicPath(routePath) {
-  const normalizedPath = decodeURIComponent(stripFragment(routePath));
+function routeToPublicPath(pathname) {
+  const normalizedPath = decodeURIComponent(pathname);
 
   if (normalizedPath === "" || normalizedPath === "/") {
     return path.join(publicDir, "index.html");
@@ -81,6 +81,68 @@ function routeToPublicPath(routePath) {
   }
 
   return path.join(directPath, "index.html");
+}
+
+const idCache = new Map();
+
+function idsIn(filePath) {
+  if (!idCache.has(filePath)) {
+    const html = fs.readFileSync(filePath, "utf8");
+    const ids = new Set();
+
+    for (const tagMatch of html.matchAll(/<[a-z][a-z0-9-]*\b[^>]*>/gi)) {
+      const id = collectAttribute(tagMatch[0], "id");
+      const name = /^<a\b/i.test(tagMatch[0]) ? collectAttribute(tagMatch[0], "name") : null;
+
+      if (id) ids.add(decodeHtml(id));
+      if (name) ids.add(decodeHtml(name));
+    }
+
+    idCache.set(filePath, ids);
+  }
+
+  return idCache.get(filePath);
+}
+
+// "#" and "#top" scroll to the top of any page; anything else must name an element in the target.
+function hasFragmentTarget(filePath, hash) {
+  const fragment = hash.slice(1);
+
+  if (fragment === "" || fragment.toLowerCase() === "top") {
+    return true;
+  }
+
+  const ids = idsIn(filePath);
+
+  if (ids.has(fragment)) {
+    return true;
+  }
+
+  try {
+    return ids.has(decodeURIComponent(fragment));
+  } catch {
+    return false;
+  }
+}
+
+function checkLocalTarget(route, href, url, kind) {
+  let targetPath;
+
+  try {
+    targetPath = routeToPublicPath(url.pathname);
+  } catch {
+    failures.push(`${route}: ${kind} link has a malformed path ${href}`);
+    return;
+  }
+
+  if (!fs.existsSync(targetPath)) {
+    failures.push(`${route}: ${kind} link points to missing page ${href}`);
+    return;
+  }
+
+  if (url.hash && targetPath.endsWith(".html") && !hasFragmentTarget(targetPath, url.hash)) {
+    failures.push(`${route}: ${kind} link points to missing anchor ${href}`);
+  }
 }
 
 function isExternallyManagedLocalUrl(url) {
@@ -155,46 +217,43 @@ for (const filePath of htmlFiles) {
   const relativePath = path.relative(publicDir, filePath);
   const route = `/${relativePath.replace(/index\.html$/, "").replace(/404\.html$/, "404.html")}`;
 
+  const pageUrl = new URL(route, "https://yonatankarp.com");
+
   for (const linkMatch of html.matchAll(/<a\b[^>]*>/gi)) {
     const tag = linkMatch[0];
     const rawHref = collectAttribute(tag, "href");
 
-    if (!rawHref || rawHref.startsWith("#") || ignoredSchemes.test(rawHref)) {
+    if (rawHref === null || ignoredSchemes.test(rawHref)) {
       continue;
     }
 
     const href = decodeHtml(rawHref);
+    const absolute = /^https?:\/\//i.test(href);
+    let url;
 
-    if (/^https?:\/\//i.test(href)) {
-      const url = new URL(href);
-
-      if (localOrigins.has(url.origin)) {
-        if (isExternallyManagedLocalUrl(url)) {
-          if (shouldCheckExternalUrl(href)) {
-            externalUrls.add(stripFragment(href));
-          }
-          continue;
-        }
-
-        const targetPath = routeToPublicPath(`${url.pathname}${url.search}`);
-
-        if (!fs.existsSync(targetPath)) {
-          failures.push(`${route}: local absolute link points to missing page ${href}`);
-        }
-      } else if (shouldCheckExternalUrl(href)) {
-        externalUrls.add(stripFragment(href));
-      }
-
+    try {
+      url = new URL(href, pageUrl);
+    } catch {
+      failures.push(`${route}: link has a malformed URL ${href}`);
       continue;
     }
 
-    if (href.startsWith("/")) {
-      const targetPath = routeToPublicPath(href);
-
-      if (!fs.existsSync(targetPath)) {
-        failures.push(`${route}: root-relative link points to missing page ${href}`);
+    if (!localOrigins.has(url.origin)) {
+      if (/^https?:$/.test(url.protocol) && shouldCheckExternalUrl(url.href)) {
+        externalUrls.add(stripFragment(url.href));
       }
+      continue;
     }
+
+    if (isExternallyManagedLocalUrl(url)) {
+      if (shouldCheckExternalUrl(url.href)) {
+        externalUrls.add(stripFragment(url.href));
+      }
+      continue;
+    }
+
+    const kind = absolute ? "local absolute" : href.startsWith("/") ? "root-relative" : href.startsWith("#") ? "same-page" : "relative";
+    checkLocalTarget(route, href, url, kind);
   }
 }
 

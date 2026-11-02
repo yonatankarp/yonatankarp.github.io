@@ -60,7 +60,17 @@ function fail(message, details = []) {
 
 function serve() {
   const server = http.createServer((req, res) => {
-    let file = path.normalize(path.join(publicDir, decodeURIComponent(new URL(req.url, "http://127.0.0.1").pathname)));
+    let pathname;
+
+    try {
+      pathname = decodeURIComponent(new URL(req.url, "http://127.0.0.1").pathname);
+    } catch {
+      res.writeHead(400, { "content-type": "text/plain; charset=utf-8" });
+      res.end("Bad request");
+      return;
+    }
+
+    let file = path.normalize(path.join(publicDir, pathname));
 
     if (file !== publicDir && !file.startsWith(publicDir + path.sep)) {
       file = publicDir;
@@ -80,7 +90,14 @@ function serve() {
 
     if (range) {
       const start = Number(range[1]);
-      const end = range[2] ? Number(range[2]) : body.length - 1;
+      const end = Math.min(range[2] ? Number(range[2]) : body.length - 1, body.length - 1);
+
+      if (start > end) {
+        res.writeHead(416, { ...headers, "content-range": `bytes */${body.length}` });
+        res.end();
+        return;
+      }
+
       res.writeHead(206, { ...headers, "content-range": `bytes ${start}-${end}/${body.length}`, "content-length": end - start + 1 });
       res.end(body.subarray(start, end + 1));
       return;

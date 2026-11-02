@@ -4,6 +4,7 @@ draft: false
 title: "Oren Hadry"
 name: "Oren Hadry"
 position: "Former Engineering Manager at Inuitive"
+source: "LinkedIn recommendation"   # the line under the cite, with the date
 pullQuote: "the go-to person for almost any problem"   # an exact excerpt, shown in the building's lobby
 params:
     image:

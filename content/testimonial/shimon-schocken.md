@@ -4,6 +4,7 @@ draft: false
 title: "Shimon Schocken"
 name: "Shimon Schocken"
 position: "Computer Science Professor, Reichman University"
+source: "LinkedIn recommendation"   # the line under the cite, with the date
 pullQuote: "a highly talented and disciplined software developer"   # an exact excerpt, shown in the building's lobby
 params:
     image:

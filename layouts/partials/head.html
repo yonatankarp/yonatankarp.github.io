@@ -59,6 +59,7 @@
 {{ if $noindex }}<meta name="robots" content="noindex">{{ end }}
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0c0e14">
+{{ if .IsHome }}{{ with site.Params.googleSiteVerification }}<meta name="google-site-verification" content="{{ . }}">{{ end }}{{ end }}
 <meta property="og:site_name" content="{{ $siteName }}">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="{{ $ogTitle }}">

@@ -469,18 +469,18 @@ h4 a,
   --amber-lo: #d38f1b;
   --amber-hover: #ffc46a;
   --px: 4px;
-  --pixel-font: 'Jersey 15', system-ui, sans-serif;
+  --pixel-font: 'Jersey 15', 'Jersey 15 Arial', 'Jersey 15 Roboto', system-ui, sans-serif;
   --stepped: polygon(
     var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px),
     100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%,
     var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)), 0 var(--px), var(--px) var(--px));
   color: var(--px-text);
-  font-family: 'Outfit', system-ui, sans-serif;
+  font-family: 'Outfit', 'Outfit Arial', 'Outfit Roboto', system-ui, sans-serif;
   line-height: 1.6;
   background: #0c0e14;
 }
 .px-skin h1, .px-skin h2 { font-family: var(--pixel-font); font-weight: 400; letter-spacing: 0.01em; line-height: 1; }
-.px-skin h3 { font-family: 'Outfit', system-ui, sans-serif; font-weight: 600; letter-spacing: 0; line-height: 1.3; font-size: 19px; }
+.px-skin h3 { font-family: 'Outfit', 'Outfit Arial', 'Outfit Roboto', system-ui, sans-serif; font-weight: 600; letter-spacing: 0; line-height: 1.3; font-size: 19px; }
 .px-skin ul { margin: 0; padding: 0; list-style: none; }
 .px-skin .skip-link { background: var(--amber); color: var(--ink); border-radius: 0; font: 400 24px/1 var(--pixel-font); box-shadow: inset 0 0 0 4px var(--ink); }
 
@@ -648,7 +648,7 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   .px-bar { display: none; }
   .cv-page {
     --px-text: #111; --px-soft: #333; --panel-hi: #111; --well: #fff; --amber: #e8962b; --px: 2px;
-    background: #fff; color: #111; font-family: 'Outfit Print', 'Outfit', system-ui, sans-serif; font-size: 9.4pt; line-height: 1.35;
+    background: #fff; color: #111; font-family: 'Outfit Print', 'Outfit', 'Outfit Arial', 'Outfit Roboto', system-ui, sans-serif; font-size: 9.4pt; line-height: 1.35;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   :root:has(.cv-page) { background: #fff; color-scheme: light; }   /* else the page margins print in the dark scheme */
@@ -672,7 +672,7 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   .cv-role-item { grid-template-columns: minmax(0, 1fr); padding: 3px 0; break-inside: avoid; }
   .cv-role-item + .cv-role-item { border-top-width: 1px; border-top-color: #bbb; }
   .cv-floor { display: none; }   /* the floor badges link into the building; on paper they read as stray numbers */
-  .cv-page h3 { font-family: 'Outfit Print', 'Outfit', system-ui, sans-serif; font-size: 10.6pt; }
+  .cv-page h3 { font-family: 'Outfit Print', 'Outfit', 'Outfit Arial', 'Outfit Roboto', system-ui, sans-serif; font-size: 10.6pt; }
   .cv-role-item__top span { font-size: 8.6pt; }
   .cv-sub { margin: 0 0 3px; font-size: 8.8pt; }
   .cv-page .cv-sub { color: #111; }
@@ -819,7 +819,7 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-search__lede, .px-skills__lede, .px-notfound__lede { max-width: 70ch; margin: 0; font-size: 17px; color: var(--px-soft); }
 .px-search__label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .px-page .search-input {
-  display: block; width: 100%; padding: 12px 16px; border: 0; border-radius: 0; font: 400 17px/1.4 'Outfit', system-ui, sans-serif;
+  display: block; width: 100%; padding: 12px 16px; border: 0; border-radius: 0; font: 400 17px/1.4 'Outfit', 'Outfit Arial', 'Outfit Roboto', system-ui, sans-serif;
   color: var(--px-text); background: var(--well); clip-path: var(--stepped); box-shadow: inset 0 0 0 4px var(--ink), inset 0 0 0 6px var(--panel-hi);
 }
 .px-page .search-input::placeholder { color: var(--px-soft); opacity: 1; }

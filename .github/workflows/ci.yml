@@ -54,9 +54,10 @@ jobs:
 
   dependabot_auto_merge:
     needs: build
-    if: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]' }}
+    # The reusable workflow declares contents: read and cannot exceed this, so omitting it here would fail the run.
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
     uses: yonatankarp/github-actions/.github/workflows/dependabot-auto-merge.yml@c4d2c5ba8c9ff912200441da8847d06325e6aa1d # v2
     secrets:

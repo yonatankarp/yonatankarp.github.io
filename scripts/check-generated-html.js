@@ -519,7 +519,13 @@ for (const filePath of htmlFiles) {
   }
   if (diagrams.length && !/<script\b[^>]*type=["']?module\b[^>]*src=["']?\/js\/mermaid-loader\./.test(html)) failures.push(`${route}: Mermaid should load lazily through js/mermaid-loader.js`);
   const loader = html.match(/src=["']?(\/js\/mermaid-loader\.[^"'\s>]+)/)?.[1];
-  if (loader && !/useMaxWidth:\s*!?(?:false|1)/.test(fs.readFileSync(path.join(publicDir, loader), "utf8"))) failures.push(`${route}: Mermaid should draw with useMaxWidth false`);
+  const loaderSource = loader ? fs.readFileSync(path.join(publicDir, loader), "utf8") : "";
+  if (loader && !/useMaxWidth:\s*!?(?:false|1)/.test(loaderSource)) failures.push(`${route}: Mermaid should draw with useMaxWidth false`);
+  // Self-hosted (#182): the loader imports Mermaid from the site, from the copy scripts/vendor-mermaid.js makes
+  const mermaidEntry = loaderSource.match(/import\(\s*["'`]([^"'`]+)["'`]\s*\)/)?.[1];
+  if (loader && (!mermaidEntry?.startsWith("/vendor/") || !fs.existsSync(path.join(publicDir, mermaidEntry)))) {
+    failures.push(`${route}: the loader imports Mermaid from ${mermaidEntry}, which is not a file in public/vendor/; is its version the one in package.json?`);
+  }
   if (!diagrams.length && /mermaid-loader|mermaid\.esm/.test(html)) failures.push(`${route}: loads Mermaid without a diagram`);
 }
 

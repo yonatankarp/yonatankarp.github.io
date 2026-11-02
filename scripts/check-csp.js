@@ -7,7 +7,7 @@
 //
 // GoatCounter is made to fire on localhost (allow_local) so its CSP is exercised, but no hit reaches it:
 // every goatcounter.com request is answered by a stub, and Chromium cannot resolve the host anyway.
-// count.js itself still loads from gc.zgo.at, and Mermaid from jsdelivr, as on the live site.
+// count.js itself still loads from gc.zgo.at, as on the live site.
 //
 // The same pass runs axe-core on each page as it loads, before anything is clicked, and fails on any
 // serious or critical violation (#193).

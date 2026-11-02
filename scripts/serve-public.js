@@ -15,6 +15,7 @@ const types = {
   ".jpg": "image/jpeg",
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json",
+  ".mjs": "text/javascript; charset=utf-8",
   ".mp4": "video/mp4",
   ".pdf": "application/pdf",
   ".png": "image/png",

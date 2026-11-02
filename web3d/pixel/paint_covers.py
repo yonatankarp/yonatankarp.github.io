@@ -54,30 +54,6 @@ COVERS = {
      "hole is empty. Far to the right, under a mossy stone, the cut-away soil shows its acorn safely buried "
      "where it is not looking.",
      (70, 48)),
-    "design-patterns-builder": (33, "A beaver lays its dam course by course, step by step.",
-     "Blue hour in the mountains, cold violet sky, pink alpenglow on distant snowy peaks, dark spruce on both "
-     "sides. A chunky brown beaver in clear side profile with a flat tail, carrying a long stick in its mouth "
-     "along the top of a half-finished dam across a stream. The dam is stacked courses of logs: complete on the "
-     "left, only the first course on the right, where the water still pours through a gap.",
-     None),
-    "design-patterns-factory": (22, "One goose, gold or copper eggs: the post's coin alchemist.",
-     "A pale misty dawn over a reed pond, lilac and peach sky. A big white goose sits on a reed nest in the "
-     "centre, in clear side view. In front of the nest, two neat separate piles of eggs: on the left shining "
-     "gold eggs, on the right copper-red eggs.",
-     (150, 38)),
-    "design-patterns-abstract-factory": (33, "Two habitats, each making its own family: tree, fox and hare in snow or in sand.",
-     "The picture is divided into two halves by a straight vertical line, showing the same little scene twice in"
-     " two matching families. Left half: a frozen arctic dusk in deep blues and white, a snow-laden fir tree, a "
-     "white arctic fox, a white hare. Right half: a hot desert dusk in orange and sand, a tall green saguaro "
-     "cactus, a sandy fennec fox, a sand-coloured jackrabbit. Tree, fox and hare stand in the same positions in "
-     "both halves.",
-     None),
-    "design-patterns-prototype": (44, "One sheep repeated (Dolly, in the post), the last copy changed.",
-     "A rose and violet evening with big soft clouds over rolling green hills, a stone wall in the distance. In "
-     "the foreground on a green meadow, five big identical fluffy white sheep stand side by side in a straight "
-     "row in clear side view, the exact same sheep repeated, same pose, same size, each one large, filling the "
-     "width of the picture. Only the last one on the right has black wool.",
-     None),
     "interview-questions-concurrency-parallelism": (33, "One hummingbird, two flowers: it only seems to feed at both at once.",
      "Deep teal and violet tropical twilight, dark glossy leaves framing the picture. One very large iridescent "
      "hummingbird hovers in the exact centre between two very large trumpet flowers, one red on the left and one"
@@ -179,34 +155,6 @@ def sky_dither(img, probe_x, rows):
     return Image.fromarray(out, "RGB")
 
 
-def clones(img):
-    """Prototype: the row is literally one sheep repeated; the last copy gets black wool."""
-    a = np.asarray(img).astype(int)
-    x0, x1, y0, y1 = 7, 56, 60, 106
-    crop = a[y0:y1, x0:x1]
-    solid = (crop.sum(-1) > 560) | (crop.sum(-1) < 90)                 # wool and outline; the rest is grass or hill
-    h, w = solid.shape
-    outside = np.zeros_like(solid)
-    stack = [(y, x) for y in range(h) for x in (0, w - 1)] + [(h - 1, x) for x in range(w)]
-    while stack:
-        y, x = stack.pop()
-        if outside[y, x] or solid[y, x]:
-            continue
-        outside[y, x] = True
-        for ny, nx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
-            if 0 <= ny < h and 0 <= nx < w:
-                stack.append((ny, nx))
-    res = a.copy()
-    res[84:] = a[106, 2]                                               # the painted legs go; only grass behind them
-    for i, X in enumerate((1, 47, 93, 139)):
-        for y, x in zip(*np.nonzero(~outside), strict=True):
-            c = crop[y, x].copy()
-            if i == 3 and c.sum() > 560:
-                c = np.array((30, 28, 34) if c.sum() > 640 else (20, 18, 24))
-            res[y0 + y, X + x] = c
-    return Image.fromarray(res.astype(np.uint8), "RGB")
-
-
 def trail(img):
     """Concurrency: one bird's path, looping from flower to flower. The painted trail never survives the downscale."""
     d = ImageDraw.Draw(img)
@@ -266,7 +214,7 @@ def moved_stone(img):
     return Image.fromarray(a, "RGB")
 
 
-TOUCH_UPS = {"break-hashmap-less-than-a-minute": moved_stone, "design-patterns-prototype": clones, "interview-questions-concurrency-parallelism": trail,
+TOUCH_UPS = {"break-hashmap-less-than-a-minute": moved_stone, "interview-questions-concurrency-parallelism": trail,
              "build-twitter-bot-kotlin": notes}
 
 

@@ -116,7 +116,14 @@ function resolveManifestPath(inputPath) {
   return resolved;
 }
 
+// A capture moved elsewhere, such as one downloaded from a CI artifact, keeps its files beside its manifest.
 function captureDir(manifestPath, manifest) {
+  const first = Array.isArray(manifest.files) && manifest.files[0];
+
+  if (first && first.file && fs.existsSync(path.join(path.dirname(manifestPath), first.file))) {
+    return path.dirname(manifestPath);
+  }
+
   if (manifest.outputDirectory) {
     return path.resolve(rootDir, manifest.outputDirectory);
   }

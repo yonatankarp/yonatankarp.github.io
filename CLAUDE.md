@@ -2,7 +2,7 @@
 
 ## Stack
 
-- **Hugo** static site generator (v0.169.0, pinned as `HUGO_VERSION` in the workflows; see Deployment)
+- **Hugo** static site generator (v0.169.0, pinned as `HUGO_VERSION` in `.github/hugo.env`; see Deployment)
 - **Custom Hugo layouts** in `layouts/`
 - **GitHub Actions** for CI/CD to GitHub Pages
 - Site styles in `assets/css/custom.css`
@@ -112,12 +112,17 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 
 Push to `main` triggers GitHub Actions workflow (`.github/workflows/deploy.yml`) which builds Hugo and deploys to GitHub Pages.
 
-Hugo is pinned twice, as `HUGO_VERSION` and `HUGO_SHA256` in both
-`.github/workflows/ci.yml` and `.github/workflows/deploy.yml`. Bump both values
-together, in both files: `HUGO_SHA256` is the `hugo_extended_<version>_linux-amd64.deb`
-line of the release's `hugo_<version>_checksums.txt`, and the install step fails
-when it does not match. The weekly `Pin staleness` workflow reports a stale or
-disagreeing pin and fails on a wrong checksum (`npm run check:hugo-pin` runs the
-same check locally); nothing else watches that pin. For local builds, put the same
-Hugo release at `.tools/hugo/hugo` (gitignored), which the npm scripts prefer over
-`hugo` on the `PATH`.
+CI, the deploy and the weekly link check share `.github/actions/build-site`, which runs `npm run check:static`;
+the workflows then run `npm run check:csp`, which also fails on axe's serious and critical findings. CI captures
+the visual smoke screenshots from the built `public/` and compares them, without failing, with the last deploy's.
+Node's version is `.nvmrc`.
+
+Hugo is pinned once, as `HUGO_VERSION` and `HUGO_SHA256` in `.github/hugo.env`. Bump both values together:
+`HUGO_SHA256` is the `hugo_extended_<version>_linux-amd64.deb` line of the release's `hugo_<version>_checksums.txt`,
+and the install step fails when it does not match. The weekly `Pin staleness` workflow reports a stale pin and fails
+on a wrong checksum (`npm run check:hugo-pin` runs the same check locally); nothing else watches that pin. For local
+builds, put the same Hugo release at `.tools/hugo/hugo` (gitignored), which the npm scripts prefer over `hugo` on
+the `PATH`; they warn when the Hugo they run is not the pinned version.
+
+The weekly `External links` workflow runs `npm run check:links:external` and keeps one `external-links` issue open
+while a link is broken. Rate limits and bot walls (HTTP 429, 503, 999) are warnings, not failures.

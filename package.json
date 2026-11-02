@@ -1,7 +1,8 @@
 {
   "scripts": {
     "build": "npm run build:building && node scripts/run-hugo.js --gc --minify --cleanDestinationDir && npm run pdf",
-    "check": "npm run check:blog-assets && npm run build && npm run check:site-metadata && npm run check:generated-html && npm run check:cv-print && npm run check:links && npm run check:csp",
+    "check": "npm run check:static && npm run check:csp",
+    "check:static": "npm run check:blog-assets && npm run build && npm run check:site-metadata && npm run check:generated-html && npm run check:cv-print && npm run check:links",
     "check:blog-assets": "node scripts/check-blog-assets.js",
     "check:cv-print": "node scripts/check-cv-print.js",
     "check:csp": "node scripts/check-csp.js",
@@ -21,6 +22,7 @@
     "node": ">=22"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "pdf-lib": "^1.17.1",
     "playwright": "^1.64.1",
     "vite": "8.3.5"

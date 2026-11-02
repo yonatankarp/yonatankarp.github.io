@@ -1,75 +1,59 @@
 name: Build and check the site
 description: Installs the toolchain, builds the site into public/ and runs the checks CI and the deploy share.
 
-# The caller checks the repository out first, and sets HUGO_VERSION and HUGO_SHA256 in its job env:
-# scripts/check-hugo-pin.js reads the pin out of .github/workflows.
+# The caller checks the repository out first. The Hugo pin is .github/hugo.env, the one file
+# scripts/check-hugo-pin.js and scripts/run-hugo.js read as well.
 runs:
   using: composite
   steps:
     - name: Install Hugo CLI
       shell: bash
       run: |
+        version=$(sed -n 's/^HUGO_VERSION=//p' .github/hugo.env)
+        sha256=$(sed -n 's/^HUGO_SHA256=//p' .github/hugo.env)
         deb="${RUNNER_TEMP}/hugo.deb"
-        wget -O "$deb" "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
-        echo "${HUGO_SHA256}  ${deb}" | sha256sum -c -
+        wget -O "$deb" "https://github.com/gohugoio/hugo/releases/download/v${version}/hugo_extended_${version}_linux-amd64.deb"
+        echo "${sha256}  ${deb}" | sha256sum -c -
         sudo dpkg -i "$deb"
 
     - name: Setup Node.js
-      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
-        node-version: 22
+        node-version-file: .nvmrc
         cache: npm
 
     - name: Install Node.js dependencies
       shell: bash
+      run: npm ci
+
+    - name: Read the Playwright version
+      id: playwright
+      shell: bash
+      run: echo "version=$(node -p 'require("playwright/package.json").version')" >> "$GITHUB_OUTPUT"
+
+    - name: Cache the Playwright browser
+      id: playwright-cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+
+    # Playwright's apt run updates the package lists, so poppler (pdfinfo, for the CV checks) needs no second update.
+    - name: Install Playwright browser and PDF tools
+      shell: bash
+      env:
+        CACHED: ${{ steps.playwright-cache.outputs.cache-hit }}
       run: |
-        if [[ -f package-lock.json || -f npm-shrinkwrap.json ]]; then
-          npm ci
+        if [[ "$CACHED" == "true" ]]; then
+          npx playwright install-deps chromium
+        else
+          npx playwright install --with-deps chromium
         fi
+        sudo apt-get install -y --no-install-recommends poppler-utils
 
-    - name: Install Playwright browser
-      shell: bash
-      run: npx playwright install --with-deps chromium
-
-    - name: Install PDF tools
-      shell: bash
-      run: sudo apt-get update && sudo apt-get install -y poppler-utils
-
-    - name: Check blog assets
-      shell: bash
-      run: npm run check:blog-assets
-
-    - name: Build the pixel building
-      shell: bash
-      run: npm run build:building
-
-    - name: Build with Hugo
+    - name: Build and check the site
       shell: bash
       env:
         HUGO_ENVIRONMENT: production
         TZ: Europe/Berlin
-      run: |
-        hugo \
-          --gc \
-          --minify \
-          --cleanDestinationDir
-
-    - name: Check generated site metadata
-      shell: bash
-      run: npm run check:site-metadata
-
-    - name: Check generated HTML
-      shell: bash
-      run: npm run check:generated-html
-
-    - name: Generate CV PDF
-      shell: bash
-      run: npm run pdf
-
-    - name: Check CV print length
-      shell: bash
-      run: npm run check:cv-print
-
-    - name: Check internal links
-      shell: bash
-      run: npm run check:links
+      run: npm run check:static

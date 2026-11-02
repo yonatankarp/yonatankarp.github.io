@@ -23,26 +23,40 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    env:
-      HUGO_VERSION: 0.169.0
-      # The .deb's line in the release's hugo_<version>_checksums.txt; it changes with HUGO_VERSION.
-      HUGO_SHA256: a20f7da84e0981bebbecc032cc87f0dda2049a844727720aab14e61ce416e5e9
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Build and check the site
         uses: ./.github/actions/build-site
 
-      - name: Check the Content-Security-Policy in Chromium
+      - name: Check the CSP and accessibility in Chromium
         env:
           CSP_WORKERS: 8
         run: npm run check:csp
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: ./public
+
+      # The baseline pull requests compare their screenshots with. It never holds up the deploy.
+      - name: Capture visual smoke screenshots
+        continue-on-error: true
+        env:
+          TZ: Europe/Berlin
+        run: npm run visual:capture -- --public --out artifacts/visual-smoke/main
+
+      - name: Upload visual smoke screenshots
+        continue-on-error: true
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-smoke-main
+          path: artifacts/visual-smoke/main/
+          if-no-files-found: ignore
+          retention-days: 30
 
   deploy:
     environment:
@@ -59,4 +73,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

@@ -12,9 +12,11 @@ npm run build                     # production build: bundle, hugo --gc --minify
 npm run check                     # production build plus the generated-site checks
 ```
 
-Requires Node 22+ and Hugo v0.169.0, the version pinned as `HUGO_VERSION` in the workflows (see Toolchain Pins).
-The npm scripts use `.tools/hugo/hugo` when it exists, otherwise `hugo` on the `PATH`.
-`npm run check` also needs `pdfinfo` from poppler (`brew install poppler` on macOS), Playwright's Chromium (`npx playwright install chromium`) and the network: its last step, `npm run check:csp`, loads every built page with its CSP enforced, fetching Mermaid and GoatCounter's `count.js` from their CDNs while stubbing GoatCounter's counter.
+Requires Node 22+ (`.nvmrc`) and Hugo v0.169.0, the version pinned as `HUGO_VERSION` in `.github/hugo.env` (see Toolchain Pins).
+The npm scripts use `.tools/hugo/hugo` when it exists, otherwise `hugo` on the `PATH`, and warn when that Hugo is not the pinned version.
+`npm run check` also needs `pdfinfo` from poppler (`brew install poppler` on macOS), Playwright's Chromium (`npx playwright install chromium`) and the network: its last step, `npm run check:csp`, loads every built page with its CSP enforced, fetching Mermaid and GoatCounter's `count.js` from their CDNs while stubbing GoatCounter's counter, and runs axe on each page, failing on any serious or critical finding.
+
+`npm run check:links:external` probes every off-site link. It is not part of `npm run check`, since third-party sites fail for reasons of their own; the weekly `External links` workflow runs it and keeps one `external-links` issue open while a link is broken. HTTP 429, 503 and 999 (rate limits and bot walls) are warnings, and every failure gets one retry.
 
 ## Visual QA
 
@@ -24,7 +26,7 @@ Use the local screenshot helper when checking layout changes:
 npm run visual:capture
 ```
 
-By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures for `/`, `/projects/`, `/blog/`, `/cv/`, a representative blog post, `/search/` and `/skills/` to `artifacts/visual-smoke/<YYYY-MM-DD>/`. It also checks basic page landmarks, mobile overflow, key home/blog sections, and broken visible images before writing screenshots. To capture an already-running server, set `SITE_URL`:
+By default the helper starts the bundled Hugo server on `127.0.0.1:1313` and writes desktop and mobile captures for `/`, `/projects/`, `/blog/`, `/cv/`, a representative blog post, `/search/` and `/skills/` to `artifacts/visual-smoke/<YYYY-MM-DD>/`. It also checks basic page landmarks, mobile overflow, key home/blog sections, and broken visible images before writing screenshots. With `--public` it serves the built `public/` instead, the minified files that ship, which is what CI does: the deploy uploads its captures as `visual-smoke-main`, and each pull request compares its own with them in the job summary without failing (the homepage animates, so its captures always differ a little). To capture an already-running server, set `SITE_URL`:
 
 ```bash
 SITE_URL=http://127.0.0.1:1313/ npm run visual:capture
@@ -84,14 +86,14 @@ The site uses [GoatCounter](https://www.goatcounter.com/) for privacy-friendly a
 
 ## Toolchain Pins
 
-Hugo is installed from a GitHub release by both workflows, so its version is a
-string in `.github/workflows/ci.yml` and `.github/workflows/deploy.yml` — not a
-dependency Dependabot can bump. The weekly `Pin staleness` workflow compares that
-pin with Hugo's newest release and keeps a single `toolchain-pin` issue in step
-with what it finds: it opens the issue when the pin falls behind, the two
-workflows disagree, or `HUGO_SHA256` is not the release's published checksum of
-the `.deb` (that last one also fails the run), edits it as the answer changes, and
-closes it once the pin catches up. Run the same check locally:
+Hugo is installed from a GitHub release by the shared build action, so its version
+is a string in `.github/hugo.env`, not a dependency Dependabot can bump. The weekly
+`Pin staleness` workflow compares that pin with Hugo's newest release and keeps a
+single `toolchain-pin` issue in step with what it finds: it opens the issue when the
+pin falls behind or `HUGO_SHA256` is not the release's published checksum of the
+`.deb` (that one also fails the run), edits it as the answer changes, and closes it
+once the pin catches up. When the release API cannot be reached it says so as a
+warning on the run and leaves the issue alone. Run the same check locally:
 
 ```bash
 npm run check:hugo-pin
@@ -100,7 +102,7 @@ npm run check:hugo-pin
 It is deliberately outside `npm run check`: it needs the network, and its answer
 changes when Hugo releases rather than when this repository changes, so it has no
 business failing a pull request. Bumping Hugo means editing `HUGO_VERSION` and
-`HUGO_SHA256` together in both workflows (the sha is the
+`HUGO_SHA256` together in `.github/hugo.env` (the sha is the
 `hugo_extended_<version>_linux-amd64.deb` line of the release's
 `hugo_<version>_checksums.txt`) and letting `Validate Hugo build` decide.
 

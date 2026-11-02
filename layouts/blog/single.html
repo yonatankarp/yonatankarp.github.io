@@ -64,6 +64,16 @@
       <a href="{{ $linkedin }}" target="_blank" rel="noopener" data-goatcounter-click="discuss-linkedin">LinkedIn</a> or
       <a href="{{ $x }}" target="_blank" rel="noopener" data-goatcounter-click="discuss-x">X</a>.</p>
 
+    {{ $hero := hugo.Data.home.en.hero }}
+    <aside class="article-author px-well" aria-label="About the author">
+      <p class="article-author__name">Written by {{ partial "nobreak.html" site.Title }}, {{ index (split $hero.eyebrow " · ") 0 }}</p>
+      <p>{{ partial "nobreak.html" $hero.availability }}</p>
+      <p class="article-author__links">
+        <a href="{{ "cv/" | relURL }}" data-goatcounter-click="author-cv">Read the CV</a>
+        <a href="{{ printf "/%s" $hero.primaryAction.url | relURL }}" data-goatcounter-click="author-roof">{{ $hero.primaryAction.label }}</a>
+      </p>
+    </aside>
+
     <footer class="article__footer">
       <div>
         {{ with .PrevInSection }}<a class="text-link" href="{{ .RelPermalink }}">← {{ .Title }}</a>{{ end }}

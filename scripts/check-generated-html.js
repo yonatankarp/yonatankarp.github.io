@@ -451,6 +451,8 @@ for (const filePath of htmlFiles) {
   if (!posting?.author?.url) fail("post", "BlogPosting author needs a url");
   if (posting?.description?.endsWith("…")) fail("post", "BlogPosting description should not be truncated");
   if (types.find((item) => item["@type"] === "BreadcrumbList")?.itemListElement?.length !== 3) fail("post", "needs a three-step BreadcrumbList");
+  const authorLinks = tags(post.match(/<aside\b[^>]*\barticle-author\b[\s\S]*?<\/aside>/)?.[0] ?? "", "a").map((tag) => collectAttribute(tag, "href"));
+  if (authorLinks.join() !== "/cv/,/#floor-R") fail("post", `author card should link the CV and the roof, links are [${authorLinks}]`);
   for (const key of ["og:site_name", "og:locale", "og:image:width", "og:image:height", "og:image:alt", "article:published_time", "twitter:site"]) {
     if (meta(post, key).length !== 1) fail("post", `needs one ${key}`);
   }

@@ -104,7 +104,7 @@ if __name__ == "__main__":
     a = ap.parse_args()
     w, h = map(int, a.size.split("x"))
     im = pixelate(Image.open(a.src), (w, h), a.colours, line_art=a.line_art)
-    im.save(a.out)
+    G.save_lossless(im, a.out)
     print(a.out, im.size, "colours:", len({tuple(p) for p in np.asarray(im).reshape(-1, 3)}))
 
 

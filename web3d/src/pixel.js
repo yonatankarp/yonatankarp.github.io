@@ -57,23 +57,25 @@ function colourAt(img, x, y) {
 export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pauseButton }) {
   const ctx = canvas.getContext('2d');
   const keys = stops.map((s) => s.dataset.floor);
-  const strips = new Map();         // key -> Image (or null while loading / missing)
+  const strips = new Map();         // key -> ImageBitmap or Image (or null while loading / missing)
   const open = new Map();           // key -> 0..1, lift doors
   const lit = new Map();            // key -> 0..1, its lamps: on only where the lift has arrived, or a flight lands
   let loads = 0, fading = 0;        // bumped by every image or file that arrives: the picture changes (and fades in)
   const loaded = () => { loads++; fading = performance.now() + FADE_IN_MS; wake(); };
   const started = new Set();
   const load = (key) => {
-    if (key === 'E' || started.has(key)) return;   // the street is exterior.png, not a strip
+    if (key === 'E' || started.has(key)) return;   // the street is exterior.webp, not a strip
     started.add(key);
-    const img = new Image();
-    img.onload = () => {
+    const url = `${base}pixel/floor-${key}${BAKED?.includes(key) ? HOUR : ''}.webp`;
+    // Decoded off the main thread, as a bitmap: an <img> is decoded by the first drawImage, the whole strip there and then (#184).
+    const art = 'createImageBitmap' in window
+      ? fetch(url).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.blob(); }).then((b) => createImageBitmap(b))
+      : new Promise((ok, fail) => Object.assign(new Image(), { onload() { ok(this); }, onerror: fail, src: url }));
+    art.then((img) => {
       if (key === 'R') SKY = colourAt(img, 300, 0);
-      if (LAMPS[key] && !held()) shade(img, SHADES[0]);   // now, not in the first frame of a flight, which has every storey in range at once
+      if (LAMPS[key] && !held()) darkenSoon(img);   // before the first frame of a flight, which has every storey in range at once
       img.since = performance.now(); strips.set(key, img); loaded();
-    };
-    img.onerror = () => { strips.set(key, null); loaded(); };
-    img.src = `${base}pixel/floor-${key}${BAKED?.includes(key) ? HOUR : ''}.png`;
+    }, () => { strips.set(key, null); loaded(); });
   };
   const loadAll = () => keys.forEach(load);
   // The street is the first screen: the other floors wait until it has arrived (or failed), or the lift moves (#130).
@@ -350,36 +352,77 @@ function drawDoors(ctx, img, f, x0, y0, s, open) {
 
 // A strip's rest frame and edge runs with its lights off, each colour fallen to the nearest of the room's own, so it
 // stays on the palette; with lv of 16 Bayer cells of it left, to dither over the lit room. Laid out as the strip, with
-// one frame. Made when first seen, and kept on the image. The street's picture is as wide as a strip, only taller.
+// one frame. Kept on the image: made in idle time as a floor arrives (darkenSoon), or here, when first seen before that
+// has finished. The street's picture is as wide as a strip, only taller.
 function shade(img, lv) {
   img.shades ??= {};
   if (img.shades[lv]) return img.shades[lv];
-  const runs = img.width - FRAMES * FW, H = img.height;
-  const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true }), W = FW + runs;
-  c.canvas.width = W; c.canvas.height = H;
   if (lv < 16) {   // composited, not read back: this runs as a lamp comes on, and must not cost that frame
+    const off = shade(img, 16), W = off.width, H = off.height;
+    const c = document.createElement('canvas').getContext('2d');
+    c.canvas.width = W; c.canvas.height = H;
     const tile = document.createElement('canvas').getContext('2d');
     tile.canvas.width = tile.canvas.height = 4;
     BAYER.forEach((row, y) => row.forEach((b, x) => { if (b < lv) tile.fillRect(x, y, 1, 1); }));
-    c.drawImage(shade(img, 16), 0, 0);
+    c.drawImage(off, 0, 0);
     c.globalCompositeOperation = 'destination-in';
     c.fillStyle = c.createPattern(tile.canvas, 'repeat');
     c.fillRect(0, 0, W, H);
     return (img.shades[lv] = c.canvas);
   }
+  img.darkening ??= darken(img);
+  let step;
+  while (!(step = img.darkening.next()).done);   // whatever idle time has not done yet
+  img.darkening = null;
+  return (img.shades[16] = step.value);
+}
+
+// shade()'s lights-off picture, a few rows per step, so idle time can make it without a long task on a slow phone (#184).
+function* darken(img) {
+  const ROWS = 12;
+  const runs = img.width - FRAMES * FW, H = img.height;
+  const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true }), W = FW + runs;
+  c.canvas.width = W; c.canvas.height = H;
   c.drawImage(img, 0, 0, FW, H, 0, 0, FW, H);
   if (runs) c.drawImage(img, FRAMES * FW, 0, runs, H, FW, 0, runs, H);
   const d = c.getImageData(0, 0, W, H), px = new Uint32Array(d.data.buffer);
-  const rgb = (v) => [v & 255, (v >> 8) & 255, (v >> 16) & 255], own = [...new Set(px)].map((v) => [v, rgb(v)]);
+  yield;
+  const seen = new Set();   // the room's own colours, in the order they first appear
+  for (let y = 0; y < H; y += ROWS) { for (let i = y * W, end = Math.min(H, y + ROWS) * W; i < end; i++) seen.add(px[i]); yield; }
+  const rgb = (v) => [v & 255, (v >> 8) & 255, (v >> 16) & 255], own = [...seen].map((v) => [v, rgb(v)]);
   const fallen = new Map(own.map(([v, col]) => {
     const to = col.map((n, i) => n * DARK[i]);
     let best = v, far = Infinity;
     for (const [w, o] of own) { const e = (o[0] - to[0]) ** 2 + (o[1] - to[1]) ** 2 + (o[2] - to[2]) ** 2; if (e < far) { far = e; best = w; } }
     return [v, best];
   }));
-  for (let i = 0; i < px.length; i++) px[i] = fallen.get(px[i]);
+  yield;
+  let last, to;   // pixel art runs in one colour: look it up once per run
+  for (let y = 0; y < H; y += ROWS) {
+    for (let i = y * W, end = Math.min(H, y + ROWS) * W; i < end; i++) { if (px[i] !== last) to = fallen.get(last = px[i]); px[i] = to; }
+    yield;
+  }
   c.putImageData(d, 0, 0);
-  return (img.shades[lv] = c.canvas);
+  return c.canvas;
+}
+
+// Floors waiting for their lights-off picture, made a step at a time in the browser's idle time; where there is no
+// requestIdleCallback (Safari), on timers. Either way in slices of at most SLICE ms, short enough for a tap to wait out.
+const dim = [], SLICE = 8;
+const idle = 'requestIdleCallback' in window ? (f) => requestIdleCallback(f) : (f) => setTimeout(f, 1);
+function darkenSoon(img) {
+  if (dim.push(img) === 1) idle(darkenSome);
+}
+function darkenSome(deadline) {
+  const stop = performance.now() + Math.min(SLICE, deadline?.timeRemaining() ?? SLICE);
+  do {   // at least one step a call, so a busy page still gets there
+    const img = dim[0];
+    if (img.shades?.[16]) { dim.shift(); continue; }   // a flight needed it first
+    img.darkening ??= darken(img);
+    const step = img.darkening.next();
+    if (step.done) { (img.shades ??= {})[16] = step.value; img.darkening = null; dim.shift(); }
+  } while (dim.length && performance.now() < stop);
+  if (dim.length) idle(darkenSome);
 }
 
 // The street view: the whole building at this hour (web3d/pixel/gen_exterior.py), its windows live crops of the rooms,
@@ -394,7 +437,7 @@ function streetView(base, box, stops, loaded, then) {
     loaded();
   };
   img.onerror = then;
-  img.src = `${base}pixel/exterior${HOUR}.png`;
+  img.src = `${base}pixel/exterior${HOUR}.webp`;
   const buttons = [];
   // The lift is the keyboard's way between floors, so the windows stay out of the Tab order, except where the lift is
   // hidden at the street (phones, pixel.css): there they are the only way in (#131).

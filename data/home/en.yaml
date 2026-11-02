@@ -1,8 +1,8 @@
 hero:
   eyebrow: "Staff Software Engineer · Kotlin, Spring Boot, Kafka · openapi-generator contributor"
-  title: "I turn messy backend domains into systems teams can own."
-  lede: "I work where product rules, vendor integrations, event flows, and operational risk meet. Recently that has meant compliance services, risk orchestration, API contracts, internal tools, and migrations that leave teams with clearer ownership."
-  availability: "Open to Staff+ backend roles in central Israel, on-site or hybrid."
+  title: "I turn messy backend domains into systems a team can run and change."
+  lede: "I work where product rules, vendor integrations, event flows, and operational risk meet. Recently that has meant compliance services, risk orchestration, API contracts, internal tools, and migrations that leave each team clear on which part is theirs."
+  availability: "Open to Staff+ backend roles in Israel, on-site or hybrid."
   primaryAction:
     label: "Discuss Staff+ backend work"
     url: "#floor-R"   # the roof: contact
@@ -11,14 +11,14 @@ about:
   kicker: "How I work"
   title: "I like the moment when a domain becomes specific enough to build."
   paragraphs:
-    - "The hard part of backend engineering is often not choosing a framework. It is finding the real boundary: which team owns the rule, which event is authoritative, what happens when a vendor disagrees, and how the next engineer will debug the failure at 2 a.m."
-    - "That is where I tend to be useful. I ask until the domain is crisp enough to model, then turn it into production code, API contracts, migration plans, dashboards, runbooks, or diagrams that survive the handoff."
-    - "I care about strong implementation, but the higher leverage is making the system easier for the whole team to operate, extend, and argue about with evidence."
+    - "In backend work the hard part is usually finding the real boundary: whose rule it is, which event is authoritative, what happens when a vendor disagrees, and how the next engineer will debug the failure at 2 a.m."
+    - "That is usually where I help. I keep asking until the domain is crisp enough to model, then turn it into production code, API contracts, migration plans, dashboards, runbooks, or diagrams that survive the handoff."
+    - "Good code is part of it. Most of the payoff comes later, when the whole team can run the system, extend it, and argue about it with evidence."
   facts:
     - label: "Works across"
       text: "Backend systems, Kotlin/JVM, service design, OpenAPI, Kafka, internal tools, docs, and OSS"
     - label: "Bias toward"
-      text: "Shared understanding, small useful abstractions, boring reliability, and explanations that survive handoff"
+      text: "A shared vocabulary, small useful abstractions, boring reliability, and written explanations"
 
 education:
   title: "Courses, degrees, and topics that keep showing up in the work."
@@ -49,34 +49,26 @@ proof:
       result: "Engineers start from a known path and can challenge decisions through specs, dashboards, examples, and code."
 
 outcomes:
-  title: "What good teams get from working with me."
-  items:
-    - title: "Shared understanding"
-      text: "People can talk about the system with the same words, fewer assumptions, and less folklore."
-    - title: "Better decisions"
-      text: "Tradeoffs are written down clearly enough that the team can challenge, revisit, and improve them."
-    - title: "Reusable patterns"
-      text: "Repeated problems become examples, libraries, templates, and habits instead of private knowledge."
-    - title: "Stronger ownership"
-      text: "The system is easier to change because more people understand how and why it works."
+  title: "What I try to leave behind on a team."
+  text: "People use the same words for the system and rely less on folklore. Tradeoffs are written down where the team can find and challenge them later. A problem that keeps coming back becomes an example, a library or a template anyone can pick up, and the system gets easier to change because more people know why it works the way it does."
 
 fit:
   title: "I am useful when the team needs clarity as much as code."
   items:
-    - "Important work with fuzzy ownership."
-    - "Backend systems carrying hidden context."
-    - "Repeated problems that need reusable tooling."
-    - "Teams that need a pathfinder and teacher."
+    - "Important work that no team has clearly claimed."
+    - "Backend systems that run on context nobody wrote down."
+    - "Repeated problems that deserve a tool."
+    - "Teams that want someone to find the path and teach it."
 
 testimonials:
   title: "What people notice after working with me."
 
 contact:
   kicker: "Writing, podcast, contact"
-  title: "If your backend domain needs an owner, let's talk."
-  text: "The strongest fit is Staff+ backend work where product rules, vendors, event flows, and operational risk need to become one system the team can own."
+  title: "If your backend domain needs untangling, let's talk."
+  text: "My strongest fit is Staff+ backend work where the domain has to become one system the whole team understands."
   priorities:
-    - "Staff+ backend roles in central Israel, on-site or hybrid."
+    - "Staff+ backend roles in Israel, on-site or hybrid."
     - "Payments, risk, compliance, or platform architecture."
     - "OSS, technical writing, and teaching."
   location: &location "Berlin, Germany"   # where Yonatan lives now: the roof, CV, footer, share alt and JSON-LD read it; hugo.toml's descriptions repeat it by hand
@@ -84,7 +76,7 @@ contact:
     - label: "Based in"
       text: *location
     - label: "Best for"
-      text: "Teams turning messy backend domains into owned platforms"
+      text: "Teams turning scattered services and vendors into one platform"
   podcast:   # the roof's podcast sign and panel block; `text`, one optional sentence, goes before the link
     title: "The Reading Club"
     text: "An AI-generated podcast of concise summaries of software engineering books."

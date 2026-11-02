@@ -1,0 +1,14 @@
+{{- /* Hugo's alias page, except that an alias of a page that redirects elsewhere (`redirect` in its front matter, as
+     the removed design-pattern posts have) points straight at that target, so an old Hashnode slug takes one hop. */ -}}
+{{- $target := .Permalink -}}
+{{- with .Page }}{{ with .Params.redirect }}{{ $target = . }}{{ end }}{{ end -}}
+<!DOCTYPE html>
+<html lang="{{ site.Language.Lang }}">
+<head>
+  <title>{{ $target }}</title>
+  <link rel="canonical" href="{{ $target }}">
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex">
+  <meta http-equiv="refresh" content="0; url={{ $target }}">
+</head>
+</html>

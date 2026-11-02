@@ -204,8 +204,9 @@ async function check(context, baseUrl, route) {
       await page.waitForTimeout(500);
       result.violations.push(...(await page.evaluate(() => window.__csp)));
       const target = (await page.getAttribute('meta[http-equiv="refresh"]', "content"))?.match(/url=(\S+)/i)?.[1] ?? "";
-      if (!target.startsWith("https://yonatankarp.com/") && !target.startsWith("/")) {
-        result.errors.push(`redirects to "${target}", not to a page of yonatankarp.com`);
+      // A removed post may send its readers to its copy on dev.to; nothing else leaves the site.
+      if (!target.startsWith("https://yonatankarp.com/") && !target.startsWith("/") && !target.startsWith("https://dev.to/yonatankarp/")) {
+        result.errors.push(`redirects to "${target}", not to a page of yonatankarp.com or a post on dev.to`);
       }
       await page.close();
       return result;

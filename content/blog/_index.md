@@ -109,6 +109,7 @@ aliases:
   - /tag/customization
   - /tag/databases
   - /tag/design-patterns
+  - /tags/design-patterns
   - /tag/devops
   - /tag/engineering
   - /tag/functions

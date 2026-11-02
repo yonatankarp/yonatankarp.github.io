@@ -87,6 +87,7 @@ contact:
       text: "Teams turning messy backend domains into owned platforms"
   podcast:   # the roof's podcast sign and panel block; `text`, one optional sentence, goes before the link
     title: "The Reading Club"
+    text: "An AI-generated podcast of concise summaries of software engineering books."
     platform: "Spotify"
     url: "https://open.spotify.com/show/4pZG0kazNvz9wHriBv6ni0"
   email:
@@ -110,6 +111,6 @@ contact:
     - label: "X (Twitter)"
       url: "https://x.com/yonvata"
       icon: "x"
-    - label: "The Reading Club podcast on Spotify"
+    - label: "The Reading Club, AI summaries of software engineering books, on Spotify"
       url: "https://open.spotify.com/show/4pZG0kazNvz9wHriBv6ni0"
       icon: "podcast"

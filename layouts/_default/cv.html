@@ -21,7 +21,7 @@
       <div class="cv-head__who">
         <p class="px-kicker">Curriculum vitae</p>
         <h1>Yonatan Karp-Rudin</h1>
-        <p class="cv-role">Staff Software Engineer · {{ hugo.Data.home.en.contact.location }} (relocating to Israel, Jan 2027)</p>
+        <p class="cv-role">Staff Software Engineer · {{ hugo.Data.home.en.contact.location }}</p>
         <ul class="cv-contact">
           {{ with hugo.Data.home.en.contact.email.address }}<li><a class="px-chip" href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</li>{{ end }}
           <li><a class="px-chip" href="https://github.com/yonatankarp">github.com/yonatankarp</a></li>
@@ -85,7 +85,7 @@
         <li>Built <a href="https://yonatankarp.com/lorekeeper/">Lorekeeper</a>, a Tauri app for D&amp;D session notes kept as Markdown, with end-to-end encrypted sync through a small Rust server.</li>
         <li>Wrote and maintain <a href="https://yonatankarp.com/ff4k/">ff4k</a>, a Kotlin Multiplatform feature flag library published on Maven Central.</li>
         <li>{{ len (where .Site.RegularPages "Type" "blog") }} posts on Kotlin, backend engineering, and AI coding agents on <a href="{{ "blog/" | absURL }}">my blog</a>, including giving Claude Code a long-term memory with hooks.</li>
-        <li>Spoke at Kotlin User Group Berlin about JVM backend design patterns.</li>
+        <li>Spoke several times at Kotlin User Group Berlin, on code smells, <a href="{{ "blog/xkcd-from-tile-to-picture/" | absURL }}">the xkcd comics</a>, and Kafka multi-message topics.</li>
       </ul>
     </section>
 

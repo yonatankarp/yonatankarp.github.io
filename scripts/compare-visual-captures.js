@@ -185,6 +185,10 @@ function parsePng(filePath) {
       height = buffer.readUInt32BE(dataStart + 4);
       bitDepth = buffer.readUInt8(dataStart + 8);
       colorType = buffer.readUInt8(dataStart + 9);
+
+      if (buffer.readUInt8(dataStart + 12) !== 0) {
+        fail(`${path.relative(rootDir, filePath)} is an interlaced (Adam7) PNG, which this comparer cannot decode. Recapture it without interlacing.`);
+      }
     } else if (type === "IDAT") {
       idatChunks.push(buffer.subarray(dataStart, dataEnd));
     } else if (type === "IEND") {

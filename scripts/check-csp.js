@@ -20,7 +20,11 @@ const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
 const missingRoute = "/this-page-does-not-exist/";
 const arrivalRoute = "/projects/?arrive";   // leaves for the homepage, under the view transition that page's styles animate
-const workers = 4;
+const workers = Number(process.env.CSP_WORKERS || 4);   // pages mostly wait on the network, so CI runs 8
+if (!Number.isInteger(workers) || workers < 1) {
+  console.error(`CSP_WORKERS must be a positive integer, got "${process.env.CSP_WORKERS}"`);
+  process.exit(1);
+}
 const pixel = Buffer.from("R0lGODlhAQABAAAAACw=", "base64");
 const types = {
   ".css": "text/css; charset=utf-8",

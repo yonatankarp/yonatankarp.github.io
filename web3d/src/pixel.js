@@ -21,7 +21,7 @@ const LOOK = { L: [246, 122], 1: [322, 76], 2: [328, 82], 3: [266, 56], 4: [250,
 const BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];   // mirrors gen_floors.BAYER
 // Each room's hanging lamps, by strip x: mirrors install_picks.LAMPS (8 further right on the strip), the lift's own lamp first.
 // The roof has none: it is outdoors, so it stays as bright as its sky.
-const LAMPS = { P: [74, 215, 251, 327, 351, 395], L: [74, 169, 197, 234, 266, 300], 1: [74, 198, 211, 262, 331, 372, 403], 2: [74, 167, 200, 266, 331, 377, 438], 3: [74, 201, 262, 299, 330, 372, 403], 4: [74, 181, 301, 424], 5: [74, 181, 352], 6: [74, 167, 336], 7: [74, 180, 337] };
+const LAMPS = { P: [74, 215, 251, 327, 351, 395], L: [74, 169, 197, 234, 266, 300], 1: [74, 198, 211, 262, 331, 372, 395], 2: [74, 167, 200, 266, 331, 377, 438], 3: [74, 201, 262, 299, 330, 372, 403], 4: [74, 181, 301, 424], 5: [74, 181, 352], 6: [74, 167, 336], 7: [74, 180, 337] };
 const DARK = { day: [0.5, 0.52, 0.58], dawn: [0.42, 0.42, 0.52] }[TIME] ?? [0.34, 0.34, 0.44];   // what a room's colours fall to with its lights off; by day its windows still let some in
 const SHADES = [16, 10, 5];                                     // a lamp coming on: how many of 16 Bayer cells are still dark, step by step
 const POOL = 8;                                                  // a lamp's light spreads in blocks this many art pixels wide

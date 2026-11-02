@@ -558,7 +558,7 @@ CAMERA = ["    ######        ",   # seen from behind, aimed at the board: its sc
           "       #33#       ",
           "       ####       "]
 DRONE = ["444   444", " #bbbbb# ", "  #   #  "]   # its rotors a grey blur on the dark mat
-CARD, CARD_SIDE = (160, 100, 15), (106, 63, 12)   # the other boxes' cardboard
+CARD = (160, 100, 15)   # the other boxes' cardboard
 
 
 def lab(px):

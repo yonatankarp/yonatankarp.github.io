@@ -34,19 +34,19 @@ proof:
       title: "Creating a new service boundary for compliance workflows."
       context: "Transaction monitoring, screening, and sanction checks crossed product rules, vendor behavior, alerts, and audit expectations."
       decision: "I authored the technical spec and interfaces, led the transaction monitoring vendor integration, and covered Kafka DLT alerts, settlement reports, and compliance states in the service design."
-      result: "Operational knowledge that was scattered now sits in one service teams can monitor and recover."
+      result: "Shadow mode found lost messages and transactions that could have cost about €55k. Operational knowledge that was scattered now sits in one service teams can monitor and recover."
     - label: "Risk architecture"
       floor: "6"   # the building floor whose panel tells this story
       title: "Moving risk work toward explicit orchestration and contracts."
       context: "Risk decisions depended on multiple services, fraud providers, recurrent identification, tokenization, and direct debit behavior."
       decision: "I co-designed the Risk Orchestrator, led the fraud vendor integration, and authored the Buyer Risk Assessment target architecture."
-      result: "Coordinating a risk change across providers, payment behavior, and service boundaries got clearer."
+      result: "Risk decisions, roughly 600-800 a day, now run through one orchestrator, and the fraud integration cut fraud by 4-6%."
     - label: "Engineering leverage"
       floor: "7"   # the building floor whose panel tells this story
       title: "Turning repeated operational friction into shared tooling."
       context: "Platform work gets expensive when incidents, cronjobs, migrations, and service setup depend on private memory."
       decision: "I build Backstage tools, templates, migration plans, and upstream fixes when the reusable path beats another one-off patch."
-      result: "Engineers start from a known path and can challenge decisions through specs, dashboards, examples, and code."
+      result: "The dead-letter and replay library runs in 3 services, and the triage tooling was used across about 80 production incidents."
 
 outcomes:
   title: "What I try to leave behind on a team."

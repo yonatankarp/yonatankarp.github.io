@@ -10,9 +10,9 @@ duration: "Nov 2023 - Apr 2025"
 summary: "Built Risk's credit limit and fraud-labelling services, and moved risk signals to event-driven, engineering-owned pipelines."
 highlights:
   - "Built a credit limit service and a fraud-labelling service from scratch."
-  - "Replaced synchronous calls between Risk and Refinancing with an event-driven credit score for Pan-European refinancing."
+  - "Replaced synchronous Risk-Refinancing calls with the event-driven credit score our partner required to fund Pan-European refinancing."
   - "Moved real-time fraud features from Data Science to Engineering."
-  - "Led EDA 2.0 across 12 repositories and set shared CI and code standards for the Risk team."
+  - "Led EDA 2.0 across 12 repositories, simplifying setup so all engineers can use it, and set shared CI and code standards for Risk."
 ---
 
-Built a credit limit service and a fraud-labelling service from scratch. Replaced synchronous calls between Risk and Refinancing with an event-driven credit score for Pan-European refinancing. Moved real-time fraud features from Data Science to Engineering. Led EDA 2.0 across 12 repositories and set shared CI and code standards for the Risk team.
+Built a credit limit service and a fraud-labelling service from scratch. Replaced synchronous Risk-Refinancing calls with the event-driven credit score our partner required to fund Pan-European refinancing. Moved real-time fraud features from Data Science to Engineering. Led EDA 2.0 across 12 repositories, simplifying setup so all engineers can use it, and set shared CI and code standards for Risk.

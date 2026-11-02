@@ -12,7 +12,7 @@ highlights:
   - "Cut new service setup from a week to 1-2 hours with a service template."
   - "Built the money library shared by SumUp's backend and Android apps, and the authorization and permissions libraries for point-of-sale services."
   - "Migrated 6 years of historical data with minimal production impact."
-  - "Introduced SLO monitoring and on-call rotations for critical point-of-sale services."
+  - "Added SLOs and on-call for critical point-of-sale services, showing how much risk we could take, how fast we responded, and what mattered."
 ---
 
-Cut new service setup from a week to 1-2 hours with a service template. Built the money library shared by SumUp's backend and Android apps, and the authorization and permissions libraries for point-of-sale services. Migrated 6 years of historical data with minimal production impact. Introduced SLO monitoring and on-call rotations for critical point-of-sale services.
+Cut new service setup from a week to 1-2 hours with a service template. Built the money library shared by SumUp's backend and Android apps, and the authorization and permissions libraries for point-of-sale services. Migrated 6 years of historical data with minimal production impact. Added SLOs and on-call for critical point-of-sale services, showing how much risk we could take, how fast we responded, and what mattered.

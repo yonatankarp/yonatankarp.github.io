@@ -68,12 +68,19 @@ export function guide(api, root = document) {
     anims[0].onfinish = rest;
     moving = { panel, card, anims };
   };
+  // aria-modal alone leaves the rest in a screen reader's browse mode (#183): everything the panel covers goes inert,
+  // the top bar, the lift, the skip link, the windows and the card under it.
+  const seal = (on) => {
+    const covered = [...root.querySelectorAll('.building-top, .elevator, .skip-link, .exterior-windows'), open?.button.closest('.floor-card')];
+    covered.forEach((el) => { if (el) el.inert = on; });
+  };
   // Step inside pushes a history entry, so a phone's Back closes the panel instead of leaving the site (#129).
   const closePanel = (refocus = true, popped = false) => {
     if (!open) return;
     const { panel, button, top } = open;
     // Only the reader's own close plays: a ride, or the layout changing, closes it at once (refocus is false).
     const play = refocus && !still();
+    seal(false);   // before the focus goes back to Step inside, on the card
     if (play) move(panel, button.closest('.floor-card'), true);
     panel.classList.remove('is-open');
     panel.setAttribute('role', 'region');   // in the plain page's flow it is a region again, not a dialog
@@ -100,6 +107,7 @@ export function guide(api, root = document) {
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
     button.setAttribute('aria-expanded', 'true');
+    seal(true);
     document.documentElement.classList.add('panel-open');
     panel.scrollTop = 0;
     if (still()) rest(); else move(panel, button.closest('.floor-card'), false);

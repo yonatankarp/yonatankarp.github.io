@@ -2,7 +2,6 @@
 title: "Blog"
 date: 2026-04-07
 aliases:
-  - /about
   - /advent-of-code-2022-day-1-kotlin-edition
   - /advent-of-code-2022-day-10-kotlin-edition
   - /advent-of-code-2022-day-11-kotlin-edition

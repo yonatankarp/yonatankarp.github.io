@@ -55,6 +55,8 @@ title = "Yonatan Karp-Rudin"
     weight = 10
 
 [params]
+# Search Console ownership (URL-prefix property https://yonatankarp.com/). Keep it, or the property loses verification.
+googleSiteVerification = "nImN1GWT_OPSL1y1RiVIsi0ZkQ-4SLRZauiW0YDQxTI"
 title = "Yonatan Karp-Rudin - Staff Software Engineer"
 description = "Staff Software Engineer based in Berlin, Germany. Building payment, compliance, and platform systems at Billie. Open source contributor."
 

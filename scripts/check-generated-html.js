@@ -529,18 +529,26 @@ for (const filePath of htmlFiles) {
 // --- Old Hashnode URLs (#117): aliases redirect to the blog, /rss.xml serves the blog feed. ---
 {
   const read = (file) => (fs.existsSync(path.join(publicDir, file)) ? fs.readFileSync(path.join(publicDir, file), "utf8") : "");
-  const redirects = { "how-does-hashmap-work-in-java": "/blog/how-hashmap-works-java/", "design-patterns-singleton": "/blog/", "tags/design-patterns": "/blog/", "blog/page/1": "/blog/", "blog/page/2": "/blog/", "blog/page/3": "/blog/", "blog/page/4": "/blog/" };
+  const redirects = { "how-does-hashmap-work-in-java": "/blog/how-hashmap-works-java/", "tags/design-patterns": "/blog/", "blog/page/1": "/blog/", "blog/page/2": "/blog/", "blog/page/3": "/blog/", "blog/page/4": "/blog/" };
   // The removed design-pattern posts: their URL and Hashnode slug go straight to the dev.to copy, in one hop.
   const devTo = { factory: "327g", "abstract-factory": "34k2", builder: "4cgi", prototype: "4ekc" };
   for (const [slug, id] of Object.entries(devTo)) {
     for (const from of [`design-patterns-${slug}`, `blog/design-patterns-${slug}`]) redirects[from] = `https://dev.to/yonatankarp/design-patterns-${slug}-${id}`;
   }
+  // Old Hashnode posts that were never moved here go to their dev.to copy too, from every slug Hashnode gave them (#253).
+  Object.assign(redirects, {
+    "design-patterns-singleton": "https://dev.to/yonatankarp/design-patterns-singleton-32jp",
+    "advent-of-code-2022-day-1-kotlin-edition": "https://dev.to/yonatankarp/advent-of-code-2022-day-1-kotlin-edition-5f41",
+    "kotlin-code-smells-010-null": "https://dev.to/yonatankarp/kotlin-code-smells-010-null-22j2",
+    "kotlin-code-smell-10-null": "https://dev.to/yonatankarp/kotlin-code-smells-010-null-22j2",
+    "unleashing-chatgpt-the-art-of-ai-misdirection": "https://dev.to/yonatankarp/how-to-make-chatgpt-lie-3mjo",
+  });
   for (const [from, to] of Object.entries(redirects)) {
     const html = read(`${from}/index.html`);
     const target = /^https?:/.test(to) ? to : `https://yonatankarp.com${to}`;
     if (!isRedirectPage(html) || !html.includes(`url=${target}"`) || !new RegExp(`rel=["']?canonical["']? href=["']?${target}["'\\s>]`).test(html) || !/content=["']?noindex/.test(html)) failures.push(`/${from}/: should be a noindex redirect to ${to}`);
   }
-  if (/how-does-hashmap-work-in-java|design-patterns-/.test(read("sitemap.xml") + read("index.json") + read("index.xml") + read("rss.xml") + read("blog/index.xml") + read("llms.txt"))) failures.push("sitemap.xml/index.json/feeds/llms.txt: should not list the Hashnode aliases or the removed posts");
+  if (/how-does-hashmap-work-in-java|design-patterns-|kotlin-code-smell|advent-of-code/.test(read("sitemap.xml") + read("index.json") + read("index.xml") + read("rss.xml") + read("blog/index.xml") + read("llms.txt"))) failures.push("sitemap.xml/index.json/feeds/llms.txt: should not list the Hashnode aliases or the removed posts");
   const items = (file) => Array.from(read(file).matchAll(/<item>[\s\S]*?<link>([^<]+)<\/link>/g)).map((match) => match[1]).join();
   if (!items("rss.xml") || items("rss.xml") !== items("blog/index.xml")) failures.push("rss.xml: should list the same posts as /blog/index.xml");
 }

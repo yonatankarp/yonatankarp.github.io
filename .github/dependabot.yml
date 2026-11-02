@@ -7,8 +7,14 @@ updates:
       - "/.github/actions/build-site"
     schedule:
       interval: "weekly"
+    # github-actions does not support the semver-*-days keys.
+    cooldown:
+      default-days: 7
 
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14

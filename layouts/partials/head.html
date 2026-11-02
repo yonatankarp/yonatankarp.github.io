@@ -42,12 +42,12 @@
 {{- /* GitHub Pages sets no headers, so the policy is a meta tag (#149). A meta CSP has no report-only mode, so after
      changing it load every built page in a browser and watch for securitypolicyviolation events. No inline scripts or
      on* attributes: move them into assets/js, or, for one that must run before the first paint, put its resource in
-     .Store "inlineScripts" and it is allowed by its hash (layouts/index.html does). Mermaid's version is pinned in
-     js/mermaid-loader.js too. */}}
+     .Store "inlineScripts" and it is allowed by its hash (layouts/index.html does). Mermaid is self-hosted (#182), and
+     GoatCounter is allowed as its one file, the count.v5.js its tag below loads. */}}
 {{- /* Every other page's backdrop follows the hour too (custom.css, .px-skin): the same pick, before the first paint. */}}
 {{ if not .IsHome }}{{ .Store.Set "inlineScripts" (slice (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256")) }}{{ end }}
 {{ $hashes := "" }}{{ range .Store.Get "inlineScripts" }}{{ $hashes = printf "%s '%s'" $hashes .Data.Integrity }}{{ end }}
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'{{ $hashes }} https://gc.zgo.at https://cdn.jsdelivr.net/npm/mermaid@11.17.2/; style-src 'self' 'unsafe-inline'; img-src 'self' https://yonatankarp.goatcounter.com; connect-src 'self' https://yonatankarp.goatcounter.com; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'{{ $hashes }} https://gc.zgo.at/count.v5.js; style-src 'self' 'unsafe-inline'; img-src 'self' https://yonatankarp.goatcounter.com; connect-src 'self' https://yonatankarp.goatcounter.com; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 {{ if not .IsHome }}{{ range .Store.Get "inlineScripts" }}<script>{{ .Content | safeJS }}</script>{{ end }}{{ end }}
 {{- /* The transitions between pages (the wipe at the end of custom.css, the homepage's arrival at the end of pixel.css). The opt-in is inline, before any stylesheet: from
      a stylesheet, Chromium 156 sometimes missed it on a cold visit with fast CSS (20 of 40 on the dev server, 1 of 20 on

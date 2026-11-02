@@ -15,7 +15,7 @@
     "visual:capture:live": "SITE_URL=https://yonatankarp.com/ node scripts/capture-screenshots.js",
     "serve": "npm run build:building && node scripts/run-hugo.js server --renderToMemory",
     "visual:compare": "node scripts/compare-visual-captures.js",
-    "build:building": "vite build --config web3d/vite.config.mjs",
+    "build:building": "vite build --config web3d/vite.config.mjs && node scripts/vendor-mermaid.js",
     "pdf": "node scripts/generate-cv-pdf.js"
   },
   "engines": {
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
+    "mermaid": "11.17.2",
     "pdf-lib": "^1.17.1",
     "playwright": "^1.64.1",
     "vite": "8.3.5"

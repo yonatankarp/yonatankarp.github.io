@@ -1,10 +1,11 @@
 // Loaded by baseof.html on pages with a diagram, as a file so the CSP in head.html needs no inline script.
-// The version is also allowed by script-src there: bump both together.
+// Mermaid is self-hosted (#182): scripts/vendor-mermaid.js copies the npm package's ESM build to /vendor/, so the
+// version here is the one in package.json, and the build fails when they disagree.
 // Mermaid is ~200 KB of JS: fetch it only when a diagram comes within a few hundred px of the viewport
 const io = new IntersectionObserver(async (entries) => {
   if (!entries.some((e) => e.isIntersecting)) return;
   io.disconnect();
-  const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs');
+  const { default: mermaid } = await import('/vendor/mermaid-11.17.2/mermaid.esm.min.mjs');
   mermaid.initialize({
     startOnLoad: false,
     // Draw at natural size; the <pre> scrolls sideways on phones instead of shrinking the text

@@ -20,6 +20,13 @@ export function guide(api, root = document) {
     windows.append(...[...windows.children].sort((a, b) => keys.indexOf(a.dataset.goto) - keys.indexOf(b.dataset.goto)));
   }).observe(windows, { childList: true });
 
+  // A window's name shows over it on hover and focus, and covers the floors around it: Escape puts it away until the
+  // pointer or focus moves on to another window (WCAG 1.4.13, pixel.css .names-off).
+  if (windows) {
+    addEventListener('keydown', (e) => { if (e.key === 'Escape') windows.classList.add('names-off'); });
+    for (const type of ['pointerover', 'focusin']) windows.addEventListener(type, () => windows.classList.remove('names-off'));
+  }
+
   // Stops are in page order, top to bottom as the building stands, but the ride runs one way: in from the street (E)
   // at the lobby, then up floor by floor to the roof. Scrolling down (+1) rides on, up (-1) back. The garage (P) is
   // off the ride: its button, the lobby's sign or #floor-P go down to it, and either way out is back to the lobby.
@@ -83,8 +90,8 @@ export function guide(api, root = document) {
     seal(false);   // before the focus goes back to Step inside, on the card
     if (play) move(panel, button.closest('.floor-card'), true);
     panel.classList.remove('is-open');
-    panel.setAttribute('role', 'region');   // in the plain page's flow it is a region again, not a dialog
-    panel.removeAttribute('aria-modal');
+    // in the plain page's flow it is the rest of its floor again, which the floor's own section names (#191)
+    for (const a of ['role', 'aria-modal', 'aria-labelledby']) panel.removeAttribute(a);
     button.setAttribute('aria-expanded', 'false');
     // back on Step inside, with the card where the reader left it (focus would scroll it to the end)
     const refocusNow = () => { button.focus({ preventScroll: true }); button.closest('.floor-card').scrollTop = top; };
@@ -106,6 +113,7 @@ export function guide(api, root = document) {
     // Open, it holds Tab until it is closed, so it says so: a modal dialog, named by its title (#131).
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-modal', 'true');
+    panel.setAttribute('aria-labelledby', panel.querySelector('.panel-title').id);
     button.setAttribute('aria-expanded', 'true');
     seal(true);
     document.documentElement.classList.add('panel-open');

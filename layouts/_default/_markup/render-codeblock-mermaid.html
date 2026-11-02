@@ -1,3 +1,19 @@
-{{- .Page.Store.Add "diagrams" 1 -}}
-<pre class="mermaid" tabindex="0" role="region" aria-label="Diagram {{ .Page.Store.Get "diagrams" }}, scrolls sideways">{{ .Inner | htmlEscape | safeHTML }}</pre>
+{{- /* A diagram's text alternative comes from its fence, ```mermaid {title="…" desc="…"} (#191): the title names the
+     scrolling region, unique on the page, and Mermaid writes both into the SVG as accTitle and accDescr, its <title> and
+     <desc>. One line each, with no semicolon, which ends a statement in Mermaid. */ -}}
+{{- $title := .Attributes.title -}}
+{{- $desc := .Attributes.desc -}}
+{{- if not (and $title $desc) -}}
+  {{- errorf "%s: give the Mermaid diagram a title and a description, as ```mermaid {title=\"…\" desc=\"…\"}." .Position -}}
+{{- end -}}
+{{- if findRE `[;\n]` (printf "%s%s" $title $desc) -}}
+  {{- errorf "%s: a Mermaid diagram's title and description are one line each, with no semicolon." .Position -}}
+{{- end -}}
+{{- if in (.Page.Store.Get "diagramTitles" | default slice) $title -}}
+  {{- errorf "%s: another Mermaid diagram on this page is titled %q." .Position $title -}}
+{{- end -}}
+{{- .Page.Store.Add "diagramTitles" (slice $title) -}}
+{{- $lines := split (strings.TrimLeft "\n" .Inner) "\n" -}}
+{{- $src := delimit ((slice (index $lines 0) (printf "    accTitle: %s" $title) (printf "    accDescr: %s" $desc)) | append (after 1 $lines)) "\n" -}}
+<pre class="mermaid" tabindex="0" role="region" aria-label="Diagram: {{ $title }}, scrolls sideways">{{ $src | htmlEscape | safeHTML }}</pre>
 {{ .Page.Store.Set "hasMermaid" true }}

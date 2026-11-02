@@ -6,7 +6,7 @@ description: "A Mac app and CLI that turns a picture or a description into a 3D-
 projectKind: "Mac app"
 group: "app"
 draft: false
-link: "https://yonatankarp.github.io/mimic/"
+link: "https://yonatankarp.com/mimic/"
 caseStudy: true
 tech: ["Swift", "SwiftUI", "Apple Vision"]
 years: "2026–present"
@@ -49,7 +49,7 @@ Running locally needs Apple silicon, macOS 26, 32 GB of memory and about 25 GB o
 
 ## Current shape
 
-- Docs: [yonatankarp.github.io/mimic/](https://yonatankarp.github.io/mimic/)
+- Docs: [yonatankarp.com/mimic/](https://yonatankarp.com/mimic/)
 - Repository: [github.com/yonatankarp/mimic](https://github.com/yonatankarp/mimic)
 - Status: pre-1.0 releases
 - License: MIT

@@ -434,8 +434,13 @@ for (const filePath of htmlFiles) {
   if (!/page 2/i.test(page2.match(/<title>([^<]*)/)?.[1] ?? "") || !/^Page 2 /.test(meta(page2, "description")[0] ?? "")) fail("/blog/page/2/", 'title and description should say "page 2"');
 
   const home = read("index.html");
-  const person = jsonLd("/", home).find((item) => item["@type"] === "Person");
+  const homeLd = jsonLd("/", home);
+  const person = homeLd.find((item) => item["@type"] === "Person");
   if (!person?.image || !person.sameAs?.includes("https://x.com/yonvata") || !person.address?.addressLocality) fail("/", "Person JSON-LD needs image, address and the X profile in sameAs");
+  if (!person?.alternateName || !person.description || !person.alumniOf?.name || !person.knowsAbout?.length) fail("/", "Person JSON-LD needs alternateName, description, alumniOf and knowsAbout");
+  const profile = homeLd.find((item) => item["@type"] === "ProfilePage");
+  if (!profile || profile.mainEntity?.["@id"] !== person?.["@id"]) fail("/", "needs a ProfilePage whose mainEntity is the Person");
+  if (!homeLd.some((item) => item["@type"] === "WebSite")) fail("/", "needs a WebSite JSON-LD");
 
   const post = read("blog/build-twitter-bot-kotlin/index.html");
   const types = jsonLd("post", post);
@@ -444,6 +449,7 @@ for (const filePath of htmlFiles) {
     if (!posting?.[key]) fail("post", `BlogPosting is missing ${key}`);
   }
   if (!posting?.author?.url) fail("post", "BlogPosting author needs a url");
+  if (posting?.description?.endsWith("…")) fail("post", "BlogPosting description should not be truncated");
   if (types.find((item) => item["@type"] === "BreadcrumbList")?.itemListElement?.length !== 3) fail("post", "needs a three-step BreadcrumbList");
   for (const key of ["og:site_name", "og:locale", "og:image:width", "og:image:height", "og:image:alt", "article:published_time", "twitter:site"]) {
     if (meta(post, key).length !== 1) fail("post", `needs one ${key}`);

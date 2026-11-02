@@ -6,7 +6,7 @@ description: "An experiment in tabletop RPG memory: a self-hosted tool that turn
 projectKind: "Self-hosted experiment"
 group: "app"
 draft: false
-link: "https://yonatankarp.github.io/TaleKeeper/"
+link: "https://yonatankarp.com/TaleKeeper/"
 caseStudy: true
 tech: ["Python", "FastAPI", "Svelte"]
 years: "2026"
@@ -40,7 +40,7 @@ Recording, transcription, diarization, and storage can run independently of an L
 
 ## Current status
 
-- Docs: [yonatankarp.github.io/TaleKeeper/](https://yonatankarp.github.io/TaleKeeper/)
+- Docs: [yonatankarp.com/TaleKeeper/](https://yonatankarp.com/TaleKeeper/)
 - Repository: [github.com/yonatankarp/TaleKeeper](https://github.com/yonatankarp/TaleKeeper)
 - Stack: Python, FastAPI, Svelte 5, SQLite, Whisper, diarization, Ollama-compatible local AI
 - Status: an experiment I did not use much. The repository is archived, with GitHub Pages enabled.

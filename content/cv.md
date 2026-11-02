@@ -3,5 +3,5 @@ title: "CV"
 layout: "cv"
 hideTitle: true
 bareTitle: true
-description: "A concise CV view covering experience, education, writing, and selected work."
+description: "CV of Yonatan Karp-Rudin, Staff Software Engineer at Billie in Berlin: experience, education, writing, and selected work."
 ---

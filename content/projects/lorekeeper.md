@@ -6,7 +6,7 @@ description: "Hotkey session notes for D&D players, kept as plain Markdown, with
 projectKind: "Desktop app"
 group: "app"
 draft: false
-link: "https://yonatankarp.github.io/lorekeeper/"
+link: "https://yonatankarp.com/lorekeeper/"
 caseStudy: true
 tech: ["Rust", "Tauri", "JavaScript"]
 years: "2026–present"
@@ -47,7 +47,7 @@ It isn't a live co-editor, so two people changing the same NPC page end up with 
 
 ## Current shape
 
-- Docs: [yonatankarp.github.io/lorekeeper/](https://yonatankarp.github.io/lorekeeper/)
+- Docs: [yonatankarp.com/lorekeeper/](https://yonatankarp.com/lorekeeper/)
 - Repository: [github.com/yonatankarp/lorekeeper](https://github.com/yonatankarp/lorekeeper)
 - Status: pre-1.0 releases for macOS, Windows and Linux
 - Stack: Rust, Tauri 2, JavaScript, CodeMirror, axum, SQLite

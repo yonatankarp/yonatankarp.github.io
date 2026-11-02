@@ -12,7 +12,7 @@ const externalUrls = new Set();
 const externalConcurrency = Number(process.env.LINK_CHECK_CONCURRENCY || 8);
 const ignoredSchemes = /^(?:mailto:|tel:|javascript:)/i;
 const localOrigins = new Set(["https://yonatankarp.com", "http://yonatankarp.com"]);
-const externallyManagedLocalPrefixes = ["/kotlin-design-patterns/"];
+const externallyManagedLocalPrefixes = ["/kotlin-design-patterns/", "/ff4k/", "/mimic/", "/lorekeeper/", "/TaleKeeper/"];
 const ignoredExternalHosts = new Set(["localhost", "127.0.0.1"]);
 const ignoredExternalPatterns = [
   /^https:\/\/news\.ycombinator\.com\/submitlink\b/i,

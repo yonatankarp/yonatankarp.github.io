@@ -2,8 +2,8 @@
 
 // Copies Mermaid's ESM build from node_modules into static/vendor/mermaid-<version>/ (gitignored), so the posts with a
 // diagram load it from the site instead of a CDN (#182). Only the entry and the chunks it imports are copied, not the
-// source maps or the UMD build. assets/js/mermaid-loader.js imports this path: bump the version there with package.json,
-// and scripts/check-generated-html.js fails the build when they disagree.
+// source maps or the UMD build. assets/js/mermaid-loader.js imports this path, with the version baseof.html reads from
+// package.json; scripts/check-generated-html.js fails the build when the installed package is another version.
 
 const fs = require("fs");
 const path = require("path");

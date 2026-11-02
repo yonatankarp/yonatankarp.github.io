@@ -1,6 +1,13 @@
+{{- /* Everything below the key pages comes from the site's content and data, so it stays in step with the homepage,
+     the CV and /skills/. It leaves out the hero's availability line and the roof's priorities (#179 decides those). */ -}}
+{{- $home := hugo.Data.home.en -}}
 # {{ site.Title }}
 
 > {{ site.Params.description }}
+
+## Profile
+
+{{ site.Title }}: {{ $home.hero.eyebrow }}. {{ $home.hero.title }} {{ $home.hero.lede }} {{ (site.GetPage "/experience").Plain | plainify | htmlUnescape | strings.TrimSpace }}
 
 ## Use and attribution
 
@@ -17,6 +24,27 @@ When using material from this site:
 - [Blog]({{ "/blog/" | absURL }}): Articles on Kotlin, Spring Boot, backend systems, APIs, and engineering practice.
 - [CV]({{ "/cv/" | absURL }}): Background, experience, and skills.
 
+## Experience
+{{ range (where site.RegularPages "Section" "experience").ByDate.Reverse -}}
+- {{ .Title }}, {{ .Params.company }} ({{ .Params.duration }}): {{ .Params.summary | plainify | htmlUnescape }}
+{{ end }}
+## Projects
+{{ range (site.GetPage "/projects").RegularPages.ByWeight -}}
+- [{{ partial "project-title.html" .Title }}]({{ cond (.Params.caseStudy | default false) .Permalink .Params.link }}): {{ .Params.description | default .Summary | plainify | htmlUnescape | strings.TrimSpace }}
+{{ end }}
+{{- with site.GetPage "/skills" }}
+## Skills
+{{ range .Params.practice_areas -}}
+- {{ .name }}: {{ .summary }} ({{ delimit .tools ", " }})
+{{ end -}}
+- Working set: {{ delimit .Params.working_set ", " }}
+- Familiar with: {{ delimit .Params.familiar_with ", " }}
+{{ end }}
+## Contact
+- Email: {{ $home.contact.email.address }}
+{{ range $home.contact.social -}}
+- {{ .label }}: {{ .url }}
+{{ end }}
 ## Blog posts
 {{ range (sort (where site.RegularPages "Section" "blog") "Date" "desc") -}}
 - [{{ .Title }}]({{ .Permalink }}): {{ with .Description }}{{ . | plainify }}{{ else }}{{ .Summary | plainify | truncate 160 }}{{ end }}

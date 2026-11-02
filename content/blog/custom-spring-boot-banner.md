@@ -42,7 +42,7 @@ Next, let's relaunch our app:
 
 As you can see, our custom banner has been successfully replaced! Great job! :)
 
-If you're using Spring Boot 2, you can even convert images into [ASCII art](https://en.wikipedia.org/wiki/ASCII_art). However, please note that this functionality is deprecated and has been removed in Spring Boot `3.0.0`, which was released recently.
+If you're using Spring Boot 2, you can even convert images into [ASCII art](https://en.wikipedia.org/wiki/ASCII_art). However, please note that this functionality is deprecated and has been removed in Spring Boot `3.0.0`.
 
 To convert images into ASCII art, follow these steps:
 

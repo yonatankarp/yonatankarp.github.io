@@ -30,7 +30,7 @@ When using material from this site:
 {{ end }}
 ## Projects
 {{ range (site.GetPage "/projects").RegularPages.ByWeight -}}
-- [{{ partial "project-title.html" .Title }}]({{ cond (.Params.caseStudy | default false) .Permalink .Params.link }}): {{ .Params.description | default .Summary | plainify | htmlUnescape | strings.TrimSpace }}
+- [{{ partial "project-title.html" .Title }}{{ if .Params.archived }} (archived){{ end }}]({{ cond (.Params.caseStudy | default false) .Permalink .Params.link }}): {{ .Params.description | default .Summary | plainify | htmlUnescape | strings.TrimSpace }}
 {{ end }}
 {{- with site.GetPage "/skills" }}
 ## Skills

@@ -17,6 +17,8 @@ images:
   featured_image: "/images/blog/covers/build-twitter-bot-kotlin.jpg"
 ---
 
+> **Note (2026):** I wrote this post in December 2021 against Twitter's v1.1 API, through Twitter4J, and `apps.twitter.com`. That address now redirects to [developer.twitter.com](https://developer.twitter.com/), so the setup steps below may not match what you see today.
+
 I read an excellent article by [Martin Erlic](https://medium.com/u/f864d52751a7) called "How To Make a Scary Russian Twitter Bot With Java" and I wanted to update it using Kotlin.
 
 <!--more-->

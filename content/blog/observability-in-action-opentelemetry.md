@@ -9,7 +9,7 @@ aliases:
 draft: false
 type: "blog"
 featured: true
-description: "A hands-on guide to adding distributed tracing and observability to a Kotlin/Spring Boot service using OpenTelemetry and HoneyComb."
+description: "A hands-on guide to adding distributed tracing and observability to a Kotlin/Spring Boot service using OpenTelemetry and Honeycomb."
 tags:
   - kotlin
   - spring-boot
@@ -616,22 +616,22 @@ networks:
 Code examples related to this service can be found [here](https://github.com/yonatankarp/cat-fact-service/tree/add-instumentation) on the branch `add-instumentation`.
 
 
-### HoneyComb.io
+### Honeycomb.io
 
 
 #### Introduction
 
 
-In this article, we'll use [HoneyComb.io](https://www.honeycomb.io/) as our tracing backend. While there are other tools in the market, some of which can be run on your local machine (e.g., [Jaeger](https://www.jaegertracing.io/)), I chose HoneyComb because of their complementary tools that offer improved monitoring of the service and insights into its behavior.
+In this article, we'll use [Honeycomb.io](https://www.honeycomb.io/) as our tracing backend. While there are other tools in the market, some of which can be run on your local machine (e.g., [Jaeger](https://www.jaegertracing.io/)), I chose Honeycomb because of their complementary tools that offer improved monitoring of the service and insights into its behavior.
 
 
-HoneyComb is a cloud-based observability platform that helps developers gain insights into their software systems. They provide tools such as SLA/SLO monitoring, distributed tracing, and real-time log aggregation. This enables us to quickly identify and address problems before they affect users. HoneyComb operates on an event-based data model, which means engineers can explore and analyze data in real-time, drilling down into specific issues to identify the root cause and take corrective action. HoneyComb also offers visualization tools like heatmaps, histograms, and scatter plots, but we won't cover them in this series.
+Honeycomb is a cloud-based observability platform that helps developers gain insights into their software systems. They provide tools such as SLA/SLO monitoring, distributed tracing, and real-time log aggregation. This enables us to quickly identify and address problems before they affect users. Honeycomb operates on an event-based data model, which means engineers can explore and analyze data in real-time, drilling down into specific issues to identify the root cause and take corrective action. Honeycomb also offers visualization tools like heatmaps, histograms, and scatter plots, but we won't cover them in this series.
 
 
 #### Setting up
 
 
-You can sign up for a free HoneyComb account that processes up to 20 million events per month, which is more than sufficient for our needs. To create an account, visit [HoneyComb.io](https://www.honeycomb.io/), click on the `Start for Free` button, fill in your information, and set up a team.
+You can sign up for a free Honeycomb account that processes up to 20 million events per month, which is more than sufficient for our needs. To create an account, visit [Honeycomb.io](https://www.honeycomb.io/), click on the `Start for Free` button, fill in your information, and set up a team.
 
 
 For this article, we will use the default `test` environment, but you can create additional environments as you see fit.
@@ -643,7 +643,7 @@ After setting up, you should land on a page that looks like this:
 ![Honeycomb send data setup screen](/images/blog/honeycomb-send-data.webp)
 
 
-Next, we'll create a new API key for our service to send data to HoneyComb. To do this, click on `Account` ➡️ `Team settings`. On the following page
+Next, we'll create a new API key for our service to send data to Honeycomb. To do this, click on `Account` ➡️ `Team settings`. On the following page
 
 
 ![Honeycomb account menu with team settings](/images/blog/honeycomb-account-menu.webp)
@@ -700,7 +700,7 @@ Time to dive in!
 #### Integrating the OpenTelemetry SDK and Agent
 
 
-First, we'll add the OpenTelemetry SDK and agent dependencies to our project. HoneyComb provides a library that extends the basic functionality of the JVM OpenTelemetry, and we will use it.
+First, we'll add the OpenTelemetry SDK and agent dependencies to our project. Honeycomb provides a library that extends the basic functionality of the JVM OpenTelemetry, and we will use it.
 
 
 ##### Dependency Integration
@@ -762,7 +762,7 @@ We can run the `build` task and see that the OpenTelemetry agent is copied to th
 ##### Modifying the bootRun Task
 
 
-Next, we'll update the `bootRun` task to include the OpenTelemetry agent. By doing so, we can run the service locally and have it send data to HoneyComb.
+Next, we'll update the `bootRun` task to include the OpenTelemetry agent. By doing so, we can run the service locally and have it send data to Honeycomb.
 
 
 Add the following to the `bootRun` task in your `build.gradle.kts` file:
@@ -789,13 +789,13 @@ tasks {
 ```
 
 
-Note that to work, this task needs the `HONEYCOMB_API_KEY` environment variable to be set with the API key we created earlier. Moreover, currently, we're calling the HoneyComb API directly, so we need to set the `HONEYCOMB_API_ENDPOINT` environment variable to` `[https://api.honeycomb.io:443](https://api.honeycomb.io:443). In a future article, we might fix this by using the OpenTelemetry collector.
+Note that to work, this task needs the `HONEYCOMB_API_KEY` environment variable to be set with the API key we created earlier. Moreover, currently, we're calling the Honeycomb API directly, so we need to set the `HONEYCOMB_API_ENDPOINT` environment variable to` `[https://api.honeycomb.io:443](https://api.honeycomb.io:443). In a future article, we might fix this by using the OpenTelemetry collector.
 
 
 #### Local Service Execution
 
 
-We can now run the service, and observe the data being sent to HoneyComb.
+We can now run the service, and observe the data being sent to Honeycomb.
 
 
 To run our service, execute the following command (ensure that the database is running):
@@ -814,7 +814,7 @@ $ curl http://localhost:8080/api/v1/cat/facts
 ```
 
 
-Go to the HoneyComb UI and click on the `Query` button. You can click the `Run Query` button to see the data being sent to HoneyComb. You can see for example our `github.repository` attribute being sent:
+Go to the Honeycomb UI and click on the `Query` button. You can click the `Run Query` button to see the data being sent to Honeycomb. You can see for example our `github.repository` attribute being sent:
 
 
 ![Honeycomb query showing raw telemetry attributes](/images/blog/honeycomb-query-raw-data.webp)
@@ -841,7 +841,7 @@ Running the service locally is great, but we want to run it in a container. By d
 The changes required to run the service in a container are minimal. We need to add the OpenTelemetry agent to the container and set the environment variables required by the agent.
 
 
-We will also add our static attributes to the agent, so we can easily filter the data in HoneyComb. We can have multiple attributes separated by a comma. For example:
+We will also add our static attributes to the agent, so we can easily filter the data in Honeycomb. We can have multiple attributes separated by a comma. For example:
 
 
 ```properties
@@ -910,7 +910,7 @@ $ docker compose up
 ## Conclusion
 
 
-In this article we've followed the steps of building our business logic in a library, integrating it into a REST service, and adding instrumentation to the system to monitor its behavior. I hope that in this article I helped you to see how enhancing your codebase with OpenTelemetry allows you to monitor your service and gain valuable insights into its behavior. By integrating [HoneyComb.io](http://honeycomb.io/), the OpenTelemetry SDK, and the agent, you can effectively set up observability for your service while also benefiting from HoneyComb's powerful analysis tools
+In this article we've followed the steps of building our business logic in a library, integrating it into a REST service, and adding instrumentation to the system to monitor its behavior. I hope that in this article I helped you to see how enhancing your codebase with OpenTelemetry allows you to monitor your service and gain valuable insights into its behavior. By integrating [Honeycomb.io](http://honeycomb.io/), the OpenTelemetry SDK, and the agent, you can effectively set up observability for your service while also benefiting from Honeycomb's powerful analysis tools
 
 
 ## Acknowledgments

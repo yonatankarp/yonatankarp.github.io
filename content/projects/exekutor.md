@@ -5,6 +5,7 @@ weight: 80
 group: "library"
 projectKind: "Architecture demo"
 draft: false
+archived: true
 link: "https://github.com/yonatankarp/exekutor"
 tech: ["Kotlin"]
 build:

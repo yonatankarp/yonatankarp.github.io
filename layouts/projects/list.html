@@ -28,7 +28,7 @@
         <li class="px-card">
           {{ partial "project-painting.html" (dict "page" . "max" 640) }}
           <div class="px-card__body">
-            <p class="px-card__meta">{{ with .Params.projectKind }}<b>{{ . }}</b>{{ end }}<span>{{ .Params.years | default (.Date.Format "2006") }}</span></p>
+            <p class="px-card__meta">{{ with .Params.projectKind }}<b>{{ . }}</b>{{ end }}<span>{{ if .Params.archived }}<span class="archived-tag">Archived</span> {{ end }}{{ .Params.years | default (.Date.Format "2006") }}</span></p>
             {{- /* The CTA under the title is aria-hidden, so the link describes where it goes; the name stays the title (#131). */}}
             {{ $hint := printf "where-%s" .File.ContentBaseName }}
             <h3><a href="{{ $href }}"{{ if not $case }} target="_blank" rel="noopener"{{ end }} aria-describedby="{{ $hint }}">{{ $title }}</a></h3>

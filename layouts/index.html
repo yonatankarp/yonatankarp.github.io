@@ -113,7 +113,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         <div class="floor-top">
           <h2 id="fR" tabindex="-1">{{ $home.contact.title }}</h2>
           <div class="floor-signs">
-            <p class="floor-end">{{ with index $posts 0 }}New post: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a>{{ end }}{{ with $home.contact.podcast }} · Podcast: <a href="{{ .url }}" data-goatcounter-click="podcast-roof">{{ .title }}</a>{{ end }} · Garage: <a href="#floor-P" data-goto="P">projects ↓</a></p>
+            <p class="floor-end">{{ with index $posts 0 }}Latest post: <a href="{{ .RelPermalink }}">{{ partial "nobreak.html" (index (split .Title ": ") 0) }}</a>{{ end }}{{ with $home.contact.podcast }} · Podcast: <a href="{{ .url }}" data-goatcounter-click="podcast-roof">{{ .title }}</a>{{ end }} · Garage: <a href="#floor-P" data-goto="P">projects ↓</a></p>
           </div>
         </div>
         <p class="floor-lead">{{ $home.contact.text }}</p>
@@ -261,9 +261,10 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         <h2 id="fP" tabindex="-1">{{ $home.projects.title }}</h2>
         {{ $upstream := slice }}{{ $tools := slice }}{{ $games := slice }}
         {{ range $projects }}
-          {{ if eq .Params.group "contribution" }}{{ $upstream = $upstream | append (partial "project-title.html" .Title) }}
-          {{ else if eq .Params.group "game" }}{{ $games = $games | append .Title }}
-          {{ else }}{{ $tools = $tools | append .Title }}{{ end }}
+          {{ $name := cond (.Params.archived | default false) (printf "%s (archived)" (partial "project-title.html" .Title)) (partial "project-title.html" .Title) }}
+          {{ if eq .Params.group "contribution" }}{{ $upstream = $upstream | append $name }}
+          {{ else if eq .Params.group "game" }}{{ $games = $games | append $name }}
+          {{ else }}{{ $tools = $tools | append $name }}{{ end }}
         {{ end }}
         <ul>
           {{ with $upstream }}<li>Upstream: {{ partial "nobreak.html" (delimit . ", ") }}.</li>{{ end }}
@@ -287,7 +288,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
           {{ range . }}
           {{- /* A case study's own page first, its repository or docs second (#33). */}}
           {{ $name := partial "nobreak.html" (partial "project-title.html" .Title) }}
-          <li>{{ if .Params.caseStudy }}{{ $name }}{{ else }}<a href="{{ .Params.link }}">{{ $name }}</a>{{ end }} <span class="panel-soft">· {{ .Params.projectKind }}</span>
+          <li>{{ if .Params.caseStudy }}{{ $name }}{{ else }}<a href="{{ .Params.link }}">{{ $name }}</a>{{ end }} <span class="panel-soft">· {{ .Params.projectKind }}</span>{{ if .Params.archived }} <span class="archived-tag">Archived</span>{{ end }}
             <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 240 "…" }}</span>
             {{ if .Params.caseStudy }}<span class="panel-desc"><a href="{{ .RelPermalink }}">Case study</a> · <a href="{{ .Params.link }}">{{ .Params.button.btnText | default "View" }}</a></span>{{ end }}
             {{ with .Params.tech }}<span class="panel-chips">{{ range . }}<i>{{ . }}</i>{{ end }}</span>{{ end }}</li>

@@ -30,6 +30,8 @@ const FOCUS = { 2: 330, 3: 250 };                               // on narrow scr
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
 const PAUSE_KEY = 'building-paused';                            // per viewer, kept across reloads
 const SHOT_KEY = 'building-shot', SHOT_MS = 2000;               // the opening shot: once a browser session, and how long
+const ARRIVE_FROM = 0.25, ARRIVE_MS = 1000;                     // on every arrival from another page: the same shot, picked up where the crane is about to enter (flat sky before that would only be a wait), and faster
+const LAMPS_AFTER = 180;                                        // arriving on a floor: the old page is still over the room until about now
 const SHOT_BY = 1500;                                           // ms after the card's first paint: art later than this just appears, under someone already reading
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
@@ -144,17 +146,37 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
   let paused = false, raf = 0, timer = 0, drawn = '';
   try { paused = localStorage.getItem(PAUSE_KEY) === 'true'; } catch { /* blocked storage: it just is not remembered */ }
   // The opening shot: -1 waiting for the art, then when it began, 0 for none. Spent at the first load in any case, and
-  // storage that cannot remember gets none, rather than one at every reload and Back.
-  let shot = 0, epoch = 0;
+  // storage that cannot remember gets none, rather than one at every reload. arrive(), below, is the other way in.
+  let shot = 0, epoch = 0, shotFrom = 0, shotMs = SHOT_MS;
   try {
     if (!sessionStorage.getItem(SHOT_KEY) && keys[ride.from] === 'E' && !paused && !held()) shot = -1;
     sessionStorage.setItem(SHOT_KEY, '1');
   } catch { shot = 0; }
-  if (shot) {
-    // Any input cuts to the rest picture, in time for that same input to land on it.
-    const cut = () => { if (shot) epoch = performance.now() - (FRAMES * 1000) / FPS; shot = 0; wake(); };
-    for (const type of ['wheel', 'keydown', 'pointerdown', 'click']) addEventListener(type, cut, { capture: true, passive: true, once: true });
-  }
+  // Any input cuts to the rest picture, in time for that same input to land on it.
+  const cut = () => { if (shot) epoch = performance.now() - (FRAMES * 1000) / FPS; shot = 0; wake(); };
+  const cuttable = () => { for (const type of ['wheel', 'keydown', 'pointerdown', 'click']) addEventListener(type, cut, { capture: true, passive: true, once: true }); };
+  if (shot) cuttable();
+  const roll = () => { street.prime(); shot = performance.now() + 100; };   // its clock starts after the planes' first cost and first draw, held on flat sky: the motion is fastest at once
+  // Arrived from another page under its view transition, which reduced motion never has (layouts/index.html tells us; a
+  // page restored by Back gets it too). The street: the shot, whatever the session has seen. A floor: the doors shut and
+  // the lamps off, until the old page has cleared the room and its picture is here.
+  let waiting = '', waitTo = 0;
+  const arrive = () => {
+    document.documentElement.classList.remove('px-arrive');
+    if (held() || paused || rideU(performance.now()) < 1) return;
+    const key = keys[ride.to];
+    if (key !== 'E') {
+      open.set(key, 0); lit.set(key, 0);
+      waiting = key; waitTo = performance.now() + LAMPS_AFTER;
+      setTimeout(wake, LAMPS_AFTER);
+    } else {
+      shotFrom = ARRIVE_FROM; shotMs = ARRIVE_MS; cuttable();
+      if (street.ready()) roll(); else shot = -1;
+    }
+    wake();
+  };
+  document.addEventListener('building:reveal', arrive);
+  if (document.documentElement.classList.contains('px-arrive')) arrive();   // revealed before this module ran
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
   // Held has nothing to pause: the button hides, and shows again if that changes after load (#128).
   const label = () => {
@@ -189,8 +211,8 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     ctx.imageSmoothingEnabled = false;
     const wide = !narrow.matches, still = held(), loopMs = (FRAMES * 1000) / FPS;
     if (still || (shot < 0 && now - (performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? now) > SHOT_BY)) shot = 0;
-    if (shot < 0 && street.ready()) { street.prime(); shot = performance.now() + 100; }   // its clock starts after the planes' first cost and first draw, held on flat sky: the motion is fastest at once
-    const take = shot > 0 ? clamp01((now - shot) / SHOT_MS) : 0;
+    if (shot < 0 && street.ready()) roll();
+    const take = shot > 0 ? clamp01(shotFrom + (now - shot) / shotMs) : 0;
     if (take === 1) { shot = 0; epoch = now - loopMs; }   // the room's loop starts on its rest, the shot's last picture
 
     const u = rideU(now);
@@ -216,6 +238,7 @@ export function mountPixel({ canvas, stops, base = '/building/', windowsBox, pau
     const phase = (now - epoch) % (loopMs + REST_MS);
     const f = paused || still || phase >= loopMs ? 0 : Math.floor(phase / (1000 / FPS));
     for (const key of ORDER) {
+      if (key === waiting && (now < waitTo || !strips.has(key))) continue;
       const here = arrived === ride.to && keys[ride.to] === key;
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
       lit.set(key, ride.fade && keys[inner] === key ? 1 : clamp01((lit.get(key) ?? 0) + (here ? dt : -dt) * (still || paused ? 99 : DOORS)));   // in step with the doors; paused, they just switch

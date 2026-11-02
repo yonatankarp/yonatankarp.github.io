@@ -14,6 +14,7 @@ tags:
   - hacking
 images:
   featured_image: "/images/blog/covers/xkcd-from-tile-to-picture.jpg"
+coverFocus: 52
 ---
 
 

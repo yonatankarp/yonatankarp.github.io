@@ -16,6 +16,7 @@ tags:
   - cloud
 images:
   featured_image: "/images/blog/covers/amazon-keyspaces-problematic.jpg"
+coverFocus: 52
 ---
 
 Around a year ago, my team and I were tasked with building a high-performance system capable of handling a large volume of requests. After careful consideration, we chose Cassandra as our database.

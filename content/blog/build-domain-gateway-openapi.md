@@ -15,6 +15,7 @@ tags:
   - rest-api
 images:
   featured_image: "/images/blog/covers/build-domain-gateway-openapi.jpg"
+coverFocus: 78
 ---
 
 <div class="editors-note">

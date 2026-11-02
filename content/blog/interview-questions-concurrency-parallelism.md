@@ -17,6 +17,7 @@ tags:
   - threads
 images:
   featured_image: "/images/blog/covers/interview-questions-concurrency-parallelism.jpg"
+coverFocus: 48
 ---
 
 > TL;DR - What are the differences between concurrent and parallel programming?

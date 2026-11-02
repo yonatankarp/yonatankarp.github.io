@@ -13,6 +13,7 @@ tags:
   - knowledge-base
 images:
   featured_image: "/images/blog/covers/self-compiling-second-brain.jpg"
+coverFocus: 62
 ---
 
 If there's one thing all the AI coding agents I've worked with have in common, it's amnesia. I could spend a day teaching it how the code works, what the pitfalls are, why some decisions were made. The session ends, and all of it is gone. The next day I open a new session and start explaining from the beginning like nothing happened, wasting valuable time on a tool that was supposed to save me time.

@@ -15,6 +15,7 @@ tags:
   - gotchas
 images:
   featured_image: "/images/blog/covers/break-hashmap-less-than-a-minute.jpg"
+coverFocus: 50
 ---
 
 > **TL;DR:** Never use mutable objects as keys in your HashMap!

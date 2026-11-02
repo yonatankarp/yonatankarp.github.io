@@ -45,7 +45,7 @@ Private notes rely on access control: they are sealed with the same room key, an
 
 It isn't a live co-editor, so two people changing the same NPC page end up with two versions. The reference server runs on my own machine. Its address is a setting, and the image is published so anyone can run their own.
 
-## Current shape
+## Details
 
 - Docs: [yonatankarp.com/lorekeeper/](https://yonatankarp.com/lorekeeper/)
 - Repository: [github.com/yonatankarp/lorekeeper](https://github.com/yonatankarp/lorekeeper)

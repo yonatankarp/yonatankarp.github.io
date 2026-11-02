@@ -15,13 +15,13 @@ params:
         btnText: "GitHub"
 ---
 
-I wrote ff4j's `javax.*` to `jakarta.*` namespace migration so the Java feature-flag library could fit Spring Boot 3 and Jakarta EE 9+ application stacks. The PR merged, and that work is what led me to build `ff4k`. ff4j 3.0.0 now ships the migration.
+I wrote ff4j's `javax.*` to `jakarta.*` namespace migration so the Java feature-flag library could fit Spring Boot 3 and Jakarta EE 9+ application stacks. The PR merged, and that work led me to build `ff4k`. ff4j 3.0.0 now ships the migration.
 
 <!--more-->
 
 ## Context
 
-ff4j had the right general shape for Java feature flags, but the ecosystem around it had moved. Spring Boot 3 and Jakarta EE 9+ require the `jakarta.*` namespace, while older Java EE libraries still depended on `javax.*`. That made a small-looking import boundary into a deployment blocker for teams trying to modernize their services.
+ff4j had the right general design for Java feature flags, but the ecosystem around it had moved. Spring Boot 3 and Jakarta EE 9+ require the `jakarta.*` namespace, while older Java EE libraries still depended on `javax.*`. That turned a change of imports into a deployment blocker for teams upgrading their services.
 
 I kept the contribution narrow: migrate the namespace and the dependencies without changing ff4j's product model, so the maintainers could review it. It closed the compatibility issue in the project.
 
@@ -36,9 +36,9 @@ This was a breaking migration. It needed a new major release, because applicatio
 
 ## What came next
 
-This work is what triggered [`ff4k`](/projects/ff4k/), a Kotlin-native feature flag library with predictable async behavior and storage boundaries, which does not copy the older API.
+This work led me to start [`ff4k`](/projects/ff4k/), a Kotlin-native feature flag library with predictable async behavior, clear storage boundaries, and its own API.
 
-## Current shape
+## Details
 
 - Project: [ff4j/ff4j](https://github.com/ff4j/ff4j)
 - Contribution: [PR #752](https://github.com/ff4j/ff4j/pull/752)

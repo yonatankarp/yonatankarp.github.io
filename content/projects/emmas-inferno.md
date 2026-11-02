@@ -15,4 +15,4 @@ params:
         btnText: "Trailer"
 ---
 
-Atmospheric puzzle-platformer exploring themes of morality. University capstone project.
+Atmospheric puzzle-platformer about morality. University capstone project.

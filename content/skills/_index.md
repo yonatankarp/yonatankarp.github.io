@@ -5,19 +5,19 @@ draft: false
 description: "The parts of engineering I am strongest in, and the tools I use for them."
 practice_areas:
   - name: "Backend architecture"
-    summary: "Designing services, contracts, and boundaries that stay understandable as systems grow."
+    summary: "Designing service boundaries and contracts that still make sense as a system grows."
     tools: ["Kotlin", "Java", "Spring Boot", "OpenAPI", "gRPC", "Protocol Buffers"]
   - name: "Distributed systems and data flows"
-    summary: "Building event-driven services, real-time processing, and the infrastructure that keeps backend systems coherent under load."
+    summary: "Building event-driven services and real-time processing, and keeping them running under load."
     tools: ["Kafka", "Neo4j", "MySQL", "PostgreSQL"]
   - name: "Platform and developer experience"
-    summary: "Improving the day-to-day engineering loop through templates, CI, internal tools, and shared libraries."
+    summary: "Improving daily engineering work with templates, CI, internal tools, and shared libraries."
     tools: ["Gradle", "GitHub Actions", "Terraform", "Docker", "Kubernetes"]
   - name: "Observability and operations"
-    summary: "Making systems easier to debug, monitor, and operate in production."
+    summary: "Making production systems easier to monitor and debug."
     tools: ["OpenTelemetry", "New Relic", "Kafka DLTs"]
   - name: "Technical writing"
-    summary: "Explaining backend design, debugging, and implementation tradeoffs clearly enough to be useful."
+    summary: "Writing about backend design, debugging, and implementation tradeoffs."
     tools: ["Kotlin", "MkDocs"]
 working_set:
   - "Kotlin"

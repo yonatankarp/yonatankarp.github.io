@@ -47,7 +47,7 @@ TRELLIS.2 is the default 3D model because it keeps what a figure holds more reli
 
 Running locally needs Apple silicon, macOS 26, 32 GB of memory and about 25 GB of disk. Downloads are pinned to a fixed address, size and SHA-256. The app isn't registered with Apple, so the first launch needs an extra step in System Settings.
 
-## Current shape
+## Details
 
 - Docs: [yonatankarp.com/mimic/](https://yonatankarp.com/mimic/)
 - Repository: [github.com/yonatankarp/mimic](https://github.com/yonatankarp/mimic)

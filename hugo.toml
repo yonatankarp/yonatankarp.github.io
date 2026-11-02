@@ -59,9 +59,16 @@ siteName = "Yonatan Karp-Rudin"
 twitter = "yonvata"
 
 [params.seo.person]
+alternateName = "Yonatan Karp"
+# Each profile checked to be his: the name matches and it links back here, or (Medium, Apple Podcasts) its feed names him.
 sameAs = [
   "https://github.com/yonatankarp",
   "https://www.linkedin.com/in/yonatankarp/",
+  "https://dev.to/yonatankarp",
+  "https://medium.com/@yonatankarp",
+  "https://sessionize.com/yonatankarp/",
+  "https://stackoverflow.com/users/3899765/yonatan-karp-rudin",
+  "https://podcasts.apple.com/us/podcast/the-reading-club/id1770149395",
 ]
 
 # --- Markup & Performance ---

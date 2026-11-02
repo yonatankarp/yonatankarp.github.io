@@ -29,6 +29,7 @@
 {{ if gt (strings.RuneCount $title) 65 }}{{ $title = $name }}{{ end }}
 {{ if .IsHome }}{{ $title = $homeTitle }}{{ else if .Params.bareTitle }}{{ $title = printf "%s %s" $siteTitle .Title }}{{ end }}
 {{ $description = $description | htmlUnescape | replaceRE `\s+` " " | strings.TrimSpace }}
+{{ $fullDescription := $description }}   {{- /* JSON-LD has no length limit, so it gets the description uncut */}}
 {{ if gt (strings.RuneCount $description) 160 }}{{ $description = truncate 159 "…" $description | htmlUnescape }}{{ end }}
 {{ $ogTitle := cond $isPost .Title $title }}
 
@@ -109,17 +110,26 @@
 @font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400 700; font-display: swap; src: url({{ $fonts }}jetbrains-mono-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 </style>
 
-{{ $author := dict "@type" "Person" "name" "Yonatan Karp-Rudin" "url" .Site.BaseURL }}
-{{ $schemas := slice (dict "@context" "https://schema.org" "@type" "WebPage" "name" $title "description" $description "url" $canonical) }}
+{{ $personId := printf "%s#person" .Site.BaseURL }}
+{{ $author := dict "@type" "Person" "@id" $personId "name" "Yonatan Karp-Rudin" "url" .Site.BaseURL }}
+{{ $schemas := slice (dict "@context" "https://schema.org" "@type" "WebPage" "name" $title "description" $fullDescription "url" $canonical) }}
 {{ if .IsHome }}
   {{ $place := split hugo.Data.home.en.contact.location ", " }}   {{- /* "City, Country" */}}
   {{ $sameAs := .Site.Params.seo.person.sameAs }}
   {{ with .Site.Params.social.twitter }}{{ $sameAs = $sameAs | append (printf "https://x.com/%s" .) }}{{ end }}
   {{ $person := merge $author (dict "@context" "https://schema.org" "jobTitle" "Staff Software Engineer" "sameAs" $sameAs "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" (index $place 0) "addressCountry" (index $place 1))) }}
   {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $person = merge $person (dict "image" .Permalink) }}{{ end }}
-  {{ $schemas = slice $person }}
+  {{ with .Site.Params.seo.person.alternateName }}{{ $person = merge $person (dict "alternateName" .) }}{{ end }}
+  {{ with $homeDescription }}{{ $person = merge $person (dict "description" .) }}{{ end }}
+  {{- /* A degree, not the courses and certificates beside it in content/education/. */}}
+  {{ with .Site.GetPage "/education/reichman" }}{{ $person = merge $person (dict "alumniOf" (dict "@type" "CollegeOrUniversity" "name" .Params.university)) }}{{ end }}
+  {{ with .Site.GetPage "/skills" }}{{ with .Params.working_set }}{{ $person = merge $person (dict "knowsAbout" .) }}{{ end }}{{ end }}
+  {{ $websiteId := printf "%s#website" .Site.BaseURL }}
+  {{ $website := dict "@context" "https://schema.org" "@type" "WebSite" "@id" $websiteId "url" .Site.BaseURL "name" $siteName "description" $homeDescription "publisher" (dict "@id" $personId) }}
+  {{ $profile := dict "@context" "https://schema.org" "@type" "ProfilePage" "url" $canonical "name" $title "description" $fullDescription "isPartOf" (dict "@id" $websiteId) "mainEntity" (dict "@id" $personId) }}
+  {{ $schemas = slice $website $profile $person }}
 {{ else if $isPost }}
-  {{ $post := dict "@context" "https://schema.org" "@type" "BlogPosting" "headline" .Title "description" $description "image" $image "author" $author "publisher" $author "mainEntityOfPage" .Permalink "url" .Permalink }}
+  {{ $post := dict "@context" "https://schema.org" "@type" "BlogPosting" "headline" .Title "description" $fullDescription "image" $image "author" $author "publisher" $author "mainEntityOfPage" .Permalink "url" .Permalink }}
   {{ if not .Date.IsZero }}{{ $post = merge $post (dict "datePublished" (.Date.Format "2006-01-02T15:04:05Z07:00")) }}{{ end }}
   {{ if not .Lastmod.IsZero }}{{ $post = merge $post (dict "dateModified" (.Lastmod.Format "2006-01-02T15:04:05Z07:00")) }}{{ end }}
   {{ $crumbs := slice }}

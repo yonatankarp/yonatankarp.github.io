@@ -21,7 +21,7 @@ The homepage (`layouts/index.html`) is the pixel-art career building. Its script
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
 `npm run build:building` has run. That script also copies Mermaid's ESM build from `node_modules` into
 `static/vendor/mermaid-<version>/` (gitignored, `scripts/vendor-mermaid.js`), which `assets/js/mermaid-loader.js`
-imports on posts with a diagram; its version there follows `package.json`. The art is in `static/building/pixel/`, made by the Python pipeline in
+imports on posts with a diagram, at the version `layouts/_default/baseof.html` reads from `package.json`. The art is in `static/building/pixel/`, made by the Python pipeline in
 `web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Each experience entry's `floor`
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
 

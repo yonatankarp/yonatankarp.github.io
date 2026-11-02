@@ -6,6 +6,7 @@
 
 Paint candidates: uv run web3d/pixel/paint_covers.py <slug> [--count N] [--start SEED] [--host URL]
 Install the picks: uv run web3d/pixel/paint_covers.py --install
+Art inside a post: the same two steps, with a name from INLINE and --install-inline
 
 Every post's idea shown through nature, in one family: same style, same palette, a different habitat and hour. Candidates go
 to web3d/pixel/paintings/candidates/cover-<slug>_<seed>.png (gitignored). They are not kept in git: the model does not
@@ -32,6 +33,7 @@ import pixelate as P  # noqa: E402
 
 CANDIDATES = Path(__file__).resolve().parent / "paintings" / "candidates"
 COVERS_DIR = Path(__file__).resolve().parents[2] / "static" / "images" / "blog" / "covers"
+INLINE_DIR = COVERS_DIR.parent / "pixel"
 SIZE = (192, 108)
 STYLE = (
     "Flat 2D side-view video game background art, 16-bit adventure game style. Clean cel shading with bold "
@@ -133,6 +135,72 @@ COVERS = {
      " notes stream from its beak across the picture towards a row of six small brown sparrows on a long branch "
      "on the right, all turned to listen.",
      (170, 58)),
+}
+
+# Art inside a post, in its cover's habitat. name: (the picked seed, what it shows, the prompt); shown from static/images/blog/pixel/<name>.png.
+INLINE = {
+    "hashmap-same-cell": (11, "equals() and hashCode(): equal objects land in the same bucket.",
+     "A warm late-summer evening, amber and rose light through oak leaves. Close view of a wild beehive comb, a "
+     "wall of very large golden hexagon cells filling the picture. In the exact middle, one single big empty "
+     "cell, and two identical big bees in the same pose, one from the left and one from the right, both landing"
+     " on that one cell. No other bees."),
+    "hashmap-straight-to-cell": (11, "O(1): straight to the bucket. Is it? A small queue waits at the far end.",
+     "A warm late-summer evening, amber and rose light through oak leaves. A wild beehive comb with very large "
+     "golden hexagon cells fills the right half of the picture. On the left, one big bee in clear side profile "
+     "flies straight towards one big cell in the middle of the comb. At the far right edge of the comb, three "
+     "tiny bees queue nose to tail at another cell."),
+    "hashset-one-per-cell": (33, "HashSet: the value is the key, so each bucket holds one bee and no honey.",
+     "A warm late-summer evening, amber and rose light through oak leaves. Front view of a beehive comb, a tidy "
+     "wall of very large hexagon cells, four across and three high. Every cell is empty and dark amber with no "
+     "honey at all, and each cell holds exactly one big bee sitting in its centre, one bee per cell."),
+    "break-hashmap-fixed-stone": (11, "Immutable: a marker that cannot move, so the acorn is always under it.",
+     "An autumn forest floor at dusk, violet and orange sky, falling orange leaves, shown as a cut-away with the"
+     " soil below. In the middle a huge grey boulder sunk deep into the ground, thick tree roots gripping it and"
+     " moss on top, far too big to ever move. A red squirrel sits on top of it looking pleased. Directly under "
+     "the boulder, the cut-away soil shows one acorn safely in a small round burrow."),
+    "gateway-digging": (55, "How to build it: the ants dig the fork and the chambers behind the one door.",
+     "Late afternoon, warm amber sky over a thin strip of tall grass at the very top. Close cut-away of an ant "
+     "nest under construction, the dark soil filling almost all of the picture. One wide horizontal tunnel runs "
+     "across the middle, ending on the left in a finished round chamber and on the right in a rough unfinished "
+     "wall of crumbling soil. Three very big black ants in clear side profile walk in a row along the tunnel, "
+     "each ant as tall as the tunnel, each carrying one big crumb of soil on its back."),
+    "openapi-mismatched-webs": (66, "No shared contract: two sides build towards each other and do not meet.",
+     "A misty dawn in pale violet fog with soft layered hills, dark bare branches at both sides. Two separate "
+     "half-finished spider webs with thick bright white threads. The left web hangs high in the picture, built "
+     "out from the left branch. The right web hangs low in the picture, built out from the right branch. They "
+     "are not at the same height and their patterns differ. Nothing joins them: a wide empty gap of plain fog "
+     "fills the middle of the picture, with no thread crossing it. One small dark spider on each web."),
+    "openapi-spinning-spiral": (22, "The generator: the plan's spokes are laid, and the spiral follows them on its own (touched up below).",
+     "A misty dawn in pale violet fog with soft layered hills, dark bare branches at the corners. One huge orb "
+     "spider web under construction fills the picture: all the very thick bright white straight spokes are "
+     "finished, but the even spiral is only done in the inner half, so the outer half is bare spokes. A small "
+     "dark spider sits at the end of the spiral, spinning the next turn."),
+    "openapi-first-catch": (55, "Implemented: the finished web does its job.",
+     "A clear pale violet morning, one plain even sky colour behind the web, low soft hills at the bottom, dark "
+     "bare branches at the corners. One huge orb spider web fills the picture, perfectly geometric and unbroken,"
+     " thick bright white spokes and an even spiral. One big fat bluebottle fly with clear wings is stuck in the"
+     " web, right of centre. One big dark spider walks along a spoke from the left towards the fly. Both are "
+     "large and easy to see against the web."),
+    "real-life-grounded-crane": (33, "The incident: one crane is down, and the flock lands to assess it.",
+     "A tropical bay at sunset, tall green limestone karst islands rising from a teal sea. On a pale sandbar in "
+     "the foreground, one large white crane with a long neck stands with one wing hanging down, hurt. Around it,"
+     " four more large white cranes have landed and look at the hurt wing, and two more glide down from the "
+     "coral sky. Every crane is big and clearly separate."),
+    "real-life-retro": (11, "The retro: the flock stops and talks it over, briefly.",
+     "A tropical bay at dusk, deep violet and orange sky, a thin moon, dark green limestone karst islands on a "
+     "calm teal sea. On a pale sandbar in the foreground, five large white cranes with long necks stand in a "
+     "neat circle, all facing the middle, calm. Every crane is big and clearly separate."),
+    "real-life-preening": (66, "Review: each checks the other's feathers, and finds what one alone would miss.",
+     "A tropical bay in golden afternoon light, green limestone karst islands far away on a teal sea. Two very "
+     "large white cranes with long necks stand in shallow water, both facing the same way, to the left, one just"
+     " behind the other. The front crane looks ahead, calm, its wing held half open. The crane behind bends its "
+     "long neck down and its beak gently touches one feather on the front crane's open wing, checking it."),
+    "real-life-new-route": (44, "Requirements change: too hot here, so the flock turns for the cool highlands.",
+     "One wide continuous landscape with no dividing line, the sky fading smoothly across the picture from hot "
+     "orange on the left to cool pale blue on the right. On the far left a scorching sandy beach with wilted "
+     "palm trees under a blazing white sun. The land rises gradually to misty green highlands and blue mountains"
+     " on the far right. Seven large white cranes with long necks fly in a single curved line from over the "
+     "beach towards the mountains. Every crane is big and clearly separate."),
 }
 
 
@@ -237,22 +305,69 @@ def install():
         print("touched up:", slug)
 
 
+def unspun(img):
+    """The painted web is finished: take the spiral off its upper right, leave bare spokes, and put a bigger spider where it stops."""
+    a = np.array(img)
+    sky, ink = np.array((205, 188, 255), np.uint8), np.array((10, 11, 16), np.uint8)
+    cx, cy = 96, 53
+    yy, xx = np.mgrid[:a.shape[0], :a.shape[1]]
+    angle = np.degrees(np.arctan2(yy - cy, xx - cx))
+    web = np.any(a != sky, axis=2) & (np.hypot(xx - cx, yy - cy) < 75) & (xx > cx) & (angle > -89) & (angle < 36)
+    a[web & (np.hypot(xx - cx, yy - cy) > 9)] = sky
+    box = a[62:76, 108:123]                                                          # the painted spider, too small to read
+    box[np.any(box != (242, 236, 224), axis=2)] = sky
+    out = Image.fromarray(a, "RGB")
+    d = ImageDraw.Draw(out)
+    for end in ((127, 6), (141, 24), (153, 53), (141, 81)):
+        d.line(((cx, cy), end), fill=(242, 236, 224), width=2)
+    x, y = 129, 73
+    for dy, reach in ((-4, 6), (-2, 7), (1, 7), (3, 6)):                             # eight legs, bent at the knee
+        for side in (-1, 1):
+            d.line(((x, y), (x + side * reach, y + dy), (x + side * (reach + 2), y + dy + 3)), fill=tuple(ink))
+    d.ellipse((x - 3, y - 2, x + 3, y + 4), fill=tuple(ink))
+    d.ellipse((x - 2, y - 5, x + 2, y - 1), fill=tuple(ink))
+    return out
+
+
+def clear_fog(img):
+    """Plain fog between the webs: drop a stray fleck in the gap and the patch of hill behind the lower web."""
+    a = np.array(img)
+    for box in (a[66:78, 18:32], a[72:108, 125:172]):
+        fog = np.all(box == (142, 120, 160), axis=2) | np.all(box == (93, 90, 134), axis=2)
+        box[fog] = (205, 188, 255)
+    return Image.fromarray(a, "RGB")
+
+
+INLINE_TOUCH_UPS = {"openapi-spinning-spiral": unspun, "openapi-mismatched-webs": clear_fog}
+
+
+def install_inline():
+    INLINE_DIR.mkdir(exist_ok=True)
+    for name, (seed, _, _) in INLINE.items():
+        im = P.pixelate(Image.open(CANDIDATES / f"inline-{name}_{seed}.png").convert("RGB"), SIZE, 24)
+        P.G.save_lossless(INLINE_TOUCH_UPS.get(name, lambda i: i)(im), INLINE_DIR / f"{name}.png")
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("slug", nargs="?", choices=sorted(COVERS))
+    ap.add_argument("slug", nargs="?", choices=sorted(COVERS | INLINE))
     ap.add_argument("--install", action="store_true")
+    ap.add_argument("--install-inline", action="store_true")
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--start", type=int, default=11)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     args = ap.parse_args()
     if args.install:
         return install()
+    if args.install_inline:
+        return install_inline()
     if not args.slug:
         ap.error("name a slug, or pass --install")
-    prompt = STYLE + COVERS[args.slug][2] + NO_TEXT
+    prompt = STYLE + (COVERS | INLINE)[args.slug][2] + NO_TEXT
+    kind = "inline" if args.slug in INLINE else "cover"
     for k in range(args.count):
         seed = args.start + 11 * k
-        path = CANDIDATES / f"cover-{args.slug}_{seed}.png"
+        path = CANDIDATES / f"{kind}-{args.slug}_{seed}.png"
         if path.exists():
             print("kept", path.name)
             continue

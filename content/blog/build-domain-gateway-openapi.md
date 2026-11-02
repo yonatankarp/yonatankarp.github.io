@@ -122,7 +122,7 @@ I hope I have convinced you that a domain gateway is useful. If you have already
 ## How Do I Build a Domain Gateway?
 
 
-![Tools hanging on a workshop wall](/images/blog/kb-lachlan-donald-YVT5aF2QM7M-unsplash-1024x640.jpg)Tools on the wall
+![Three ants carrying crumbs of soil along a half-dug tunnel](/images/blog/pixel/gateway-digging.png)Time to dig
 
 
 ### Tech Stack
@@ -795,9 +795,3 @@ All code examples in this article are available in my GitHub repository: [https:
 
 
 - [How to Use OpenAPI to Build a Robust RESTful API](/blog/openapi-robust-restful-api/) covers the OpenAPI setup this domain gateway builds on.
-
-
-## Credits
-
-
-- Photo by [Lachlan Donald](https://unsplash.com/@lox) on [Unsplash](https://unsplash.com/).

@@ -131,12 +131,13 @@ h4 a,
   --accent-strong: var(--amber);
   padding-bottom: 64px;
 }
-/* Covers at whole multiples of their 192x108 pixels, the most that fit, so no pixel is wider than its neighbour (#123).
+/* Covers and a post's inline art at whole multiples of their 192x108 pixels, the most that fit, so no pixel is wider than its neighbour (#123).
    The ink frame is a shadow in the margin: a border would eat into the image. */
-.blog-px .px-cover {
+.blog-px :is(.px-cover, .px-art) {
   display: block; width: 192px; width: max(192px, round(down, 100% - 8px, 192px)); height: auto; margin: 4px;
   image-rendering: pixelated; box-shadow: 0 0 0 4px var(--ink);
 }
+.blog-px .px-art { margin-block: 16px; }
 
 /* Panels: the floor card's frame. */
 .blog-px :is(.page-head__copy, .post-row, .blog-sidebar, .article, .related-card) {

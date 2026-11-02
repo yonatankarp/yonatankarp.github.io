@@ -23,4 +23,4 @@
   {{- end -}}
 {{- end -}}
 {{- /* sizes: the article column in custom.css: padding by the 680px and 760px rules, the side table of contents' padding above that, capped by .article__content > * at 68ch (758px; measured). */ -}}
-<img src="{{ .Destination | safeURL }}"{{ with $srcset }} srcset="{{ delimit . ", " }}" sizes="(max-width: 680px) calc(100vw - 76px), (max-width: 760px) calc(100vw - 136px), (max-width: 950px) calc(100vw - 192px), 758px"{{ end }} alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ with $size.Width }} width="{{ . }}" height="{{ $size.Height }}"{{ end }} loading="lazy" decoding="async">
+<img{{ if strings.HasPrefix $u.Path "/images/blog/pixel/" }} class="px-art"{{ end }} src="{{ .Destination | safeURL }}"{{ with $srcset }} srcset="{{ delimit . ", " }}" sizes="(max-width: 680px) calc(100vw - 76px), (max-width: 760px) calc(100vw - 136px), (max-width: 950px) calc(100vw - 192px), 758px"{{ end }} alt="{{ .Text }}"{{ with .Title }} title="{{ . }}"{{ end }}{{ with $size.Width }} width="{{ . }}" height="{{ $size.Height }}"{{ end }} loading="lazy" decoding="async">

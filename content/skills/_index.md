@@ -45,6 +45,7 @@ familiar_with:
   - "Claude Code"
   - "Ollama"
   - "Whisper"
+outputs: ["html"]
 ---
 
 Architecture, backend systems, distributed systems, platform work, and technical writing.

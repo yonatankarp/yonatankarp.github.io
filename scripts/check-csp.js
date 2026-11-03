@@ -2,7 +2,7 @@
 
 // Loads every built page in Chromium with its Content-Security-Policy meta enforced and fails on any
 // securitypolicyviolation, CSP console error or page error (#149). It also runs the paths that load
-// late: Mermaid, video, search, the homepage lift and a floor panel, the arrival at the homepage from
+// late: the diagram zoom, video, search, the homepage lift and a floor panel, the arrival at the homepage from
 // another page, and the 404's GoatCounter setup.
 //
 // GoatCounter is made to fire on localhost (allow_local) so its CSP is exercised, but no hit reaches it:
@@ -17,8 +17,8 @@
 // Hugo alias or an old address, a meta refresh) is held the same way, its refresh stopped, and checked for its own CSP
 // meta tag where it has one and for a target on yonatankarp.com or this server. Axe and the exercises skip it.
 //
-// A page that fails on a known transient error (its context destroyed by a navigation, or a timeout, such as Mermaid's
-// chunks under 8 workers) is loaded once more, and the retry is logged; any other failure fails at once.
+// A page that fails on a known transient error (its context destroyed by a navigation, or a timeout under 8 workers)
+// is loaded once more, and the retry is logged; any other failure fails at once.
 //
 // Usage: node scripts/check-csp.js [--only /blog/some-post/] [--base http://127.0.0.1:1313]
 // Without --base it serves public/ itself, answering missing paths with 404.html like GitHub Pages.
@@ -122,10 +122,12 @@ async function exercise(page, route) {
   });
 
   if (await page.$(".mermaid")) {
-    // Drawn, not started: while it draws, Mermaid holds an empty svg inside a div of its own; the finished diagram is the
-    // block's own child, named by aria-roledescription (sequence, flowchart-v2, ...).
+    // Drawn at build time (#250): every block ships its svg, named by aria-roledescription (sequence, flowchart-v2, ...),
+    // and diagram-zoom.js gives each its Zoom in.
+    const undrawn = await page.evaluate(() => [...document.querySelectorAll(".mermaid")].filter((block) => !block.querySelector(":scope > svg[aria-roledescription]")).length);
+    if (undrawn) throw new Error(`${undrawn} diagrams were not drawn at build time`);
     await page.locator(".mermaid").first().scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => [...document.querySelectorAll(".mermaid")].every((block) => block.querySelector(":scope > svg[aria-roledescription]")), null, { timeout: 30000 });
+    await page.waitForFunction(() => [...document.querySelectorAll(".mermaid")].every((block) => block.querySelector(":scope > button")), null, { timeout: 30000 });
     did.push(`mermaid ${await page.locator(".mermaid > svg[aria-roledescription]").count()}/${await page.locator(".mermaid").count()}`);
     const wide = await page.evaluate(() => [...document.querySelectorAll(".mermaid")].filter((block) => block.scrollWidth > block.clientWidth).length);
     if (wide) throw new Error(`${wide} diagrams do not fit the column`);

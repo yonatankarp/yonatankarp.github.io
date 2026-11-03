@@ -13,8 +13,8 @@ screenshots/
 # The pixel building's bundle, built by Vite (npm run build:building)
 assets/building/
 
-# Mermaid's ESM build, copied from node_modules by scripts/vendor-mermaid.js (npm run build:building)
-static/vendor/
+# The Mermaid diagrams, drawn to SVG by scripts/render-diagrams.js (npm run build:building)
+assets/diagrams/
 
 # Draw Things paintings: only the picked candidates are inputs (install_picks.PICKS, paint_rooms.LOBBY_PICK,
 # gen_exterior.PICK); the rest are kept locally for comparison

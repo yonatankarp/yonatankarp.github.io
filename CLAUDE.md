@@ -25,9 +25,11 @@ files pixel for pixel (`web3d/pixel/compare_art.py`).
 
 The homepage (`layouts/index.html`) is the pixel-art career building. Its script and styles live in
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
-`npm run build:building` has run. That script also copies Mermaid's ESM build from `node_modules` into
-`static/vendor/mermaid-<version>/` (gitignored, `scripts/vendor-mermaid.js`), which `assets/js/mermaid-loader.js`
-imports on posts with a diagram, at the version `layouts/_default/baseof.html` reads from `package.json`. The art is in `static/building/pixel/`, made by the Python pipeline in
+`npm run build:building` has run. That script also draws every Mermaid fence in `content/` to SVG with the `mermaid`
+package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitignored `assets/diagrams/<sha256>.svg`), which
+`render-codeblock-mermaid.html` inlines, so posts ship no Mermaid JS; `assets/js/diagram-zoom.js` adds the Zoom in. The
+hook fails the build when a diagram changed since it was drawn: rerun `node scripts/render-diagrams.js` (also during
+`npm run serve`). The art is in `static/building/pixel/`, made by the Python pipeline in
 `web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Each experience entry's `floor`
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
 
@@ -92,6 +94,8 @@ shared; without it the line links to the LinkedIn and X profiles.
 
 A Mermaid diagram needs a text alternative on its fence, ```` ```mermaid {title="…" desc="…"} ````: the title names it
 (unique on the page) and the description says what it shows, one line each with no semicolon; the build fails without them.
+They become the SVG's `<title>` and `<desc>`. The fence starts at the line's beginning (not indented in a list), so the
+diagram script finds it.
 
 Every post needs a cover, `images.featured_image` (the build fails without it): a painting in `static/images/blog/covers/`, made with `web3d/pixel/paint_covers.py`. It also needs its pixel-art version in
 `static/images/blog/covers/pixel/`, which the blog shows; the build fails with the `pixelate.py` command to make it.

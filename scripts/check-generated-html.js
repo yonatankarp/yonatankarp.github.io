@@ -475,20 +475,26 @@ for (const filePath of htmlFiles) {
   for (const [tag] of html.matchAll(/<video\b[^>]*>/gi)) {
     if (!/\bcontrols\b/.test(tag) || !collectAttribute(tag, "aria-label") || /\bautoplay\b/.test(tag)) failures.push(`${route}: videos need controls and aria-label, and no autoplay`);
   }
-  const diagrams = Array.from(html.matchAll(/<pre\b[^>]*class=["']?mermaid\b[^>]*>/g)).map((match) => match[0]);
-  if (diagrams.some((tag) => collectAttribute(tag, "role") !== "region" || !collectAttribute(tag, "aria-label"))) {
-    failures.push(`${route}: a Mermaid diagram needs role=region and an aria-label`);
+  // Drawn at build time (#250): each diagram is its svg, named by its own title and desc, with no Mermaid source or script
+  const diagrams = Array.from(html.matchAll(/<pre\b[^>]*class=["']?mermaid\b[^>]*>([\s\S]*?)<\/pre>/g));
+  for (const [whole, inner] of diagrams) {
+    const tag = whole.slice(0, whole.indexOf(">") + 1);
+    const svg = inner.match(/^<svg\b[^>]*>/)?.[0] ?? "";
+    const named = (attribute, element) => {
+      const id = collectAttribute(svg, attribute);
+      return id && new RegExp(`<${element}\\b[^>]*\\bid=["']?${id}["'\\s>][^<]*\\S`).test(inner);
+    };
+    if (collectAttribute(tag, "role") !== "region" || !collectAttribute(tag, "aria-label")) failures.push(`${route}: a Mermaid diagram needs role=region and an aria-label`);
+    if (!svg || !/graphics-document/.test(collectAttribute(svg, "role") ?? "") || !named("aria-labelledby", "title") || !named("aria-describedby", "desc")) {
+      failures.push(`${route}: ${collectAttribute(tag, "aria-label")} should be an inline svg with role=graphics-document, labelled by its title and described by its desc`);
+    }
+    if (!/^\d/.test(collectAttribute(svg, "width") ?? "")) failures.push(`${route}: ${collectAttribute(tag, "aria-label")} should be drawn at its natural width (useMaxWidth false), for the zoom`);
   }
-  if (diagrams.length && !/<script\b[^>]*type=["']?module\b[^>]*src=["']?\/js\/mermaid-loader\./.test(html)) failures.push(`${route}: Mermaid should load lazily through js/mermaid-loader.js`);
-  const loader = html.match(/src=["']?(\/js\/mermaid-loader\.[^"'\s>]+)/)?.[1];
-  const loaderSource = loader ? fs.readFileSync(path.join(publicDir, loader), "utf8") : "";
-  if (loader && !/useMaxWidth:\s*!?(?:false|1)/.test(loaderSource)) failures.push(`${route}: Mermaid should draw with useMaxWidth false`);
-  // Self-hosted (#182): the loader imports Mermaid from the site, from the copy scripts/vendor-mermaid.js makes
-  const mermaidEntry = loaderSource.match(/import\(\s*["'`]([^"'`]+)["'`]\s*\)/)?.[1];
-  if (loader && (!mermaidEntry?.startsWith("/vendor/") || !fs.existsSync(path.join(publicDir, mermaidEntry)))) {
-    failures.push(`${route}: the loader imports Mermaid from ${mermaidEntry}, which is not a file in public/vendor/; is its version the one in package.json?`);
-  }
-  if (!diagrams.length && /mermaid-loader|mermaid\.esm/.test(html)) failures.push(`${route}: loads Mermaid without a diagram`);
+  if (/accTitle:|accDescr:/.test(html)) failures.push(`${route}: ships Mermaid source; the diagrams are drawn at build time`);
+  const zoom = /<script\b[^>]*type=["']?module\b[^>]*src=["']?\/js\/diagram-zoom\./.test(html);
+  if (diagrams.length && !zoom) failures.push(`${route}: a page with a diagram should load js/diagram-zoom.js`);
+  if (!diagrams.length && zoom) failures.push(`${route}: loads js/diagram-zoom.js without a diagram`);
+  if (/mermaid[\w.-]*\.m?js\b|\/vendor\/mermaid/.test(html)) failures.push(`${route}: loads Mermaid; the diagrams are drawn at build time`);
 }
 
 {

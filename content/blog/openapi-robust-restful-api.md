@@ -39,7 +39,7 @@ As a backend engineer, I have developed numerous REST APIs during my career. One
 ## Use OpenAPI Spec for Our New API
 
 
-In 2019, my team at the time had to design a new API that would integrate with multiple clients: mobile (Android & iPhone), web, and other backend services. We aimed to make the integration process as seamless as possible while ensuring the robustness of the API definition. During our brainstorming sessions, we decided to use OpenAPI [[link](http://openapis.org)] (formerly known as Swagger) from the beginning. Although I was already familiar with Swagger as a documentation tool, this time we chose to build the API in reverse. As a result, we started by defining the API specification with all the endpoints, requests, and responses first. Each team responsible for integration (backend, mobile, and web) then used the OpenAPI generator [[link](https://openapi-generator.tech/)] to auto-generate the code they needed, including models, network layers, or controllers. Because of the usage of these generated code components in our codebase, we eliminated room for errors.
+In 2019, my team at the time had to design a new API that would integrate with multiple clients: mobile (Android & iPhone), web, and other backend services. We aimed to make the integration process as seamless as possible while ensuring the robustness of the API definition. During our brainstorming sessions, we decided to use OpenAPI [[link](https://www.openapis.org/)] (formerly known as Swagger) from the beginning. Although I was already familiar with Swagger as a documentation tool, this time we chose to build the API in reverse. As a result, we started by defining the API specification with all the endpoints, requests, and responses first. Each team responsible for integration (backend, mobile, and web) then used the OpenAPI generator [[link](https://openapi-generator.tech/)] to auto-generate the code they needed, including models, network layers, or controllers. Because of the usage of these generated code components in our codebase, we eliminated room for errors.
 
 
 ## OpenAPI Adaptation for Better Integration
@@ -225,13 +225,13 @@ openApiGenerate {
 You can find the available generator flags in the [documentation](https://openapi-generator.tech/docs/generators/kotlin-spring).
 
 
-**ℹ️** For SpringBoot 2 users, make sure to remove the `useSpringBoot3` flag from your code completely, as the generator ignores the value in the map and only checks if the flag is present.
+**ℹ️** For Spring Boot 2 users, make sure to remove the `useSpringBoot3` flag from your code completely, as the generator ignores the value in the map and only checks if the flag is present.
 
 
 ### Resolving Code Errors & Adding Dependencies
 
 
-After the generation of the code, you might notice that the code currently shows errors due to the missing `jakarta.validation` package (or `javax.validation` for SpringBoot 2 users). To resolve this, add the following dependency to your `build.gradle.kt` file:
+After the generation of the code, you might notice that the code currently shows errors due to the missing `jakarta.validation` package (or `javax.validation` for Spring Boot 2 users). To resolve this, add the following dependency to your `build.gradle.kt` file:
 
 
 ```kotlin

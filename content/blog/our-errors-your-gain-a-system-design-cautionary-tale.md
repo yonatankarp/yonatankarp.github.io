@@ -20,7 +20,7 @@ coverFocus: 64
 
 ## Introduction
 
-About four years ago, around the time I joined my previous employer, my manager at the time introduced me to one of the services my team owned. He opened the explanation with the sentence, "As the saying goes, nothing is more permanent than a temporary solution". More than five years have passed since this service was initially introduced, and it's still running in production.
+Almost 4.5 years ago, around the time I joined my previous employer, my manager at the time introduced me to one of the services my team owned. He opened the explanation with the sentence, "As the saying goes, nothing is more permanent than a temporary solution". More than five years have passed since this service was initially introduced, and it's still running in production.
 
 In this article, I share a specific use case of the service and how we improved its performance by over 450% in just a few hours.
 
@@ -30,7 +30,7 @@ Let's start by briefly looking at the system's original design. The system inclu
 
 ![Original design: a Poller reads the Source Data and writes Aggregated Data, which a Reader serves to the user](/images/blog/our-errors-original-design.jpg)
 
-As you might already imagine, integration via a database is almost always a bad idea. It can lead to data inconsistency, lack of real-time updates, difficulty in making changes in the database schema, and more. But as we just said, temporary solution - right? Our system specifically suffered mainly from data inconsistency. The main root cause for the issues was been that the entities in the database might not yet be finalized by the time they were polled. In such a case, the poller would ignore the data and would never return to fix it later.
+As you might already imagine, integration via a database is almost always a bad idea. It can lead to data inconsistency, lack of real-time updates, difficulty in making changes in the database schema, and more. But as we just said, temporary solution - right? Our system specifically suffered mainly from data inconsistency. The main root cause for the issues was that the entities in the database might not yet be finalized by the time they were polled. In such a case, the poller would ignore the data and would never return to fix it later.
 
 {{< video src="/images/blog/our-errors-kill-it-with-fire.mp4" alt="Kill it with fire GIF" >}}
 
@@ -111,7 +111,7 @@ With those changes, we regained:
 
 ## To Be Continued?
 
-While the story of the poller does not end here, my story in the company does. After almost 4.5 years I contacted my first manager in the company and told him that I had failed to sunset the poller. However, there is good news on the horizon. A new dedicated team starting to work now on re-writing the entire system from the ground, basing it on the right data sources, and hopefully soon enough the poller story will come to an end! 🤞
+While the story of the poller does not end here, my story in the company does. After almost 4.5 years I contacted my first manager in the company and told him that I had failed to sunset the poller. However, there is good news on the horizon. A new dedicated team is starting to work now on re-writing the entire system from the ground, basing it on the right data sources, and hopefully soon enough the poller story will come to an end! 🤞
 
 ## Conclusion
 
@@ -119,4 +119,4 @@ This cautionary tale demonstrates the importance of addressing temporary solutio
 
 Remember, temporary solutions are never temporary!
 
-Every tech debt decision you make will come back and hunt you if you are not going to come back and fix it later.
+Every tech debt decision you make will come back and haunt you if you are not going to come back and fix it later.

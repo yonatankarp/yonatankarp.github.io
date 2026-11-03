@@ -1,0 +1,2 @@
+{{- /* /blog/index.xml: the same feed as /index.xml, so it has the same title and description, not Hugo's default. */ -}}
+{{- partial "blog-feed.xml" . -}}

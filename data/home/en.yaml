@@ -40,7 +40,7 @@ proof:
       title: "Moving risk work toward explicit orchestration and contracts."
       context: "Risk decisions depended on multiple services, fraud providers, recurrent identification, tokenization, and direct debit behavior."
       decision: "I co-designed the Risk Orchestrator, led the fraud vendor integration, and authored the Buyer Risk Assessment target architecture."
-      result: "Risk decisions, roughly 600-800 a day, now run through one orchestrator, and the fraud integration cut fraud by 4-6%."
+      result: "Risk decisions now run through one orchestrator, and the fraud integration cut fraud by 4-6%."
     - label: "Engineering leverage"
       floor: "7"   # the building floor whose panel tells this story
       title: "Turning repeated operational friction into shared tooling."

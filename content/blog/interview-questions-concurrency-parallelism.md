@@ -59,7 +59,7 @@ flowchart LR
     BQ -->|return to execution queue| EQ
 ```
 
-In fact, some languages such as JavaScript and NodeJS have asynchronous execution based on this exact model.
+In fact, JavaScript, both in the browser and in Node.js, has asynchronous execution based on this exact model.
 
 Note that if, for example, your task never reaches a blocking operation, your program would be stuck, and no other execution would happen. For example, running the following code:
 

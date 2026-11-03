@@ -21,7 +21,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
-const rootDir = path.resolve(__dirname, "..");
+const { rootDir } = require("./lib");
 const pinFile = path.join(rootDir, ".github", "hugo.env");
 const releaseApi = "https://api.github.com/repos/gohugoio/hugo/releases/latest";
 const releasesPage = "https://github.com/gohugoio/hugo/releases";

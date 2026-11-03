@@ -15,9 +15,9 @@ Run: uv run web3d/pixel/gen_exterior.py blockout            # the code blockout,
 
 The blockout fixes what the model must not move: the number of storeys, the window grid, the entrance, the garage
 and the crane. The model repaints it into the rooms' style; the picked painting is pixelated with the floors'
-palette and colour match, then the blockout's windows are pasted back and filled with 1:1 crops of each floor's
-strip, frame by frame, so the street view animates in step with the floors: floors 1-7 dimmed behind their company's
-lit sign (G.SIGNS), the lobby and the garage as they are. Build the floors first.
+palette and colour match, then the blockout's windows are pasted back and filled: floors 1-7 with their company's
+sign (G.SIGNS), the lobby and the garage with 1:1 crops of their floor's strip, frame by frame, so they animate in step
+with the floors. Build the floors first.
 
 The painting has nine storeys; the tower is restacked from them for however many gen_floors.FLOORS has (stack_tower()),
 so a floor more needs no repaint, and past nine the picture grows taller at its top (RISE).
@@ -60,8 +60,8 @@ c, INK = G.c, G.INK
 GLOW_WIN = G.GLOW["amber"]
 
 # Where each window looks into its floor's strip (x, y of the slice's top-left, in strip pixels): the room's
-# signature props, dimmed behind the sign on 1-7, so flying in, the sign fades into the room. The window's size
-# decides the slice's size.
+# signature props. On 1-7 the sign hides it at rest, and flying in, the sign dissolves into it (web3d/src/street.js);
+# the lobby's and the garage's windows show it. The window's size decides the slice's size.
 LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (250, 64), "5": (222, 54), "6": (230, 96),
         "7": (205, 86), "R": (0, 0), "L": (246, 122), "P": (166, 78)}
 NEIGHBOURS = tuple((x0, x1, roof + RISE) for x0, x1, roof in (
@@ -313,36 +313,15 @@ def street(tower=True, night=None):
     return art
 
 
-def lit_sign(room, key, daylit=False):
-    """A storey's window: its room dimmed to the floor's accent, and the company's sign lit in front of it, its light
-    spilling a few pixels onto the room. By day (daylit) the sign just hangs there: no spill, the glass darker under the
-    lintel's shadow, with the sky's reflection slanting across it."""
-    accent, ww, wh = G.FLOORS[key][1], room.width, room.height
-    sign = Image.new("RGBA", (ww, wh), (0, 0, 0, 0))
-    probe = G.sign(G.Layer(Image.new("RGBA", (ww, wh))), key, 0, 0)       # its size, to centre it
-    x, y = (ww - probe[2]) // 2, (wh - probe[3]) // 2
-    x0, y0, x1, y1 = G.sign(G.Layer(sign), key, x, y)
-    out, px, sp = room.copy(), room.load(), sign.load()
-    q = out.load()
-    for j in range(wh):
-        for i in range(ww):
-            if sp[i, j][3]:
-                q[i, j] = sp[i, j][:3]
-                continue
-            r, g, b = px[i, j]
-            lv = 0 if r * 3 + g * 6 + b < 900 else 1 if r * 3 + g * 6 + b < 1700 else 2
-            if daylit:
-                band = (i + 2 * j) % 44
-                q[i, j] = c(accent, 0) if j < 2 else c("blue", 3) if band < 5 and G.BAYER[j % 4][i % 4] < 8 else c(accent, max(0, lv - 1))
-                continue
-            d = max(x0 - i, i - x1 + 1, y0 - j, j - y1 + 1)                  # how far outside the sign
-            lv += d <= 3 and G.BAYER[j % 4][i % 4] < 16 - 4 * d
-            q[i, j] = c(accent, lv)
-    return out
+def lit_sign(key, size):
+    """A storey's window: its company's sign, filling it (G.sign), so every storey's is the same size."""
+    img = Image.new("RGB", size)
+    G.sign(G.Layer(img), key, *size)
+    return img
 
 
 def phase_street(scheme, tower=True):
-    """The street at another hour, its windows still empty. After dark, each sign's colour spills onto the facade round its
+    """The street at another hour, its windows still empty. After dark, each floor's accent spills onto the facade round its
     frame and the lobby's light onto the pavement. By day the panes catch the sky and the walls turn from the sun.
     Without the tower (the other pages' backdrop-PHASE.webp) the lot is built up as in street(), with nothing to spill or shade."""
     art = street(tower, night=scheme)
@@ -413,7 +392,7 @@ def build(out, phase=None):
                 continue
             sx, sy = LOOK[key]
             room = floors[key].crop((f * G.W + sx, sy, f * G.W + sx + x1 - x0, sy + y1 - y0))
-            img.paste(lit_sign(room, key, scheme and scheme.get("daylit")) if key in G.SIGNS else room, (x0, y0))
+            img.paste(lit_sign(key, room.size) if key in G.SIGNS else room, (x0, y0))
         if scheme:
             cv = G.Layer(img)
             if scheme["lamp"] and f % 4 < 2:

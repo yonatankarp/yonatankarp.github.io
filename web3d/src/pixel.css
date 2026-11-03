@@ -270,7 +270,7 @@ html:not(.in-shot) .pixel .building-window[data-goto="P"]::after {
   .pixel .building-floor-btn { width: 30px; height: 44px; }
   .pixel .floor-card .floor-title { font-size: 30px; }
   /* Outside, the windows are the way in: the card sits under the street. */
-  html.building--guided.at-street .pixel:not(.no-windows) .elevator { visibility: hidden; }   /* .no-windows: exterior.json failed (pixel.js) */
+  html.building--guided.at-street .pixel .elevator { visibility: hidden; }
   /* The card takes its own height at the bottom and the street stands on it (pixel.js). Only on a short phone does it
      stop rising: the bottom windows (P and L, 235 art pixels under the cornice) stay out from under it and it scrolls (#45). */
   .pixel .building-stop--hero { padding-top: calc(var(--street-top) + 240px); }

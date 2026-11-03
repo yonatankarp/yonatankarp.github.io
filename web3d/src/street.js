@@ -2,10 +2,11 @@
 // crops of the rooms, 1-7 dimmed behind each floor's company sign, and the camera's moves from it: the fly-in at a
 // window, the crane to the roof and the opening shot down from the sky.
 // Its windows are buttons laid over the canvas; the street left and right of the picture repeats its neighbours.
-import { ART, FW, FH, ORDER, BAYER, LOOK, TIME, HOUR, SHADES, narrow, easeInOut, clamp01, colourAt, shade } from './art.js';
+import { ART, STREET, FW, FH, ORDER, BAYER, LOOK, TIME, HOUR, SHADES, narrow, easeInOut, clamp01, colourAt, shade } from './art.js';
 
-export function streetView(sky, base, box, stops, loaded, then, has) {
-  const view = { img: null, size: [480, 336], windows: {}, top: sky, bottom: '#2a2226', at: null };
+// artUrl: a picture's versioned URL, from pixel.js.
+export function streetView(sky, artUrl, box, stops, loaded, then, has) {
+  const view = { img: null, ...STREET, top: sky, bottom: '#2a2226', at: null };
   const img = new Image();
   img.onload = () => {
     then();
@@ -13,30 +14,24 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
     loaded();
   };
   img.onerror = then;
-  img.src = `${base}pixel/exterior${HOUR}.webp`;
+  img.src = artUrl(`exterior${HOUR}`);   // the URL the page's head preloads (layouts/index.html)
   const buttons = [];
   // The lift is the keyboard's way between floors, so the windows stay out of the Tab order, except where the lift is
   // hidden at the street (phones, pixel.css): there they are the only way in (#131).
   const tabbable = () => buttons.forEach(([b]) => { b.tabIndex = narrow.matches ? 0 : -1; });
   narrow.addEventListener('change', tabbable);
-  fetch(`${base}pixel/exterior.json`).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }).then((j) => {
-    Object.assign(view, j);
-    for (const [key, rect] of Object.entries(j.windows)) {
-      const label = document.querySelector(`.building-floor-btn[data-goto="${key}"]`)?.getAttribute('aria-label');
-      if (!box || !label || !stops.some((s) => s.dataset.floor === key)) continue;
-      const b = Object.assign(document.createElement('button'), { type: 'button', className: 'building-window' });
-      b.dataset.goto = key;
-      b.setAttribute('aria-label', label);
-      box.append(b);
-      buttons.push([b, rect]);
-    }
-    tabbable();
-    view.at = null;   // place the new buttons on the next frame, whichever of image and layout came first
-    loaded();
-  }).catch((err) => {   // no windows to tap: the street shows the lift instead, even on phones (pixel.css .no-windows)
-    console.error(`The street's windows did not load (${base}pixel/exterior.json):`, err);
-    document.body.classList.add('no-windows');
-  });
+  // Bundled with the art's other numbers (art.js), so there is no file to wait for, or to fetch twice (#65).
+  for (const s of stops) {   // in the page's order, top to bottom, which is the Tab order
+    const key = s.dataset.floor, rect = view.windows[key];
+    const label = document.querySelector(`.building-floor-btn[data-goto="${key}"]`)?.getAttribute('aria-label');
+    if (!box || !rect || !label) continue;
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'building-window' });
+    b.dataset.goto = key;
+    b.setAttribute('aria-label', label);
+    box.append(b);
+    buttons.push([b, rect]);
+  }
+  tabbable();
   document.addEventListener('building:depart', () => box?.classList.remove('is-here'));
   document.addEventListener('building:arrive', (e) => box?.classList.toggle('is-here', e.detail.key === 'E'));
 

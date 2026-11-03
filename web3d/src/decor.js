@@ -1,16 +1,18 @@
 // The street dressed for what is going on outside (outside.js): two trees on the pavement that follow the season, snow
 // on the roofs and the pavement in a cold winter, the holidays' decorations, and the weather falling over it all.
 // Drawn in code, in art pixels over the baked street (gen_exterior.py), so no season or holiday needs art of its own.
-// Three still layers, one per plane a flight parts the street into (street.js): far (the weather's clouds), near (the
-// neighbours' roofs) and front (the tower and the pavement), as tall and wide as the street's picture; then what moves
-// with the street's frames: the flames and the bulbs, and the rain, the snow, the fog and the fireworks.
-import { TIME, BAYER, ART, SIZE } from './art.js';
+// Still layers, one per plane a flight parts the street into (street.js), as tall and wide as the street's picture:
+// far (the weather's clouds), near (the neighbours: their roofs and windows) and front (the pavement and the lamp posts),
+// which repeat down the street with the picture's ends, and fixed, on the front plane too but drawn once, for what the
+// repeats would cut (the strings of lights, the trees). Then what moves with the street's frames: the flames and the
+// bulbs, and the rain, the snow, the fog and the fireworks. The holidays keep to the street; the tower's signs stay clear.
+import { TIME, BAYER, ART, SIZE, WINDOWS } from './art.js';
 import { OUTSIDE } from './outside.js';
 
 const [EW, EH] = SIZE;               // the street's picture
 const RISE = ART.rise ?? 0;          // the rows a taller tower grew it by at its top: the street's sky and scenery slide down by as many
 const GROUND = ART.ground;           // the pavement's top line; the kerb is 8 rows down
-const CORNICE = ART.crane[2] - 1;    // the row just above the tower's cornice: what stands on the roof's edge
+const CORNICE = ART.crane[2] - 1;    // the row just above the tower's cornice: where snow lies on it
 const PAVEMENT = GROUND + 6;         // the pavement's front row: what stands on it
 const POSTS = [40, 142, 338, 440];   // the street lamps, each with its head at rows GROUND - 45 to - 41
 const TREES = [108, 372];            // clear of the 96 and 72 columns the street repeats at its ends (street.js SIDE)
@@ -107,57 +109,72 @@ function clouds(far, dark) {
   }
 }
 
-// ---- the holidays ----
+// ---- the holidays: on the street, never on the tower, whose signs stay clear ----
 const flame = ['#ffe680', '#ffb43a', '#ff8a2a'];
-// Hanukkah: a menorah on the roof's edge, as on the big rooftop ones, with tonight's candles lit, the newest on the left.
-function menorah(c, glints, night) {
-  const x0 = 174, gold = '#d9a93a', shade = '#9c7426', bar = CORNICE - 12;
-  dot(c, x0 + 12, CORNICE, shade, false, 9); dot(c, x0 + 13, CORNICE - 1, gold, false, 7);
-  dot(c, x0 + 16, bar, shade, false, 1, CORNICE - 1 - bar); dot(c, x0 + 15, bar, gold, false, 1, CORNICE - 1 - bar);
-  dot(c, x0, bar, gold, false, 33); dot(c, x0, bar + 1, shade, false, 33);
+const HEAD = GROUND - 41;   // the foot of a street lamp's head, where a string of lights hangs from
+// The strings of lights run lamp to lamp, and from the lamps either side of the tower to its brick, so they never
+// cross a sign. Drawn on the street's middle only (the fixed layer): its ends repeat outwards, which would cut them.
+const SPANS = [[40, 142], [142, ART.brick[0]], [ART.brick[1], 338], [338, 440]];
+function strings(c, each) {
+  for (const [x0, x1] of SPANS) {
+    const sag = Math.max(2, Math.round((x1 - x0) * 0.06));
+    for (let x = x0 + 2; x < x1 - 1; x++) {
+      const u = (x - x0) / (x1 - x0), y = HEAD + Math.round(4 * sag * u * (1 - u));
+      dot(c, x, y, '#1c1f26');
+      each?.(x, y, x - x0 - 2);
+    }
+  }
+}
+// The bulbs along them: every 4 px, twinkling through cols (null: dark for a frame).
+const bulbs = (c, glints, colours, twinkle = true) => strings(c, (x, y, i) => {
+  if (i % 4 === 2) glints.push([x, y + 1, twinkle ? [colours[(i >> 2) % colours.length], '#ffffff', null] : [colours[(i >> 2) % colours.length]], i >> 2]);
+});
+// Something hung from the strings every `step` px.
+const hung = (c, step, draw) => strings(c, (x, y, i) => { if (i % step === step >> 1) draw(x, y + 1); });
+// The neighbours' windows, as gen_exterior.PANES lays them (4 x 5), and a few of them by a seed: ~share of them.
+const PANES = ART.neighbours.flatMap(([x0, x1, top]) => {
+  const out = [];
+  for (let y = top + 8; y < GROUND - 6; y += 10) for (let x = x0 + 4; x < x1 - 4; x += 8) out.push([x, y]);
+  return out;
+});
+const some = (seed, share) => PANES.filter(([x, y]) => hash(x, y, seed) < share);
+// What hangs on each street lamp's post, under its head.
+const posts = (c, rows, pal) => POSTS.forEach((x) => sprite(c, x - (rows[0].length >> 1), HEAD + 4, rows, pal));
+const lantern = (c, x, y, pal) => sprite(c, x - 1, y, ['.d.', 'rRr', 'rRr', 'rrr', '.t.'], pal);
+const RED = { d: ['#d9a93a'], r: ['#d8282a', DARK], R: ['#ff6a4a', DARK], t: ['#ffcc3a'] };
+const BRASS = { d: ['#d9a93a'], r: ['#2a9a9a', DARK], R: ['#ffe28a', DARK], t: ['#d9a93a'] };
+
+// Hanukkah: a public menorah on the pavement beside the tower, as cities put up in their squares, and another in the
+// news stand's window, facing the street as the custom has it, each with tonight's candles lit, the newest on the left;
+// and blue and white lights on the strings.
+function menorah(c, glints, x0, foot, gap, stem) {
+  const gold = ['#d9a93a', DARK], shade = ['#9c7426', DARK], mid = x0 + gap * 4, bar = foot - stem, night = OUTSIDE.holidays.hanukkah;
+  dot(c, mid - 3, foot, shade[0], shade[1], 7); dot(c, mid - 2, foot - 1, gold[0], gold[1], 5);
+  dot(c, mid, bar, gold[0], gold[1], 1, stem - 1); dot(c, mid + 1, bar, shade[0], shade[1], 1, stem - 1);
+  dot(c, x0, bar, gold[0], gold[1], gap * 8 + 1); dot(c, x0, bar + 1, shade[0], shade[1], gap * 8 + 1);
   for (let i = 0; i < 9; i++) {
-    const x = x0 + i * 4, shamash = i === 4, top = bar - (shamash ? 7 : 5);
-    dot(c, x - 1, bar - 1, gold, false, 3);                            // its cup
-    dot(c, x, top + 1, '#f4efe2', false, 1, bar - 2 - top);            // the candle
+    const x = x0 + i * gap, top = bar - (i === 4 ? 6 : 4);
+    if (gap > 3) dot(c, x - 1, bar - 1, gold[0], gold[1], 3);       // its cup
+    dot(c, x, top + 1, '#f4efe2', false, 1, bar - top - (gap > 3 ? 2 : 1));   // the candle
     if (candle(i, night)) glints.push([x, top, flame, i], [x, top - 1, ['#ffb43a', null, null, '#ffe680'], i]);
   }
 }
-// The candles of night n (0-7): n + 1 of the eight, filled in from the right.
+function hanukkah(fixed, glints) {
+  menorah(fixed, glints, 144, PAVEMENT, 3, 20);
+  const [, , wx1, wy1] = WINDOWS.L;
+  menorah(fixed, glints, wx1 - 30, wy1 - 2, 3, 7);
+  bulbs(fixed, glints, ['#5aa8ff', '#eef6ff']);
+}
+// The candles of night n (0-7): n + 1 of the eight, filled in from the right, and the shamash, the middle one.
 const candle = (i, n) => (i === 4 ? true : (i > 4 ? i - 1 : i) >= 7 - n);
-// Sukkot: a sukkah on the roof, its roof of branches.
-function sukkah(c) {
-  sprite(c, 176, CORNICE - 12, [
-    '.g.Gg.gG..gg.Gg.g.G',
-    'gGgGgGgGgGgGgGgGgGg',
-    'wcccrccocccrcccoccw',
-    'wbbbbbbbbbbbbbbbbbw',
-    'wccccccc...ccccccw.',
-    'wccccccc...cccccccw',
-    'wbbbbbbb...bbbbbbbw',
-    'wccccccc...cccccccw',
-    'wccccccc...cccccccw',
-    'wbbbbbbb...bbbbbbbw',
-    'wccccccc...cccccccw',
-    'wwwwwwwwwwwwwwwwwww',
-  ], { g: ['#3f7a35'], G: ['#6aa84a'], w: ['#7a5232'], c: ['#efe6cf'], b: ['#5b84c4'], r: ['#d8423a'], o: ['#f0a030'] });
-}
-// Eid: a crescent and a star on the roof's other end.
-function crescent(c) {
-  const gold = ['#ffd45e', DARK], cx = 300, cy = CORNICE - 9;
-  for (let y = cy - 7; y <= cy + 7; y++) for (let x = cx - 7; x <= cx + 7; x++) {
-    if ((x - cx) ** 2 + (y - cy) ** 2 <= 49 && (x - cx - 3) ** 2 + (y - cy + 1) ** 2 > 30) dot(c, x, y, gold[0], gold[1]);
-  }
-  sprite(c, cx + 2, cy - 3, ['..s..', '.sss.', 'sssss', '.sss.', '.s.s.'], { s: gold });
-  dot(c, cx - 1, cy + 8, '#3a3a40', false, 3);
-}
-// Christmas: a string of bulbs under the cornice, twinkling, and a tree at the tower's corner.
-function christmas(c, glints) {
-  for (let x = 168; x < 313; x++) {
-    const sag = Math.round(Math.sin(((x - 168) / 12) * Math.PI) ** 2 * 2);
-    dot(c, x, 83 + sag, '#20301f');
-    if ((x - 168) % 4 === 2) glints.push([x, 84 + sag, [['#ff5050', '#55e06a', '#ffd24a', '#5aa8ff'][((x - 168) / 4 | 0) % 4], '#ffffff', null], (x / 4) | 0]);
-  }
-  sprite(c, 304, PAVEMENT - 25, [
+// Christmas: warm bulbs on the strings, a wreath on every lamp post and on some of the neighbours' windows, and a tree
+// at the tower's corner.
+function christmas(near, front, fixed, glints) {
+  bulbs(fixed, glints, ['#ff5050', '#55e06a', '#ffd24a', '#5aa8ff']);
+  const wreath = ['.gGg.', 'g...G', 'G...g', 'g...G', '.gRg.', '..R..'], pal = { g: ['#1e5a2e'], G: ['#2f7d3e'], R: ['#d8282a'] };
+  posts(front, wreath, pal);
+  for (const [x, y] of some(21, 0.12)) sprite(near, x, y, ['gGgG', 'G..g', 'g..G', 'GgRg'], pal);
+  sprite(fixed, 304, PAVEMENT - 25, [
     '.......y.......',
     '......yYy......',
     '.......g.......',
@@ -185,26 +202,57 @@ function christmas(c, glints) {
     '.....RRRRR.....',
   ], { g: ['#1e5a2e'], G: ['#2f7d3e'], y: ['#ffd24a', DARK], Y: ['#fff3a8', DARK], r: ['#e8403c', DARK], b: ['#5aa8ff', DARK], t: ['#5a3a22'], R: ['#a8282a'] });
 }
-// Halloween: jack-o'-lanterns by the door.
-function pumpkins(c) {
+// Sukkot: a sukkah on the pavement, beside the tower, its roof of branches.
+function sukkah(fixed) {
+  sprite(fixed, 146, PAVEMENT - 11, [
+    '.g.Gg.gG..gg.Gg.g.G',
+    'gGgGgGgGgGgGgGgGgGg',
+    'wcccrccocccrcccoccw',
+    'wbbbbbbbbbbbbbbbbbw',
+    'wccccccc...cccccccw',
+    'wbbbbbbb...bbbbbbbw',
+    'wccccccc...cccccccw',
+    'wccccccc...cccccccw',
+    'wbbbbbbb...bbbbbbbw',
+    'wccccccc...cccccccw',
+    'wwwwwwwwwwwwwwwwwww',
+    'w.................w',
+  ], { g: ['#3f7a35'], G: ['#6aa84a'], w: ['#7a5232'], c: ['#efe6cf'], b: ['#5b84c4'], r: ['#d8423a'], o: ['#f0a030'] });
+}
+// Eid: brass and teal lanterns along the strings, a crescent and star on every lamp post, and two by the door.
+function eid(front, fixed) {
+  strings(fixed);
+  hung(fixed, 12, (x, y) => lantern(fixed, x, y, BRASS));
+  posts(front, ['.ss...', 's...s.', 's..sss', 's...s.', '.ss...'], { s: ['#ffd45e', DARK] });
+  lantern(front, 172, GROUND - 32, BRASS); lantern(front, 306, GROUND - 32, BRASS);
+}
+// The Lunar New Year: red lanterns along the strings, under the neighbours' eaves, on the lamp posts and by the door.
+function lunar(near, front, fixed) {
+  strings(fixed);
+  hung(fixed, 12, (x, y) => lantern(fixed, x, y, RED));
+  for (const [x0, x1, roof] of ART.neighbours) for (let x = x0 + 6; x < x1 - 4; x += 14) lantern(near, x, roof + 3, RED);
+  posts(front, ['.d.', 'rRr', 'rRr', 'rrr', '.t.', '.t.'], RED);
+  lantern(front, 172, GROUND - 32, RED); lantern(front, 306, GROUND - 32, RED);
+}
+// Halloween: jack-o'-lanterns on the pavement, and a few of the neighbours' windows glowing orange after dark.
+function halloween(near, fixed) {
   const big = ['...gg...', '.oooooo.', 'oyyooyyo', 'oooooooo', 'oyoyyoyo', 'ooyooyoo', '.oooooo.'];
   const small = ['..g..', '.ooo.', 'oyoyo', 'ooooo', 'oyyyo', '.ooo.'];
   const pal = { g: ['#3c6a2a'], o: ['#e0731c'], y: [DARK ? '#ffe36a' : '#5a2a08', DARK] };
-  sprite(c, 160, PAVEMENT - 6, big, pal); sprite(c, 169, PAVEMENT - 5, small, pal); sprite(c, 312, PAVEMENT - 5, small, pal);
+  sprite(fixed, 158, PAVEMENT - 6, big, pal); sprite(fixed, 166, PAVEMENT - 5, small, pal); sprite(fixed, 312, PAVEMENT - 5, small, pal);
+  sprite(fixed, 64, PAVEMENT - 6, big, pal); sprite(fixed, 404, PAVEMENT - 5, small, pal); sprite(fixed, 412, PAVEMENT - 6, big, pal);
+  if (DARK) for (const [x, y] of some(31, 0.1)) sprite(near, x, y, ['oooo', 'koko', 'oooo', 'okko', 'oooo'], { o: ['#ff9a2a', true], k: ['#5a2a08', true] });
 }
-// Diwali: diyas along the pavement and the roof's edge.
-function diyas(c, glints) {
-  for (let x = 172; x <= 306; x += 9) for (const y of [PAVEMENT, CORNICE]) {
-    dot(c, x - 2, y - 1, '#b5532a', false, 5); dot(c, x - 1, y, '#8a3a1c', false, 3);
-    glints.push([x, y - 2, flame, x]);
-  }
+// Diwali: diyas along the pavement and on the neighbours' window sills, and marigold lights on the strings.
+function diwali(near, fixed, glints) {
+  const diya = (c, x, y) => { dot(c, x - 2, y - 1, '#b5532a', false, 5); dot(c, x - 1, y, '#8a3a1c', false, 3); };
+  for (let x = 172; x <= 306; x += 9) { diya(fixed, x, PAVEMENT); glints.push([x, PAVEMENT - 2, flame, x]); }
+  for (const [x, y] of some(41, 0.3)) { dot(near, x, y + 6, '#8a3a1c', false, 4); dot(near, x + 1, y + 5, '#ffb43a', true, 2); }
+  bulbs(fixed, glints, ['#ffb43a', '#ff8a2a', '#ffe680'], false);
 }
-// Lanterns: on each street lamp, and either side of the door; red for the Lunar New Year, Eid's in brass and teal.
-function lanterns(c, eid) {
-  const pal = eid ? { d: ['#d9a93a'], r: ['#2a9a9a', DARK], R: ['#ffe28a', DARK], t: ['#d9a93a'] } : { d: ['#d9a93a'], r: ['#d8282a', DARK], R: ['#ff6a4a', DARK], t: ['#ffcc3a'] };
-  const one = ['..d..', '.ddd.', 'rrrrr', 'rRrRr', 'rRrRr', 'rrrrr', '.ddd.', '..t..', '..t..'];
-  POSTS.forEach((x) => { dot(c, x + 1, GROUND - 39, '#30363e', false, 4); sprite(c, x + 3, GROUND - 38, one, pal); });
-  sprite(c, 170, GROUND - 34, one, pal); sprite(c, 304, GROUND - 34, one, pal);
+// Easter: pastel bunting on the strings by day, and the eggs in the trees (tree()).
+function easter(fixed) {
+  hung(fixed, 5, (x, y) => sprite(fixed, x - 1, y, ['fff', '.f.'], { f: [['#f06a8a', '#ffd04a', '#6ec6f0', '#9ee07a', '#c79af2'][Math.floor(x / 5) % 5]] }));
 }
 
 // ---- what moves ----
@@ -230,18 +278,19 @@ export function decor() {
   OUTSIDE.changed(() => { version++; });
   function build() {
     if (built?.version === version) return built;
-    const far = layer(), near = layer(), front = layer(), glints = [], h = OUTSIDE.holidays, sky = OUTSIDE.sky;
+    const far = layer(), near = layer(), front = layer(), fixed = layer(), glints = [], h = OUTSIDE.holidays, sky = OUTSIDE.sky;
     if (sky && sky !== 'clear' && sky !== 'fog') clouds(far, sky !== 'cloudy' || DARK);
     if (OUTSIDE.cold) snow(near, front);
-    TREES.forEach((x) => tree(front, x, 'easter' in h));
-    if ('sukkot' in h) sukkah(front);
-    if ('hanukkah' in h) menorah(front, glints, h.hanukkah);
-    if ('eid-al-fitr' in h || 'eid-al-adha' in h) { crescent(front); lanterns(front, true); }
-    if ('lunar-new-year' in h) lanterns(front, false);
-    if ('christmas' in h) christmas(front, glints);
-    if ('halloween' in h) pumpkins(front);
-    if ('diwali' in h) diyas(front, glints);
-    return (built = { version, far: far.canvas, near: near.canvas, front: front.canvas, glints });
+    TREES.forEach((x) => tree(fixed, x, 'easter' in h));
+    if ('easter' in h) easter(fixed);
+    if ('sukkot' in h) sukkah(fixed);
+    if ('hanukkah' in h) hanukkah(fixed, glints);
+    if ('christmas' in h) christmas(near, front, fixed, glints);
+    if ('eid-al-fitr' in h || 'eid-al-adha' in h) eid(front, fixed);
+    if ('lunar-new-year' in h) lunar(near, front, fixed);
+    if ('halloween' in h) halloween(near, fixed);
+    if ('diwali' in h) diwali(near, fixed, glints);
+    return (built = { version, far: far.canvas, near: near.canvas, front: front.canvas, fixed: fixed.canvas, glints });
   }
   return {
     layers: build,

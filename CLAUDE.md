@@ -45,8 +45,9 @@ until those agree with `phases.json`, and `gen_floors.py` checks `phases.json` a
 
 The street is also dressed for the visitor's season, holidays and weather, drawn in code over the baked art (no new
 art per season): `web3d/src/outside.js` works out what is going on, `web3d/src/decor.js` draws it (two pavement trees
-that follow the season, snow on the roofs in a cold winter, each holiday's decoration, and rain, snow, fog or clouds,
-which fall on the roof's strip too). The visitor is placed by their browser's timezone alone, through
+that follow the season, snow on the roofs in a cold winter, and rain, snow, fog or clouds, which fall on the roof's
+strip too). The holidays dress the street, never the tower, whose signs stay clear: strings of lights between the lamp
+posts, the lamp posts, the pavement, the news stand's window and the neighbours' windows. The visitor is placed by their browser's timezone alone, through
 `data/timezones.json` (country and main city per IANA zone, made from tzdata by `node scripts/gen-timezones.js`); an
 unknown zone gets Berlin. Seasons flip south of the equator, and the tropics stay summer. Holidays are
 `web3d/src/calendar.js`: the ones in `HOME` (Israel's and Germany's: Hanukkah, Sukkot, Christmas, Easter) show for

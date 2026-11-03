@@ -1,6 +1,6 @@
 // What the building (pixel.js) and the street (street.js) share: the art's own numbers, read from what the Python
 // pipeline writes, the visitor's hour, and the lights-off picture of a strip.
-import { art, size } from '../../static/building/pixel/exterior.json';   // gen_exterior.art_json(), bundled: needed from the first strip
+import { art, size, windows } from '../../static/building/pixel/exterior.json';   // gen_exterior.art_json(), bundled: needed from the first strip
 import PHASES from '../../data/phases.json';                       // the hours the art is baked for, checked against gen_floors.PHASES
 
 export const [FW, FH] = art.frame;
@@ -10,7 +10,7 @@ export const { door: DOOR, bayer: BAYER, look: LOOK } = art;
 // Each room's hanging lamps, by strip x, the lift's own lamp first. The roof has none: it is outdoors, so it stays as
 // bright as its sky.
 export const LAMPS = art.lamps;
-export { art as ART, size as SIZE };
+export { art as ART, size as SIZE, windows as WINDOWS };
 export const TIME = document.documentElement.dataset.time;   // picked once, in the page's head (#151): it never changes while the page is open
 const PHASE = PHASES[TIME];
 export const BAKED = PHASE?.baked;                              // the art with its own picture at this hour: the rooms with an outside view; none at dusk

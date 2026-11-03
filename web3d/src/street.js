@@ -233,7 +233,9 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
       };
       const shade = (a) => { ctx.globalAlpha = a; ctx.fillStyle = '#151923'; ctx.fillRect(0, 0, w, h); ctx.globalAlpha = 1; };
       const { near, front } = fly;
-      const dress = (src) => { blit(src, 0, 0, EW, EH, front); repeats(front, ROAD, src); dressing.glints(ctx, f, front); };   // the front layer: the tower's and the pavement's
+      const dress = (d) => {   // the front plane's dressing: its repeating layer, its fixed one, and the flames and bulbs
+        blit(d.front, 0, 0, EW, EH, front); repeats(front, ROAD, d.front); blit(d.fixed, 0, 0, EW, EH, front); dressing.glints(ctx, f, front);
+      };
       if (fly.key === 'E') {
         // lv of the lights still off for what starts coming on at t = a; 0 once on.
         const off = (a) => { const u = (fly.t - a) / 0.1; return u >= 1 ? 0 : SHADES[Math.max(0, Math.floor(u * SHADES.length))]; };
@@ -258,7 +260,7 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
           const a = i ? roofAt + (i - 1) * STOREY : top, lv = off(0.1 + (i * 0.56) / storeys);   // the lights come on down the tower in the same time, however tall
           if (lv) blit(dark(lv), SHAFT[0], a, SHAFT[1] - SHAFT[0], roofAt + i * STOREY - a, front);
         }
-        dress(d.front);
+        dress(d);
         return;
       }
       if (fly.over) { measure(ctx, w, h); room(fly.room.s, fly.room.x, fly.room.y); }   // the street has gone behind the brick; measured all the same, for a page opened on the roof, whose first way back to the street starts here
@@ -272,7 +274,7 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
       }
       const top = wide && !fly.over ? 0 : CRANE[2];   // past the peak the street's crane has left the top of the frame: only the roof's comes back
       blit(plates, SHAFT[0], top, SHAFT[1] - SHAFT[0], ROAD - top, front);
-      if (!fly.over) dress(dressing.layers().front);
+      if (!fly.over) dress(dressing.layers());
       const glass = (key, [x, y, gw, gh], r) => {
         ctx.save();
         ctx.beginPath(); ctx.rect(Math.round(x), Math.round(y), Math.round(x + gw) - Math.round(x), Math.round(y + gh) - Math.round(y)); ctx.clip();
@@ -313,7 +315,7 @@ export function streetView(sky, base, box, stops, loaded, then, has) {
           for (let gx = x - L * s; gx > -L * s; gx -= L * s) ctx.drawImage(lay, 0, 0, L, EH, gx, y, L * s, EH * s);
           for (let gx = x + EW * s; gx < w; gx += R * s) ctx.drawImage(lay, EW - R, 0, R, EH, gx, y, R * s, EH * s);
         }
-        if (!cam) { dressing.glints(ctx, f, { s, x, y }); dressing.weather(ctx, f, { s, x, y }, w, h); }
+        if (!cam) { ctx.drawImage(d.fixed, x, y, EW * s, EH * s); dressing.glints(ctx, f, { s, x, y }); dressing.weather(ctx, f, { s, x, y }, w, h); }
       }
       ctx.globalAlpha = 1;
       const at = `${s},${x},${y},${dpr}`;

@@ -91,10 +91,11 @@ FONT = {  # 3x5 glyphs for the lift display
     "3": ["###", "..#", ".##", "..#", "###"], "4": ["#.#", "#.#", "###", "..#", "..#"],
     "5": ["###", "#..", "##.", "..#", "##."], "6": [".##", "#..", "###", "#.#", "###"],
     "7": ["###", "..#", ".#.", ".#.", ".#."], "8": ["###", "#.#", "###", "#.#", "###"],
+    "9": ["###", "#.#", "###", "..#", "##."],
     "P": ["##.", "#.#", "##.", "#..", "#.."],
 }
 
-# --- Company signs: each storey's logo on a cream plaque, lit in its street window (gen_exterior.lit_sign) ---------
+# --- Company signs: each storey's logo on a cream panel that fills its street window (gen_exterior.lit_sign) ------
 # Traced from the companies' own artwork, box-filtered to the plaque's height and cleaned by hand (baked like FONT):
 # Inuitive, inuitive-tech.com's 2017 logo; NiCE, nice.com's header; SumUp, Wikimedia Commons File:SumUp Logo.svg;
 # Billie, billie.io's header; Reichman University, en.wikipedia File:Reichman University.svg (its wordmark lettered at
@@ -400,36 +401,34 @@ def margins(img, key):
     return out
 
 
-def panel(cv, x, y, w, h, face, shade):
-    """An inked board, lit from above: its bottom row in shade."""
-    cv.rect(x, y, x + w, y + h, INK)
-    cv.rect(x + 1, y + 1, x + w - 1, y + h - 1, face)
-    cv.rect(x + 1, y + h - 2, x + w - 1, y + h - 1, shade)
-
-
-def sign(cv, key, x, y):
-    """A floor's sign with its top-left at (x, y): the logo's plaque, and its team's plate beside it in the floor's
-    accent. Returns its box (x0, y0, x1, y1)."""
+def sign(cv, key, w, h):
+    """A floor's sign, filling its street window (w x h) as one lit cream panel, the same on every storey: the logo, and
+    beside it its team's plate in the floor's accent, centred together. Returns the logo's and plate's box."""
     logo, team = SIGNS[key]
     rows, accent = LOGOS[logo], FLOORS[key][1]
-    w, h = len(rows[0]) + 6, len(rows) + 4
-    panel(cv, x, y, w, h, c("cream", 5), c("cream", 4))
+    cv.rect(0, 0, w, h, c("cream", 5))
+    cv.rect(0, 0, w, 1, c("cream", 4))                                       # lit from inside: a darker rim,
+    cv.rect(0, 0, 1, h, c("cream", 4))
+    cv.rect(w - 1, 0, w, h, c("cream", 4))
+    cv.rect(0, h - 1, w, h, c("cream", 3))                                   # darkest at its foot
+    word = ["".join(("." if i else "") + LETTERS[ch][r] for i, ch in enumerate(team)) for r in range(7)] if team else []
+    lw, lh, pw = len(rows[0]), len(rows), len(word[0]) + 6 if team else 0
+    x, y = (w - lw - (8 + pw if team else 0)) // 2, (h - lh) // 2
     ink = {"k": INK, "b": c("blue", 3), "B": c("blue", 4), "d": c("blue", 2)}
     for dy, row in enumerate(rows):
         for dx, ch in enumerate(row):
             if ch in ink:
-                cv.put(x + 3 + dx, y + 2 + dy, ink[ch])
+                cv.put(x + dx, y + dy, ink[ch])
     if not team:
-        return x, y, x + w, y + h
-    word = ["".join(("." if i else "") + LETTERS[ch][r] for i, ch in enumerate(team)) for r in range(7)]
-    px, py, pw = x + w + 3, y + (h - 11) // 2, len(word[0]) + 6
-    panel(cv, px, py, pw, 11, c(accent, 4), c(accent, 3))
+        return x, y, x + lw, y + lh
+    px, py = x + lw + 8, (h - 11) // 2
+    cv.rect(px, py, px + pw, py + 11, c(accent, 4))
     cv.rect(px + 1, py + 1, px + pw - 1, py + 2, c(accent, 5))                # its lit top row
     for dy, row in enumerate(word):
         for dx, ch in enumerate(row):
             if ch == "#":
                 cv.put(px + 3 + dx, py + 2 + dy, INK)
-    return x, y, px + pw, y + h
+    return x, min(y, py), px + pw, max(y + lh, py + 11)
 
 
 def frame_base(key, room_name, accent):

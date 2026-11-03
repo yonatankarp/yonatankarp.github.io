@@ -34,19 +34,26 @@ const homeSelectors = [
   [".building-window", 9, "street view windows"],
 ];
 
+// The street follows the visitor's season, holidays and weather too (web3d/src/outside.js): pinned to a plain summer's day.
+const plain = "season=summer&weather=clear&holiday=none";
 const routes = [
   {
     name: "home",
-    path: "/?time=dusk",   // pinned: the art follows the clock otherwise, so captures could not be compared (#151)
+    path: `/?time=dusk&${plain}`,   // pinned: the art follows the clock otherwise, so captures could not be compared (#151)
     pauseLabel: true,
     ride: true,
     requiredSelectors: [...homeSelectors, ["html[data-time='dusk']", 1, "dusk art"]],
   },
   ...Object.keys(phases).filter((time) => time !== "dusk").map((time) => ({
     name: `home-${time}`,
-    path: `/?time=${time}`,
+    path: `/?time=${time}&${plain}`,
     requiredSelectors: [...homeSelectors, [`html[data-time='${time}']`, 1, `${time} art`]],
   })),
+  {
+    name: "home-dressed",   // the decorations drawn over it: a snowy winter's night, the last of Hanukkah and Christmas
+    path: "/?time=night&season=winter&weather=snow&holiday=hanukkah:7,christmas",
+    requiredSelectors: [...homeSelectors, ["html[data-weather='snow'][data-holiday='hanukkah christmas']", 1, "the dressed street"]],
+  },
   {
     name: "projects",
     path: "/projects/",

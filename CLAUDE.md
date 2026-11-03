@@ -45,6 +45,23 @@ without the tower behind every other page. The pick is `layouts/partials/time-pi
 `web3d/src/pixel.css` and to the backdrop rules in `custom.css`: `npm run check:phases` (part of `npm run check`) fails
 until those agree with `phases.json`, and `gen_floors.py` checks `phases.json` against its `PHASES` on every run.
 
+The street is also dressed for the visitor's season, holidays and weather, drawn in code over the baked art (no new
+art per season): `web3d/src/outside.js` works out what is going on, `web3d/src/decor.js` draws it (two pavement trees
+that follow the season, snow on the roofs in a cold winter, and rain, snow, fog or clouds, which fall on the roof's
+strip too). The holidays dress the street, never the tower, whose signs stay clear: strings of lights between the lamp
+posts, the lamp posts, the pavement, the news stand's window and the neighbours' windows. The visitor is placed by their browser's timezone alone, through
+`data/timezones.json` (country and main city per IANA zone, made from tzdata by `node scripts/gen-timezones.js`); an
+unknown zone gets Berlin. Seasons flip south of the equator, and the tropics stay summer. Holidays are
+`web3d/src/calendar.js`: the ones in `HOME` (Israel's and Germany's: Hanukkah, Sukkot, Christmas, Easter) show for
+everyone, plus the new year, and the visitor's country adds its own (Halloween, Diwali, Lunar New Year, both Eids).
+Jewish, Chinese and Islamic dates come from the browser's `Intl` calendars; Diwali is the `DIWALI` table, and
+`npm test` fails once it no longer covers next year. The weather is the site's one call to a third party besides
+GoatCounter: Open-Meteo, from the homepage only (its `connect-src` in `head.html`), at most once an hour per browser
+session, after load. If it fails, the street just goes without weather. `?season=`, `?weather=clear|cloudy|fog|rain|snow`
+and `?holiday=none` or a list such as `hanukkah:3,christmas` (the number is the day, from 0) pin each one, like
+`?time=`. The visual captures pin a plain summer's day, plus one dressed capture. `npm run check:csp` answers the weather
+call itself.
+
 The art's numbers that `web3d/src/` draws by (strip size, lift doors, dither, each room's lamps, where each window looks
 in, the street's geometry) are written into `static/building/pixel/exterior.json` by `gen_exterior.py` (`json OUT` writes
 only that file) and bundled from there, and `data/floor_accents.yaml` is written by `gen_floors.py` from `FLOORS`: change
@@ -109,9 +126,15 @@ Create `content/projects/name.md` with a `link` and a `group` of `app`, `library
 ### New experience
 Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `duration`, `summary`, and:
 - `floor`: a quoted storey, such as `floor: "5"`, that no other entry uses. Floors 2 to 7 are the roles;
-  `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey needs art: its entry in `FLOORS` in
-  `web3d/pixel/gen_floors.py` (which writes its colour into `data/floor_accents.yaml`), a place in `ORDER` in
-  `web3d/src/art.js`, and its painting in `web3d/pixel/`.
+  `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey (a single character: `8`, `9`) needs its room:
+  its painting in `web3d/pixel/`, and in `web3d/pixel/gen_floors.py` its entry in `FLOORS` (which writes its colour
+  into `data/floor_accents.yaml`), `EDGES` and `SIGNS`, and in `gen_exterior.py` its `LOOK` (where its street window
+  looks into its strip). Then rebuild all the art, as CI does. The street needs no repaint: `stack_tower()` in
+  `gen_exterior.py` builds the tower from the painting's own storeys, and the lift's order (`ORDER` in
+  `web3d/src/art.js`) comes from `exterior.json`. Past nine storeys above ground the street's picture grows taller at
+  its top (`RISE`, also in `exterior.json`, which `web3d/src/` slides the street's rows by), so the street shows
+  smaller: with two more floors, a 1920x1080 screen goes from 3x to 2x and a 1280x720 one from 2x to 1x (1440x900
+  stays 2x).
 - `highlights`: a list; the first three show on the floor's card, the rest inside it.
 
 `layouts/index.html` fails the build naming the file when `floor` or `highlights` is wrong.

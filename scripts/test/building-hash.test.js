@@ -16,6 +16,7 @@ test("floorKey sends the old one-page anchors to their floors, in any case", asy
   assert.equal(floorKey("#about"), "L");
   assert.equal(floorKey("#Contact"), "R");
   assert.equal(floorKey("#floor-8"), "L");
+  assert.equal(floorKey("#floor-8", ["P", "L", "1", "8", "R"]), "8", "a floor 8 that exists again is its own");
 });
 
 test("floorKey places nothing else", async () => {

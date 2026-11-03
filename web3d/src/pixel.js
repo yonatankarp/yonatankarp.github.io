@@ -24,9 +24,10 @@ const ARRIVE_FROM = 0.25, ARRIVE_MS = 1000;                     // on every arri
 const LAMPS_AFTER = 180;                                        // arriving on a floor: the old page is still over the room until about now
 const SHOT_BY = 1500;                                           // ms after the card's first paint: art later than this just appears, under someone already reading
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
+const ROOF_FROM = 117, ROOF_DECK = 155;                         // the roof strip's open air: right of this art x, above this row
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
 const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
-const hashKey = () => floorKey(location.hash);
+const hashKey = () => floorKey(location.hash, ORDER);   // a floor that exists again (a new floor 8) wins over its old anchor
 const TRIES = 3, RETRY_MS = 2000;                                // a strip that failed to load is asked for again, this often and no sooner
 
 export function mountPixel({ canvas, stops, base = '/building/', version = '', windowsBox, pauseButton }) {
@@ -329,6 +330,8 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', w
         }
       }
       drawDoors(ctx, img, f, x0, y, s, open.get(key));
+      // The roof is outdoors: the street's weather falls on it too, right of the lift's lobby (art x 117) and down to its deck.
+      if (key === 'R') street.weather(ctx, f, { s, x: x0, y }, w, h, [x0 + ROOF_FROM * s, 0, w, y + ROOF_DECK * s]);
       ctx.globalAlpha = 1;
     } }
   }

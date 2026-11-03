@@ -5,7 +5,7 @@ import PHASES from '../../data/phases.json';                       // the hours 
 
 export const [FW, FH] = art.frame;
 export const FRAMES = art.frames;
-export const ORDER = ['P', 'L', '1', '2', '3', '4', '5', '6', '7', 'R'];   // bottom to top
+export const ORDER = art.order;   // the floors bottom to top, P to R: gen_exterior.py's, from gen_floors.FLOORS
 export const { door: DOOR, bayer: BAYER, look: LOOK } = art;
 // Each room's hanging lamps, by strip x, the lift's own lamp first. The roof has none: it is outdoors, so it stays as
 // bright as its sky.

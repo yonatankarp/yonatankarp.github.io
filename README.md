@@ -30,7 +30,7 @@ npm run lint    # ESLint over the JavaScript, Ruff over the art pipeline
 ```
 
 `npm run check` runs `check:blog-assets` and `check:phases` on the sources, builds, then checks the site metadata, the
-generated HTML, the CV PDF (one A4 page, no local links), the internal links, and finally `check:csp`: every built page
+generated HTML, the CV PDF (one A4 page, no local links), the internal links and local files each page loads (src, srcset, poster, a fetching `<link>`), and finally `check:csp`: every built page
 in Chromium with its Content-Security-Policy enforced, axe-core on each, and the paths that load late (Mermaid, video,
 search, the lift). It needs the network for GoatCounter's `count.js`; redirect pages are held where they are, so it never
 follows a link out to the live site.
@@ -67,7 +67,7 @@ files pixel for pixel and the data files come out unchanged.
 ## Visual QA
 
 ```bash
-npm run visual:capture                # starts Hugo on 127.0.0.1:1313 and captures it
+npm run visual:capture                # starts Hugo on the first free port from 1313 and captures it
 npm run visual:capture -- --public    # captures the built public/ instead, as CI does
 npm run visual:capture:live           # captures https://yonatankarp.com
 npm run visual:compare -- --baseline artifacts/<a>/manifest.json --candidate artifacts/<b>/manifest.json

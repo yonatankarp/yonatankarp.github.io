@@ -80,18 +80,22 @@
 
     <footer class="article__footer">
       <div>
-        {{ with .PrevInSection }}<a class="text-link" href="{{ .RelPermalink }}">← {{ .Title }}</a>{{ end }}
+        {{ with .PrevInSection }}<a class="text-link" href="{{ .RelPermalink }}">←&nbsp;{{ .Title }}</a>{{ end }}
       </div>
       <div>
-        {{ with .NextInSection }}<a class="text-link" href="{{ .RelPermalink }}">{{ .Title }} →</a>{{ end }}
+        {{ with .NextInSection }}<a class="text-link" href="{{ .RelPermalink }}">{{ .Title }}&nbsp;→</a>{{ end }}
       </div>
     </footer>
   </article>
 </section>
 
-{{/* Keep reading: tag-related posts first, topped up with recent ones. */}}
+{{/* Keep reading: tag-related posts first, topped up with recent ones. Never this post or the previous and next
+     links above it (#251); six recent ones are enough to fill three cards after those three are left out. */}}
 {{ $blog := where site.RegularPages "Type" "blog" }}
-{{ $recs := first 3 (where (union ($blog.Related .) (first 4 (sort $blog "Date" "desc"))) "Permalink" "!=" .Permalink) }}
+{{ $skip := slice .Permalink }}
+{{ with .PrevInSection }}{{ $skip = $skip | append .Permalink }}{{ end }}
+{{ with .NextInSection }}{{ $skip = $skip | append .Permalink }}{{ end }}
+{{ $recs := first 3 (where (union ($blog.Related .) (first 6 (sort $blog "Date" "desc"))) "Permalink" "not in" $skip) }}
 {{ with $recs }}
 <section class="shell related-posts" aria-labelledby="keep-reading">
   <h2 id="keep-reading" class="related-posts__title">Keep reading</h2>

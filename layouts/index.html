@@ -23,6 +23,12 @@
 {{ $js := resources.Get "building/building.js" }}
 {{ $css := resources.Get "building/building.css" }}
 {{ $base := "building/" | relURL }}{{/* where pixel.js finds its art: the canvas's data-base */}}
+{{- /* The art's version, the canvas's data-version: a hash of every file in static/building/pixel/, its contents, never
+     their dates, so a fresh checkout keeps it. pixel.js puts it on the art's URLs, so a strip cached from before a change
+     of the art never meets the numbers bundled for the new one (#65); the files keep their names for the pipeline and CI. */}}
+{{ $art := "" }}
+{{ range os.ReadDir "static/building/pixel" }}{{ if not .IsDir }}{{ $art = printf "%s%s\x00%s" $art .Name (os.ReadFile (path.Join "static/building/pixel" .Name)) }}{{ end }}{{ end }}
+{{ $artVersion := substr (sha256 $art) 0 12 }}
 {{ if and $js $css }}
   {{ $js = $js | fingerprint }}
   {{ $css = $css | fingerprint }}
@@ -45,14 +51,17 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
      starts at once; a static preload tag would fetch the dusk street at every hour. */}}
 {{ $time := resources.FromString "js/home-time.js" (printf `
 (function(){%s
-var time=document.documentElement.dataset.time,l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(time==='dusk'?'':'-'+time)+'.webp';document.head.appendChild(l)})();
-` (partial "time-pick.html" .) $base) | minify | fingerprint "sha256" }}
+var time=document.documentElement.dataset.time,l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
+` (partial "time-pick.html" .) $base $artVersion) | minify | fingerprint "sha256" }}
 {{ $street := resources.FromString "js/home-street.js" `document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');
 document.documentElement.classList.contains('building--guided') && !matchMedia('(prefers-reduced-motion: reduce)').matches && (document.querySelector('[data-building-pause]').hidden = false);` | minify | fingerprint "sha256" }}
 {{ .Store.Set "inlineScripts" (slice $time $guided $street) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
+{{- /* The parking panel shows each project's description whole, never cut mid-sentence (#61): one too long for it fails
+     here. Hugo's own summary, the fallback, ends at a paragraph or at <!--more-->. */}}
+{{ range $projects }}{{ $n := .Description | default (.Summary | plainify) | htmlUnescape | strings.RuneCount }}{{ if gt $n 240 }}{{ errorf "%s: the parking panel shows its description whole, and this one is %d characters: add a `description` of at most 240." .File.Path $n }}{{ end }}{{ end }}
 {{ range $projects }}{{ if not .Params.link }}{{ errorf "%s: add `link`, where the parking panel sends the reader." .File.Path }}{{ end }}{{ if not (in (slice "app" "library" "game" "contribution") .Params.group) }}{{ errorf "%s: set `group` to app, library, game or contribution, the sections of /projects/." .File.Path }}{{ end }}{{ end }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">
@@ -60,9 +69,6 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   {{ partial "head.html" . }}
   <script>{{ $time.Content | safeJS }}</script>
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
-  {{- /* The street is the first screen: fetch its art at once, not with the floors once the module runs (#130). The
-       URLs are pixel.js's own, from the canvas's data-base; the JSON is a fetch(), so it is preloaded with CORS. */}}
-  <link rel="preload" as="fetch" href="{{ $base }}pixel/exterior.json" crossorigin>
   {{- /* A CSP with hash sources stops Chrome's preload scanner from fetching the module early: it then waited for the
        parser, 1717 ms in, and the street drew 400 ms later (Fast 3G, #149). So the module is preloaded by hand. */}}
   <link rel="modulepreload" href="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}">
@@ -73,7 +79,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 </head>
 <body class="building pixel">
   <a class="skip-link" href="#building-stops">Skip to the current floor</a>
-  <canvas id="pixel-canvas" data-base="{{ $base }}" aria-hidden="true"></canvas>
+  <canvas id="pixel-canvas" data-base="{{ $base }}" data-version="{{ $artVersion }}" aria-hidden="true"></canvas>
   <div class="building-scrim" aria-hidden="true"></div>
 
   {{ partial "pixel-bar.html" . }}
@@ -288,7 +294,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
           {{- /* A case study's own page first, its repository or docs second (#33). */}}
           {{ $name := partial "nobreak.html" (partial "project-title.html" .Title) }}
           <li>{{ if .Params.caseStudy }}{{ $name }}{{ else }}<a href="{{ .Params.link }}">{{ $name }}</a>{{ end }} <span class="panel-soft">· {{ .Params.projectKind }}</span>{{ if .Params.archived }} <span class="archived-tag">Archived</span>{{ end }}
-            <span class="panel-desc">{{ .Description | default (.Summary | plainify) | truncate 240 "…" }}</span>
+            <span class="panel-desc">{{ .Description | default (.Summary | plainify) }}</span>
             {{ if .Params.caseStudy }}<span class="panel-desc"><a href="{{ .RelPermalink }}">Case study</a> · <a href="{{ .Params.link }}">{{ .Params.button.btnText | default "View" }}</a></span>{{ end }}
             {{ with .Params.tech }}<span class="panel-chips">{{ range . }}<i>{{ . }}</i>{{ end }}</span>{{ end }}</li>
           {{ end }}

@@ -510,7 +510,7 @@ val supportedApis = listOf(
 ```
 
 
-**ℹ️** For SpringBoot 2 users, make sure to remove the `useSpringBoot3` flag from your code completely in **Gateway API**, as the generator ignores the value in the map and only checks if the flag is present.
+**ℹ️** For Spring Boot 2 users, make sure to remove the `useSpringBoot3` flag from your code completely in **Gateway API**, as the generator ignores the value in the map and only checks if the flag is present.
 
 
 You might notice that all of our specs are generated into the same output directory. This is because OpenAPI generates some infrastructure classes that are used by the generated code. If we do not generate them in the same directory, the `sourceDir` will include duplications of classes in the same packages, and the code will not compile. You can see that we are still separating our APIs by package name in the generated code:
@@ -716,7 +716,7 @@ goodbyeApi.goodbye(name)
 ### Domain Gateway Definition
 
 
-We will now define a mapper from the OpenAPI (network network) object layer, to the service (domain) object layer:
+We will now define a mapper from the OpenAPI (network) object layer, to the service (domain) object layer:
 
 
 ```kotlin

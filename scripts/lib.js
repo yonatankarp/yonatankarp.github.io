@@ -37,11 +37,20 @@ function walk(dir, ext) {
 }
 
 // An attribute's value in an HTML tag, quoted or not; "" when it is empty, null when the tag has no value for it.
+// Reads the tag attribute by attribute, so data-href= or a quoted title="see href=z" is never taken for href (#252).
+// The first of a repeated attribute wins, as in a browser.
 function collectAttribute(tag, attributeName) {
-  const pattern = new RegExp(`\\b${attributeName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, "i");
-  const match = tag.match(pattern);
+  const wanted = attributeName.toLowerCase();
+  const attribute = /([^\s"'>/=]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+)))?/g;
+  attribute.lastIndex = tag.match(/^<\/?[^\s>/]*/)[0].length;
 
-  return match ? match[1] ?? match[2] ?? match[3] ?? "" : null;
+  for (let match = attribute.exec(tag); match; match = attribute.exec(tag)) {
+    if (match[1].toLowerCase() === wanted) {
+      return match[2] ?? match[3] ?? match[4] ?? null;
+    }
+  }
+
+  return null;
 }
 
 // The built file a site path is served from: a folder's index.html, or the file itself when the path has an extension.

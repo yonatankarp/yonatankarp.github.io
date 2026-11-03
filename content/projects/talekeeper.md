@@ -6,6 +6,7 @@ description: "An experiment in tabletop RPG memory: a self-hosted tool that turn
 projectKind: "Self-hosted experiment"
 group: "app"
 draft: false
+archived: true
 link: "https://yonatankarp.com/TaleKeeper/"
 caseStudy: true
 tech: ["Python", "FastAPI", "Svelte"]

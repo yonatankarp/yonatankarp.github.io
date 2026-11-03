@@ -6,10 +6,10 @@
 // which repeat down the street with the picture's ends, and fixed, on the front plane too but drawn once, for what the
 // repeats would cut (the strings of lights, the trees). Then what moves with the street's frames: the flames and the
 // bulbs, and the rain, the snow, the fog and the fireworks. The holidays keep to the street; the tower's signs stay clear.
-import { TIME, BAYER, ART, SIZE, WINDOWS } from './art.js';
+import { TIME, BAYER, ART, STREET } from './art.js';
 import { OUTSIDE } from './outside.js';
 
-const [EW, EH] = SIZE;               // the street's picture
+const [EW, EH] = STREET.size;        // the street's picture
 const RISE = ART.rise ?? 0;          // the rows a taller tower grew it by at its top: the street's sky and scenery slide down by as many
 const GROUND = ART.ground;           // the pavement's top line; the kerb is 8 rows down
 const CORNICE = ART.crane[2] - 1;    // the row just above the tower's cornice: where snow lies on it
@@ -161,7 +161,7 @@ function menorah(c, glints, x0, foot, gap, stem) {
 }
 function hanukkah(fixed, glints) {
   menorah(fixed, glints, 144, PAVEMENT, 3, 20);
-  const [, , wx1, wy1] = WINDOWS.L;
+  const [, , wx1, wy1] = STREET.windows.L;
   menorah(fixed, glints, wx1 - 30, wy1 - 2, 3, 7);
   bulbs(fixed, glints, ['#5aa8ff', '#eef6ff']);
 }

@@ -26,28 +26,8 @@ runs:
       shell: bash
       run: npm ci
 
-    - name: Read the Playwright version
-      id: playwright
-      shell: bash
-      run: echo "version=$(node -p 'require("playwright/package.json").version')" >> "$GITHUB_OUTPUT"
-
-    - name: Cache the Playwright browser
-      id: playwright-cache
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-      with:
-        path: ~/.cache/ms-playwright
-        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
-
-    - name: Install Playwright browser
-      shell: bash
-      env:
-        CACHED: ${{ steps.playwright-cache.outputs.cache-hit }}
-      run: |
-        if [[ "$CACHED" == "true" ]]; then
-          npx playwright install-deps chromium
-        else
-          npx playwright install --with-deps chromium
-        fi
+    - name: Set up Playwright's Chromium
+      uses: ./.github/actions/setup-playwright
 
     - name: Build and check the site
       shell: bash

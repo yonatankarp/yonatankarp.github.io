@@ -302,10 +302,13 @@ function writeManifest() {
   fs.writeFileSync(path.join(screenshotDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
-async function waitForUrl(url, timeoutMs, timeoutMessage) {
+// checkServer runs before each try, and throws to stop waiting on a server that is known to be gone.
+async function waitForUrl(url, timeoutMs, timeoutMessage, checkServer = () => {}) {
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {
+    checkServer();
+
     if (await requestUrl(url)) {
       return;
     }
@@ -562,7 +565,16 @@ async function main() {
         }
       });
 
-      await waitForUrl(baseUrl, 15000, `Timed out waiting for local Hugo server at ${baseUrl}`);
+      // A Hugo that cannot start (not installed, say) emits error rather than exit. Thrown from the listener it would
+      // skip main's finally, so the wait below fails on it instead.
+      let spawnError = null;
+      hugoServer.once("error", (error) => {
+        spawnError = error;
+      });
+
+      await waitForUrl(baseUrl, 15000, `Timed out waiting for local Hugo server at ${baseUrl}`, () => {
+        if (spawnError) fail(`Could not start ${hugoBinary}: ${spawnError.message}`);
+      });
     } else {
       await waitForUrl(
         baseUrl,

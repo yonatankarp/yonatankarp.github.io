@@ -3,10 +3,8 @@
      homepage, the CV and the search index. A page of its own, such as /about (content/about.md, #187), names its
      floor in `floor`, as a role does. A removed post names its new home in `redirect`, an absolute URL, which is
      also its canonical (the design-pattern posts, now on dev.to). No script, so the CSP has nothing to allow. */ -}}
-{{- $target := site.Home.Permalink -}}
-{{- if .IsPage }}{{ $target = printf "%s#floor-%s" $target (index (dict "education" "1" "testimonial" "L") .Section | default .Params.floor) }}{{ end -}}
-{{- $canonical := site.Home.Permalink -}}
-{{- with .Params.redirect }}{{ $target = . }}{{ $canonical = . }}{{ end -}}
+{{- $target := partial "redirect-target.html" . -}}
+{{- $canonical := .Params.redirect | default site.Home.Permalink -}}
 <!DOCTYPE html>
 <html lang="{{ site.Language.Lang }}">
 <head>

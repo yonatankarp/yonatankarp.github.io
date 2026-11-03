@@ -71,7 +71,6 @@ flights, `art.js` what they share.
 - `content/experience/` — job entries (one .md per role)
 - `content/education/` — education entries
 - `content/projects/` — projects listed on the homepage's Parking floor and on `/projects/`
-- `content/contributions/` — NOT used (contributions are in projects/)
 - `content/blog/` — blog posts
 - `content/testimonial/` — recommendation quotes with photos
 - Experience, education and testimonial entries have no pages of their own: the `[[cascade]]` in `hugo.toml` renders
@@ -100,6 +99,9 @@ date: YYYY-MM-DDT00:00:00+01:00
 draft: false
 type: "blog"
 tags: [kotlin, spring-boot]
+images:
+  featured_image: "/images/blog/covers/post-slug.jpg"
+coverFocus: 54
 ---
 ```
 Optional `discuss: {linkedin: <url>, x: <url>}` points the post's "Discuss this post" line at the thread where it was
@@ -108,7 +110,7 @@ shared; without it the line links to the LinkedIn and X profiles.
 A Mermaid diagram needs a text alternative on its fence, ```` ```mermaid {title="…" desc="…"} ````: the title names it
 (unique on the page) and the description says what it shows, one line each with no semicolon; the build fails without them.
 
-A cover (`images.featured_image`, a painting in `static/images/blog/covers/`, made with `web3d/pixel/paint_covers.py`) also needs its pixel-art version in
+Every post needs a cover, `images.featured_image` (the build fails without it): a painting in `static/images/blog/covers/`, made with `web3d/pixel/paint_covers.py`. It also needs its pixel-art version in
 `static/images/blog/covers/pixel/`, which the blog shows; the build fails with the `pixelate.py` command to make it.
 The post shows it across the page behind its head, about 40 of its 108 rows on a wide screen: `coverFocus`, a row from 25 to 78 (default 54), picks the one to centre on, and a phone shows all of it.
 
@@ -147,8 +149,8 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - Localhost and private IPs are automatically excluded
 - To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into the script)
 - Events (dashboard, Events): `cv-download` (the top bar's Download CV), `social-<icon>` (its social icons:
-  `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage or the CV),
-  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `podcast-roof` (the roof's podcast links) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
+  `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV or the footer),
+  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)
   and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.
 
@@ -157,14 +159,17 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 Push to `main` triggers GitHub Actions workflow (`.github/workflows/deploy.yml`) which builds Hugo and deploys to GitHub Pages.
 
 CI, the deploy and the weekly link check share `.github/actions/build-site`, which runs `npm run check:static`;
-the workflows then run `npm run check:csp`, which also fails on axe's serious and critical findings. CI captures
-the visual smoke screenshots from the built `public/` and compares them, without failing, with the last deploy's.
+CI and the deploy then run `npm run check:csp`, which also fails on axe's serious and critical findings. CI captures
+the visual smoke screenshots from the built `public/` and compares them, without failing, with the last deploy's,
+which the deploy's `visual_capture` job takes from the Pages artifact beside the `deploy` job, never holding it up.
 Node's version is `.nvmrc`.
 
 Hugo is pinned once, as `HUGO_VERSION` and `HUGO_SHA256` in `.github/hugo.env`. Bump both values together:
 `HUGO_SHA256` is the `hugo_extended_<version>_linux-amd64.deb` line of the release's `hugo_<version>_checksums.txt`,
 and the install step fails when it does not match. The weekly `Pin staleness` workflow reports a stale pin and fails
-on a wrong checksum (`npm run check:hugo-pin` runs the same check locally); nothing else watches that pin. For local
+on a wrong checksum (`npm run check:hugo-pin` runs the same check locally); nothing else watches that pin. The same
+workflow warns within 60 days of `Expires` in `static/.well-known/security.txt` and fails once it has passed
+(`npm run check:security-txt`). For local
 builds, put the same Hugo release at `.tools/hugo/hugo` (gitignored), which the npm scripts prefer over `hugo` on
 the `PATH`; they warn when the Hugo they run is not the pinned version.
 

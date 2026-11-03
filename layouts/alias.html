@@ -1,7 +1,8 @@
-{{- /* Hugo's alias page, except that an alias of a page that redirects elsewhere (`redirect` in its front matter, as
-     the removed design-pattern posts have) points straight at that target, so an old Hashnode slug takes one hop. */ -}}
+{{- /* Hugo's alias page, except that an alias of a page that is itself a redirect (layouts/_default/redirect.html: a
+     removed post with `redirect`, or a testimonial such as /testimonial/oren-hadry/) points straight at that page's
+     target, so an old URL takes one hop. */ -}}
 {{- $target := .Permalink -}}
-{{- with .Page }}{{ with .Params.redirect }}{{ $target = . }}{{ end }}{{ end -}}
+{{- with .Page }}{{ if eq .Layout "redirect" }}{{ $target = partial "redirect-target.html" . }}{{ end }}{{ end -}}
 <!DOCTYPE html>
 <html lang="{{ site.Language.Lang }}">
 <head>

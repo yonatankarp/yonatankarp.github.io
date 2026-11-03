@@ -47,6 +47,24 @@ function isRedirect(route) {
   return fs.existsSync(file) && /<meta\b[^>]*http-equiv=["']?refresh/i.test(fs.readFileSync(file, "utf8"));
 }
 
+// A redirect page may send its reader to a page of the site, or a removed post to its copy on dev.to; nothing else
+// leaves the site. Parsed, not prefix-matched, so //host and /\host, which a browser takes to another site, fail (#252).
+function isAllowedRedirect(target) {
+  let url;
+
+  if (!target) {
+    return false;
+  }
+
+  try {
+    url = new URL(target, "https://yonatankarp.com/");
+  } catch {
+    return false;
+  }
+
+  return url.origin === "https://yonatankarp.com" || (url.origin === "https://dev.to" && url.pathname.startsWith("/yonatankarp/"));
+}
+
 function option(name) {
   const index = process.argv.indexOf(`--${name}`);
   return index === -1 ? null : process.argv[index + 1];
@@ -226,8 +244,7 @@ async function check(context, baseUrl, route) {
       await page.waitForTimeout(500);
       result.violations.push(...(await page.evaluate(() => window.__csp)));
       const target = (await page.getAttribute('meta[http-equiv="refresh"]', "content"))?.match(/url=(\S+)/i)?.[1] ?? "";
-      // A removed post may send its readers to its copy on dev.to; nothing else leaves the site.
-      if (!target.startsWith("https://yonatankarp.com/") && !target.startsWith("/") && !target.startsWith("https://dev.to/yonatankarp/")) {
+      if (!isAllowedRedirect(target)) {
         result.errors.push(`redirects to "${target}", not to a page of yonatankarp.com or a post on dev.to`);
       }
       await page.close();
@@ -248,7 +265,7 @@ async function check(context, baseUrl, route) {
   return result;
 }
 
-(async () => {
+async function main() {
   const base = option("base");
 
   if (!base && !fs.existsSync(path.join(publicDir, "404.html"))) {
@@ -315,4 +332,10 @@ async function check(context, baseUrl, route) {
     fail(`CSP and accessibility check failed on ${failed.length} of ${summary}.`, failed.map((result) => result.route));
   }
   console.log(`CSP and accessibility check passed: ${summary}.`);
-})();
+}
+
+if (require.main === module) {
+  main();
+}
+
+module.exports = { isAllowedRedirect };

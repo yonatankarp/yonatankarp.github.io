@@ -1,0 +1,7 @@
+{{- /* Where a page with layouts/_default/redirect.html sends the reader: `redirect` if it names one, else its floor on
+     the homepage (a role names it in `floor`; education is floor 1, testimonials the lobby), else the homepage.
+     Shared with layouts/alias.html, so an old alias of such a page takes one hop. */ -}}
+{{- $target := site.Home.Permalink -}}
+{{- if .IsPage }}{{ $target = printf "%s#floor-%s" $target (index (dict "education" "1" "testimonial" "L") .Section | default .Params.floor) }}{{ end -}}
+{{- with .Params.redirect }}{{ $target = . }}{{ end -}}
+{{- return $target -}}

@@ -13,7 +13,13 @@
   {{- errorf "%s: another Mermaid diagram on this page is titled %q." .Position $title -}}
 {{- end -}}
 {{- .Page.Store.Add "diagramTitles" (slice $title) -}}
-{{- $lines := split (strings.TrimLeft "\n" .Inner) "\n" -}}
+{{- /* Drawn at build time (#250): scripts/render-diagrams.js builds this same source from the fence, draws it and saves
+     it as assets/diagrams/<its sha256>.svg, which is inlined here, so the page ships the finished svg and no Mermaid. */ -}}
+{{- $lines := split (strings.TrimSpace .Inner) "\n" -}}
 {{- $src := delimit ((slice (index $lines 0) (printf "    accTitle: %s" $title) (printf "    accDescr: %s" $desc)) | append (after 1 $lines)) "\n" -}}
-<pre class="mermaid" role="region" aria-label="Diagram: {{ $title }}">{{ $src | htmlEscape | safeHTML }}</pre>
-{{ .Page.Store.Set "hasMermaid" true }}
+{{- with resources.Get (printf "diagrams/%s.svg" (sha256 $src)) -}}
+<pre class="mermaid" role="region" aria-label="Diagram: {{ $title }}">{{ .Content | safeHTML }}</pre>
+{{- else -}}
+  {{- errorf "%s: the Mermaid diagram %q is not drawn yet, or changed since it was. Run npm run build:building (or node scripts/render-diagrams.js)." .Position $title -}}
+{{- end }}
+{{ .Page.Store.Set "hasDiagram" true }}

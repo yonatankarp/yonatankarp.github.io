@@ -4,7 +4,7 @@ import js from "@eslint/js";
 import globals from "globals";
 
 export default [
-  { ignores: ["public/", "resources/", "assets/building/", "static/vendor/", "node_modules/", ".tools/", "artifacts/"] },
+  { ignores: ["public/", "resources/", "assets/building/", "node_modules/", ".tools/", "artifacts/"] },
   js.configs.recommended,
   {
     files: ["scripts/**/*.js"],

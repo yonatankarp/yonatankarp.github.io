@@ -12,11 +12,8 @@
     {{ partial "site-footer.html" . }}
     {{ $js := resources.Get "js/site.js" | minify | fingerprint }}
     <script defer src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
-    {{ if .Store.Get "hasMermaid" }}
-    {{- /* Mermaid is vendored at the version package.json pins (scripts/vendor-mermaid.js), which the loader imports */ -}}
-    {{ $mermaid := index (os.ReadFile "package.json" | transform.Unmarshal) "devDependencies" "mermaid" }}
-    {{ if not (findRE `^\d+\.\d+\.\d+$` $mermaid) }}{{ errorf "package.json should pin mermaid to an exact version, not %q" $mermaid }}{{ end }}
-    {{ with resources.Get "js/mermaid-loader.js" | resources.ExecuteAsTemplate "js/mermaid-loader.js" (dict "version" $mermaid) | minify | fingerprint }}<script type="module" src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}"></script>{{ end }}
+    {{ if .Store.Get "hasDiagram" }}
+    {{ with resources.Get "js/diagram-zoom.js" | minify | fingerprint }}<script type="module" src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}"></script>{{ end }}
     {{ end }}
   </body>
 </html>

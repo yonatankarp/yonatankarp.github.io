@@ -10,9 +10,7 @@ description: "A cautionary demonstration of how using mutable objects as HashMap
 tags:
   - java
   - kotlin
-  - hashmap
   - data-structures
-  - gotchas
 images:
   featured_image: "/images/blog/covers/break-hashmap-less-than-a-minute.jpg"
 coverFocus: 50

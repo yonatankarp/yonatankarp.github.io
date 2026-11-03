@@ -10,7 +10,7 @@ tags:
   - kotlin
   - spring-boot
   - redis
-  - redistemplate
+  - databases
 images:
   featured_image: "/images/blog/covers/fix-misconfigurations-redistemplate.jpg"
 coverFocus: 32

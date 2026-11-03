@@ -12,9 +12,7 @@ tags:
   - java
   - kotlin
   - concurrency
-  - parallelism
   - interview
-  - threads
 images:
   featured_image: "/images/blog/covers/interview-questions-concurrency-parallelism.jpg"
 coverFocus: 48

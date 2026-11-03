@@ -8,9 +8,7 @@ description: "How I gave my AI coding agent long-term memory using Claude Code h
 tags:
   - claude-code
   - ai
-  - agents
   - automation
-  - knowledge-base
 images:
   featured_image: "/images/blog/covers/self-compiling-second-brain.jpg"
 coverFocus: 62

@@ -13,7 +13,6 @@ tags:
   - kotlin
   - spring-boot
   - dependency-injection
-  - spring-framework
 images:
   featured_image: "/images/blog/covers/inject-multiple-implementations-spring.jpg"
 coverFocus: 38

@@ -9,9 +9,7 @@ featured: true
 description: "A step-by-step walkthrough of reconstructing the massive XKCD #1110 Click and Drag comic from its individual tile images using Kotlin."
 tags:
   - kotlin
-  - xkcd
-  - image-processing
-  - hacking
+  - side-projects
 images:
   featured_image: "/images/blog/covers/xkcd-from-tile-to-picture.jpg"
 coverFocus: 52

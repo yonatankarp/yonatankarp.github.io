@@ -9,9 +9,7 @@ draft: false
 type: "blog"
 description: "How problem-solving principles from software engineering, usually applied to code, also worked on real-life challenges during a trip to Asia."
 tags:
-  - engineering
   - software-engineering
-  - best-practices
   - problem-solving
 images:
   featured_image: "/images/blog/covers/real-life-problem-solving-engineering-principles.jpg"

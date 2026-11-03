@@ -519,7 +519,7 @@ for (const filePath of htmlFiles) {
   if (!index.some((page) => page.type === "Post" && /\bkafka\b/i.test(page.content))) failures.push("index.json: posts should carry their full text, so \"kafka\" finds a post");
   // Tags are searchable too (#186): posts carry their tags, projects their tech.
   const tagsOf = (permalink) => index.find((page) => page.permalink === permalink)?.tags || [];
-  if (!tagsOf("/blog/fix-misconfigurations-redistemplate/").includes("redistemplate")) failures.push("index.json: posts should carry their tags, so \"redistemplate\" is on the RedisTemplate post");
+  if (!tagsOf("/blog/fix-misconfigurations-redistemplate/").includes("redis")) failures.push("index.json: posts should carry their tags, so \"redis\" is on the RedisTemplate post");
   if (!tagsOf("/projects/ff4k/").includes("Coroutines")) failures.push("index.json: projects should carry their tech as tags, so \"Coroutines\" is on ff4k");
   for (const page of index) {
     if (!page.type) failures.push(`index.json: ${page.permalink} has no type`);
@@ -541,6 +541,15 @@ for (const filePath of htmlFiles) {
   for (const [slug, id] of Object.entries(devTo)) {
     for (const from of [`design-patterns-${slug}`, `blog/design-patterns-${slug}`]) redirects[from] = `https://dev.to/yonatankarp/design-patterns-${slug}-${id}`;
   }
+  // The tags merged away (#254): each old tag page goes to the tag that replaced it, an alias on its _index.md.
+  const mergedTags = {
+    databases: ["amazon-keyspaces", "cassandra"], aws: ["cloud"], "data-structures": ["hashmap", "gotchas"], openapi: ["api-gateway", "rest-api"],
+    automation: ["bot", "twitter", "twitter4j"], "spring-boot": ["customization", "spring-framework"], redis: ["redistemplate"],
+    concurrency: ["parallelism", "threads"], observability: ["monitoring", "opentelemetry"], "software-engineering": ["engineering", "best-practices"],
+    ai: ["agents", "knowledge-base"], "side-projects": ["hacking", "image-processing", "xkcd"],
+  };
+  for (const [to, olds] of Object.entries(mergedTags)) for (const old of olds) redirects[`tags/${old}`] = `/tags/${to}/`;
+  redirects["tags/clean-code"] = "/blog/";
   // Old Hashnode posts that were never moved here go to their dev.to copy too, from every slug Hashnode gave them (#253).
   Object.assign(redirects, {
     "design-patterns-singleton": "https://dev.to/yonatankarp/design-patterns-singleton-32jp",

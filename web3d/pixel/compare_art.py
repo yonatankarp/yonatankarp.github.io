@@ -7,7 +7,7 @@ between encoder runs while every pixel is the same, so a byte compare would fail
 
 Run: uv run web3d/pixel/compare_art.py NEW [OLD]   # OLD defaults to static/building/pixel
 
-Fails when a picture in OLD is missing from NEW or differs in size or in any pixel, or when exterior.json differs.
+Fails when a picture in OLD is missing from NEW or differs in size or in any pixel, or when exterior.json or city.json differs.
 """
 import json
 import sys
@@ -30,11 +30,12 @@ def main(new, old):
             elif box := ImageChops.difference(a, b).getbbox():
                 problems.append(f"{path.name}: pixels differ in {box}")
         count += 1
-    if json.loads((new / "exterior.json").read_text()) != json.loads((old / "exterior.json").read_text()):
-        problems.append("exterior.json: differs")
+    for name in ("exterior.json", "city.json"):
+        if json.loads((new / name).read_text()) != json.loads((old / name).read_text()):
+            problems.append(f"{name}: differs")
     if problems:
         sys.exit("The art does not rebuild as committed:\n" + "\n".join(f"- {p}" for p in problems))
-    print(f"The art rebuilds pixel for pixel: {count} pictures and exterior.json.")
+    print(f"The art rebuilds pixel for pixel: {count} pictures, exterior.json and city.json.")
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@
 // - layouts/partials/time-pick.html picks each phase at its hours, and takes exactly these names from ?time=;
 // - web3d/src/pixel.css paints each phase's sky behind the street until the script runs;
 // - assets/css/custom.css puts each phase's backdrop behind the other pages;
-// - and the art those name is in static/building/pixel/.
+// - and the art those name is in static/building/pixel/, the homepage's city at each hour too (gen_city.py).
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
@@ -78,6 +78,7 @@ for (const name of names) {
   for (const file of files) {
     if (!fs.existsSync(path.join(rootDir, art(file)))) problems.push(`${name} needs ${art(file)} (uv run web3d/pixel/gen_exterior.py build static/building/pixel --time ${name})`);
   }
+  if (!fs.existsSync(path.join(rootDir, art(`city${suffix}.webp`)))) problems.push(`${name} needs ${art(`city${suffix}.webp`)} (a pick in web3d/pixel/gen_city.py's PICKS, then uv run web3d/pixel/gen_city.py build)`);
 }
 
 if (problems.length) {

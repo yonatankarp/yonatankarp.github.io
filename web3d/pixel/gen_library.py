@@ -159,19 +159,22 @@ FX = {
     "glow": [[1240, 250, 1350, 280], [1255, 280, 1345, 300]],   # the hearth and the floor before it
     "dust": [655, 40, 795, 300],                         # the window's shaft of light
     "clouds": [620, 40, 820, 110],                       # where clouds drift past outside, left to right
-    # The readers (gen_walkers.py's readers.webp; their routine is web3d/src/readers.js). Where: their soles' row, on the floor
-    # in front of the bookcases (their plinths end at row 263, the reading tables' tops start at 271); each bookcase's
-    # middle and how far either side a reader may stop; the room they walk, past the art's edges to leave it. How: walking
-    # speed in px/s; each reader's own pace, a factor on every time; what to do next, by weight (walk past, stop and look,
-    # take a book); and times in ms: stand, reach and take, then a read short or long ([min, max, weight]), a look, an idle
-    # pause between, and a while out of the room. Chances: a walk past leaves the room, a read goes on to the shelf next
-    # door, a stop keeps the walking direction (else either way).
-    "readers": {"floor": 266, "shelves": [360, 479, 601, 846, 965, 1087], "spread": 20, "room": [-60, 1500],
+    # The readers (gen_walkers.py's readers.webp; their routine is web3d/src/readers.js). Where: their soles' row, on the lit
+    # parquet between the bookcases' plinths (which end at row 263) and the reading tables' tops (from row 271), which hide
+    # their feet as they pass behind; each bookcase's middle and how far either side a reader may stop; the room they walk,
+    # past the art's edges to leave it; and the gap, in px, no reader stops within of another, about a reader's width and a
+    # margin. How: walking speed in px/s; each reader's own pace, a factor on every time; what to do next, by weight (walk
+    # past, stop and look, take a book); and times in ms: stand, reach and take, then a read short or long ([min, max,
+    # weight]), a look, an idle pause between, and a while out of the room. Chances: a walk past leaves the room, a read
+    # goes on to the shelf next door, a stop keeps the walking direction (else either way).
+    "readers": {"floor": 277, "shelves": [360, 479, 601, 846, 965, 1087], "spread": 20, "room": [-60, 1500], "gap": 70,
                 "speed": [45, 60], "pace": [0.7, 1.4], "choose": {"pass": 2, "look": 3, "browse": 4},
                 "browse": [[600, 900], [900, 1300], [700, 900]], "read": [[2500, 8000, 3], [10000, 20000, 1]],
                 "look": [2000, 5000], "idle": [800, 4000], "away": [3000, 9000], "leave": 0.4, "nearby": 0.4, "keep": 0.3},
 }
-LAMPS = 246                                              # the reading lamps' tops: above them, nothing stands in front of the readers
+LAMPS = 222                                              # the armchairs' tops, above the globe's and the lamps': above them, nothing stands in front of the readers
+REACH = 64                                               # px either side: past half a reading table or an armchair, to the floor beside it
+SHADOW = 3                                               # the soles' row and the two under it, which the readers' shadows reach
 WINDOW = (655, 20, 795, 175)                             # x0, y0, x1, y1: where the sky shows through the window
 
 
@@ -191,17 +194,26 @@ def sky(im):
 
 
 def backdrop(depth):
-    """Nothing behind the readers may hide them. The depth model barely parts this straight-on room's back wall from its
-    floor: books on the shelves and the seams between the wall's sections read as nearer than a reader's feet, and would
-    punch holes in a reader browsing the shelves. So above the reading lamps' tops (LAMPS) the wall is pushed back, and
-    between there and the floor line only what stands well in front of it keeps its depth: the lamps, 87 and more nearer
-    than the floor, where the wall's mistakes are mostly under 50."""
+    """Nothing behind the readers may hide them, and nothing in front may fail to. The depth model barely parts this
+    straight-on room's back wall from its floor: books on the shelves and the seams between the wall's sections read as
+    nearer than a reader's feet, and would punch holes in a reader browsing the shelves. So above the tops of the
+    armchairs, the globe and the lamps (LAMPS) the wall is pushed back, and from there down to the readers' contact
+    shadows, a few rows under their soles, only what stands in front of the floor under them, more than 15 nearer,
+    keeps its depth: the lamps, the tables, the armchairs and the globe at the left edge. The rest goes to 0, so
+    library-fx.js tests the readers from depth 0. The floor under a reader is its column's depth on the floor row, or,
+    where a table or a chair crosses that row (40 nearer than the farthest floor within REACH), that farthest floor;
+    the model paints its own floor in bands that differ by up to 35. What is kept grows two rows up, as the model
+    softens the tables' top edges into the floor behind them."""
     px, (w, _), floor = depth.load(), depth.size, FX["readers"]["floor"]
+    row = [px[x, floor] for x in range(w)]
     for x in range(w):
-        foot = min(px[xx, floor] for xx in range(max(0, x - 8), min(w, x + 9)))
-        for y in range(floor):
-            if y < LAMPS or px[x, y] <= foot + 60:
+        far = min(row[max(0, x - REACH):x + REACH + 1])
+        foot = row[x] if row[x] <= far + 40 else far
+        for y in range(floor + SHADOW):
+            if y < LAMPS or px[x, y] <= foot + 15:
                 px[x, y] = 0
+        for y in range(LAMPS, floor + SHADOW):   # top down, so each row grows from the rows under it as they were
+            px[x, y] = max(px[x, yy] for yy in range(y, min(y + 3, floor + SHADOW)))
     return depth
 
 

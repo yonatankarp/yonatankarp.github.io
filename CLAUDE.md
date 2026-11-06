@@ -123,8 +123,9 @@ lamp posts in `workshop-depth.png` are stood up by `gen_workshop.py` (`upright`)
 wall as they rise, and a whole post must hide a walker passing behind it.
 `library-fx.js`, its own bundle (`--mode library`): the fire, dust in the window's light and clouds only over the
 window's sky, from `library-fx.json`, which `gen_library.py build` writes from its `FX` and the sky it reads off the art.
-Three readers walk its floor to a shelf, stand, reach up, take a book and read it (the floor line, the shelves, their speed
-and each pose's time are `FX["readers"]`). They are `readers.webp` and `readers.json`, which `gen_walkers.py bake` makes from
+Three readers walk its floor, each its own way (`web3d/src/readers.js`, tested on a seed in `scripts/test/readers.test.js`):
+walking past and out of the room, stopping to look, or taking a book to read, facing either way, never two at one shelf.
+The floor line, the shelves, their speed, pace, weights and times are `FX["readers"]`. They are `readers.webp` and `readers.json`, which `gen_walkers.py bake` makes from
 the walkers' frames and four browse poses (`browse` paints them; picks `NAME_browse_KIND.png`), 135 px tall. Only the
 reading lamps hide them: `gen_library.py` pushes the back wall of `depth_map.py library`'s map back (`backdrop`), as the model
 reads books and the wall's seams as nearer than the floor.

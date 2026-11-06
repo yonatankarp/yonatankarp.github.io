@@ -18,7 +18,7 @@ html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-
 .city-tag {
   position: absolute; left: var(--x); top: max(var(--y), var(--bar-clear)); transform: translate(-50%, -100%);
   padding: 3px 8px 2px; background: rgba(27, 20, 16, 0.82); border: 2px solid var(--city-edge); color: var(--text);
-  font: 18px/1 var(--display); white-space: nowrap; box-shadow: 2px 2px 0 var(--city-ink); cursor: pointer;
+  font: 18px/1 var(--display); white-space: nowrap; text-decoration: none; box-shadow: 2px 2px 0 var(--city-ink); cursor: pointer;
 }
 .city-tag::after { content: ''; position: absolute; left: 50%; top: 100%; width: 2px; height: 14px; background: var(--city-edge); }
 .city-tag:hover, .city-tag:focus-visible, .city-tag.on { background: var(--city-amber); color: var(--city-ink); border-color: var(--city-ink); }

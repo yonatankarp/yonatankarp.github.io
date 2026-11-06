@@ -192,8 +192,7 @@ async function exercise(page, route) {
     if (await page.getAttribute(".city-chips button[data-pick='library']", "aria-pressed") !== "true" || await page.isHidden("[data-district='library']")) {
       throw new Error("picking the library did not show it");
     }
-    await page.click(".city-tag[data-pick='tower']");
-    await page.click("[data-district='tower'] .city-go");
+    await page.click(".city-tag[data-pick='tower']");   // the tower's label is a link into it
     await page.waitForSelector("html.building--guided:not(.at-city)", { timeout: 5000 });
     did.push("city district picked; the tower entered");
   }

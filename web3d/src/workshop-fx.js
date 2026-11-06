@@ -2,43 +2,16 @@
 // scrolling on the screens and moths round the street lamps, over the picture (scene-fx.js). Where they go is
 // workshop-fx.json and what hides them is workshop-depth.png, both written by web3d/pixel/gen_workshop.py; the walkers
 // are walkers.webp and walkers.json, written by web3d/pixel/gen_walkers.py.
-import { animate, rnd } from './scene-fx.js';
+import { animate, people, rnd } from './scene-fx.js';
 
 export function workshopFx(canvas, img) {
   const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`;
-  const people = (name) => `${new URL('walkers', new URL(img.dataset.base, location.href)).pathname}.${name}?v=${img.dataset.version}`;
-  animate(canvas, { data: art('fx.json'), depth: art('depth.png') }, (ctx, fx, { dfill, footAt }) => setup(ctx, fx, dfill, footAt, walkers(people)));
+  const sheet = new URL('walkers', new URL(img.dataset.base, location.href)).pathname;
+  const walkers = people((ext) => `${sheet}.${ext}?v=${img.dataset.version}`, document.documentElement.dataset.time === 'night');
+  animate(canvas, { data: art('fx.json'), depth: art('depth.png') }, (ctx, fx, test) => setup(ctx, fx, test, walkers));
 }
 
-// The walkers' sheet, a row per person and a column per frame, split once into each frame's pixels grouped by colour,
-// in the day's colours or dimmed for the night. Resolves to null without it: the street is then just empty.
-function walkers(url) {
-  const night = document.documentElement.dataset.time === 'night';
-  return Promise.all([
-    fetch(url('json')).then((r) => r.json()),
-    fetch(url('webp')).then((r) => r.blob()).then((b) => createImageBitmap(b, { colorSpaceConversion: 'none' })),
-  ]).then(([m, bitmap]) => {
-    const pad = new OffscreenCanvas(bitmap.width, bitmap.height).getContext('2d');
-    pad.drawImage(bitmap, 0, 0);
-    const d = pad.getImageData(0, 0, bitmap.width, bitmap.height).data, dim = (v, k) => Math.round(v * 0.45 + [14, 16, 34][k] * 0.55);   // under rgba(14,16,34,.55)
-    const frames = m.people.map((_, j) => Array.from({ length: m.frames }, (_, k) => {
-      const byColour = new Map();
-      for (let y = 0; y < m.h; y++) {
-        for (let x = 0; x < m.w; x++) {
-          const i = ((j * m.h + y) * bitmap.width + k * m.w + x) * 4;
-          if (d[i + 3] < 128) continue;
-          const rgb = [d[i], d[i + 1], d[i + 2]].map((v, c) => (night ? dim(v, c) : v)), fill = `rgb(${rgb})`;
-          if (!byColour.has(fill)) byColour.set(fill, []);
-          byColour.get(fill).push(x, y);
-        }
-      }
-      return [...byColour].map(([fill, px]) => ({ fill, px }));
-    }));
-    return { ...m, frames };
-  }).catch(() => null);
-}
-
-function setup(ctx, fx, dfill, footAt, sheet) {
+function setup(ctx, fx, { dfill, footAt, sprite }, sheet) {
   const time = document.documentElement.dataset.time, night = time === 'night';
 
   // Screens: short lines of code scrolling by, and a faint flicker.
@@ -82,24 +55,20 @@ function setup(ctx, fx, dfill, footAt, sheet) {
   // Painted walkers pacing the pavement's two lanes, the far one first; the lamp posts at the kerb stand in front of them.
   // A step of the cycle per stride of ground, so the feet do not slide; mirrored walking left. Fewer, and dimmed, at night.
   const [px0, px1] = fx.pavement;
-  let people = null;
-  sheet.then((s) => { people = s; });
+  let crowd = null;
+  sheet.then((s) => { crowd = s; });
   const walkers = Array.from({ length: night ? 4 : 8 }, (_, i) => ({
     x: rnd(px0 + 10, px1 - 5), dir: Math.random() < 0.5 ? 1 : -1, pace: rnd(0.71, 0.97), lane: fx.lanes[i % 2], who: i, dist: rnd(0, 100),
   })).sort((a, b) => a.lane - b.lane);
   const drawWalkers = (dt) => {
     for (const w of walkers) {
-      if (!people) continue;
-      const v = w.pace * people.stride;   // px/s: a pace in strides a second, so speed keeps to the people's size
+      if (!crowd) continue;
+      const v = w.pace * crowd.stride;   // px/s: a pace in strides a second, so speed keeps to the people's size
       w.x += v * w.dir * dt / 1000;
       if (w.x < px0 || w.x > px1) { w.dir = -w.dir; w.x = Math.min(px1, Math.max(px0, w.x)); }
       w.dist += v * dt / 1000;
-      const { frames, w: fw, foot, stride } = people, cycle = frames[w.who % frames.length], k = Math.floor(w.dist / stride * cycle.length) % cycle.length;
-      const x = Math.round(w.x), x0 = x - (fw >> 1), y0 = w.lane - foot, f = footAt(x, w.lane);
-      for (const { fill, px } of cycle[k]) {
-        ctx.fillStyle = fill;
-        for (let i = 0; i < px.length; i += 2) dfill(x0 + (w.dir > 0 ? px[i] : fw - 1 - px[i]), y0 + px[i + 1], 1, 1, f);
-      }
+      const cycle = crowd.frames[w.who % crowd.frames.length];
+      sprite(crowd, cycle[Math.floor(w.dist / crowd.stride * cycle.length) % cycle.length], w.x, w.lane, w.dir < 0);
     }
   };
 

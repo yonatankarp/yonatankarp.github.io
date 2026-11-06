@@ -6,7 +6,7 @@
 
 Run: uv run web3d/pixel/gen_library.py blockout [OUT]                  # the code blockout, for a look
      uv run web3d/pixel/gen_library.py paint [--count N] [--start S]   # Draw Things repaints the blockout (port 7860)
-     uv run web3d/pixel/gen_library.py build [OUT]                     # OUT/library.webp and library-fx.json
+     uv run web3d/pixel/gen_library.py build [OUT]                     # OUT/library.webp, library-fx.json, library-depth.png
 
 The city's pipeline (gen_city.py) at the city's size and colours, so the grain matches: the blockout fixes where every
 shelf sits, the model paints over it, and the pick is box-reduced and quantised undithered. One painting, at dusk: the
@@ -16,7 +16,9 @@ Paintings go to web3d/pixel/paintings/candidates/library_SEED.png (not committed
 web3d/pixel/paintings/picks/library.png, the build's input, and its seed noted in PICK.
 
 The room's animations (web3d/src/library-fx.js) draw from library-fx.json: the fire, the dust in the window's light,
-and clouds passing only over the window's sky, which is read off the baked art.
+clouds passing only over the window's sky, which is read off the baked art, and readers browsing the shelves, who hide
+behind the reading tables by picks/library-depth.png, made by depth_map.py (it needs torch); the build pushes its back
+wall back (backdrop).
 """
 import argparse
 import base64
@@ -157,7 +159,13 @@ FX = {
     "glow": [[1240, 250, 1350, 280], [1255, 280, 1345, 300]],   # the hearth and the floor before it
     "dust": [655, 40, 795, 300],                         # the window's shaft of light
     "clouds": [620, 40, 820, 110],                       # where clouds drift past outside, left to right
+    # The readers (gen_walkers.py's readers.webp): their feet's row on the floor in front of the bookcases, each bookcase's
+    # middle and how far either side of it a reader may stop, their walking speed in px/s, and how long each of a reader's
+    # poses at a shelf lasts, in ms (stand, reach, take, read: readers.json's browse).
+    "readers": {"floor": 262, "shelves": [360, 479, 601, 846, 965, 1087], "spread": 20, "speed": [45, 60],
+                "browse": [[600, 900], [900, 1300], [700, 900], [2500, 12000]]},
 }
+LAMPS = 246                                              # the reading lamps' tops: above them, nothing stands in front of the readers
 WINDOW = (655, 20, 795, 175)                             # x0, y0, x1, y1: where the sky shows through the window
 
 
@@ -176,10 +184,26 @@ def sky(im):
     return runs
 
 
+def backdrop(depth):
+    """Nothing behind the readers may hide them. The depth model barely parts this straight-on room's back wall from its
+    floor: books on the shelves and the seams between the wall's sections read as nearer than a reader's feet, and would
+    punch holes in a reader browsing the shelves. So above the reading lamps' tops (LAMPS) the wall is pushed back, and
+    between there and the floor line only what stands well in front of it keeps its depth: the lamps, 87 and more nearer
+    than the floor, where the wall's mistakes are mostly under 50."""
+    px, (w, _), floor = depth.load(), depth.size, FX["readers"]["floor"]
+    for x in range(w):
+        foot = min(px[xx, floor] for xx in range(max(0, x - 8), min(w, x + 9)))
+        for y in range(floor):
+            if y < LAMPS or px[x, y] <= foot + 60:
+                px[x, y] = 0
+    return depth
+
+
 def build(out):
     im = bake()
     im.save(out / "library.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
     (out / "library-fx.json").write_text(json.dumps({**FX, "sky": sky(im)}, separators=(",", ":")))
+    backdrop(Image.open(PICKED.with_name("library-depth.png")).convert("L")).save(out / "library-depth.png")   # depth_map.py's map, the wall pushed back
     print("drew library.webp from seed", PICK, f"at {ART_W} wide")
 
 

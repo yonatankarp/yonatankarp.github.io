@@ -200,9 +200,15 @@ async function exercise(page, route) {
     if (await page.getAttribute(".city-chips button[data-pick='library']", "aria-pressed") !== "true" || await page.isHidden("[data-district='library']")) {
       throw new Error("picking the library did not show it");
     }
-    await page.click(".city-tag[data-pick='tower']");   // the tower's label is a link into it
+    await page.click(".city-chips button[data-pick='library']");   // the same chip again: the whole city
+    await page.waitForSelector(".city:not(.zoomed)", { timeout: 5000 });
+    await page.click(".city-tag[data-pick='tower']");   // a label's first click zooms to its district
+    if (!(await page.locator(".city-tag.on[data-pick='tower']").count()) || !(await page.evaluate(() => document.documentElement.classList.contains("at-city")))) {
+      throw new Error("the tower's label did not zoom to it");
+    }
+    await page.click(".city-tag[data-pick='tower']");   // and its second goes in
     await page.waitForSelector("html.building--guided:not(.at-city)", { timeout: 5000 });
-    did.push("city district picked; the tower entered");
+    did.push("city district zoomed and back; the tower zoomed and entered");
   }
 
   if (route === "/" || route.startsWith("/?time=") || route.startsWith("/#")) {

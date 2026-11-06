@@ -47,6 +47,10 @@ PICKED = Path(__file__).resolve().parent / "paintings" / "picks"   # picks/city[
 SPOTS = {"radio": (1090, 470), "library": (1180, 720), "tower": (1760, 580), "post": (2420, 470), "workshop": (2300, 730)}
 LOTS = {"radio": (970, 380, 1210, 490), "post": (2290, 360, 2560, 490), "library": (1010, 560, 1380, 740),
         "workshop": (2080, 610, 2520, 750)}   # x0, y0, x1, y1: kept clear for each landmark
+# Where picking a district zooms (city.js): its building's middle, in % of the art (x, y), and how far to zoom so it fills
+# the free view (the tall tower and mast zoom less).
+ZOOM = {"tower": [51.4, 36, 1.2], "library": [35.3, 75, 2.4], "workshop": [66.5, 79, 2.4], "radio": [31.8, 33, 1.7],
+        "post": [70, 44, 2.4]}
 # Where pick 700 painted a landmark's top away from the blockout's, in painting pixels: its mast and clock tower taller.
 PAINTED = {"radio": (9, -85), "library": (0, -6), "workshop": (27, -8), "post": (0, -26)}
 
@@ -303,7 +307,7 @@ def write_fx(out, night, day, dusk):
 
 
 def write_json(out):
-    (out / "city.json").write_text(json.dumps({"size": SIZE, "labels": anchors()}))
+    (out / "city.json").write_text(json.dumps({"size": SIZE, "labels": anchors(), "zoom": ZOOM}))
 
 
 def build(out):

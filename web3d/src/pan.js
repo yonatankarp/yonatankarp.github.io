@@ -1,5 +1,5 @@
 // A wide painting that pans sideways to the label or chip picked (button[data-pick]) and shows that pick's
-// [data-district] in the panel: the homepage's city (city.js) and the projects' Workshop Row (workshop.js). `floats`
+// [data-district] in the panel: the projects' Workshop Row (workshop.js). The homepage's city zooms instead (city.js). `floats`
 // says whether the panel lies over the painting, which moves the middle of the free view right of it. Returns the pan.
 export function panning(box, first, floats, onPick) {
   const scene = box.querySelector('.city-scene'), panel = box.querySelector('.city-panel');

@@ -23,12 +23,17 @@ npm run lint             # ESLint, and Ruff over web3d/pixel/ (needs uv)
 Scripts share their helpers through `scripts/lib.js`. CI also rebuilds the art and fails unless it matches the committed
 files pixel for pixel (`web3d/pixel/compare_art.py`).
 
-The homepage (`layouts/index.html`) opens on the city: an aerial pixel-art panorama that pans sideways
-(`web3d/src/city.js`, `city.css`) to five districts, picked from a label or a chip in its panel: the Career Tower, the
-Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (the podcast) and the Post Office (email and the CV). Its
+The homepage (`layouts/index.html`) opens on the city: an aerial pixel-art panorama (`web3d/src/city.js`, `city.css`)
+that zooms into five districts, picked from a label or a chip in its panel: the Career Tower, the
+Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (the podcast) and the Post Office (email and the CV). The
+map moves by one transform (translate and scale, never scrolling), clamped so no edge of the art shows; a wheel, a
+trackpad or a finger pans it sideways at any zoom. The same chip again, or "Whole city", zooms back out. A label's first
+click zooms to its district; the picked label then shows "→" and its next click goes in (the tower, library and workshop;
+the mast's and the post office's only zoom). Its
 copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-PHASE].webp`, baked by
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
-one), which also writes `city.json`, the labels' anchors the template reads. The Career Tower is the pixel-art career
+one), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
+middle in % of the art, and how far to zoom: `ZOOM`). The Career Tower is the pixel-art career
 building: any `#floor-X` address (`/#floor-E` is its street) opens it directly, and pixel.js mounts it only then; back
 at the bare address the page reloads on the city.
 
@@ -40,8 +45,8 @@ skipped, one with no tag page fails the build), then the rest, most posts first 
 chips are links to the tag pages and the search box a form to `/search/`.
 
 The projects' index (`layouts/projects/list.html`) is the city's Workshop Row: a street of four brick workshops, one per
-project `group` (apps, libraries, games, contributions, in that order), that pans like the city (the shared
-`web3d/src/pan.js`) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
+project `group` (apps, libraries, games, contributions, in that order), that pans sideways by scrolling
+(`web3d/src/pan.js`) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
 are a bundle of their own, `assets/building/workshop.*` (`vite build --mode workshop`). Each workshop lists its projects
 by `weight`; without a script every workshop's list shows. Its art follows the clock like the city:
 `workshop[-PHASE].webp`, baked by `web3d/pixel/gen_workshop.py` from `paintings/picks/workshop[-PHASE].png` (dusk painted,
@@ -198,7 +203,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - Events (dashboard, Events): `cv-download` (the top bar's Download CV, and the city's Post Office), `social-<icon>` (its social icons:
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV or the footer),
   `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links),
-  `district-<key>` (the city panel's go link, and the map labels that lead in, for the tower, library and workshop: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
+  `district-<key>` (the city panel's go link, and the second click on a map label that leads in, for the tower, library and workshop, whose first click only zooms: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
   `district-post`) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `workshop-<group>` (a workshop picked on Workshop Row, by its
   label or chip, a `data-goatcounter-click`: `workshop-app`, `workshop-library`, `workshop-game`, `workshop-contribution`); `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)

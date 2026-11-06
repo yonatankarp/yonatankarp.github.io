@@ -158,7 +158,7 @@ const assertions = [
   "Mobile pages do not horizontally overflow the viewport.",
   "Visible images are loaded with non-zero natural dimensions.",
   "Every page renders the shared top bar (layouts/partials/pixel-bar.html): name plate, four tabs, CV download and the social row.",
-  "Home page opens on the city: its panorama, five district labels and chips; a chip picks its district and the tower's link enters the building.",
+  "Home page opens on the city: its panorama, five district labels and chips; a chip zooms into its district and the tower's link enters the building.",
   "Home page renders the building at #floor-E: its canvas, every floor and the street view's windows.",
   "Home page rides the lift: a floor button (the hero's CTA on mobile) rides to the roof or floor 8, the name plate rides back to the street, and scrolling and the garage door's sign both reach the garage.",
   "Home page pause button shows a Pause label that turns to Play on click, on mobile inside the top bar's Menu.",

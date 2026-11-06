@@ -105,7 +105,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   {{ $go := dict "tower" "#floor-E" "library" ("blog/" | relURL) "workshop" ("projects/" | relURL) "radio" $home.contact.podcast.url "post" (printf "mailto:%s" $home.contact.email.address) }}
   {{ $counts := dict "tower" (len $experience) "library" (len $posts) "workshop" (len $projects) }}
   {{ $texts := dict "radio" $home.contact.podcast.text "post" $home.contact.title }}
-  <section class="city" aria-label="City map" data-city>
+  <section class="city" id="city" aria-label="City map" data-city>
     <div class="city-scene">
       <div class="city-map" style="aspect-ratio:{{ index $cityArt.size 0 }} / {{ index $cityArt.size 1 }}">
         {{- /* Lazy, so a floor's address, which hides the city, never fetches it; on the city the script after it picks the hour's. */}}
@@ -168,7 +168,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         {{ with $now }}<p class="floor-now"><a href="#floor-{{ .floor }}" data-goto="{{ .floor }}">Now: {{ .label }} →</a></p>{{ end }}
         <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <span class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</span></p>
         <p class="floor-lead">{{ index (split $home.hero.lede ". ") 0 }}.</p>
-        <p class="floor-how"><span class="floor-how-why">Every floor is a chapter of my CV. </span><span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, pick a window, or <a href="{{ "" | relURL }}">go back to the city</a>.</p>
+        <p class="floor-how"><span class="floor-how-why">Every floor is a chapter of my CV. </span><span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, or pick a window.<span class="floor-how-city"> Or <a href="#city">go back to the city</a>.</span></p>
       </article>
     </section>
     {{- /* The street is where the lift starts, so its card is there at the first paint; not under a floor's address. */}}

@@ -150,8 +150,9 @@ export function guide(api, root = document) {
     if (afterPop) setTimeout(afterPop);   // after the traversal has dropped focus
     afterPop = null;
   });
-  // Back to the bare address: the city, which only a fresh load shows (city.js), as this building is already mounted.
-  addEventListener('hashchange', () => { if (!location.hash) location.reload(); });
+  // Back to the bare address, or the street card's #city: the city, which only a fresh load shows (city.js), as this
+  // building is already mounted. Loaded in place of the #city entry, at the same ?time=.
+  addEventListener('hashchange', () => { if (!location.hash || location.hash === '#city') location.replace(location.pathname + location.search); });
   roomy.addEventListener('change', setMode);
   setMode();
 

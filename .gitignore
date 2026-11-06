@@ -17,7 +17,7 @@ assets/building/
 assets/diagrams/
 
 # Draw Things paintings: only the picked candidates are inputs (install_picks.PICKS, paint_rooms.LOBBY_PICK,
-# gen_exterior.PICK, gen_city.PICKS); the rest are kept locally for comparison
+# gen_exterior.PICK); the rest are kept locally for comparison
 web3d/pixel/paintings/candidates/*
 !web3d/pixel/paintings/candidates/lobby_100.png
 !web3d/pixel/paintings/candidates/sumup_451.png
@@ -36,13 +36,11 @@ web3d/pixel/paintings/candidates/*
 !web3d/pixel/paintings/candidates/billie_risk_834.png
 !web3d/pixel/paintings/candidates/billie_orchestrator_800.png
 !web3d/pixel/paintings/candidates/billie_payments_717.png
-!web3d/pixel/paintings/candidates/city_700.png
-!web3d/pixel/paintings/candidates/city-dawn_700.png
-!web3d/pixel/paintings/candidates/city-day_700.png
-!web3d/pixel/paintings/candidates/city-night_700.png
 # install_picks.py also saves each crop beside its pixel art; only the -px.png files are read
 web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/*-px.png
+# and the city's hours, painted whole (gen_city.py)
+!web3d/pixel/paintings/picks/city*.png
 __pycache__/
 
 # Machine-specific Claude Code launch config and agent worktrees

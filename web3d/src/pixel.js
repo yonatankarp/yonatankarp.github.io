@@ -31,7 +31,7 @@ const held = () => reduceMotion.matches || !roomy.matches;              // no mo
 const hashKey = () => floorKey(location.hash, ORDER);   // a floor that exists again (a new floor 8) wins over its old anchor
 const TRIES = 3, RETRY_MS = 2000;                                // a strip that failed to load is asked for again, this often and no sooner
 
-export function mountPixel({ canvas, stops, base = '/building/', version = '', windowsBox, pauseButton }) {
+export function mountPixel({ canvas, stops, base = '/building/', version = '', windowsBox, pauseButton, entered = null }) {
   const ctx = canvas.getContext('2d');
   const keys = stops.map((s) => s.dataset.floor);
   const strips = new Map();         // key -> ImageBitmap or Image (or null while loading / missing)
@@ -157,7 +157,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', w
   // storage that cannot remember gets none, rather than one at every reload. arrive(), below, is the other way in.
   let shot = 0, epoch = 0, shotFrom = 0, shotMs = SHOT_MS;
   try {
-    if (!sessionStorage.getItem(SHOT_KEY) && keys[ride.from] === 'E' && !paused && !held()) shot = -1;
+    if ((entered || !sessionStorage.getItem(SHOT_KEY)) && keys[ride.from] === 'E' && !paused && !held()) shot = -1;   // walked in from the city: every time
     sessionStorage.setItem(SHOT_KEY, '1');
   } catch { shot = 0; }
   // Any input cuts to the rest picture, in time for that same input to land on it.
@@ -218,7 +218,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', w
     }
     ctx.imageSmoothingEnabled = false;
     const wide = !narrow.matches, still = held(), loopMs = (FRAMES * 1000) / FPS;
-    if (still || (shot < 0 && now - (performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? now) > SHOT_BY)) shot = 0;
+    if (still || (shot < 0 && now - (entered ?? performance.getEntriesByName('first-contentful-paint')[0]?.startTime ?? now) > SHOT_BY)) shot = 0;
     if (shot < 0 && street.ready()) roll();
     const take = shot > 0 ? clamp01(shotFrom + (now - shot) / shotMs) : 0;
     if (take === 1) { shot = 0; epoch = now - loopMs; }   // the room's loop starts on its rest, the shot's last picture
@@ -392,12 +392,12 @@ function darkenSome(deadline) {
 }
 
 const canvas = document.querySelector('#pixel-canvas');
-const mount = () => {
+const mount = (entered) => {
   const stops = [...document.querySelectorAll('section[data-floor]')];
-  const api = mountPixel({ canvas, stops, base: canvas.dataset.base || '/building/', version: canvas.dataset.version, windowsBox: document.querySelector('[data-exterior-windows]'), pauseButton: document.querySelector('[data-building-pause]') });
+  const api = mountPixel({ canvas, stops, base: canvas.dataset.base || '/building/', version: canvas.dataset.version, windowsBox: document.querySelector('[data-exterior-windows]'), pauseButton: document.querySelector('[data-building-pause]'), entered });
   guide(api);
   if (import.meta.env?.DEV) window.__building = api;
 };
-// On the city (city.js) the building waits, unloaded, until the visitor enters it.
-if (canvas && document.documentElement.classList.contains('at-city')) document.addEventListener('city:enter', mount, { once: true });
+// On the city (city.js) the building waits, unloaded, until the visitor enters it, and the shot then runs from that moment.
+if (canvas && document.documentElement.classList.contains('at-city')) document.addEventListener('city:enter', () => mount(performance.now()), { once: true });
 else if (canvas) mount();

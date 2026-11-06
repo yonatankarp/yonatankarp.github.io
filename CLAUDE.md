@@ -27,7 +27,7 @@ The homepage (`layouts/index.html`) opens on the city: an aerial pixel-art panor
 (`web3d/src/city.js`, `city.css`) to five districts, picked from a label or a chip in its panel: the Career Tower, the
 Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (the podcast) and the Post Office (email and the CV). Its
 copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-PHASE].webp`, baked by
-`web3d/pixel/gen_city.py` from the picks in its `PICKS` (Draw Things paintings, the other hours edited from the dusk
+`web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one), which also writes `city.json`, the labels' anchors the template reads. The Career Tower is the pixel-art career
 building: any `#floor-X` address (`/#floor-E` is its street) opens it directly, and pixel.js mounts it only then; back
 at the bare address the page reloads on the city. Its script and styles live in

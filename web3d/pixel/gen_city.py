@@ -14,7 +14,8 @@ Run: uv run web3d/pixel/gen_city.py blockout [OUT]                  # the code b
 The blockout fixes where every district sits; the model paints over it, and the picked painting (PICKS) is box-reduced
 to ART_W wide on COLOURS colours, undithered. The other hours are the dusk pick edited by the model, which keeps the
 composition, so the labels' anchors (city.json, read by layouts/index.html) hold at every hour.
-Paintings go to web3d/pixel/paintings/candidates/city[-PHASE]_SEED.png; only the picks are committed (.gitignore).
+Paintings go to web3d/pixel/paintings/candidates/city[-PHASE]_SEED.png (not committed); the chosen one is copied to
+web3d/pixel/paintings/picks/city[-PHASE].png, the build's input, and its seed noted in PICKS.
 """
 import argparse
 import base64
@@ -35,7 +36,8 @@ PW, H = 3456, 864                # the blockout: 4:1, so every district can be p
 PH = H // 64 * 64                # the painting's rows: Draw Things paints whole 64s, and pick 700's last 32 rows are black
 ART_W, COLOURS = 1440, 64
 SIZE = [ART_W, round(ART_W * PH / PW)]
-PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}   # each hour's painting, by seed
+PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}   # the seed of each hour's pick, for the record
+PICKED = Path(__file__).resolve().parent / "paintings" / "picks"   # picks/city[-PHASE].png: each hour's chosen candidate
 SPOTS = {"radio": (1090, 470), "library": (1180, 720), "tower": (1760, 580), "post": (2420, 470), "workshop": (2300, 730)}
 LOTS = {"radio": (970, 380, 1210, 490), "post": (2290, 360, 2560, 490), "library": (1010, 560, 1380, 740),
         "workshop": (2080, 610, 2520, 750)}   # x0, y0, x1, y1: kept clear for each landmark
@@ -176,9 +178,10 @@ HOURS = {
 
 
 def pick(phase):
-    if not PICKS[phase]:
-        sys.exit(f"PICKS has no painting for {phase}: paint it (gen_city.py paint --time {phase}) and pick a seed")
-    return CANDIDATES / f"city{'' if phase == 'dusk' else '-' + phase}_{PICKS[phase]}.png"
+    path = PICKED / f"city{'' if phase == 'dusk' else '-' + phase}.png"
+    if not path.exists():
+        sys.exit(f"no {path}: paint {phase} (gen_city.py paint --time {phase}), copy the chosen candidate there and note its seed in PICKS")
+    return path
 
 
 def paint(count, start, host, phase):

@@ -530,7 +530,7 @@ html.building--guided .pixel .floor-top .floor-quotes li:last-child { margin-bot
   .pixel .building-stop--hero .floor-card::after { bottom: 0; height: 10px; margin-top: 0; }
 }
 @media (max-width: 760px) and (max-height: 740px), (max-aspect-ratio: 6/5) and (max-height: 740px) {   /* short phones: the how-to's one line */
-  .pixel .floor-how-why { display: none; }
+  .pixel .floor-how-why, .pixel .floor-how-city { display: none; }   /* the city stays a Back away: its line would make the card scroll */
   html.building--guided .pixel .floor-now { display: none; }   /* no room: the role's window on the tower rides there */
 }
 /* Short or narrow (zoomed) screens, and no JavaScript: the plain page (#24). The top bar scrolls away with it,

@@ -1,6 +1,8 @@
 // The visitor's time of day for the art (#151), from the sun where they are: layouts/partials/time-pick.html writes the
 // zone table in for Z's placeholder. Tested by scripts/test/time-pick.test.js; check-phases.js runs it too.
 
+// The page's minifier must leave this script as it is, or its CSP hash breaks: if check-generated-html says so, reshape
+// these vars and functions, not the table.
 var Z = ZONES, q = new URLSearchParams(location.search).get('time');   // eslint-disable-line no-undef
 document.documentElement.dataset.time = /^(dawn|day|dusk|night)$/.test(q) ? q : sunPhase(Date.now(), ...place());
 

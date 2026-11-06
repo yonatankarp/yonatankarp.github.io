@@ -1,47 +1,70 @@
+{{- /* The blog is the city's Library: a painted reading room (web3d/pixel/gen_library.py) that pans sideways, a label on
+     each shelf, and a panel listing the picked shelf's posts (web3d/src/library.js, bundled into assets/building/ by
+     `npm run build:building`). Every list is real HTML: without a script they all show, one under the other. */ -}}
 {{ define "main" }}
+{{ $posts := sort .RegularPages "Date" "desc" }}
+{{ $art := os.ReadFile "static/building/pixel/library.json" | transform.Unmarshal }}{{/* written by gen_library.py */}}
+{{ $bays := 0 }}{{ range $k, $_ := $art.labels }}{{ if hasPrefix $k "shelf-" }}{{ $bays = add $bays 1 }}{{ end }}{{ end }}
+{{- /* A shelf for each curated tag (data/library.yaml) that listed posts carry, then for the tags most of them carry,
+     most posts first (ties by name), as many as the painting has shelves; each lists its posts newest first. The
+     catalogue under the window holds every post. */}}
+{{ $byTag := dict }}
+{{ range $posts }}{{ $post := . }}{{ range .GetTerms "tags" }}
+  {{ $pages := slice }}{{ with index $byTag .Data.Term }}{{ $pages = .pages }}{{ end }}
+  {{ $byTag = merge $byTag (dict .Data.Term (dict "term" . "pages" ($pages | append $post))) }}
+{{ end }}{{ end }}
+{{ $picked := slice }}{{ $used := slice }}
+{{ range hugo.Data.library.shelves }}{{ $label := .label }}
+  {{ if not (site.GetPage (printf "/tags/%s" .tag)) }}{{ errorf "data/library.yaml: shelf %q has no tag page; no post is tagged %s" $label .tag }}{{ end }}
+  {{ with index $byTag .tag }}{{ $picked = $picked | append (merge . (dict "name" $label)) }}{{ $used = $used | append .term.Data.Term }}{{ end }}
+{{ end }}
+{{ $topics := slice }}
+{{ range $byTag }}{{ if not (in $used .term.Data.Term) }}{{ $topics = $topics | append (merge . (dict "name" .term.Title "order" (printf "%05d %s" (sub 99999 (len .pages)) .term.Title))) }}{{ end }}{{ end }}
+{{ $shelves := slice (dict "key" "all" "name" "All posts" "pages" $posts "at" $art.labels.all) }}
+{{ range $i, $t := first $bays ($picked | append (sort $topics "order")) }}
+  {{ $shelves = $shelves | append (dict "key" $t.term.Data.Term "name" $t.name "pages" $t.pages "href" $t.term.RelPermalink "at" (index $art.labels (printf "shelf-%d" (add $i 1)))) }}
+{{ end }}
+{{ $css := resources.Get "building/library.css" }}
+{{ $js := resources.Get "building/library.js" }}
+{{ if not (and $css $js) }}{{ errorf "The blog's Library needs its bundle in assets/building/: run `npm run build:building` first." }}{{ end }}
+{{ $css = $css | fingerprint }}
+{{ $js = $js | fingerprint }}
+{{ $img := "building/pixel/library.webp" }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 <div class="blog-px">
-<section class="shell page-head">
-  <div class="page-head__copy">
-    <h1>{{ .Title }}</h1>
-    <p>{{ .Content | plainify }}</p>
-    {{ with .OutputFormats.Get "rss" }}<div class="chip-row"><a class="chip" href="{{ .RelPermalink }}" type="application/rss+xml">RSS feed</a></div>{{ end }}
+<section class="library" aria-label="The Library" data-library>
+  <div class="city-scene">
+    <div class="city-map" style="aspect-ratio:{{ index $art.size 0 }} / {{ index $art.size 1 }}">
+      <img src="{{ $img | relURL }}?v={{ substr (sha256 (os.ReadFile (printf "static/%s" $img))) 0 12 }}" alt="A grand reading room at dusk: a tall bookcase for each topic either side of an arched window onto the city, a card catalogue under it, reading tables with green lamps, a doorway on the left and a fireplace on the right." width="{{ index $art.size 0 }}" height="{{ index $art.size 1 }}" fetchpriority="high">
+      {{ range $shelves }}
+      <button class="city-tag{{ if eq .key "all" }} on{{ end }}" type="button" data-pick="{{ .key }}" data-goatcounter-click="shelf-{{ .key }}" style="--x:{{ index .at 0 }}%;--y:{{ index .at 1 }}%">{{ .name }}</button>
+      {{ end }}
+    </div>
   </div>
-</section>
-
-<section class="shell blog-layout">
-  <aside class="blog-sidebar">
-    <section>
-      <h2>Search</h2>
-      <form action="/search/" method="get">
-        <label class="sr-only" for="blog-search">Search articles</label>
-        <input id="blog-search" class="search-input" type="search" name="q" placeholder="Search articles">
-      </form>
-    </section>
-    <section>
-      <h2>Tags</h2>
-      <div class="chip-row">
-        {{ range first 8 .Site.Taxonomies.tags.ByCount }}
-        <a class="chip" href="{{ .Page.RelPermalink }}">{{ .Page.Title }} <span>({{ .Count }})</span></a>
-        {{ end }}
-        <a class="text-link" href="{{ "tags/" | relURL }}">All tags</a>
+  <div class="city-panel">
+    <a class="library-back" href="{{ "" | relURL }}">← Back to the city</a>
+    <h1 class="city-kicker">The Library</h1>
+    <p class="city-lede">{{ .Content | plainify }} Pick a shelf.</p>
+    <div class="city-chips" role="group" aria-label="Shelves">{{ range $shelves }}<button type="button" data-pick="{{ .key }}" data-goatcounter-click="shelf-{{ .key }}" aria-pressed="{{ eq .key "all" }}">{{ .name }}</button>{{ end }}</div>
+    <div class="city-say" aria-live="polite">
+      {{ range $shelves }}
+      <div data-district="{{ .key }}"{{ if ne .key "all" }} hidden{{ end }}>
+        <h2>{{ .name }}</h2>
+        <p>{{ len .pages }} {{ cond (eq (len .pages) 1) "post" "posts" }}{{ with .href }}, also on <a href="{{ . }}">the tag's page</a>{{ end }}.</p>
+        <ol class="library-posts">
+          {{ range .pages }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time><p>{{ .Description | default (.Summary | plainify) | truncate 200 }}</p></li>
+          {{ end }}
+        </ol>
       </div>
-    </section>
-    <section class="blog-sidebar__tracks">
-      <h2>Reading tracks</h2>
-      <div class="chip-row">
-        {{ range slice (slice "openapi" "API design") (slice "observability" "Observability") (slice "kotlin" "Kotlin/JVM") (slice "spring-boot" "Spring Boot") }}
-        {{ $label := index . 1 }}
-        {{ with site.GetPage (printf "/tags/%s" (index . 0)) }}<a class="chip" href="{{ .RelPermalink }}">{{ $label }}</a>{{ else }}{{ errorf "layouts/blog/list.html: reading track %q has no tag page; no post is tagged %s" $label (index . 0) }}{{ end }}
-        {{ end }}
-      </div>
-    </section>
-  </aside>
-
-  <div class="post-list">
-    {{ range sort .RegularPages "Date" "desc" }}
-    {{ partial "blog-row.html" . }}
-    {{ end }}
+      {{ end }}
+    </div>
+    <div class="chip-row">
+      {{ with .OutputFormats.Get "rss" }}<a class="chip" href="{{ .RelPermalink }}" type="application/rss+xml">RSS feed</a>{{ end }}
+      <a class="chip" href="{{ "search/" | relURL }}">Search</a>
+      <a class="chip" href="{{ "tags/" | relURL }}">All tags</a>
+    </div>
   </div>
 </section>
 </div>
+<script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
 {{ end }}

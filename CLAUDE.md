@@ -30,7 +30,16 @@ copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one), which also writes `city.json`, the labels' anchors the template reads. The Career Tower is the pixel-art career
 building: any `#floor-X` address (`/#floor-E` is its street) opens it directly, and pixel.js mounts it only then; back
-at the bare address the page reloads on the city. Its script and styles live in
+at the bare address the page reloads on the city.
+
+The blog's index (`layouts/blog/list.html`) is the city's Library, inside: a painted reading room that pans the same way
+(the shared `web3d/src/pan.js`; `library.js` and `library.css`, a bundle of its own, `assets/building/library.*`, built by
+`vite build --mode library`). Its six shelves start with the curated tags and labels in `data/library.yaml` (a tag no listed
+post carries is skipped, one with no tag page fails the build), then take the tags most listed posts carry, most first
+(ties by name); the card catalogue under the window holds every post. The template computes them, so a new tag needs no
+art, and `library.js` slides each label to stay whole on screen. Its art is `library.webp`,
+baked by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png` (one painting, at dusk), which also
+writes `library.json`, the shelves' anchors. Without a script every shelf's list shows. The homepage's script and styles live in
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
 `npm run build:building` has run. That script also draws every Mermaid fence in `content/` to SVG with the `mermaid`
 package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitignored `assets/diagrams/<sha256>.svg`), which
@@ -163,7 +172,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV or the footer),
   `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links),
   `district-<key>` (the city panel's go link: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
-  `district-post`) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
+  `district-post`), `shelf-<key>` (a shelf picked in the Library, by its tag, or `shelf-all`) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)
   and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.
 

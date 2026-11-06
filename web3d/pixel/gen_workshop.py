@@ -176,7 +176,8 @@ def bake(phase):
 # Where the row's animations go, in art pixels (workshop-fx.js).
 FX = {
     "pavement": [270, 1205],             # x0, x1: the painted walkers (gen_walkers.py) pace it, behind the lamp posts at the kerb
-    "lanes": [271, 281],                 # their feet's rows: the pavement's far half, then its near half
+    "lanes": [271, 277],                 # their feet's rows, far then near: the near one 6 rows above the lamp posts' bases
+                                         # (row 283), so its walkers pass behind the posts at the kerb as the far one's do
     "wall": [20, 210, 255],              # x0, y, x1: the left brick wall's top, where the cat walks and sits
     "weld": [615, 225],                  # the second workshop's bench: a welding torch
     "screens": [[368, 209, 390, 223], [400, 223, 409, 229], [848, 206, 869, 219], [1086, 207, 1108, 221]],   # x0, y0, x1, y1

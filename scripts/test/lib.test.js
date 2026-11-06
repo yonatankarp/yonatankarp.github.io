@@ -12,7 +12,7 @@ test("routeToPublicPath serves a folder's index.html", () => {
 
 test("routeToPublicPath serves a path with an extension as the file", () => {
   assert.equal(routeToPublicPath("/yonatan-karp-rudin-cv.pdf"), path.join(publicDir, "yonatan-karp-rudin-cv.pdf"));
-  assert.equal(routeToPublicPath("/building/pixel/exterior.json"), path.join(publicDir, "building", "pixel", "exterior.json"));
+  assert.equal(routeToPublicPath("/building/pixel/floors.json"), path.join(publicDir, "building", "pixel", "floors.json"));
 });
 
 test("routeToPublicPath decodes percent escapes and extra slashes", () => {

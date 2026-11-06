@@ -8,8 +8,8 @@ uv run web3d/pixel/pixelate.py SRC.png OUT.png [--size 376x154] [--colours 32] [
 
 Pipeline: median (kill painterly grain) -> BOX downscale -> pick this picture's colour budget (k-means in Lab,
 snapped to the palette) -> nearest colour in Lab -> the painting's dark ink lines forced to the outline colour ->
-lone-pixel cleanup. The palette is gen_floors.R (the rooms' ramps) plus its outline, so painted rooms and
-code-drawn props share colours, and gen_floors' lighting pass can shift painted pixels along their ramps.
+lone-pixel cleanup. The palette is gen_floors.R (the code-drawn ramps) plus its outline. The blog's covers use it;
+the tower's rooms are baked by install_picks.py instead, on their own colours.
 
 --line-art swaps the median for a 5px min filter, so a diagram's thin lines thicken instead of vanishing in the box.
 """
@@ -93,13 +93,6 @@ def pixelate(src, size, colours=32, keep=(), line_art=False):
     idx = nearest(small, pal)
     idx[ink_mask(src, size)] = int(np.argmin(((pal - np.array(G.INK)) ** 2).sum(-1)))
     return Image.fromarray(pal[cleanup(idx, pal)].astype(np.uint8), "RGB")
-
-
-def quantize(src, size, colours=64):
-    """The new art standard (the city's): a box downscale, then a median cut to the picture's own colours, no dither and
-    no palette, so a painterly painting keeps its light and texture."""
-    small = src.convert("RGB").resize(size, Image.BOX)
-    return small.quantize(colours, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-// web3d/src/calendar.js: the street's seasons and holidays, on dates whose answer is known.
+// web3d/src/calendar.js: the seasons and holidays for the parked dressing, on dates whose answer is known.
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const table = require("../../data/timezones.json");

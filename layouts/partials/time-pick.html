@@ -1,7 +1,7 @@
 {{- /* The visitor's time of day for the art (#151), as statements that set html[data-time] to dawn, day, dusk or night
      from the sun's elevation where their time zone is (assets/js/time-pick.js). ?time=dawn|day|dusk|night overrides it;
      anything else means the sun. Shared by the homepage's pre-paint script (layouts/index.html), which also preloads
-     that hour's street, and every other page's (head.html), whose backdrop custom.css picks by it. Returns plain JS: the
+     that hour's city, and every other page's (head.html), whose backdrop custom.css picks by it. Returns plain JS: the
      caller minifies it and allows it in the CSP by its hash.
      ZONES, its zone table, is data/timezones.json with the links resolved, to whole degrees and grouped by the zone's
      folder ("Europe/": "... Berlin53,13 ..."): about 8 KB, 4.5 KB gzipped. */ -}}

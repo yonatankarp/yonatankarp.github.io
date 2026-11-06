@@ -8,7 +8,8 @@ Run: uv run web3d/pixel/gen_city.py blockout [OUT]                  # the code b
      uv run web3d/pixel/gen_city.py paint [--count N] [--start S]   # Draw Things repaints the blockout at dusk (port 7860)
      uv run web3d/pixel/gen_city.py paint --time PHASE [...]        # ... or edits the dusk pick to another hour
      uv run web3d/pixel/gen_city.py build [OUT]                     # OUT/city.webp, city-PHASE.webp for every other
-                                                                    # phase in data/phases.json, city.json, city-fx.json
+                                                                    # phase in data/phases.json, backdrop[-PHASE].webp
+                                                                    # (BACKDROP of each), city.json, city-fx.json
                                                                     # and city-depth.png
      uv run web3d/pixel/gen_city.py json [OUT]                      # only OUT/city.json
 
@@ -311,6 +312,11 @@ def write_json(out):
     (out / "city.json").write_text(json.dumps({"size": SIZE, "labels": anchors(), "zoom": ZOOM, "maxPx": MAX_PX}))
 
 
+# The other pages' backdrop (custom.css, under html[data-time]): the middle of the city round the tower, about as tall
+# as wide (1.43:1), so it fills a screen's lower part behind the sheet.
+BACKDROP = (492, 0, 988, 347)
+
+
 def build(out):
     phases = json.loads((ROOT / "data" / "phases.json").read_text())
     if set(phases) != set(PICKS):
@@ -319,7 +325,8 @@ def build(out):
     for phase, im in baked.items():
         path = out / f"city{'' if phase == 'dusk' else '-' + phase}.webp"
         im.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
-        print("drew", path.name, "from seed", PICKS[phase])
+        im.crop(BACKDROP).save(out / f"backdrop{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
+        print("drew", path.name, "and its backdrop, from seed", PICKS[phase])
     write_json(out)
     write_fx(out, baked["night"], baked["day"], baked["dusk"])
 

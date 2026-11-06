@@ -34,8 +34,10 @@ copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-
 one), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
 middle in % of the art, and how far to zoom: `ZOOM`), capped where an art pixel would pass `MAX_PX` (4) screen px,
 so a big screen zooms less than a phone, and never under 1. The Career Tower is the pixel-art career
-building: any `#floor-X` address (`/#floor-E` is its street) opens it directly, and pixel.js mounts it only then; back
-at the bare address the page reloads on the city.
+building, entered at its lobby: any `#floor-X` address opens it directly, and pixel.js mounts it only then; back
+at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city. It is the career
+only: every other topic has its building in the city. The old street's `#floor-E` lands in the lobby (`web3d/src/hash.js`),
+and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/` (the pre-paint script in `layouts/index.html`).
 
 The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library.webp`, baked
 by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk), then every listed
@@ -65,38 +67,32 @@ The building's art follows the real sun where the visitor is: their time zone's 
 when unknown) gives the sun's elevation now, day above +6°, night at -8° or below, and dawn or dusk between, before or
 after noon. It is picked once at load by the inline script in `layouts/index.html` (`html[data-time]`), from
 `assets/js/time-pick.js` (tested in `scripts/test/time-pick.test.js`). `/?time=dawn|day|dusk|night` overrides it for
-testing; anything else means the sun. Dusk is the plain files; a variant is one more entry in
-`PHASES` in `web3d/pixel/gen_floors.py`, baked with `uv run web3d/pixel/gen_exterior.py build static/building/pixel --time NAME`
-into `exterior-NAME.webp`, `floor-{R,P,L}-NAME.webp` (only those rooms show outside) and `backdrop-NAME.webp`, the street
-without the tower behind every other page. The pick is `layouts/partials/time-pick.html`, shared by the homepage and
-`head.html`, so the other pages follow the same sun: `assets/css/custom.css` maps `html[data-time]` to the backdrop.
+testing; anything else means the sun. Never pick by the hour: read `html[data-time]`. Dusk is the plain files. The rooms
+that show outside have a painting at each other hour, an edit of the dusk pick that changes only the light
+(`paint_rooms.py retime`): the roof whole, the lobby only through its glass door. `gen_floors.py` bakes them into
+`floor-{L,R}-NAME.webp`. The other pages' backdrop is a crop of the city at the hour (`backdrop[-NAME].webp`, written by
+`gen_city.py build`), behind the sheet: the pick is `layouts/partials/time-pick.html`, shared by the homepage and
+`head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop.
 `data/phases.json` lists the phases (the sky above the roof, the baked rooms, how far a dark room falls), and
-`web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the street's sky in
-`web3d/src/pixel.css` and to the backdrop rules in `custom.css`: `npm run check:phases` (part of `npm run check`) fails
-until those agree with `phases.json`, and `gen_floors.py` checks `phases.json` against its `PHASES` on every run.
+`web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the backdrop rules in
+`custom.css`, and paint the city, Workshop Row, the roof and the lobby's view at it: `npm run check:phases` (part of
+`npm run check`) fails until those agree with `phases.json`, and `gen_floors.py` checks its baked rooms (the paintings
+there are) and its sky (the roof strip's top row) on every run.
 
-The street is also dressed for the visitor's season, holidays and weather, drawn in code over the baked art (no new
-art per season): `web3d/src/outside.js` works out what is going on, `web3d/src/decor.js` draws it (two pavement trees
-that follow the season, snow on the roofs in a cold winter, and rain, snow, fog or clouds, which fall on the roof's
-strip too). The holidays dress the street, never the tower, whose signs stay clear: strings of lights between the lamp
-posts, the lamp posts, the pavement, the news stand's window and the neighbours' windows. The visitor is placed by their browser's timezone alone, through
-`data/timezones.json` (country and main city per IANA zone, made from tzdata by `node scripts/gen-timezones.js`); an
-unknown zone gets Berlin. Seasons flip south of the equator, and the tropics stay summer. Holidays are
-`web3d/src/calendar.js`: the ones in `HOME` (Israel's and Germany's: Hanukkah, Sukkot, Christmas, Easter) show for
-everyone, plus the new year, and the visitor's country adds its own (Halloween, Diwali, Lunar New Year, both Eids).
-Jewish, Chinese and Islamic dates come from the browser's `Intl` calendars; Diwali is the `DIWALI` table, and
-`npm test` fails once it no longer covers next year. The weather is the site's one call to a third party besides
-GoatCounter: Open-Meteo, from the homepage only (its `connect-src` in `head.html`), at most once an hour per browser
-session, after load. If it fails, the street just goes without weather. `?season=`, `?weather=clear|cloudy|fog|rain|snow`
-and `?holiday=none` or a list such as `hanukkah:3,christmas` (the number is the day, from 0) pin each one, like
-`?time=`. The visual captures pin a plain summer's day, plus one dressed capture. `npm run check:csp` answers the weather
-call itself.
+The seasonal, holiday and weather dressing is parked for a later pass: `web3d/src/outside.js` and `calendar.js` (tested in
+`scripts/test/calendar.test.js`) still work out the visitor's season, holidays and country from `data/timezones.json`, but
+nothing imports them.
 
-The art's numbers that `web3d/src/` draws by (strip size, lift doors, dither, each room's lamps, where each window looks
-in, the street's geometry) are written into `static/building/pixel/exterior.json` by `gen_exterior.py` (`json OUT` writes
-only that file) and bundled from there, and `data/floor_accents.yaml` is written by `gen_floors.py` from `FLOORS`: change
-the Python, rerun it, never the copies. `pixel.js` is the lift and the floors, `street.js` the street view and its
-flights, `art.js` what they share.
+The tower's art is 928x308 a room (painted at 2304x768, box-reduced and median-cut to 64 colours, no dither, like the
+city), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an edit of the lobby carried across, so the
+wall, skirting and floor run on from the lift), `install_picks.py` bakes the picks (`PICKS`) and pastes the lobby's one
+lift into each, and `gen_floors.py` draws the slabs, the floor number and what moves (each room's animation, which only
+paints over what is there: lights, screens, a glint). A strip is its rest frame, two runs pixel.js tiles past it on a
+wide screen, and its moving box's other frames. The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
+box, lift doors, dither, each room's lamps, the floors' order) are written into `static/building/pixel/floors.json` by
+`gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
+rerun it, never the copies. `pixel.js` is the lift and the floors, `art.js` what it reads; it keeps only the storeys
+round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most.
 
 The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
 laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the
@@ -135,7 +131,7 @@ beacon, and the Post Office's clock (the visitor's real seconds), lamps and dust
 
 - `content/experience/` — job entries (one .md per role)
 - `content/education/` — education entries
-- `content/projects/` — projects listed on the homepage's Parking floor and on `/projects/`
+- `content/projects/` — projects listed on `/projects/` (Workshop Row)
 - `content/blog/` — blog posts
 - `content/testimonial/` — recommendation quotes with photos
 - Experience, education and testimonial entries have no pages of their own: the `[[cascade]]` in `hugo.toml` renders
@@ -190,20 +186,16 @@ The post shows it across the page behind its head, about 40 of its 108 rows on a
 Art inside a post goes in `static/images/blog/pixel/`, painted from `INLINE` in `paint_covers.py` at the covers' 192x108, which keeps it crisp: anything wider than 480px would get smeared webp sizes.
 
 ### New project
-Create `content/projects/name.md` with a `link` and a `group` of `app`, `library`, `game` or `contribution`, which picks its workshop on `/projects/` (the build fails without either; a new group needs a workshop in the painting). Its place in the workshop is its `weight`, lowest first. The entry links to its case study with `caseStudy: true`, else to `link` under `params.button.btnText`. Set `archived: true` once the repository is archived: the project stays listed, with an "Archived" label on `/projects/`, its case study and the homepage's Parking floor, and "(archived)" after its name in the Parking card and `llms.txt`.
+Create `content/projects/name.md` with a `link` and a `group` of `app`, `library`, `game` or `contribution`, which picks its workshop on `/projects/` (the build fails without either; a new group needs a workshop in the painting). Its place in the workshop is its `weight`, lowest first. The entry links to its case study with `caseStudy: true`, else to `link` under `params.button.btnText`. Set `archived: true` once the repository is archived: the project stays listed, with an "Archived" label on `/projects/` and its case study, and "(archived)" after its name in `llms.txt`.
 
 ### New experience
 Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `duration`, `summary`, and:
 - `floor`: a quoted storey, such as `floor: "5"`, that no other entry uses. Floors 2 to 7 are the roles;
-  `1`, `R`, `L`, `P` and `E` are taken by the template. A new storey (a single character: `8`, `9`) needs its room:
-  its painting in `web3d/pixel/`, and in `web3d/pixel/gen_floors.py` its entry in `FLOORS` (which writes its colour
-  into `data/floor_accents.yaml`), `EDGES` and `SIGNS`, and in `gen_exterior.py` its `LOOK` (where its street window
-  looks into its strip). Then rebuild all the art, as CI does. The street needs no repaint: `stack_tower()` in
-  `gen_exterior.py` builds the tower from the painting's own storeys, and the lift's order (`ORDER` in
-  `web3d/src/art.js`) comes from `exterior.json`. Past nine storeys above ground the street's picture grows taller at
-  its top (`RISE`, also in `exterior.json`, which `web3d/src/` slides the street's rows by), so the street shows
-  smaller: with two more floors, a 1920x1080 screen goes from 3x to 2x and a 1280x720 one from 2x to 1x (1440x900
-  stays 2x).
+  `1`, `R` and `L` are taken by the template, and `P` is the CV's colour for open source. A new storey (a single
+  character: `8`, `9`) needs its room: its painting (`ROOMS` in `web3d/pixel/paint_rooms.py`, picked into `PICKS` in
+  `install_picks.py`), and in `web3d/pixel/gen_floors.py` its entry in `FLOORS` (its accent, which goes into
+  `data/floor_accents.yaml`, its animation and its lamps). Then rebuild all the art, as CI does: the lift's order
+  (`ORDER` in `web3d/src/art.js`) comes from `floors.json`.
 - `highlights`: a list; the first three show on the floor's card, the rest inside it.
 
 `layouts/index.html` fails the build naming the file when `floor` or `highlights` is wrong.
@@ -223,11 +215,12 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into the script)
 - Events (dashboard, Events): `cv-download` (the top bar's Download CV, the city's Post Office and the Post Office's CV parcel), `social-<icon>` (its social icons, and the Post Office's stamps:
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV, the Post Office or the footer),
-  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links), `podcast-radio` (the Radio Mast's Listen button),
+  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `roof-post` (the roof's Get in touch, to `/contact/`), `podcast-radio` (the Radio Mast's Listen button),
   `district-<key>` (the city panel's go link, and a map label's second click, which leads in; its first only zooms: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
   `district-post`) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `workshop-<group>` (a workshop picked on Workshop Row, by its
   label or chip, a `data-goatcounter-click`: `workshop-app`, `workshop-library`, `workshop-game`, `workshop-contribution`); `floor-<key>` (the first time a visit's ride
-  reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)
+  reaches a floor, e.g. `floor-5`, `floor-R`; the load's own floor is not counted; there is no `floor-E` or `floor-P`:
+  the way back out to the city is a page view of `/`)
   and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.
 
 ## Deployment

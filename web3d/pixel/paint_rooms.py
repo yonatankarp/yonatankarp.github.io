@@ -24,20 +24,18 @@ import json
 import urllib.request
 from pathlib import Path
 
-import numpy as np
 from PIL import Image, ImageFilter
 
 HERE = Path(__file__).resolve().parent / "paintings"
 OUT = HERE / "candidates"
-FLOOR_SIZE = (1920, 640)      # the whole floor, lobby + room: art 464 x 154 px at about 4.15x
-LOBBY_PICK = ("lobby_100.png", (6, 6, 570, 634))   # the picked lobby candidate and its crop (install_picks.py)
-# The new art standard (the city's): painterly, and twice the old floors' pixels, art 928 x 308 at about 2.5 painting
-# pixels each. Every room is painted at it, from the new lobby, whose lift stays where the old one was.
-FINE_SIZE = (2304, 768)
-LOBBY_FINE_SIZE = (704, 768)  # the lobby alone: art 264 x 308 px
-LOBBY_FINE = ("lobby_1017.png", (7, 7, 684, 761))   # the old LOBBY_PICK's crop, at this size
+# The art standard (the city's): painterly, art 928 x 308 at about 2.5 painting pixels each. Every room is painted from
+# the lobby, an edit of the first one (OLD_LOBBY, cel-shaded), so the lift stayed where the floors' code has it.
+FLOOR_SIZE = (2304, 768)
+LOBBY_SIZE = (704, 768)       # the lobby alone: art 264 x 308 px
+LOBBY = ("lobby_1017.png", (7, 7, 684, 761))   # the picked lobby candidate and its crop (install_picks.py)
+OLD_LOBBY = "lobby_100.png"
 
-EDIT_FINE = (
+EDIT = (
     "Edit this picture. Repaint it as highly detailed painterly city-builder video game art of a single room seen "
     "straight on like a dollhouse cutaway: orthographic side view, no perspective, no side walls, the back wall "
     "parallel to the picture. Warm golden dusk light, soft shadows, rich texture and fine detail. Keep the elevator on "
@@ -46,7 +44,7 @@ EDIT_FINE = (
     "from the elevator to the right edge of the picture: no corner, no step, no pillar, no side wall and no change of "
     "colour where the elevator's wall ends. In the space to the right of the elevator, furnish the room with: "
 )
-TAIL_FINE = (" Every object stands on the floor, detailed and clearly readable, spaced apart. A few hanging pendant "
+TAIL = (" Every object stands on the floor, detailed and clearly readable, spaced apart. A few hanging pendant "
              "lamps cast warm soft pools of light, lit warm. No people. No text, no letters, no numbers, no logos and "
              "no labels on anything: every surface is plain.")
 PAINTERLY = ("highly detailed painterly city-builder video game art, warm golden dusk light, soft shadows, rich "
@@ -60,7 +58,7 @@ LOBBY_EDIT = (
     "bottom, running straight out of both sides of the picture. One hanging pendant lamp near the top casts a warm soft "
     "pool of light on the doors. Nothing else. No people, no text, no letters, no numbers, no logos."
 )
-ROOF_FINE = (
+ROOF = (
     "Edit this picture. Repaint it as " + PAINTERLY + ", seen straight on: orthographic side view, no perspective. Keep "
     "the elevator on the left exactly where it is, with its wall around it, as a small rooftop lift housing. Replace "
     "everything to the right of the housing with an open flat rooftop at dusk: a low parapet wall along the bottom, a "
@@ -138,12 +136,6 @@ ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come 
         "a big potted palm, and on the far right a tall glass entrance door showing the dusky street outside, brass "
         "accents."
     ),
-    "parking": (
-        "an underground parking level lit by long fluorescent tube lights: thick concrete pillars with yellow and black "
-        "hazard stripes, white parking bay lines painted on the floor, three parked vehicles side by side: a small "
-        "vintage camper van, a compact hatchback car and a scooter, an arcade game cabinet with a glowing screen "
-        "against the wall, a workbench under a pegboard of tools, and on the far right a ramp rising toward daylight."
-    ),
     "reichman": (
         "a university lecture room, all of it in one shallow row along the back wall: a single row of wooden benches "
         "with fold-down desks side by side, a large dark green chalkboard covered "
@@ -156,13 +148,11 @@ ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come 
 
 def floor_base(size=FLOOR_SIZE):
     """The lobby on the left, its plain wall, skirting and floor (a strip from its edge) carried rightwards."""
-    name, box = LOBBY_PICK if size == FLOOR_SIZE else LOBBY_FINE
+    name, box = LOBBY
     lobby_w = round(size[1] * 132 / 154)
     lobby = Image.open(OUT / name).convert("RGB").crop(box).resize((lobby_w, size[1]), Image.LANCZOS)
-    if size == FLOOR_SIZE:
-        plain = lobby.crop((0, 0, 48, size[1]))
-    else:   # a painterly wall tiled reads as stripes, and as a corner at the lobby's edge: carry each row's colour on
-        plain = lobby.crop((lobby_w - 40, 0, lobby_w, size[1])).resize((1, size[1]), Image.BOX)
+    # a painterly wall tiled reads as stripes, and as a corner at the lobby's edge: carry each row's colour on
+    plain = lobby.crop((lobby_w - 40, 0, lobby_w, size[1])).resize((1, size[1]), Image.BOX)
     base = Image.new("RGB", size)
     for x in range(lobby_w, size[0], plain.width):
         base.paste(plain, (x, 0))
@@ -201,6 +191,7 @@ def mended(src, x1, y1, side="lobby"):
         for i, x in enumerate(range(x0, x1, 100)):
             fill.paste(strip.transpose(Image.FLIP_LEFT_RIGHT) if i % 2 == 0 else strip, (x, 0))
         return Image.composite(fill, src, band(src.size, x1, y1))
+    import numpy as np   # here only: gen_city, gen_library and gen_workshop import this module without numpy
     a = np.asarray(src, dtype=np.float64)
     smooth = np.asarray(src.filter(ImageFilter.GaussianBlur(12)), dtype=np.float64)
     t = np.linspace(0, 1, x1 - x0)[None, :, None]
@@ -272,13 +263,13 @@ def main():
         jobs = [(OUT / f"{stem}-{args.time}_{args.start + 17 * k}.png", prompt, init.size, args.start + 17 * k, init)
                 for k in range(args.count)]
     elif args.room == "lobby":   # an edit of the old lobby, so its lift stays where the floors' code has it
-        init = Image.open(OUT / LOBBY_PICK[0]).convert("RGB").resize(LOBBY_FINE_SIZE, Image.LANCZOS)
-        jobs = [(OUT / f"lobby_{args.start + 17 * k}.png", LOBBY_EDIT, LOBBY_FINE_SIZE, args.start + 17 * k, init)
+        init = Image.open(OUT / OLD_LOBBY).convert("RGB").resize(LOBBY_SIZE, Image.LANCZOS)
+        jobs = [(OUT / f"lobby_{args.start + 17 * k}.png", LOBBY_EDIT, LOBBY_SIZE, args.start + 17 * k, init)
                 for k in range(args.count)]
     else:
-        prompt = ROOF_FINE if args.room == "roof" else EDIT_FINE + ROOMS[args.room] + TAIL_FINE
-        init = floor_base(FINE_SIZE)
-        jobs = [(OUT / f"{args.room}_{args.start + 17 * k}.png", prompt, FINE_SIZE, args.start + 17 * k, init)
+        prompt = ROOF if args.room == "roof" else EDIT + ROOMS[args.room] + TAIL
+        init = floor_base(FLOOR_SIZE)
+        jobs = [(OUT / f"{args.room}_{args.start + 17 * k}.png", prompt, FLOOR_SIZE, args.start + 17 * k, init)
                 for k in range(args.count)]
     for path, prompt, size, seed, init in jobs:
         paint(path, prompt, size, seed, args.host, init)

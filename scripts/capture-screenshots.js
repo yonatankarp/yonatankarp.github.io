@@ -25,23 +25,20 @@ const viewports = [
 ];
 
 const homeSelectors = [
-  [".building-name[data-goto='E']", 1, "name plate"],
+  [".building-name[href='#city']", 1, "name plate"],
   [".building-links nav a", 4, "top bar tabs"],
   [".building-download", 1, "CV download"],
   [".building-social a", 4, "social links"],
   ["#pixel-canvas", 1, "building canvas"],
-  ["section.building-stop", 11, "building floors"],
-  [".building-window", 9, "street view windows"],
+  ["section.building-stop", 9, "building floors"],
 ];
 
-// The street follows the visitor's season, holidays and weather too (web3d/src/outside.js): pinned to a plain summer's day.
-const plain = "season=summer&weather=clear&holiday=none";
 const citySelectors = [
   [".city-map img", 1, "city panorama"],
   [".city-tag", 5, "district labels"],
   [".city-chips button[aria-pressed]", 5, "district chips"],
 ];
-// "/" opens on the city; the building's routes name its street (#floor-E), which opens it directly.
+// "/" opens on the city; the building's routes name a floor, the lobby where the city leads in, which opens it directly.
 const routes = [
   {
     name: "city",
@@ -56,21 +53,16 @@ const routes = [
   },
   {
     name: "home",
-    path: `/?time=dusk&${plain}#floor-E`,   // pinned: the art follows the clock otherwise, so captures could not be compared (#151)
+    path: "/?time=dusk#floor-L",   // pinned: the art follows the clock otherwise, so captures could not be compared (#151)
     pauseLabel: true,
     ride: true,
     requiredSelectors: [...homeSelectors, ["html[data-time='dusk']", 1, "dusk art"]],
   },
   ...Object.keys(phases).filter((time) => time !== "dusk").map((time) => ({
     name: `home-${time}`,
-    path: `/?time=${time}&${plain}#floor-E`,
+    path: `/?time=${time}#floor-R`,   // the roof, which has its own picture at each hour
     requiredSelectors: [...homeSelectors, [`html[data-time='${time}']`, 1, `${time} art`]],
   })),
-  {
-    name: "home-dressed",   // the decorations drawn over it: a snowy winter's night, the last of Hanukkah and Christmas
-    path: "/?time=night&season=winter&weather=snow&holiday=hanukkah:7,christmas#floor-E",
-    requiredSelectors: [...homeSelectors, ["html[data-weather='snow'][data-holiday='hanukkah christmas']", 1, "the dressed street"]],
-  },
   {
     name: "projects",
     path: "/projects/?time=dusk&fx=off",   // Workshop Row follows the clock like the city, so pinned; still, as the city is
@@ -181,8 +173,8 @@ const assertions = [
   "Visible images are loaded with non-zero natural dimensions.",
   "Every page renders the shared top bar (layouts/partials/pixel-bar.html): name plate, four tabs, CV download and the social row.",
   "Home page opens on the city: its panorama, five district labels and chips; a chip zooms into its district and the tower's link enters the building.",
-  "Home page renders the building at #floor-E: its canvas, every floor and the street view's windows.",
-  "Home page rides the lift: a floor button (the hero's CTA on mobile) rides to the roof or floor 8, the name plate rides back to the street, and scrolling and the garage door's sign both reach the garage.",
+  "Home page renders the building at #floor-L, the lobby where the city leads in: its canvas and every floor.",
+  "Home page rides the lift: a floor button rides to the roof and back to the lobby, the keys ride one floor, and the lobby's sign rides up to the current role.",
   "Home page pause button shows a Pause label that turns to Play on click, on mobile inside the top bar's Menu.",
   "CV page renders every role.",
   "Blog index contains multiple article rows/cards.",
@@ -541,16 +533,12 @@ async function assertRide(page, route, viewport) {
       .catch(() => fail(`${route.path} (${viewport.name}) ${via} did not ride to floor ${key}`));
   };
 
-  await arrive("R", viewport.name === "mobile" ? ".hero-cta" : ".building-floor-btn[data-goto='R']");
-  await arrive("E", ".building-name");
-  await arrive("L", "ArrowDown");   // the way in from the street is the lobby (web3d/src/guide.js)
-  await arrive("1", "ArrowDown");
+  await arrive("R", ".building-floor-btn[data-goto='R']");
+  await arrive("L", ".building-floor-btn[data-goto='L']");
+  await arrive("1", "ArrowDown");   // the ride runs up from the lobby (web3d/src/guide.js)
   await arrive("L", "ArrowUp");
-  await arrive("P", "ArrowUp");   // the garage is on the ride: back from the lobby, out to the street, on from the roof
-  await arrive("E", "ArrowUp");
-  await arrive("P", ".building-window[data-goto='P']");   // the sign on its door, a phone's only control for it at the street
-  await arrive("R", "#floor-P a[data-goto='R']");
-  await arrive("P", "ArrowDown");
+  await arrive("7", "#floor-L a[data-goto='7']");   // the lobby's sign up to the current role
+  await arrive("R", "ArrowDown");
 }
 
 async function assertPick(page, route, viewport) {
@@ -562,8 +550,8 @@ async function assertPick(page, route, viewport) {
   await page.click(".city-chips button[data-pick='tower']");
   await page.click("[data-district='tower'] .city-go");
   await page
-    .waitForSelector("section[data-floor='E'].is-here", { timeout: 8000 })
-    .catch(() => fail(`${route.path} (${viewport.name}) Enter the tower did not reach the street`));
+    .waitForSelector("section[data-floor='L'].is-here", { timeout: 8000 })
+    .catch(() => fail(`${route.path} (${viewport.name}) Enter the tower did not reach the lobby`));
 }
 
 async function assertPauseLabel(page, route, viewport) {
@@ -732,7 +720,7 @@ async function main() {
           path: path.join(screenshotDir, screenshotFileName(route, viewport)),
         });
 
-        if (route.ride) {   // after the capture, so the screenshot shows the street the page opened on
+        if (route.ride) {   // after the capture, so the screenshot shows the floor the page opened on
           await assertRide(page, route, viewport);
 
           if (pageErrors.length > 0) {

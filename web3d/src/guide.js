@@ -13,20 +13,11 @@ export function guide(api, root = document) {
   const indicator = root.querySelector('[data-elevator-floor]');
   const arrow = root.querySelector('[data-elevator-arrow]');
   const status = root.querySelector('[data-building-status]');
-  const windows = root.querySelector('[data-exterior-windows]');   // street.js adds them top to bottom, the Tab order
 
-  // A window's name shows over it on hover and focus, and covers the floors around it: Escape puts it away until the
-  // pointer or focus moves on to another window (WCAG 1.4.13, pixel.css .names-off).
-  if (windows) {
-    addEventListener('keydown', (e) => { if (e.key === 'Escape') windows.classList.add('names-off'); });
-    for (const type of ['pointerover', 'focusin']) windows.addEventListener(type, () => windows.classList.remove('names-off'));
-  }
-
-  // Stops are in page order, top to bottom as the building stands, but the ride runs one way: in from the street (E)
-  // at the lobby, then up floor by floor to the roof. Scrolling down (+1) rides on, up (-1) back. Back from the lobby
-  // goes down to the garage (P) and out its door to the street; on from the roof drops to the garage, the ride's last stop.
-  const path = ['E', ...keys.filter((k) => k !== 'E').reverse()];
-  const neighbour = (key, dir) => keys.indexOf((dir > 0 && { E: 'L', R: 'P' }[key]) || path[path.indexOf(key) + dir]);
+  // Stops are in page order, top to bottom as the building stands, but the ride runs up: in from the city at the lobby,
+  // then floor by floor to the roof. Scrolling down (+1) rides on, up (-1) back.
+  const path = [...keys].reverse();
+  const neighbour = (key, dir) => keys.indexOf(path[path.indexOf(key) + dir]);
   // Step inside: a floor's full story opens over its room. While it is open the lift stays put and the wheel and
   // keys scroll the panel; "Back to the lift", Escape or riding away close it.
   let open = null, afterPop = null, moving = null;
@@ -71,9 +62,9 @@ export function guide(api, root = document) {
     moving = { panel, card, anims };
   };
   // aria-modal alone leaves the rest in a screen reader's browse mode (#183): everything the panel covers goes inert,
-  // the top bar, the lift, the skip link, the windows and the card under it.
+  // the top bar, the lift, the skip link and the card under it.
   const seal = (on) => {
-    const covered = [...root.querySelectorAll('.building-top, .elevator, .skip-link, .exterior-windows'), open?.button.closest('.floor-card')];
+    const covered = [...root.querySelectorAll('.building-top, .elevator, .skip-link'), open?.button.closest('.floor-card')];
     covered.forEach((el) => { if (el) el.inert = on; });
   };
   // Step inside pushes a history entry, so a phone's Back closes the panel instead of leaving the site (#129).
@@ -150,7 +141,7 @@ export function guide(api, root = document) {
     if (afterPop) setTimeout(afterPop);   // after the traversal has dropped focus
     afterPop = null;
   });
-  // Back to the bare address, or the street card's #city: the city, which only a fresh load shows (city.js), as this
+  // Back to the bare address, or the lobby's #city: the city, which only a fresh load shows (city.js), as this
   // building is already mounted. Loaded in place of the #city entry, at the same ?time=.
   addEventListener('hashchange', () => { if (!location.hash || location.hash === '#city') location.replace(location.pathname + location.search); });
   roomy.addEventListener('change', setMode);
@@ -165,9 +156,7 @@ export function guide(api, root = document) {
   // and presses add up into one longer ride instead of being dropped (#41).
   const step = (dir) => {
     if (open) return;
-    const here = keys[api.index()];
-    if (api.moving() && (here === 'P' || (here === 'R' && dir > 0))) return;   // adding up must not fly past the roof or the garage
-    const to = neighbour(here, dir);
+    const to = neighbour(keys[api.index()], dir);
     if (to >= 0) api.go(to);
   };
 
@@ -215,8 +204,8 @@ export function guide(api, root = document) {
       }
       return;
     }
-    // In the lift, a floor's name presses its button (aria-keyshortcuts in layouts/index.html), and E goes out to the
-    // street. Only there: page-wide single-key shortcuts would fire under typing and speech input (WCAG 2.1.4).
+    // In the lift, a floor's name presses its button (aria-keyshortcuts in layouts/index.html). Only there: page-wide
+    // single-key shortcuts would fire under typing and speech input (WCAG 2.1.4).
     const named = !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1 && e.target.closest?.('.elevator') && e.key.toUpperCase();
     if (named && keys.includes(named)) {
       e.preventDefault();
@@ -236,7 +225,7 @@ export function guide(api, root = document) {
     if (e.key === 'End') { e.preventDefault(); api.go(keys.indexOf(path.at(-1))); }
   });
 
-  root.addEventListener('click', (e) => {   // elevator buttons, the name (back to the street) and the windows
+  root.addEventListener('click', (e) => {   // elevator buttons and the floors' links
     if (!roomy.matches) return;   // the plain page: links are links
     if (e.target.closest?.('.skip-link')) {   // the current floor, not the page top the link points at without JS
       e.preventDefault();
@@ -264,7 +253,7 @@ export function guide(api, root = document) {
 
   const show = (index) => stops.forEach((s, i) => s.classList.toggle('is-here', i === index));
   document.addEventListener('building:floor', (e) => {
-    if (indicator) indicator.textContent = e.detail.key === 'E' ? '' : e.detail.key;   // outside, the lift shows no floor
+    if (indicator) indicator.textContent = e.detail.key;
   });
   const hint = root.querySelector('.building-hint');
   // After a ride, focus follows the reader to the new floor's heading, unless it is on the lift or the top bar.
@@ -273,7 +262,7 @@ export function guide(api, root = document) {
   const reached = new Set();   // floors counted in GoatCounter this visit: once each, rides past them are not visits
   document.addEventListener('building:depart', (e) => {
     const a = document.activeElement;
-    follow = !a || a === document.body || !!a.closest('.building-stop, .exterior-windows');
+    follow = !a || a === document.body || !!a.closest('.building-stop');
     // A card under an open panel, or one still closing, leaves hidden: un-hidden, it would flash at full opacity while it fades out.
     const under = open?.button.closest('.floor-card') ?? moving?.card;
     if (under) (leaving = under).style.visibility = 'hidden';
@@ -281,9 +270,8 @@ export function guide(api, root = document) {
     rest();
     show(-1);
     reveal(stops[e.detail.index], true);   // before is-here lands, so its card fades in
-    document.documentElement.classList.remove('at-street');
     if (hint) hint.style.opacity = '0';
-    if (arrow) arrow.dataset.dir = e.detail.dir > 0 ? 'down' : e.detail.dir < 0 ? 'up' : '';   // a dissolve has no direction
+    if (arrow) arrow.dataset.dir = e.detail.dir > 0 ? 'down' : 'up';
     buttons.forEach((b) => b.setAttribute('aria-current', String(b.dataset.goto === e.detail.key)));
   });
   document.addEventListener('building:arrive', (e) => {
@@ -292,13 +280,12 @@ export function guide(api, root = document) {
     show(e.detail.index);
     conceal(e.detail.index);
     if (open && !stops[e.detail.index]?.contains(open.panel)) closePanel(false);
-    document.documentElement.classList.toggle('at-street', e.detail.key === 'E');
     if (arrow) arrow.dataset.dir = '';   // standing still: no arrow, like a real lift display
-    if (hint && !hinted && e.detail.key !== 'E') { hinted = true; hint.style.opacity = ''; }   // once, on the first floor inside
+    if (hint && !hinted) { hinted = true; hint.style.opacity = ''; }   // once, on the first arrival
     if (follow !== null) {
       if (follow) document.getElementById(`f${e.detail.key}`)?.focus({ preventScroll: true });
-      const label = buttons.find((b) => b.dataset.goto === e.detail.key)?.getAttribute('aria-label') ?? 'Street, outside the building';
-      if (status) status.textContent = label.replace(', ', ': ');
+      const label = buttons.find((b) => b.dataset.goto === e.detail.key)?.getAttribute('aria-label');
+      if (status && label) status.textContent = label.replace(', ', ': ');
       if (roomy.matches && !reached.has(e.detail.key)) { reached.add(e.detail.key); count(`floor-${e.detail.key}`); }   // a ride: not a link followed on the plain page
       follow = null;
     }

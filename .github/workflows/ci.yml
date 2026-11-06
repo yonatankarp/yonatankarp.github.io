@@ -100,16 +100,12 @@ jobs:
 
       # The pixel art is built from the committed picks (web3d/pixel/paintings/picks/) and committed as built. Rebuilt here, it
       # must match pixel for pixel (a lossless WebP's bytes can differ between runs), and the data the pipeline writes
-      # (exterior.json, city.json, workshop.json, the depth maps and the animations' -fx.json, data/floor_accents.yaml, the check of data/phases.json) must come out unchanged.
+      # (floors.json, city.json, workshop.json, the depth maps and the animations' -fx.json, data/floor_accents.yaml, the check of data/phases.json) must come out unchanged.
       - name: Rebuild the art and compare it
         run: |
           out="${RUNNER_TEMP}/art"
           mkdir -p "$out"
           uv run web3d/pixel/gen_floors.py "$out"
-          uv run web3d/pixel/gen_exterior.py build "$out"
-          for time in $(node -p 'Object.keys(require("./data/phases.json")).filter((t) => t !== "dusk").join(" ")'); do
-            uv run web3d/pixel/gen_exterior.py build "$out" --time "$time"
-          done
           uv run web3d/pixel/gen_city.py build "$out"
           uv run web3d/pixel/gen_library.py build "$out"
           uv run web3d/pixel/gen_rooms.py build "$out"

@@ -64,7 +64,7 @@ testimonials:
   title: "What people notice after working with me."
 
 contact:
-  kicker: "Writing, podcast, contact"
+  kicker: "What's next"
   title: "If your backend domain needs untangling, let's talk."
   text: "My strongest fit is Staff+ backend work where the domain has to become one system the whole team understands."
   priorities:
@@ -77,7 +77,7 @@ contact:
       text: *location
     - label: "Best for"
       text: "Teams turning scattered services and vendors into one platform"
-  podcast:   # the roof's podcast sign and panel block; `text`, one optional sentence, goes before the link
+  podcast:   # the city's Radio Mast; `text`, one optional sentence, goes before the link
     title: "The Reading Club"
     text: "An AI-generated podcast of concise summaries of software engineering books."
     platform: "Spotify"

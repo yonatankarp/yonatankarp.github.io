@@ -19,7 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import gen_floors as G  # noqa: E402  (module level only defines data; main is guarded)
 
 R, INK = G.R, G.INK
-SKY = [R["magenta"][2], R["violet"][3], R["sky"][4], R["sky"][5]]   # top to horizon, as on exterior.png
+SKY = [R["magenta"][2], R["violet"][3], R["sky"][4], R["sky"][5]]   # top to horizon, the old street's dusk
 BRIGHT, LIT, DIM = R["amber"][5], R["amber"][4], R["amber"][2]
 CRANE, CRANE_HI, CRANE_LO = R["amber"][4], R["amber"][5], R["amber"][3]
 KEY = {".": None, "k": INK, "A": BRIGHT, "a": LIT, "e": DIM, "d": CRANE_LO, "t": R["steel"][4],
@@ -59,7 +59,7 @@ def tower(size):
     """The 32 and 36 grids: the same tower standing on the bottom edge, the bigger one with more sky around it."""
     im = Image.new("RGBA", (size, size))
     o, top = (size - 32) // 2, size - 32
-    for y in range(size):                               # the sky's bands in an ordered dither, as on exterior.png
+    for y in range(size):                               # the sky's bands in an ordered dither
         t = max(0, y - top) / 24 * (len(SKY) - 1)
         i = min(int(t), len(SKY) - 2)
         for x in range(size):

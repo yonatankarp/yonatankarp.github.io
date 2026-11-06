@@ -5,6 +5,7 @@
 """Paint floor candidates with the local model in Draw Things (HTTP API, Settings > API Server, port 7860).
 
 Run: uv run web3d/pixel/paint_rooms.py <room> [--count N] [--start SEED] [--host URL]
+     uv run web3d/pixel/paint_rooms.py capsule [--count N] [--start SEED]   # floor 7's payment, on magenta (gen_floors keys it)
      uv run web3d/pixel/paint_rooms.py retime --src <pick>.png --time dawn|day|night
 
 Every floor continues the lift lobby: the base image is the picked lobby painting on the left with its plain wall,
@@ -24,7 +25,7 @@ import json
 import urllib.request
 from pathlib import Path
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 HERE = Path(__file__).resolve().parent / "paintings"
 OUT = HERE / "candidates"
@@ -93,6 +94,28 @@ VIEW = ("Edit this picture. Keep the room exactly as it is: every object, shape 
         "their light, the same painterly style. Change only what is seen outside through the {}, to {}. "
         "No people, no text, no letters, no numbers, no logos.")
 WINDOWS = {"reception": "glass entrance door"}
+
+# Floor 7's payment, which gen_floors.py keys off its magenta and pixel.js draws riding the room's copper pipe: painted from a
+# flat 10:3 capsule on magenta (capsule_pose), at the picked seed 3100.
+CAPSULE_SIZE = (768, 384)
+CAPSULE = (
+    "Edit this picture. Repaint the shape as one brass pneumatic tube post capsule lying horizontally, seen exactly from the "
+    "side: a polished brass cylinder with rounded domed brass end caps and one coral red band round its middle, highly "
+    "detailed painterly video game art, warm golden lamp light from above, soft shading, a bright specular highlight along "
+    "its top. Keep the exact shape, position and size. Keep the background perfectly flat solid magenta. One object only, "
+    "no text, no shadow."
+)
+
+
+def capsule_pose():
+    im = Image.new("RGB", CAPSULE_SIZE, (255, 0, 255))
+    d = ImageDraw.Draw(im)
+    x0, x1, y0, y1 = 184, 584, 132, 252                                  # a 400 x 120 capsule, 10:3
+    d.rounded_rectangle([x0, y0, x1, y1], radius=56, fill=(196, 150, 70))
+    d.rectangle([360, y0, 408, y1], fill=(214, 96, 80))                  # the coral band
+    d.rectangle([x0 + 50, y0 + 14, x1 - 50, y0 + 26], fill=(246, 222, 160))   # its highlight
+    return im
+
 
 ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come from the lobby
     "sumup": (
@@ -243,7 +266,7 @@ def paint(path, prompt, size, seed, host, init=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("room", choices=["lobby", "cab", "roof", "retime", "wall", *sorted(ROOMS)])
+    ap.add_argument("room", choices=["lobby", "cab", "capsule", "roof", "retime", "wall", *sorted(ROOMS)])
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--start", type=int, default=1000)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
@@ -273,6 +296,9 @@ def main():
                 for k in range(args.count)]
     elif args.room == "cab":
         jobs = [(OUT / f"cab_{args.start + 17 * k}.png", CAB, CAB_SIZE, args.start + 17 * k, None) for k in range(args.count)]
+    elif args.room == "capsule":
+        jobs = [(OUT / f"capsule_{args.start + 17 * k}.png", CAPSULE, CAPSULE_SIZE, args.start + 17 * k, capsule_pose())
+                for k in range(args.count)]
     elif args.room == "lobby":   # an edit of the old lobby, so its lift stays where the floors' code has it
         init = Image.open(OUT / OLD_LOBBY).convert("RGB").resize(LOBBY_SIZE, Image.LANCZOS)
         jobs = [(OUT / f"lobby_{args.start + 17 * k}.png", LOBBY_EDIT, LOBBY_SIZE, args.start + 17 * k, init)

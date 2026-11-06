@@ -3,7 +3,8 @@
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 // The art's numbers come from art.js. The city (city.js) leads in at the lobby.
 import { guide, roomy } from './guide.js';
-import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, narrow, clamp01, colourAt, shade, darken } from './art.js';
+import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, DARK, narrow, clamp01, colourAt, shade, darken, bayer } from './art.js';
+import { capsuleAt } from './capsule.js';
 import { floorKey, floorShaped } from './hash.js';
 import './city.js';
 import '../../assets/js/copy-email.js';
@@ -26,6 +27,7 @@ const KEEP = 2;                                                 // the storeys k
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
 const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
 const hashKey = () => floorKey(location.hash, ORDER);   // a floor that exists again (a new floor 8) wins over its old anchor
+const PAY = 36;                                                 // floor 7's capsule's canvas, in art pixels: it turned any way, on the 4-pixel Bayer grid
 const TRIES = 3, RETRY_MS = 2000;                                // a strip that failed to load is asked for again, this often and no sooner
 
 export function mountPixel({ canvas, stops, base = '/building/', version = '', pauseButton }) {
@@ -45,6 +47,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     const [tries, when] = failed.get(key) ?? [0, -Infinity];
     if (tries >= TRIES || performance.now() - when < RETRY_MS) return;   // a strip that keeps failing is not fetched on every hover
     started.add(key);
+    if (key === CAPSULE.floor) pay.img ??= Object.assign(new Image(), { onload: wake, src: artUrl('capsule') });
     const url = artUrl(`floor-${key}${BAKED?.includes(key) ? HOUR : ''}`);
     // Decoded off the main thread, as a bitmap: an <img> is decoded by the first drawImage, the whole strip there and then (#184).
     const art = 'createImageBitmap' in window
@@ -60,6 +63,36 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       strips.set(key, null); loaded();
     });
   };
+  // Floor 7's payment: its painted capsule (capsule.webp) rides the room's pipe at the screen's frame rate, not in the strip's
+  // frames (capsule.js). It is turned and smoothed into a small canvas in the room's own art pixels, laid on the strip's Bayer
+  // grid, and drawn at the room's scale like the strip, darkened with it (payShade).
+  const pay = { img: null, at: null, x: 0, y: 0, shades: {}, c: document.createElement('canvas').getContext('2d', { willReadFrequently: true }) };
+  pay.c.canvas.width = pay.c.canvas.height = PAY;
+  const payDraw = ([x, y, a]) => {
+    const g = pay.c, [len, depth] = CAPSULE.size;
+    pay.x = Math.floor((x - PAY / 2) / 4) * 4; pay.y = Math.floor((y - PAY / 2) / 4) * 4;
+    g.clearRect(0, 0, PAY, PAY);
+    g.save();
+    g.beginPath();
+    for (const [cx, cy, cw, ch] of CAPSULE.clip) g.rect(cx - pay.x, cy - pay.y, cw, ch);   // it slips out of view into the counter
+    g.clip();
+    g.translate(x - pay.x, y - pay.y); g.rotate(a);
+    g.imageSmoothingQuality = 'high';
+    g.drawImage(pay.img, -len / 2, -depth / 2, len, depth);
+    g.restore();
+    pay.shades = {};
+  };
+  // The capsule with the room's lights off, lv of 16 Bayer cells of it kept, as shade() makes the strip's.
+  const payShade = (lv) => (pay.shades[lv] ??= (() => {
+    const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    c.canvas.width = c.canvas.height = PAY;
+    const d = pay.c.getImageData(0, 0, PAY, PAY), px = d.data;
+    for (let i = 0; i < px.length; i += 4) { px[i] *= DARK[0]; px[i + 1] *= DARK[1]; px[i + 2] *= DARK[2]; }
+    c.putImageData(d, 0, 0);
+    if (lv < 16) { c.globalCompositeOperation = 'destination-in'; c.fillStyle = c.createPattern(bayer(lv), 'repeat'); c.fillRect(0, 0, PAY, PAY); }
+    return c.canvas;
+  })());
+
   // Decoded strips are big (a phone holds a few hundred MB at most): only the storeys round the lift's stop are kept,
   // and the ones a ride passes while it runs. A storey let go is fetched again (from the cache) when it is next near.
   const evict = () => {
@@ -216,21 +249,25 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
 
     const phase = (now - epoch) % (loopMs + REST_MS);
     const f = paused || still || phase >= loopMs ? 0 : Math.floor(phase / (1000 / FPS));
+    // The capsule rides from the loop's start, while floor 7 is on screen and the room may move.
+    const payY = Math.round(ry - (level(CAPSULE.floor) - camY) * s);
+    pay.at = !paused && !still && pay.img?.naturalWidth && strips.get(CAPSULE.floor) && payY < h && payY + FH * s > 0 ? capsuleAt(CAPSULE, phase) : null;
     for (const key of ORDER) {
       if (key === waiting && (now < waitTo || !strips.has(key))) continue;
       const here = arrived === ride.to && keys[ride.to] === key;
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
       lit.set(key, clamp01((lit.get(key) ?? 0) + (here ? dt : -dt) * (still || paused ? 99 : DOORS)));   // in step with the doors; paused, they just switch
     }
-    const sig = [f, camY, loads, now < fading && now, ...open.values(), ...lit.values()].join();
+    const sig = [f, pay.at, camY, loads, now < fading && now, ...open.values(), ...lit.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
         cancelAnimationFrame(raf); raf = 0;
-        if (!paused && !still) timer = setTimeout(wake, phase < loopMs ? 1000 / FPS - (phase % (1000 / FPS)) : loopMs + REST_MS - phase);
+        if (!paused && !still) timer = setTimeout(wake, phase < loopMs ? 1000 / FPS - (phase % (1000 / FPS)) : pay.at ? CAPSULE.ride + CAPSULE.hold - phase : loopMs + REST_MS - phase);
       }
       return;
     }
     drawn = sig;
+    if (pay.at) payDraw(pay.at);
 
     ctx.fillStyle = '#151923';
     ctx.fillRect(0, 0, w, h);
@@ -258,8 +295,9 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       if (LAMPS[key] && lit.get(key) < 1 && !still && !img.shades?.[16] && key !== keys[ride.to]) { img.waited = true; darkenSoon(img); ctx.fillRect(0, y, w, FH * s); continue; }
       ctx.globalAlpha = clamp01((now - img.since) / FADE_IN_MS);
       // The strip: its rest frame, then a run of EDGE columns that carries on left of the painting and another right of
-      // it, tiled outwards over the facade posts on a wide screen (gen_floors.runs), then its moving box's other frames.
-      const paint = (src, f) => {
+      // it, tiled outwards over the facade posts on a wide screen (gen_floors.runs), then its moving box's other frames; on
+      // floor 7, its capsule, darkened as src is (lv of 16 Bayer cells dark, none for the lit room).
+      const paint = (src, f, lv) => {
         ctx.drawImage(src, 0, 0, FW, FH, x0, y, FW * s, FH * s);
         if (wide) {
           for (let gx = x0 + (ROOM_X0 - EDGE) * s; gx + EDGE * s > 0; gx -= EDGE * s) ctx.drawImage(src, FW, 0, EDGE, FH, gx, y, EDGE * s, FH * s);
@@ -267,13 +305,14 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
         }
         const [bx, by, bw, bh] = ANIM[key];
         if (f) ctx.drawImage(src, BOXES + (f - 1) * bw, 0, bw, bh, x0 + bx * s, y + by * s, bw * s, bh * s);
+        if (pay.at && key === CAPSULE.floor) ctx.drawImage(lv ? payShade(lv) : pay.c.canvas, x0 + pay.x * s, y + pay.y * s, PAY * s, PAY * s);
       };
       paint(img, f);
       // Lights off in transit; on arrival each lamp's pool spreads from its shade, the lift's first, in blocks of whole-pixel
       // dither, never an alpha veil. The doors go in front (drawn after), on their lit cab.
       const lamps = LAMPS[key], on = lit.get(key);
       if (lamps && on < 1 && !still) {
-        if (!on) paint(shade(img, SHADES[0]), 0);
+        if (!on) paint(shade(img, SHADES[0]), 0, SHADES[0]);
         else for (let lv = 0; lv < SHADES.length; lv++) {
           ctx.save();
           ctx.beginPath();
@@ -284,7 +323,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
             ctx.rect(a, y + cy * s, b - a, POOL * s);
           }
           ctx.clip();
-          paint(shade(img, SHADES[lv]), 0);
+          paint(shade(img, SHADES[lv]), 0, SHADES[lv]);
           ctx.restore();
         }
       }

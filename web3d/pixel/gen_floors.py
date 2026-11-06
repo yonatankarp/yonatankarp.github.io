@@ -13,7 +13,8 @@ that moves are drawn here. Each floor writes floor-<key>.webp: its rest frame, t
 strip on a wide screen, the lift's cab (a painting of its own, shown as the doors open), then the box that moves (the
 same box in all FRAMES - 1 other frames), side by side. The rooms
 with another picture at another hour (data/phases.json "baked") also write floor-<key>-<phase>.webp. floors.json is what
-web3d/src/ draws by: the frame, the runs, each strip's moving box, the lift doors (pixel.js slides them), the lamps.
+web3d/src/ draws by: the frame, the runs, each strip's moving box, the lift doors (pixel.js slides them), the lamps, and
+floor 7's capsule (capsule.webp), which pixel.js draws live.
 
 Every run also writes data/floor_accents.yaml from FLOORS (accents()) and checks data/phases.json (check_phases()).
 """
@@ -23,7 +24,7 @@ import sys
 from pathlib import Path
 from random import Random
 
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageFilter
 
 W, H = 960, 360
 CEIL, SLAB = 28, 24           # the slab above the room (rows 0..CEIL), and below it (H - SLAB..H)
@@ -165,7 +166,7 @@ def sprite(room, x, y, rows, col, scale=2, upto=None, k=1.0):
 
 
 # --- The rooms' animations, in the painting's pixels (928 x 308). Each one only paints over what is there: lights,
-# screens, chalk, a glint, a capsule in a pipe, a flag's folds. Moving a painted object would show what it hides. ------
+# screens, chalk, a glint, a flag's folds. Moving a painted object would show what it hides. ------
 
 # Lobby: names on the building's directory light up one after another.
 PLATES = [(566, 95, 584, 98), (598, 105, 609, 108), (612, 125, 623, 128), (638, 140, 654, 143), (587, 155, 596, 158),
@@ -255,25 +256,20 @@ def billie_orchestrator(room, f, phase):
     room.lit((730, 55, 902, 190), lambda col: col[0] > 200 and col[0] > col[2] + 60, f, every=3, on=1, seed=2)
 
 
-# Floor 7, Billie payments: a payment rides the pipe down to the counter; a glint goes round the vault's door.
-PIPE = [(591, 50), (591, 128), (617, 168), (619, 188)]   # down the left-hand pipe to the counting machine
+# Floor 7, Billie payments: a payment rides the pipe down to the counter, and a glint goes round the vault's door. The
+# payment is a painted capsule (capsule.webp, from picks/capsule.png: paint_rooms.py capsule) that pixel.js draws live, at the
+# screen's frame rate, turned to the pipe and smoothed into the room's own pixels: CAPSULE, in the painting's pixels.
+CAPSULE = dict(
+    path=[(700, 49), (597, 49), (591, 56), (591, 129), (619, 171), (619, 206)],   # the feed pipe, down, the bend, into the counter
+    size=(24, 8), bend=8,          # its length and depth; it turns over this far either side of a bend
+    ride=2100, hold=150,           # ms from the room's loop's start, eased in and out, then held at the end
+    clip=[(0, 0, 928, 188), (618, 188, 310, 10)],   # where it shows: down to the counter, then only right of the coin stack
+)
+CAPSULE_SCALE = 4                  # capsule.webp is this many times its size, for the page to smooth down
 VAULT = (415, 160, 56)
 
 
 def billie_payments(room, f, phase):
-    if 1 <= f <= 8:
-        legs = list(zip(PIPE, PIPE[1:], strict=False))
-        total = sum(math.dist(a, b) for a, b in legs)
-        d = total * (f - 1) / 7
-        for (ax, ay), (bx, by) in legs:
-            step = math.dist((ax, ay), (bx, by))
-            if d <= step:
-                x, y = round(ax + (bx - ax) * d / step), round(ay + (by - ay) * d / step)
-                break
-            d -= step
-        room.rect(x - 3, y - 5, x + 4, y + 6, INK)
-        room.rect(x - 2, y - 4, x + 3, y + 5, c("coral", 4))
-        room.rect(x - 2, y - 4, x, y + 5, c("coral", 5))
     cx, cy, r = VAULT
     band = -r + 2 * r * f / (FRAMES - 1)                                   # a diagonal band crossing the door
     for y in range(cy - r, cy + r):
@@ -281,6 +277,21 @@ def billie_payments(room, f, phase):
             d = (x - cx + y - cy) / 1.4 - band
             if f and abs(d) < 5 and (x - cx) ** 2 + (y - cy) ** 2 < r * r and lum(room.get(x, y)) > 70:
                 room.brighten(x, y, 0.35 * (1 - abs(d) / 5))
+
+
+def capsule(out):
+    """capsule.webp: the picked painting with its magenta keyed out (as gen_walkers keys the cats), cropped to the capsule and
+    scaled to CAPSULE_SCALE times its size in art pixels. Returns CAPSULE in strip pixels, for floors.json."""
+    im = Image.open(PICKS / "capsule.png").convert("RGB")
+    bg = [0 if g < 0.55 * min(r, b) and r > 60 and b > 60 else 255 for r, g, b in im.getdata()]
+    alpha = Image.new("L", im.size)
+    alpha.putdata(bg)
+    alpha = alpha.filter(ImageFilter.MinFilter(5))                        # eats the pink fringe
+    im.putalpha(alpha)
+    w, h = CAPSULE["size"]
+    save_lossless(im.crop(alpha.getbbox()).resize((w * CAPSULE_SCALE, h * CAPSULE_SCALE), Image.LANCZOS), out / "capsule.webp")
+    return CAPSULE | {"path": [[x + LOBBY_X, y + CEIL] for x, y in CAPSULE["path"]],
+                      "clip": [[x + LOBBY_X, y + CEIL, w, h] for x, y, w, h in CAPSULE["clip"]], "size": [w, h]}
 
 
 # Roof: the flag's folds run along it, the crane's warning light blinks, and at night the far city's windows twinkle.
@@ -483,5 +494,5 @@ if __name__ == "__main__":
         sky(out)
         lamps = {key: [DOOR["mid"], *(x + LOBBY_X for x in v[3])] for key, v in FLOORS.items() if v[3]}
         art = {"frame": [W, H], "frames": FRAMES, "edge": EDGE, "room": [LOBBY_X, W - LOBBY_X], "door": DOOR, "cab": CAB, "boxes": BOXES,
-               "bayer": BAYER, "lamps": lamps, "order": list(FLOORS), "anim": anim}
+               "bayer": BAYER, "lamps": lamps, "order": list(FLOORS), "anim": anim, "capsule": {"floor": "7", **capsule(out)}}
         (out / "floors.json").write_text(json.dumps(art))

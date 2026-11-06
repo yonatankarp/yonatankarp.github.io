@@ -90,10 +90,14 @@ lift into each, and `gen_floors.py` draws the slabs, the floor number and what m
 paints over what is there: lights, screens, a glint). A strip is its rest frame, two runs pixel.js tiles past it on a
 wide screen, the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
 they slide apart), and its moving box's other frames. The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
-box, lift doors, dither, each room's lamps, the floors' order) are written into `static/building/pixel/floors.json` by
+box, lift doors, dither, each room's lamps, the floors' order, floor 7's capsule) are written into `static/building/pixel/floors.json` by
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
 rerun it, never the copies. `pixel.js` is the lift and the floors, `art.js` what it reads; it keeps only the storeys
-round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most.
+round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most. One thing moves live, not in the
+strip's 12 frames: floor 7's payment, a painted pneumatic-post capsule (`picks/capsule.png`, on magenta, from
+`paint_rooms.py capsule`; `gen_floors.py` keys it into `capsule.webp` at 4x). pixel.js turns and smooths it into the room's
+own art pixels every frame, along `CAPSULE` (its path, size, ride and clip, in floors.json; the path and easing are
+`web3d/src/capsule.js`), from the start of each loop, darkened with the room, and not while paused or held.
 
 The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
 laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the

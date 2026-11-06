@@ -5,6 +5,7 @@
     <p class="post-row__meta">{{ .Date.Format "Jan 2, 2006" }} · {{ partial "reading-time.html" . }} min read</p>
     <h2><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
     <p>{{ .Description | default (.Summary | plainify) }}</p>
+    {{ with .GetTerms "tags" }}<ul class="post-row__tags" aria-label="Tags">{{ range . }}<li>{{ .Title }}</li>{{ end }}</ul>{{ end }}
   </div>
   <div class="post-row__aside">
     <div class="post-row__thumb" aria-hidden="true">

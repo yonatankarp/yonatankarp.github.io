@@ -1,7 +1,7 @@
-# The blog's Library (layouts/blog/list.html): its shelves, left to right, start with these tags under these labels, the
-# old reading tracks; the shelves left over take the tags most listed posts carry. A tag with no listed post is skipped;
-# one with no tag page at all fails the build.
-shelves:
+# The blog's index (layouts/blog/list.html): its topic chips start with these tags under these labels, the old reading
+# tracks; every other tag the listed posts carry follows. A tag with no listed post is skipped; one with no tag page at
+# all fails the build.
+topics:
   - tag: "openapi"
     label: "API design"
   - tag: "observability"

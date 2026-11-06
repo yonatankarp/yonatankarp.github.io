@@ -2,24 +2,22 @@
 # requires-python = ">=3.11"
 # dependencies = ["pillow==12.1.0"]
 # ///
-"""The blog's Library: a wide reading room the page pans sideways, with a label pinned on each shelf.
+"""The blog's Library: the reading room painted across the head of the blog's index (layouts/blog/list.html).
 
 Run: uv run web3d/pixel/gen_library.py blockout [OUT]                  # the code blockout, for a look
      uv run web3d/pixel/gen_library.py paint [--count N] [--start S]   # Draw Things repaints the blockout (port 7860)
-     uv run web3d/pixel/gen_library.py build [OUT]                     # OUT/library.webp and library.json
-     uv run web3d/pixel/gen_library.py json [OUT]                      # only OUT/library.json
+     uv run web3d/pixel/gen_library.py build [OUT]                     # OUT/library.webp
 
 The city's pipeline (gen_city.py) at the city's size and colours, so the grain matches: the blockout fixes where every
 shelf sits, the model paints over it, and the pick is box-reduced and quantised undithered. One painting, at dusk: the
-room is lit by its own lamps, and the window's dusk is the city's. The shelves are numbered, not named: the blog's
-template (layouts/blog/list.html) puts its biggest tags on them in order, so a new tag never needs new art.
+room is lit by its own lamps, and the window's dusk is the city's. No shelf stands for a topic, so a new tag never
+needs new art.
 Paintings go to web3d/pixel/paintings/candidates/library_SEED.png (not committed); the chosen one is copied to
 web3d/pixel/paintings/picks/library.png, the build's input, and its seed noted in PICK.
 """
 import argparse
 import base64
 import io
-import json
 import sys
 from pathlib import Path
 from itertools import pairwise
@@ -33,8 +31,8 @@ from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
 
 PICK = 900                       # the seed of the pick, for the record
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks" / "library.png"
-SHELVES = [858, 1148, 1438, 2018, 2308, 2598]   # each shelf's centre: three either side of the window, all pannable to the middle
-CATALOGUE = 1728                 # the window and the card catalogue under it: every post
+SHELVES = [858, 1148, 1438, 2018, 2308, 2598]   # each bookcase's centre: three either side of the window
+CATALOGUE = 1728                 # the window and the card catalogue under it
 TOP, FLOOR, BAY = 120, 640, 200  # a shelf's cornice, the floor line, a shelf's width
 
 WOOD, DARK, GOLD = (120, 72, 40), (70, 40, 22), (230, 170, 80)
@@ -110,13 +108,6 @@ def blockout():
     return im
 
 
-def anchors():
-    """Each label's anchor, in % of the painting (x, top): the top of its shelf's cornice, or the catalogue's. Pick 900
-    painted them where the blockout put them, give or take a few pixels, so no correction as the city's PAINTED."""
-    tops = {f"shelf-{i + 1}": (x, TOP - 20) for i, x in enumerate(SHELVES)} | {"all": (CATALOGUE, 470)}
-    return {k: [round(100 * x / PW, 1), round(100 * y / PH)] for k, (x, y) in tops.items()}
-
-
 PROMPT = (
     "Edit this picture. Repaint it as a highly detailed wide panoramic view inside a grand old public library reading "
     "room at dusk, seen straight on, rich painterly video game art like a city-builder game, warm golden lamp light, "
@@ -155,19 +146,14 @@ def bake():
     return im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
 
 
-def write_json(out):
-    (out / "library.json").write_text(json.dumps({"size": SIZE, "labels": anchors()}))
-
-
 def build(out):
     bake().save(out / "library.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
     print("drew library.webp from seed", PICK, f"at {ART_W} wide")
-    write_json(out)
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["blockout", "paint", "build", "json"])
+    ap.add_argument("cmd", choices=["blockout", "paint", "build"])
     ap.add_argument("out", nargs="?", default="static/building/pixel")
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--start", type=int, default=900)
@@ -178,7 +164,5 @@ if __name__ == "__main__":
         print("wrote", Path(a.out) / "library-blockout.png")
     elif a.cmd == "paint":
         paint(a.count, a.start, a.host)
-    elif a.cmd == "json":
-        write_json(Path(a.out))
     else:
         build(Path(a.out))

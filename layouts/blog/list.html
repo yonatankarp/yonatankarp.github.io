@@ -1,70 +1,56 @@
-{{- /* The blog is the city's Library: a painted reading room (web3d/pixel/gen_library.py) that pans sideways, a label on
-     each shelf, and a panel listing the picked shelf's posts (web3d/src/library.js, bundled into assets/building/ by
-     `npm run build:building`). Every list is real HTML: without a script they all show, one under the other. */ -}}
+{{- /* The blog's index is the city's Library: its reading room (web3d/pixel/gen_library.py) across the head, then every
+     listed post. The topic chips and the search box filter the list in place (assets/js/library.js); without a script
+     the chips are links to the tag pages and the search box a form to /search/. */ -}}
 {{ define "main" }}
 {{ $posts := sort .RegularPages "Date" "desc" }}
-{{ $art := os.ReadFile "static/building/pixel/library.json" | transform.Unmarshal }}{{/* written by gen_library.py */}}
-{{ $bays := 0 }}{{ range $k, $_ := $art.labels }}{{ if hasPrefix $k "shelf-" }}{{ $bays = add $bays 1 }}{{ end }}{{ end }}
-{{- /* A shelf for each curated tag (data/library.yaml) that listed posts carry, then for the tags most of them carry,
-     most posts first (ties by name), as many as the painting has shelves; each lists its posts newest first. The
-     catalogue under the window holds every post. */}}
+{{- /* A chip for every tag the listed posts carry: the curated ones first (data/library.yaml), under their labels, then
+     the rest, most posts first (ties by name). */}}
 {{ $byTag := dict }}
-{{ range $posts }}{{ $post := . }}{{ range .GetTerms "tags" }}
-  {{ $pages := slice }}{{ with index $byTag .Data.Term }}{{ $pages = .pages }}{{ end }}
-  {{ $byTag = merge $byTag (dict .Data.Term (dict "term" . "pages" ($pages | append $post))) }}
+{{ range $posts }}{{ range .GetTerms "tags" }}
+  {{ $count := 0 }}{{ with index $byTag .Data.Term }}{{ $count = .count }}{{ end }}
+  {{ $byTag = merge $byTag (dict .Data.Term (dict "term" . "count" (add $count 1))) }}
 {{ end }}{{ end }}
-{{ $picked := slice }}{{ $used := slice }}
-{{ range hugo.Data.library.shelves }}{{ $label := .label }}
-  {{ if not (site.GetPage (printf "/tags/%s" .tag)) }}{{ errorf "data/library.yaml: shelf %q has no tag page; no post is tagged %s" $label .tag }}{{ end }}
-  {{ with index $byTag .tag }}{{ $picked = $picked | append (merge . (dict "name" $label)) }}{{ $used = $used | append .term.Data.Term }}{{ end }}
+{{ $topics := slice }}{{ $used := slice }}
+{{ range hugo.Data.library.topics }}{{ $label := .label }}
+  {{ if not (site.GetPage (printf "/tags/%s" .tag)) }}{{ errorf "data/library.yaml: topic %q has no tag page; no post is tagged %s" $label .tag }}{{ end }}
+  {{ with index $byTag .tag }}{{ $topics = $topics | append (merge . (dict "name" $label "track" true)) }}{{ $used = $used | append .term.Data.Term }}{{ end }}
 {{ end }}
-{{ $topics := slice }}
-{{ range $byTag }}{{ if not (in $used .term.Data.Term) }}{{ $topics = $topics | append (merge . (dict "name" .term.Title "order" (printf "%05d %s" (sub 99999 (len .pages)) .term.Title))) }}{{ end }}{{ end }}
-{{ $shelves := slice (dict "key" "all" "name" "All posts" "pages" $posts "at" $art.labels.all) }}
-{{ range $i, $t := first $bays ($picked | append (sort $topics "order")) }}
-  {{ $shelves = $shelves | append (dict "key" $t.term.Data.Term "name" $t.name "pages" $t.pages "href" $t.term.RelPermalink "at" (index $art.labels (printf "shelf-%d" (add $i 1)))) }}
-{{ end }}
-{{ $css := resources.Get "building/library.css" }}
-{{ $js := resources.Get "building/library.js" }}
-{{ if not (and $css $js) }}{{ errorf "The blog's Library needs its bundle in assets/building/: run `npm run build:building` first." }}{{ end }}
-{{ $css = $css | fingerprint }}
-{{ $js = $js | fingerprint }}
-{{ $img := "building/pixel/library.webp" }}
-<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
-<div class="blog-px">
-<section class="library" aria-label="The Library" data-library>
-  <div class="city-scene">
-    <div class="city-map" style="aspect-ratio:{{ index $art.size 0 }} / {{ index $art.size 1 }}">
-      <img src="{{ $img | relURL }}?v={{ substr (sha256 (os.ReadFile (printf "static/%s" $img))) 0 12 }}" alt="A grand reading room at dusk: a tall bookcase for each topic either side of an arched window onto the city, a card catalogue under it, reading tables with green lamps, a doorway on the left and a fireplace on the right." width="{{ index $art.size 0 }}" height="{{ index $art.size 1 }}" fetchpriority="high">
-      {{ range $shelves }}
-      <button class="city-tag{{ if eq .key "all" }} on{{ end }}" type="button" data-pick="{{ .key }}" data-goatcounter-click="shelf-{{ .key }}" style="--x:{{ index .at 0 }}%;--y:{{ index .at 1 }}%">{{ .name }}</button>
-      {{ end }}
-    </div>
-  </div>
-  <div class="city-panel">
+{{ $rest := slice }}
+{{ range $byTag }}{{ if not (in $used .term.Data.Term) }}{{ $rest = $rest | append (merge . (dict "name" .term.Title "order" (printf "%05d %s" (sub 99999 .count) .term.Title))) }}{{ end }}{{ end }}
+{{ $topics = $topics | append (sort $rest "order") }}
+{{ $img := "building/pixel/library.webp" }}{{ $size := imageConfig (printf "static/%s" $img) }}
+{{ $js := resources.Get "js/library.js" | minify | fingerprint }}
+<div class="blog-px library">
+<header class="library-hero">
+  <img src="{{ $img | relURL }}?v={{ substr (sha256 (os.ReadFile (printf "static/%s" $img))) 0 12 }}" alt="The Library: a lamplit reading room at dusk, tall bookcases either side of an arched window onto the city, a card catalogue under it and reading tables with green lamps." width="{{ $size.Width }}" height="{{ $size.Height }}" fetchpriority="high">
+  <div class="library-title">
     <a class="library-back" href="{{ "" | relURL }}">← Back to the city</a>
-    <h1 class="city-kicker">The Library</h1>
-    <p class="city-lede">{{ .Content | plainify }} Pick a shelf.</p>
-    <div class="city-chips" role="group" aria-label="Shelves">{{ range $shelves }}<button type="button" data-pick="{{ .key }}" data-goatcounter-click="shelf-{{ .key }}" aria-pressed="{{ eq .key "all" }}">{{ .name }}</button>{{ end }}</div>
-    <div class="city-say" aria-live="polite">
-      {{ range $shelves }}
-      <div data-district="{{ .key }}"{{ if ne .key "all" }} hidden{{ end }}>
-        <h2>{{ .name }}</h2>
-        <p>{{ len .pages }} {{ cond (eq (len .pages) 1) "post" "posts" }}{{ with .href }}, also on <a href="{{ . }}">the tag's page</a>{{ end }}.</p>
-        <ol class="library-posts">
-          {{ range .pages }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time><p>{{ .Description | default (.Summary | plainify) | truncate 200 }}</p></li>
-          {{ end }}
-        </ol>
-      </div>
+    <h1>The Library</h1>
+    <p>{{ .Content | plainify }}</p>
+  </div>
+</header>
+<div class="library-body">
+  <div class="library-tools" data-library-tools>
+    <div class="library-search">
+      <form action="{{ "search/" | relURL }}" method="get" role="search">
+        <label class="sr-only" for="library-q">Search posts</label>
+        <input id="library-q" class="search-input" type="search" name="q" placeholder="Search {{ len $posts }} posts">
+      </form>
+      {{ with .OutputFormats.Get "rss" }}<a class="library-rss" href="{{ .RelPermalink }}" type="application/rss+xml">RSS</a>{{ end }}
+    </div>
+    <div class="library-topics" role="group" aria-label="Topics">
+      <span class="library-topics__label" aria-hidden="true">Topics</span>
+      <a class="library-chip" href="{{ .RelPermalink }}" data-topic="" data-name="">All <span>{{ len $posts }}</span></a>
+      {{ range $topics }}<a class="library-chip{{ if .track }} library-chip--track{{ end }}" href="{{ .term.RelPermalink }}" data-topic="{{ .term.Data.Term }}" data-name="{{ .name }}">{{ .name }} <span>{{ .count }}</span></a>
       {{ end }}
     </div>
-    <div class="chip-row">
-      {{ with .OutputFormats.Get "rss" }}<a class="chip" href="{{ .RelPermalink }}" type="application/rss+xml">RSS feed</a>{{ end }}
-      <a class="chip" href="{{ "search/" | relURL }}">Search</a>
-      <a class="chip" href="{{ "tags/" | relURL }}">All tags</a>
-    </div>
   </div>
-</section>
+  <p class="library-count" aria-live="polite" data-library-count>{{ len $posts }} posts, newest first</p>
+  <ol class="post-list library-list" data-library-list>
+    {{ range $posts }}<li data-tags="{{ range .GetTerms "tags" }}{{ .Data.Term }} {{ end }}">{{ partial "blog-row.html" . }}</li>
+    {{ end }}
+  </ol>
+</div>
 </div>
 <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>
 {{ end }}

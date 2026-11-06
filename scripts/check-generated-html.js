@@ -397,14 +397,18 @@ for (const filePath of htmlFiles) {
   }
 
   const blog = read("blog/index.html");
-  if (!tags(blog, "a").some((tag) => collectAttribute(tag, "href") === "/blog/index.xml" && /\bchip\b/.test(collectAttribute(tag, "class") ?? ""))) fail("/blog/", "missing the RSS chip linking to /blog/index.xml");
+  if (!tags(blog, "a").some((tag) => collectAttribute(tag, "href") === "/blog/index.xml")) fail("/blog/", "missing the RSS link to /blog/index.xml");
 
-  // Every post on one page, on the Library's All posts shelf, with the shelves' chips before the lists so phones get them
-  // near the top (#185); the old /blog/page/N/ URLs redirect, below.
+  // Every post on one page, as a card, with the Library's search and topics before the list so phones get them near the
+  // top (#185), and a topic link (a chip, without a script) for every tag a post carries; the old /blog/page/N/ URLs
+  // redirect, below.
   const postCount = JSON.parse(read("index.json")).filter((page) => page.type === "Post").length;
-  const allShelf = blog.match(/data-district=["']?all["'\s>][\s\S]*?<\/ol>/)?.[0] ?? "";
-  if (countMatches(allShelf, /<li\b/g) !== postCount || /\bpagination\b|rel=["']?next\b/.test(blog)) fail("/blog/", `should list all ${postCount} posts on the All posts shelf, with no pager`);
-  if (!(blog.indexOf("city-chips") < blog.indexOf("city-say"))) fail("/blog/", "the shelves' chips should come before the lists");
+  if (countMatches(blog, /<article\b[^>]*\bpost-row\b/g) !== postCount || /\bpagination\b|rel=["']?next\b/.test(blog)) fail("/blog/", `should list all ${postCount} posts on one page, with no pager`);
+  if (!(blog.indexOf("library-tools") < blog.indexOf("library-list"))) fail("/blog/", "the search and topics should come before the list");
+  const topicLinks = new Set(tags(blog, "a").filter((tag) => collectAttribute(tag, "data-topic")).map((tag) => collectAttribute(tag, "href")));
+  for (const href of new Set(Array.from(blog.matchAll(/data-tags=["']?([^"'>]*)/g)).flatMap((m) => m[1].trim().split(/\s+/)).filter(Boolean).map((t) => `/tags/${t}/`))) {
+    if (!topicLinks.has(href)) fail("/blog/", `no topic chip links to ${href}`);
+  }
 
   const home = read("index.html");
   const homeLd = jsonLd("/", home);

@@ -224,10 +224,39 @@ LANES = [[[455, 293], [995, 293]], [[995, 296], [455, 296]],   # the main street
 LIGHTS = {"beacon": [457, 39], "blinks": [[800, 37], [746, 18]]}   # the radio mast's top, the crane's tips
 
 
-def windows(night):
+def spread(seeds, ok, size):
+    """Every pixel 4-connected to the seeds through pixels that pass ok."""
+    (w, h), seen = size, set(seeds)
+    todo = list(seen)
+    while todo:
+        x, y = todo.pop()
+        for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if 0 <= q[0] < w and 0 <= q[1] < h and q not in seen and ok(q):
+                seen.add(q)
+                todo.append(q)
+    return seen
+
+
+def ground(night, day, dusk):
+    """Everything but the sky: what the bottom row reaches without crossing it. The sky is what the top row reaches
+    through pixels that are sky at every hour: blue or cloud by day, dark at night and bright at dusk (the hazy hills and
+    islands are not as blue by day). The stars, warm spots in it like windows, are its holes, so outside this."""
+    n, d, u = night.load(), day.load(), dusk.load()
+
+    def blue(q):
+        a, b = d[q], n[q]
+        return (a[2] > a[0] + 40 or (min(a) > 140 and max(a) - min(a) < 45)) and b[2] >= b[0] - 2 and sum(b) < 150 and sum(u[q]) > 200
+
+    (w, h) = night.size
+    sky = spread([(x, 0) for x in range(w) if blue((x, 0))], blue, night.size)
+    return spread([(x, h - 1) for x in range(w) if (x, h - 1) not in sky], lambda q: q not in sky, night.size)
+
+
+def windows(night, day, dusk):
     """The lit windows of the night art: small spots of warm light (4-connected, at most 14 px, inside 5x5), so the
-    library's lit facade and the lit roads stay out. Each goes dark in its wall's colour, the darkest pixel around it."""
-    (w, h), px = night.size, night.load()
+    library's lit facade and the lit roads stay out, and not in the sky, where they are stars. Each goes dark in its
+    wall's colour, the darkest pixel around it."""
+    (w, h), px, land = night.size, night.load(), ground(night, day, dusk)
     lit = {(x, y) for y in range(h) for x in range(w)
            if (p := px[x, y])[0] > 140 and p[1] > 100 and p[2] < 100 and p[0] - p[2] > 55}
     found = []
@@ -245,7 +274,7 @@ def windows(night):
                         lit.discard(q)
                         todo.append(q)
             xs, ys = [c[0] for c in comp], [c[1] for c in comp]
-            if len(comp) > 14 or max(xs) - min(xs) > 4 or max(ys) - min(ys) > 4:
+            if len(comp) > 14 or max(xs) - min(xs) > 4 or max(ys) - min(ys) > 4 or comp[0] not in land:
                 continue
             ring = {(cx + dx, cy + dy) for cx, cy in comp for dx in (-1, 0, 1) for dy in (-1, 0, 1)} - set(comp)
             wall = min((px[q] for q in sorted(ring) if 0 <= q[0] < w and 0 <= q[1] < h), key=sum)
@@ -267,8 +296,8 @@ def sea(night, dusk):
     return runs
 
 
-def write_fx(out, night, dusk):
-    (out / "city-fx.json").write_text(json.dumps({"windows": windows(night), "sea": sea(night, dusk), "walks": WALKS,
+def write_fx(out, night, day, dusk):
+    (out / "city-fx.json").write_text(json.dumps({"windows": windows(night, day, dusk), "sea": sea(night, dusk), "walks": WALKS,
                                                   "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}, separators=(",", ":")))
     shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # city_depth.py's map, as it is
 
@@ -287,7 +316,7 @@ def build(out):
         im.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
         print("drew", path.name, "from seed", PICKS[phase])
     write_json(out)
-    write_fx(out, baked["night"], baked["dusk"])
+    write_fx(out, baked["night"], baked["day"], baked["dusk"])
 
 
 if __name__ == "__main__":

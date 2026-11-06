@@ -213,6 +213,19 @@ def mended(src, x1, y1, side="lobby"):
     return Image.composite(fill, src, band(src.size, x1, y1, 120))
 
 
+def ceiling(src, x1, y1):
+    """A lowered ceiling the model hung over the room (floor 3's alcove): the wall under it, mirrored up over it from the
+    lobby's edge to x1, so the plaster and the lamps' cords run on to the top; faded in over 20 px below and at x1."""
+    x0, fill = round(src.height * 132 / 154), src.copy()
+    fill.paste(src.crop((0, y1, src.width, 2 * y1)).transpose(Image.FLIP_TOP_BOTTOM), (0, 0))
+    mask = Image.new("L", src.size)
+    px = mask.load()
+    for y in range(y1 + 20):
+        for x in range(x0, x1):
+            px[x, y] = round(255 * min(1, (y1 + 20 - y) / 20, (x1 - x) / 20))
+    return Image.composite(fill, src, mask)
+
+
 def paint(path, prompt, size, seed, host, init=None):
     """One candidate, kept if painted already (the model does not redraw a seed bit for bit)."""
     if path.exists():
@@ -236,13 +249,20 @@ def main():
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     ap.add_argument("--src", help="retime: the dusk pick, a candidate's file name (roof_1017.png)")
     ap.add_argument("--time", choices=sorted(HOURS), help="retime: the hour to paint it at")
-    ap.add_argument("--band", help="wall: X,Y[,room], how far right and down the wall beside the lift is mended, and from which side")
+    ap.add_argument("--band", action="append", help="wall: X,Y[,room], how far right and down the wall beside the lift "
+                    "is mended, and from which side; again for another band over the first")
+    ap.add_argument("--ceiling", help="wall: X,Y, a lowered ceiling over the room to take down, to x X and row Y")
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     if args.room == "wall":   # a pick whose room turned a corner beside the lift: <src>-wall.png, the rest kept as is
         src = Image.open(OUT / args.src).convert("RGB")
-        x1, y1, *side = args.band.split(",")
-        mended(src, int(x1), int(y1), *side).save(OUT / f"{Path(args.src).stem}-wall.png")
+        out = src
+        for b in args.band:
+            x1, y1, *side = b.split(",")
+            out = mended(out, int(x1), int(y1), *side)
+        if args.ceiling:
+            out = ceiling(out, *map(int, args.ceiling.split(",")))
+        out.save(OUT / f"{Path(args.src).stem}-wall.png")
         return
     if args.room == "retime":   # the same picture at another hour: <src>-<time>_<seed>.png
         init = Image.open(OUT / args.src).convert("RGB")

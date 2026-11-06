@@ -49,21 +49,20 @@ need it; everything after them is code and rebuilds from the committed files.
 
 ```bash
 uv run web3d/pixel/paint_rooms.py ROOM                     # paint candidates (Draw Things)
-uv run web3d/pixel/install_picks.py                        # crop and pixelate the picked candidates into paintings/picks/
-uv run web3d/pixel/gen_floors.py static/building/pixel     # the floor strips, data/floor_accents.yaml
-uv run web3d/pixel/gen_exterior.py build static/building/pixel              # the street, exterior.json, the backdrop
-uv run web3d/pixel/gen_exterior.py build static/building/pixel --time dawn  # and again for day and night
+uv run web3d/pixel/install_picks.py                        # bake the picked candidates into paintings/picks/
+uv run web3d/pixel/gen_floors.py static/building/pixel     # the tower's strips and floors.json, data/floor_accents.yaml
+uv run web3d/pixel/gen_city.py build static/building/pixel # the city, its hours and the other pages' backdrop
 uv run web3d/pixel/compare_art.py OUT                      # a fresh build in OUT against the committed art
 ```
 
-Build in that order: the street is cut from the floors, and each `--time` phase adds its own street, backdrop and baked
-rooms. The phases are listed in `data/phases.json`; `gen_floors.py` checks it against its `PHASES`, and `check:phases`
-checks the time pick and the CSS against it. The numbers the homepage's script draws by (doors, lamps, windows, the
-street's geometry) are written into `exterior.json`, so change them in the Python and rerun it. Blog covers are painted
-by `paint_covers.py` and pixelated by `pixelate.py`; `gen_icons.py` draws the favicon.
+The phases are listed in `data/phases.json`; `gen_floors.py` checks its baked rooms and roof skies against the art, and
+`check:phases` checks the time pick and the CSS against it. The numbers the tower's script draws by (doors, lamps, each
+strip's moving box) are written into `floors.json`, so change them in the Python and rerun it. Blog covers are painted
+by `paint_covers.py` and pixelated by `pixelate.py`; `gen_icons.py` draws the favicon. The city's other scenes have
+their own `gen_*.py` (CLAUDE.md).
 
-CI rebuilds the floors and every phase of the street on each pull request and fails unless they match the committed
-files pixel for pixel and the data files come out unchanged.
+CI rebuilds all the art on each pull request and fails unless it matches the committed files pixel for pixel and the
+data files come out unchanged.
 
 ## Visual QA
 

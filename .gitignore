@@ -16,8 +16,8 @@ assets/building/
 # The Mermaid diagrams, drawn to SVG by scripts/render-diagrams.js (npm run build:building)
 assets/diagrams/
 
-# Draw Things paintings: only the picked candidates are inputs (install_picks.PICKS, paint_rooms.LOBBY_PICK,
-# gen_exterior.PICK); the rest are kept locally for comparison
+# Draw Things paintings: only the picked candidates are inputs (install_picks.PICKS, paint_rooms.LOBBY and OLD_LOBBY);
+# the rest are kept locally for comparison
 web3d/pixel/paintings/candidates/*
 !web3d/pixel/paintings/candidates/lobby_100.png
 # (the first, cel-shaded lobby: paint_rooms.py's lobby is an edit of it) the lobby, every room, the roof's and the

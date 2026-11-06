@@ -31,6 +31,7 @@ FRAMES = 12                   # 12 frames at 8 fps, then the room rests (pixel.j
 LOBBY_X, ROOM_X = 8, 140      # the lobby painting spans 8..140 (under the text card), the room 140..472
 HOUSING_X = LOBBY_X + 107   # on the roof, the lift housing ends with the pasted lift (install_picks.LIFT)
 DOOR = dict(x0=51, x1=96, mid=74, y0=72, y1=153)   # lift doors in floor pixels; pixel.js mirrors these numbers
+FINE = {"7": 2}   # key: its strip's pixels to an art pixel, each way: floors at the new art standard (paint_rooms.FINE)
 PICKS = Path(__file__).resolve().parent / "paintings" / "picks"
 ROOT = Path(__file__).resolve().parents[2]   # the repository
 
@@ -315,7 +316,8 @@ EDGES = {  # key: (left bands, the lobby re-laid up to x), (right bands, the roo
           (WALL_L + [(FLOOR, FLOOR + 1, 150, 24, 1), (FLOOR + 1, H - 12, 150, 24)], 472)),
     "5": ((WALL_L + boards(226, 23), 150), (WALL_L + boards(226, 23), 472)),
     "6": ((WALL_L + boards(191, 23), 145), (wall(468) + boards(191, 23), 466)),
-    "7": ((WALL_L + boards(130, 11), 130), (wall(468) + boards(130, 11), 472)),
+    "7": (([(0, 2 * FLOOR, 18, 40), (2 * FLOOR, 2 * H, 18, 40)], 0),   # fine pixels (FINE): painted, never re-laid,
+          ([(0, 2 * FLOOR, 880, 60), (2 * FLOOR, 2 * H, 880, 60)], 0)),  # so wide blocks of plain wall and boards
     "R": ((WALL_L + boards(130, 11), HOUSING_X),   # sky and roof; the railing levels off at the edge
           ([(0, 121, 468, 4), (121, 138, W - 9, 1), (138, H, 468, 4)], 472)),
 }
@@ -387,17 +389,19 @@ def relay(img, key):
 
 
 def margins(img, key):
-    """The two runs build() appends: EDGE columns left of art x 8, then EDGE columns from 472."""
-    o = img.load()
+    """The two runs build() appends: EDGE columns left of art x 8, then EDGE columns from 472 (k times as many on a
+    FINE floor, in its own pixels)."""
+    o, k = img.load(), FINE.get(key, 1)
     get = lambda x, y: o[x, y][:3]
-    out = Image.new("RGBA", (2 * EDGE, H))
+    out = Image.new("RGBA", (2 * EDGE * k, H * k))
     q = out.load()
     (left, _), (right, _) = EDGES[key]
-    left = [(b[0], b[1], LOBBY_X, b[3]) if b[0] >= FLOOR else b for b in left]   # read the lobby's boards, as laid
-    for i in range(EDGE):
-        for y in range(H):
-            q[i, y] = (*edge_px(get, band_at(left, y), LOBBY_X - EDGE + i, y), 255)
-            q[EDGE + i, y] = (*edge_px(get, band_at(right, y), W - 8 + i, y), 255)
+    if k == 1:
+        left = [(b[0], b[1], LOBBY_X, b[3]) if b[0] >= FLOOR else b for b in left]   # read the lobby's boards, as laid
+    for i in range(EDGE * k):
+        for y in range(H * k):
+            q[i, y] = (*edge_px(get, band_at(left, y), (LOBBY_X - EDGE) * k + i, y), 255)
+            q[EDGE * k + i, y] = (*edge_px(get, band_at(right, y), (W - 8) * k + i, y), 255)
     return out
 
 
@@ -432,7 +436,9 @@ def sign(cv, key, w, h):
 
 
 def frame_base(key, room_name, accent):
-    """The static floor: slabs with the floor's colour band, facade edges, the lobby (with its number), the room."""
+    """The static floor: slabs with the floor's colour band, facade edges, the lobby (with its number), the room. A
+    FINE floor has the same slabs and number, k times as large, round its own finer painting."""
+    k = FINE.get(key, 1)
     img = Image.new("RGBA", (W, H), (*INK, 255))
     cv = Layer(img)
     cv.rect(0, 0, W, CEIL, c("dark", 1))
@@ -441,8 +447,11 @@ def frame_base(key, room_name, accent):
     cv.rect(0, H - 12, W, H - 11, INK)
     for x0 in (0, W - 8):
         cv.rect(x0, CEIL, x0 + 8, H - 12, c("dark", 2))
-    painting = Image.open(PICKS / f"{room_name}-px.png").convert("RGB")
-    img.paste(painting, (LOBBY_X, CEIL))                                    # lobby + room, 464 wide
+    if k > 1:
+        img = img.resize((W * k, H * k), Image.NEAREST)
+        cv = Layer(img)
+    painting = Image.open(PICKS / f"{room_name}{'-fine' if k > 1 else ''}-px.png").convert("RGB")
+    img.paste(painting, (LOBBY_X * k, CEIL * k))                            # lobby + room, 464 art px wide
     if key == "R":   # open sky: only the lift housing keeps a roof; the sky runs up and out to the right edge
         for x in range(HOUSING_X, W):
             col = painting.getpixel((min(x - LOBBY_X, painting.width - 1), 0))
@@ -454,12 +463,14 @@ def frame_base(key, room_name, accent):
                 for y in range(CEIL, H - 12):                                # the dither repeats every 4; the railing
                     sy = max(121, y - 2) if 121 <= y < 142 else y            # (rows 121-141) falls 2 rows in those 8
                     cv.put(x, y, painting.getpixel((x - LOBBY_X - 8, sy - CEIL)))
-    relay(img, key)
-    cv.rect(LOBBY_X + 58, CEIL + 41, LOBBY_X + 73, CEIL + 46, (26, 18, 8))          # the lift's floor display, bezel to bezel
+    if k == 1:   # a fine floor's boards are painted to run on
+        relay(img, key)
+    big = lambda x0, y0, x1, y1, col: cv.rect(x0 * k, y0 * k, x1 * k, y1 * k, col)   # in art pixels
+    big(LOBBY_X + 58, CEIL + 41, LOBBY_X + 73, CEIL + 46, (26, 18, 8))            # the lift's floor display, bezel to bezel
     for y, row in enumerate(FONT[key]):
         for x, ch in enumerate(row):
             if ch == "#":
-                cv.put(LOBBY_X + 64 + x, CEIL + 41 + y, GLOW["amber"])
+                big(LOBBY_X + 64 + x, CEIL + 41 + y, LOBBY_X + 65 + x, CEIL + 42 + y, GLOW["amber"])
     return img
 
 
@@ -623,43 +634,43 @@ def billie_orchestrator(room, f):
         room.put(x1 - 1, y1 - 1, c("coral", 5))
 
 
-# --- Billie, floor 7 (Staff, Payments): money moves through the tubes to the counter; the vault's wheel turns ------
-VAULT = (106, 81)    # the vault door's middle (install_picks draws the door; the wheel is drawn here)
-TUBE = (210, 24, 262)   # a capsule's way: along the lower pipe from x 210 on row 24, then down the pipe at x 262
-NOTES = (238, 76, 310, 102)   # the counting machine and the cash on it
+# --- Billie, floor 7 (Staff, Payments): a payment drops down the glass tube to the counter; the vault's wheel turns ---
+# Fine pixels (FINE), in the room's own coordinates: the painting's x - 264.
+WHEEL = (315, 168)            # the vault door's wheel hub (install_picks.unwheel takes the painted one down)
+GLASS = (468, 491, 80, 118)   # the glass section of the tube over the counting machine: x0, x1, top, bottom (half-open)
+SCREEN = (436, 159, 455, 166)   # the counting machine's screen, inside its bezel
+BRASS = ((75, 39, 4), (139, 75, 27), (190, 125, 67), (249, 183, 110))   # the painting's own: outline, shade, lit, glint
 
 
 def billie_payments(room, f):
-    cx, cy = VAULT                                                         # the wheel: six spokes with knobs, a turn
-    for k in range(6):                                                     # of 5 degrees a frame (60 deg a loop)
-        t = math.radians(5 * f + 60 * k)
+    cx, cy = WHEEL                                                         # the wheel: eight spokes with knobs through a
+    dark, mid, lit, glint = BRASS                                          # rim, an eighth of a turn a loop
+    put = lambda x, y, col: room.put(round(x), round(y), col)
+    for k in range(8):
+        t = math.radians(45 * f / FRAMES + 45 * k)
         dx, dy = math.cos(t), -math.sin(t)
-        for r in range(4, 17):
-            x, y = round(cx + r * dx), round(cy + r * dy)
-            room.put(x + 1, y, INK)
-            room.put(x, y + 1, INK)
-        for r in range(4, 17):
-            room.put(round(cx + r * dx), round(cy + r * dy), c("steel", 5))
-        x, y = round(cx + 18 * dx), round(cy + 18 * dy)
-        room.rect(x - 1, y - 1, x + 2, y + 2, INK)
-        room.put(x, y, c("steel", 4))
-    room.rect(cx - 3, cy - 3, cx + 4, cy + 4, INK)                         # the hub
-    room.rect(cx - 2, cy - 2, cx + 3, cy + 3, c("steel", 4))
-    room.rect(cx - 1, cy - 1, cx + 1, cy + 1, c("steel", 5))
-    if 1 <= f <= 8:                                                        # a payment rides the tube down to the counter
-        d, (x0, y0, xd) = (f - 1) * 96 // 7, TUBE
-        if x0 + d < xd - 4:
-            x, y = x0 + d, y0
-            room.rect(x - 4, y - 2, x + 5, y + 2, INK)
-            room.rect(x - 3, y - 1, x + 4, y + 1, c("coral", 4))
-            room.rect(x - 3, y - 1, x + 4, y, c("coral", 5))
-        else:
-            x, y = xd, y0 + x0 + d - xd + 4
-            room.rect(x - 2, y - 4, x + 2, y + 5, INK)
-            room.rect(x - 1, y - 3, x + 1, y + 4, c("coral", 4))
-            room.rect(x - 1, y - 3, x, y + 4, c("coral", 5))
-    if f >= 8:                                                             # and the machine counts it out
-        room.blink(NOTES, lambda col: col in (c("mint", 4), c("mint", 5)), c("mint", 2), f, every=5, lit=2)
+        for r in range(5, 26):
+            put(cx + r * dx + dy, cy + r * dy - dx, dark)
+            put(cx + r * dx - dy, cy + r * dy + dx, dark)
+            put(cx + r * dx, cy + r * dy, glint if dx - dy > 0.6 else lit)   # lit from the upper left
+        for r, e in product((26, 27, 28), (-1, 0, 1)):
+            put(cx + r * dx + e * dy, cy + r * dy - e * dx, lit if r == 27 and not e else mid)
+    for y, x in product(range(-16, 17), range(-16, 17)):
+        d = math.hypot(x, y)
+        if 12.5 < d <= 15.5:                                               # the rim and the hub, lit the same way
+            room.put(cx + x, cy + y, dark if d > 14.5 else glint if x + y < -12 else lit if x + y < 6 else mid)
+        elif d <= 5.5:
+            room.put(cx + x, cy + y, dark if d > 4.5 else glint if x + y < -3 else lit)
+    x0, x1, top, bottom = GLASS
+    if 1 <= f <= 7:                                                        # a payment drops down the glass tube
+        y = top + (bottom - top - 12) * (f - 1) // 6
+        room.rect(x0 + 6, y, x1 - 6, y + 12, INK)
+        room.rect(x0 + 7, y + 1, x1 - 7, y + 11, c("coral", 4))
+        room.rect(x0 + 7, y + 1, x0 + 10, y + 11, c("coral", 5))            # lit from the lamp on its left
+        room.rect(x0 + 7, y + 5, x1 - 7, y + 7, c("cream", 4))              # its band
+    if f >= 7:                                                             # and the machine counts it out
+        sx0, sy0, sx1, sy1 = SCREEN
+        room.rect(sx0 + 2, sy0 + 2, sx0 + 2 + (sx1 - sx0 - 4) * (f - 6) // 5, sy1 - 2, c("mint", 4))
 
 
 CITY_LIGHTS = [(57, 99), (68, 99), (79, 99), (90, 100), (101, 100), (112, 100), (123, 100), (134, 101), (236, 100),
@@ -997,15 +1008,15 @@ def phase_ramp(img, scheme):
 def build(key, out, phase=None):
     name, accent, animate = FLOORS[key]
     scheme = PHASES.get(phase)
-    base = frame_base(key, name, accent)
+    base, k = frame_base(key, name, accent), FINE.get(key, 1)
     if scheme and key == "R":
         phase_roof(base, scheme)
-    strip = Image.new("RGBA", (W * FRAMES + 2 * EDGE, H))
+    strip = Image.new("RGBA", ((W * FRAMES + 2 * EDGE) * k, H * k))
     for f in range(FRAMES):
         img = base.copy()
-        room = Layer(img.crop((ROOM_X, CEIL, W - 8, H - 12)))
+        room = Layer(img.crop((ROOM_X * k, CEIL * k, (W - 8) * k, (H - 12) * k)))
         animate(room, f)
-        img.paste(room.img, (ROOM_X, CEIL))
+        img.paste(room.img, (ROOM_X * k, CEIL * k))
         if scheme and key == "R":
             roof_after(img, scheme)
             if scheme.get("stars"):                                         # off the columns the edge runs read
@@ -1014,18 +1025,18 @@ def build(key, out, phase=None):
             phase_ramp(img, scheme)
         elif scheme and key == "L":
             phase_door(img, scheme)
-        strip.paste(img, (f * W, 0))
-    edges = margins(strip.crop((0, 0, W, H)), key)    # from the rest frame: the runs carry on from every frame alike,
-    (left, _), (right, _) = EDGES[key]                 # as nothing they read from, or meet, moves
-    for y0, y1, bx, bw, *_ in left + right + [(0, H, LOBBY_X, 1), (0, H, W - 9, 1)]:
+        strip.paste(img, (f * W * k, 0))
+    edges = margins(strip.crop((0, 0, W * k, H * k)), key)   # from the rest frame: the runs carry on from every frame
+    (left, _), (right, _) = EDGES[key]                        # alike, as nothing they read from, or meet, moves
+    for y0, y1, bx, bw, *_ in left + right + [(0, H * k, LOBBY_X * k, 1), (0, H * k, (W - 8) * k - 1, 1)]:
         for f, x, y in product(range(1, FRAMES), range(bx, bx + bw), range(y0, y1)):
-            assert strip.getpixel((x, y)) == strip.getpixel((f * W + x, y)), (key, f, x, y)
+            assert strip.getpixel((x, y)) == strip.getpixel((f * W * k + x, y)), (key, f, x, y)
     if scheme and key == "R":
         if scheme.get("stars"):
             scatter(Layer(edges), (EDGE, 1, 2 * EDGE, 16), 14, 152, open_sky(scheme))   # the sky past the strip has stars too,
             scatter(Layer(edges), (EDGE, 16, 2 * EDGE, 96), 80, 153, open_sky(scheme))   # its top rows also the sky above it
         clouds(Layer(edges), [(EDGE + x, y, w) for x, y, w in EDGE_CLOUDS], scheme, open_sky(scheme))
-    strip.paste(edges, (W * FRAMES, 0))
+    strip.paste(edges, (W * FRAMES * k, 0))
     save_lossless(strip, out / f"floor-{key}{'-' + phase if phase else ''}.webp")
     print("drew floor", key, phase or "")
 

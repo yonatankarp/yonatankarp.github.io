@@ -18,12 +18,12 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import LOBBY_W, floor_base  # noqa: E402
+from paint_rooms import floor_base  # noqa: E402
 import gen_floors as G  # noqa: E402
-from pixelate import BAYER, dither_bands, pixelate  # noqa: E402
+from pixelate import BAYER, dither_bands, pixelate, quantize  # noqa: E402
 
 HERE = Path(__file__).resolve().parent / "paintings"
 LOBBY_PX = (132, 154)
@@ -48,9 +48,10 @@ PICKS = {  # name: (seed, crop (left, top, right, bottom), colours)
 
 def match_base(edit):
     """Undo the model's colour drift: map each channel so the edited lobby has the base lobby's mean and spread."""
+    lobby_w = round(edit.height * 132 / 154)
     e = np.asarray(edit, dtype=np.float64)
-    b = np.asarray(floor_base(), dtype=np.float64)[:, :LOBBY_W]
-    el = e[:, :LOBBY_W]
+    b = np.asarray(floor_base(edit.size), dtype=np.float64)[:, :lobby_w]
+    el = e[:, :lobby_w]
     gain = b.std((0, 1)) / el.std((0, 1))
     out = (e - el.mean((0, 1))) * gain + b.mean((0, 1))
     return Image.fromarray(out.clip(0, 255).astype(np.uint8), "RGB")
@@ -885,6 +886,7 @@ TOUCHUPS["billie_orchestrator"] = lambda px: decision_room(planks(px))
 LAMPS["billie_payments"] = [(172, 0, 34, 19), (329, 0, 35, 19)]
 GONE["billie_payments"] = [(137, 0, 158, 34), (225, 0, 252, 36), (280, 0, 306, 36), (362, 0, 388, 40)]   # the one
 # beside the first, the one over the vault door, the one beside the second, and the one under the pipes
+VAULT = (106, 81)   # the old floor 7's vault door, in room pixels: its pick is still floor R's boards (gen_floors.relay)
 
 
 def vault(px):
@@ -903,7 +905,7 @@ def vault(px):
                                                      G.c("amber", 2) in map(tuple, a[y, max(0, x - 1):x + 2])):
                 a[y, x] = G.c("amber", 1)
     a[126:130, 327:343] = a[130, 328:331] = (160, 50, 39)                  # the returns bin's painted label, which
-    cx, cy = G.VAULT[0] + 132, G.VAULT[1]                                  # read as scrawl, goes
+    cx, cy = VAULT[0] + 132, VAULT[1]                                      # read as scrawl, goes
     for y in range(cy - 48, cy + 49):
         for x in range(cx - 48, cx + 49):
             r, side = np.hypot(x - cx, y - cy), (x - cx) + (y - cy)        # side < 0: toward the light
@@ -1001,6 +1003,61 @@ def crane(px):
 TOUCHUPS["roof"] = crane
 
 
+# --- The new art standard (paint_rooms.FINE, gen_floors.FINE) ---
+FINE_PX = (2 * FLOOR_PX[0], 2 * FLOOR_PX[1])   # twice the old floors' pixels each way
+FINE_PICKS = {  # name: (seed, crop, colours), installed as <name>-fine-px.png
+    "billie_payments": (900, (0, 0, 2304, 768), 64),
+}
+LOBBY_FLAT = {WALL, CONE, *LIGHT, *PLANK, (127, 44, 36)}   # the lobby's own wall, lamp light, planks and skirting
+FINE_LAMPS = {"billie_payments": [366, 447, 622, 737]}   # its lamps, x in fine pixels (art_json)
+FINE_TOUCHUPS = {}
+WHEEL = (579, 168, 31)   # floor 7's painted vault wheel, hub and reach in its fine pixels: gen_floors turns a drawn one
+
+
+def unwheel(px):
+    """Floor 7: the painted wheel cannot turn (rotated, its pixels smear), so it is taken off the vault door: its spokes
+    and rim (what stands out from the door's median) and the hub, filled from the door around them, outside in."""
+    cx, cy, r = WHEEL
+    a = np.asarray(px).astype(np.int32)
+    med = np.asarray(px.filter(ImageFilter.MedianFilter(9))).astype(np.int32)
+    pal = np.array(sorted({c for _, c in px.getcolors(4096)}))
+    yy, xx = np.mgrid[:a.shape[0], :a.shape[1]]
+    d2 = (xx - cx) ** 2 + (yy - cy) ** 2
+    hole = (d2 <= r * r) & ((np.abs(a - med).sum(-1) > 60) | (d2 <= 15 * 15))
+    hole[1:-1, 1:-1] |= hole[:-2, 1:-1] | hole[2:, 1:-1] | hole[1:-1, :-2] | hole[1:-1, 2:]   # a pixel wider
+    hole &= d2 <= r * r
+    while hole.any():
+        fill = []
+        for y, x in zip(*np.nonzero(hole), strict=True):
+            near = a[y - 2:y + 3, x - 2:x + 3][~hole[y - 2:y + 3, x - 2:x + 3]]
+            if len(near) >= 5:                                             # the door's colour here, on the picture's own
+                fill.append((y, x, pal[((pal - near.mean(0)) ** 2).sum(-1).argmin()]))
+        for y, x, col in fill:
+            a[y, x], hole[y, x] = col, False
+    return Image.fromarray(a.astype(np.uint8), "RGB")
+
+
+FINE_TOUCHUPS["billie_payments"] = unwheel
+
+
+def install_fine(name):
+    """A floor at the new standard: quantised like the city, its own painted lamps and light kept as painted. Only the
+    lift goes in from the lobby, doubled, so it stays the one on every floor."""
+    seed, box, colours = FINE_PICKS[name]
+    crop = Image.open(HERE / "candidates" / f"{name}_{seed}.png").convert("RGB").crop(box)
+    crop.save(HERE / "picks" / f"{name}-fine.png")
+    px = quantize(match_base(crop), FINE_PX, colours)
+    lift = Image.open(HERE / "picks" / "lobby-px.png").convert("RGB").crop(LIFT)
+    lift = lift.resize((2 * lift.width, 2 * lift.height), Image.NEAREST)
+    flat = (np.asarray(lift)[..., None, :] == np.array(sorted(LOBBY_FLAT))).all(-1).any(-1)   # the lobby's plain
+    flat[2 * 134:, :2 * (FRAME[0] - LIFT[0])] = flat[2 * 134:, 2 * (FRAME[1] - LIFT[0]):] = True   # nor its skirting's ink
+    px.paste(lift, (2 * LIFT[0], 2 * LIFT[1]), Image.fromarray(~flat).convert("L"))       # wall, light and floor: not pasted
+    if name in FINE_TOUCHUPS:
+        px = FINE_TOUCHUPS[name](px)
+    px.save(HERE / "picks" / f"{name}-fine-px.png")
+    print("installed", name, "fine, seed", seed, crop.size, "->", px.size)
+
+
 def mode(row):
     return Counter(map(tuple, row)).most_common(1)[0][0]
 
@@ -1038,5 +1095,5 @@ def install(name):
 
 
 if __name__ == "__main__":
-    for name in sys.argv[1:] or PICKS:
-        install(name)
+    for name in sys.argv[1:] or [*PICKS, *(f"{n}-fine" for n in FINE_PICKS)]:
+        install_fine(name.removesuffix("-fine")) if name.endswith("-fine") else install(name)

@@ -63,7 +63,7 @@ GLOW_WIN = G.GLOW["amber"]
 # signature props. On 1-7 the sign hides it at rest, and flying in, the sign dissolves into it (web3d/src/street.js);
 # the lobby's and the garage's windows show it. The window's size decides the slice's size.
 LOOK = {"1": (322, 76), "2": (328, 82), "3": (266, 56), "4": (250, 64), "5": (222, 54), "6": (230, 96),
-        "7": (205, 86), "R": (0, 0), "L": (246, 122), "P": (166, 78)}
+        "7": (238, 88), "R": (0, 0), "L": (246, 122), "P": (166, 78)}
 NEIGHBOURS = tuple((x0, x1, roof + RISE) for x0, x1, roof in (
     (0, 30, 200), (30, 74, 170), (74, 118, 214), (118, 166, 176),
     (314, 348, 196), (348, 398, 160), (398, 440, 206), (440, 480, 172)))   # x0, x1, roof
@@ -155,16 +155,18 @@ def blockout(lit=3):
 
 def art_json():
     """exterior.json: the street's size and windows, and under "art" the numbers web3d/src/pixel.js draws and flies by,
-    so it never keeps its own copy of them: the strips' size and frames, the lift doors (G.DOOR), the dither (G.BAYER),
-    each room's lamps by strip x, the lift's own first (install_picks.LAMPS, laid at G.LOBBY_X), where each window looks
+    so it never keeps its own copy of them: the strips' size and frames, the floors drawn finer (G.FINE), the lift doors
+    (G.DOOR), the dither (G.BAYER), each room's lamps by strip x, the lift's own first (install_picks.LAMPS, laid at
+    G.LOBBY_X; a fine floor's FINE_LAMPS, in art pixels), where each window looks
     into its room (LOOK; the roof's is painted, not a slice), the neighbours, the pavement, a storey's height, the
     tower's brick, its floors bottom to top (P to R, which web3d/src/art.js rides by), how many rows the picture has
     grown at its top for them (RISE), and the crane (its first column, width and the cornice's row under it)."""
-    from install_picks import LAMPS   # numpy: only here
+    from install_picks import FINE_LAMPS, LAMPS   # numpy: only here
 
     lamps = {key: [G.DOOR["mid"], *(lamp[0] + G.LOBBY_X for lamp in LAMPS[name])]
              for key, (name, *_) in G.FLOORS.items() if name in LAMPS}
-    art = {"frame": [G.W, G.H], "frames": G.FRAMES, "door": G.DOOR, "bayer": G.BAYER, "lamps": lamps,
+    lamps |= {key: [G.DOOR["mid"], *(x // G.FINE[key] + G.LOBBY_X for x in FINE_LAMPS[G.FLOORS[key][0]])] for key in G.FINE}
+    art = {"frame": [G.W, G.H], "frames": G.FRAMES, "door": G.DOOR, "bayer": G.BAYER, "lamps": lamps, "density": G.FINE,
            "look": {k: list(v) for k, v in LOOK.items() if k != "R"}, "neighbours": [list(n) for n in NEIGHBOURS],
            "ground": GROUND, "storey": STOREY, "brick": [BX0, BX1], "order": ["P", *STOREYS, "R"], "rise": RISE,
            "crane": [JIB[0], JIB[1] - JIB[0], TOP - 5]}

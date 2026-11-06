@@ -10,6 +10,8 @@ export const { door: DOOR, bayer: BAYER, look: LOOK } = art;
 // Each room's hanging lamps, by strip x, the lift's own lamp first. The roof has none: it is outdoors, so it stays as
 // bright as its sky.
 export const LAMPS = art.lamps;
+// Floors at the new art standard: k x k strip pixels to each art pixel above, so every number here stays in art pixels.
+export const DENSITY = art.density ?? {};
 export { art as ART };
 export const STREET = { size, windows };   // the street picture's size, and where each floor's window is in it
 export const TIME = document.documentElement.dataset.time;   // picked once, in the page's head (#151): it never changes while the page is open
@@ -61,12 +63,12 @@ export function shade(img, lv) {
 
 // shade()'s lights-off picture, a few rows per step, so idle time can make it without a long task on a slow phone (#184).
 export function* darken(img) {
-  const ROWS = 12;
-  const runs = img.width - FRAMES * FW, H = img.height;
-  const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true }), W = FW + runs;
+  const ROWS = 12, fw = FW * (img.k ?? 1);   // a frame's width in this strip's own pixels
+  const runs = img.width - FRAMES * fw, H = img.height;
+  const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true }), W = fw + runs;
   c.canvas.width = W; c.canvas.height = H;
-  c.drawImage(img, 0, 0, FW, H, 0, 0, FW, H);
-  if (runs) c.drawImage(img, FRAMES * FW, 0, runs, H, FW, 0, runs, H);
+  c.drawImage(img, 0, 0, fw, H, 0, 0, fw, H);
+  if (runs) c.drawImage(img, FRAMES * fw, 0, runs, H, fw, 0, runs, H);
   const d = c.getImageData(0, 0, W, H), px = new Uint32Array(d.data.buffer);
   yield;
   const seen = new Set();   // the room's own colours, in the order they first appear
@@ -74,6 +76,8 @@ export function* darken(img) {
   const rgb = (v) => [v & 255, (v >> 8) & 255, (v >> 16) & 255], own = [...seen].map((v) => [v, rgb(v)]);
   const fallen = new Map(own.map(([v, col]) => {
     const to = col.map((n, i) => n * DARK[i]);
+    // A fine floor's colours are its own median cut, all lit: none is dark enough to fall to, so each just darkens.
+    if (fw > FW) return [v, (v & 0xff000000) | (Math.round(to[2]) << 16) | (Math.round(to[1]) << 8) | Math.round(to[0])];
     let best = v, far = Infinity;
     for (const [w, o] of own) { const e = (o[0] - to[0]) ** 2 + (o[1] - to[1]) ** 2 + (o[2] - to[2]) ** 2; if (e < far) { far = e; best = w; } }
     return [v, best];

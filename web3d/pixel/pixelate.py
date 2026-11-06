@@ -95,6 +95,13 @@ def pixelate(src, size, colours=32, keep=(), line_art=False):
     return Image.fromarray(pal[cleanup(idx, pal)].astype(np.uint8), "RGB")
 
 
+def quantize(src, size, colours=64):
+    """The new art standard (the city's): a box downscale, then a median cut to the picture's own colours, no dither and
+    no palette, so a painterly painting keeps its light and texture."""
+    small = src.convert("RGB").resize(size, Image.BOX)
+    return small.quantize(colours, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("src")

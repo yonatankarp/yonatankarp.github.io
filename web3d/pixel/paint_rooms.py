@@ -28,7 +28,10 @@ OUT = HERE / "candidates"
 FLOOR_SIZE = (1920, 640)      # the whole floor, lobby + room: art 464 x 154 px at about 4.15x
 LOBBY_SIZE = (576, 640)       # the lobby alone: art 132 x 154 px
 LOBBY_PICK = ("lobby_100.png", (6, 6, 570, 634))   # the picked lobby candidate and its crop (install_picks.py)
-LOBBY_W = round(FLOOR_SIZE[1] * 132 / 154)          # the lobby's width inside a floor base, in painting pixels
+# The new art standard, floor by floor (the city's): painterly, and twice the old floors' pixels, art 928 x 308 at
+# about 2.5 painting pixels each. A fine floor keeps the lobby's lift and continues its wall and floor like the others.
+FINE_SIZE = (2304, 768)
+FINE = {"billie_payments"}
 
 STYLE = (
     "Flat 2D side-view video game background art of a single room, seen straight on like a dollhouse cutaway: "
@@ -46,6 +49,17 @@ EDIT = (
 TAIL = (" Make every object large and chunky, standing on the floor and reaching up to near the ceiling, spaced apart "
         "so each one reads clearly on its own. Add a few hanging pendant lamps with soft cones of light. "
         "No people, no text, no letters, no logos.")
+
+EDIT_FINE = (
+    "Edit this picture. Repaint it as highly detailed painterly city-builder video game art of a single room seen "
+    "straight on like a dollhouse cutaway: orthographic side view, no perspective, no side walls, the back wall "
+    "parallel to the picture. Warm golden dusk light, soft shadows, rich texture and fine detail. Keep the elevator on "
+    "the left exactly where it is and the same size, and keep the warm plaster wall, the skirting board and the wooden "
+    "plank floor where they are across the whole picture. In the space to the right of the elevator, furnish the room "
+    "with: "
+)
+TAIL_FINE = (" Every object stands on the floor, detailed and clearly readable, spaced apart. A few hanging pendant "
+             "lamps cast warm soft pools of light, lit warm. No people, no text, no letters, no logos.")
 
 LOBBY = (
     "A lift lobby: in the middle of a plain warm-beige plaster wall, a closed brushed-steel elevator with two "
@@ -129,13 +143,14 @@ ROOF = (
 )
 
 
-def floor_base():
+def floor_base(size=FLOOR_SIZE):
     """The lobby on the left, its plain wall, skirting and floor (a strip from its left edge) carried rightwards."""
     name, box = LOBBY_PICK
-    lobby = Image.open(OUT / name).convert("RGB").crop(box).resize((LOBBY_W, FLOOR_SIZE[1]), Image.LANCZOS)
-    plain = lobby.crop((0, 0, 48, FLOOR_SIZE[1]))
-    base = Image.new("RGB", FLOOR_SIZE)
-    for x in range(LOBBY_W, FLOOR_SIZE[0], plain.width):
+    lobby_w = round(size[1] * 132 / 154)
+    lobby = Image.open(OUT / name).convert("RGB").crop(box).resize((lobby_w, size[1]), Image.LANCZOS)
+    plain = lobby.crop((0, 0, 48 * size[1] // FLOOR_SIZE[1], size[1]))
+    base = Image.new("RGB", size)
+    for x in range(lobby_w, size[0], plain.width):
         base.paste(plain, (x, 0))
     base.paste(lobby, (0, 0))
     return base
@@ -155,9 +170,10 @@ def main():
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
+    size = FINE_SIZE if args.room in FINE else FLOOR_SIZE
     if args.room != "lobby":
         buf = io.BytesIO()
-        floor_base().save(buf, "PNG")
+        floor_base(size).save(buf, "PNG")
         init = base64.b64encode(buf.getvalue()).decode()
     for k in range(args.count):
         seed = args.start + 17 * k
@@ -169,8 +185,9 @@ def main():
             w, h = LOBBY_SIZE
             res = call(args.host, "/sdapi/v1/txt2img", {"prompt": STYLE + LOBBY, "width": w, "height": h, "seed": seed, "batch_size": 1})
         else:
-            w, h = FLOOR_SIZE
-            prompt = ROOF if args.room == "roof" else EDIT + ROOMS[args.room] + TAIL
+            w, h = size
+            fine = (EDIT_FINE, TAIL_FINE) if args.room in FINE else (EDIT, TAIL)
+            prompt = ROOF if args.room == "roof" else fine[0] + ROOMS[args.room] + fine[1]
             res = call(args.host, "/sdapi/v1/img2img", {"prompt": prompt, "width": w, "height": h,
                                                         "seed": seed, "batch_size": 1, "strength": 1.0, "init_images": [init]})
         path.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))

@@ -3,7 +3,7 @@
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 // The art's numbers come from art.js; the street view is street.js.
 import { guide, roomy } from './guide.js';
-import { FW, FH, FRAMES, ORDER, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, narrow, easeInOut, clamp01, colourAt, shade, darken } from './art.js';
+import { FW, FH, FRAMES, ORDER, DOOR, DENSITY, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, narrow, easeInOut, clamp01, colourAt, shade, darken } from './art.js';
 import { streetView } from './street.js';
 import { floorKey, floorShaped } from './hash.js';
 import './city.js';
@@ -56,7 +56,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', w
     art.then((img) => {
       if (key === 'R') SKY = colourAt(img, 300, 0);
       if (LAMPS[key]) { img.dark = () => { if (img.waited) img.since = performance.now(); loaded(); }; if (!held()) darkenSoon(img, urgent.has(key)); }   // before the first frame of a flight, which has every storey in range at once
-      img.since = performance.now(); strips.set(key, img); loaded();
+      img.k = DENSITY[key] ?? 1; img.since = performance.now(); strips.set(key, img); loaded();
     }, () => {   // drawn plain for now; the next ride that needs it asks again (#63)
       started.delete(key); failed.set(key, [tries + 1, performance.now()]);
       strips.set(key, null); loaded();
@@ -299,15 +299,16 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', w
       // The room runs on to the screen's edges over the facade posts: after its frames the strip holds a run of t
       // columns that carries on left of art x 8 and another right of 472 (gen_floors.EDGES), tiled outwards.
       // shortcut: past t art px (a screen over ~4.5:1) a run repeats with a step; give it longer runs if that matters.
-      const t = (img.width - FRAMES * FW) / 2;
+      // A finer strip (DENSITY) has k x k of its pixels to an art pixel: sx, runs and t stay in art pixels.
+      const k = img.k, t = (img.width - FRAMES * FW * k) / 2 / k;
       const paint = (src, sx, runs) => {
-        ctx.drawImage(src, sx, 0, FW, FH, x0, y, FW * s, FH * s);
+        ctx.drawImage(src, sx * k, 0, FW * k, FH * k, x0, y, FW * s, FH * s);
         if (wide && t > 0) {
-          for (let gx = x0 + (8 - t) * s; gx + t * s > 0; gx -= t * s) ctx.drawImage(src, runs, 0, t, FH, gx, y, t * s, FH * s);
-          for (let gx = x0 + 472 * s; gx < w; gx += t * s) ctx.drawImage(src, runs + t, 0, t, FH, gx, y, t * s, FH * s);
+          for (let gx = x0 + (8 - t) * s; gx + t * s > 0; gx -= t * s) ctx.drawImage(src, runs * k, 0, t * k, FH * k, gx, y, t * s, FH * s);
+          for (let gx = x0 + 472 * s; gx < w; gx += t * s) ctx.drawImage(src, (runs + t) * k, 0, t * k, FH * k, gx, y, t * s, FH * s);
         } else {   // a strip cached from before the runs: its outermost columns, stretched
-          if (x0 > 0) ctx.drawImage(src, sx, 0, 1, FH, 0, y, x0, FH * s);
-          if (x0 + FW * s < w) ctx.drawImage(src, sx + FW - 1, 0, 1, FH, x0 + FW * s, y, w - x0 - FW * s, FH * s);
+          if (x0 > 0) ctx.drawImage(src, sx * k, 0, 1, FH * k, 0, y, x0, FH * s);
+          if (x0 + FW * s < w) ctx.drawImage(src, (sx + FW) * k - 1, 0, 1, FH * k, x0 + FW * s, y, w - x0 - FW * s, FH * s);
         }
       };
       paint(img, f * FW, FRAMES * FW);
@@ -361,8 +362,9 @@ function drawDoors(ctx, img, f, x0, y0, s, open) {
   ctx.fillStyle = '#f2b13b'; ctx.fillRect(left, top, width, s);                  // its ceiling light
   ctx.fillStyle = '#4a525c'; ctx.fillRect(left, top + 44 * s, width, s);         // the handrail
   ctx.fillStyle = '#1c2026'; ctx.fillRect(left, top + (h - 1) * s, width, s);    // the floor
-  ctx.drawImage(img, f * FW + DOOR.x0, DOOR.y0, lw, h, x0 + (DOOR.x0 - gap) * s, top, lw * s, h * s);
-  ctx.drawImage(img, f * FW + DOOR.mid, DOOR.y0, rw, h, x0 + (DOOR.mid + gap) * s, top, rw * s, h * s);
+  const k = img.k;
+  ctx.drawImage(img, (f * FW + DOOR.x0) * k, DOOR.y0 * k, lw * k, h * k, x0 + (DOOR.x0 - gap) * s, top, lw * s, h * s);
+  ctx.drawImage(img, (f * FW + DOOR.mid) * k, DOOR.y0 * k, rw * k, h * k, x0 + (DOOR.mid + gap) * s, top, rw * s, h * s);
   ctx.restore();
 }
 

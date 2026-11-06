@@ -43,6 +43,8 @@ web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/city*.png
 !web3d/pixel/paintings/picks/library.png
 !web3d/pixel/paintings/picks/workshop*.png
+# gen_walkers.py reads every frame of every walker
+!web3d/pixel/paintings/picks/walkers/
 __pycache__/
 
 # Machine-specific Claude Code launch config and agent worktrees

@@ -16,7 +16,7 @@ from pathlib import Path
 
 from PIL import Image, ImageChops
 
-JSONS = ("exterior.json", "city.json", "city-fx.json", "workshop.json", "workshop-fx.json", "library-fx.json")
+JSONS = ("exterior.json", "city.json", "city-fx.json", "workshop.json", "workshop-fx.json", "library-fx.json", "walkers.json")
 
 
 def main(new, old):

@@ -19,7 +19,7 @@
     "visual:capture:live": "SITE_URL=https://yonatankarp.com/ node scripts/capture-screenshots.js",
     "serve": "npm run build:building && node scripts/run-hugo.js server --renderToMemory",
     "visual:compare": "node scripts/compare-visual-captures.js",
-    "build:building": "vite build --config web3d/vite.config.mjs && node scripts/render-diagrams.js",
+    "build:building": "vite build --config web3d/vite.config.mjs && vite build --config web3d/vite.config.mjs --mode library && node scripts/render-diagrams.js",
     "pdf": "node scripts/generate-cv-pdf.js",
     "test": "node --test scripts/test/*.test.js",
     "lint": "eslint . && uvx ruff@0.14.3 check web3d/pixel"

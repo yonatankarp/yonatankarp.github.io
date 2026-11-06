@@ -399,10 +399,12 @@ for (const filePath of htmlFiles) {
   const blog = read("blog/index.html");
   if (!tags(blog, "a").some((tag) => collectAttribute(tag, "href") === "/blog/index.xml" && /\bchip\b/.test(collectAttribute(tag, "class") ?? ""))) fail("/blog/", "missing the RSS chip linking to /blog/index.xml");
 
-  // One list, with the tags before it so phones get them near the top (#185); the old /blog/page/N/ URLs redirect, below.
+  // Every post on one page, on the Library's All posts shelf, with the shelves' chips before the lists so phones get them
+  // near the top (#185); the old /blog/page/N/ URLs redirect, below.
   const postCount = JSON.parse(read("index.json")).filter((page) => page.type === "Post").length;
-  if (countMatches(blog, /<article\b[^>]*\bpost-row\b/g) !== postCount || /\bpagination\b|rel=["']?next\b/.test(blog)) fail("/blog/", `should list all ${postCount} posts on one page, with no pager`);
-  if (!(blog.indexOf("blog-sidebar") < blog.indexOf("post-list"))) fail("/blog/", "the sidebar should come before the list");
+  const allShelf = blog.match(/data-district=["']?all["'\s>][\s\S]*?<\/ol>/)?.[0] ?? "";
+  if (countMatches(allShelf, /<li\b/g) !== postCount || /\bpagination\b|rel=["']?next\b/.test(blog)) fail("/blog/", `should list all ${postCount} posts on the All posts shelf, with no pager`);
+  if (!(blog.indexOf("city-chips") < blog.indexOf("city-say"))) fail("/blog/", "the shelves' chips should come before the lists");
 
   const home = read("index.html");
   const homeLd = jsonLd("/", home);

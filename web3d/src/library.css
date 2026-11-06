@@ -1,0 +1,31 @@
+/* The blog's Library (layouts/blog/list.html, library.js): the city's painting and panel (city.css) a screen tall, under
+   the top bar, then the footer. The skin's tokens under city.css's names. */
+.library {
+  --text: var(--px-text); --text-soft: var(--px-soft); --display: var(--pixel-font);
+  position: relative; height: 100vh; height: 100svh;
+}
+:root:has(.library) .px-bar { position: absolute; inset: 0 0 auto; z-index: 2; pointer-events: none; }   /* over the painting, as on the city */
+:root:has(.library) .px-bar > * { pointer-events: auto; }
+main:has(.library) { padding-bottom: 0; }
+.library :is(.city-scene, .city-panel) { position: absolute; }
+.library .city-panel h1 { margin: 0 0 6px; }
+.library-back { display: inline-block; margin: 0 0 14px; color: var(--text-soft); font-size: 14px; }
+.library-posts { margin: 0 0 14px; padding: 0; list-style: none; }
+.library-posts li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 7px 0; border-bottom: 1px solid rgba(154, 113, 72, 0.45); }
+.library-posts a { color: var(--text); text-decoration: none; }
+.library-posts a:hover { color: var(--city-amber); text-decoration: underline; }
+.library-posts time { flex: none; color: var(--text-soft); font-size: 13px; }
+.library .chip-row { margin: 0; }
+
+/* A phone, a short screen, or no script: the painting on top and the panel under it, as the city stacks. Without a script
+   the labels and chips, which only pick, go, and every shelf's list shows. */
+@media (max-width: 700px), (max-height: 499px), (scripting: none) {
+  .library { height: auto; }
+  .library :is(.city-scene, .city-panel) { position: relative; }
+  .library .city-scene { height: 62vh; height: 62svh; }
+  .library .city-panel { left: auto; bottom: auto; width: auto; max-height: none; margin: -2px 0 0; border-width: 2px 0 0; box-shadow: none; }
+}
+@media (scripting: none) {
+  .library :is(.city-tag, .city-chips) { display: none; }
+  .library [data-district][hidden] { display: block; }
+}

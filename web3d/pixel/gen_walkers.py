@@ -225,7 +225,9 @@ def frame(pick, person):
 
 
 def sheet(out, stem, names, columns, person, **more):
-    """OUT/STEM.webp, a row per person and a column per frame, and STEM.json with the frame's size, its foot row and stride."""
+    """OUT/STEM.webp, a row per person and a column per frame, and STEM.json with the frame's size, the stride and each
+    frame's foot: the row of its lowest painted pixel, the sole of the shoe that is down, which stands on the floor line.
+    The skeleton's ground line will not do: the painted shoes end above it in some frames and below it in others."""
     rows = [[frame(f"{n}_{c}", person) for c in columns] for n in names]
     fw, fh = rows[0][0].size
     im = Image.new("RGBA", (fw * len(columns), fh * len(rows)))
@@ -233,8 +235,9 @@ def sheet(out, stem, names, columns, person, **more):
         for k, f in enumerate(row):
             im.paste(f, (k * fw, j * fh))
     im.save(out / f"{stem}.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    foot = [[max(y for y in range(fh) for x in range(fw) if f.getpixel((x, y))[3]) for f in row] for row in rows]
     (out / f"{stem}.json").write_text(json.dumps({"people": names, "frames": len(columns), "w": fw, "h": fh,
-                                                  "foot": round(FOOT * person / (36 * U)), "stride": stride(person), **more}))
+                                                  "foot": foot, "stride": stride(person), **more}))
     print(f"baked {stem}.webp:", len(names), "people of", len(columns), "frames,", fw, "x", fh)
 
 

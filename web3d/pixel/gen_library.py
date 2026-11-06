@@ -159,10 +159,11 @@ FX = {
     "glow": [[1240, 250, 1350, 280], [1255, 280, 1345, 300]],   # the hearth and the floor before it
     "dust": [655, 40, 795, 300],                         # the window's shaft of light
     "clouds": [620, 40, 820, 110],                       # where clouds drift past outside, left to right
-    # The readers (gen_walkers.py's readers.webp): their feet's row on the floor in front of the bookcases, each bookcase's
+    # The readers (gen_walkers.py's readers.webp): their soles' row, on the floor in front of the bookcases (their plinths end
+    # at row 263, the reading tables' tops start at 271), each bookcase's
     # middle and how far either side of it a reader may stop, their walking speed in px/s, and how long each of a reader's
     # poses at a shelf lasts, in ms (stand, reach, take, read: readers.json's browse).
-    "readers": {"floor": 262, "shelves": [360, 479, 601, 846, 965, 1087], "spread": 20, "speed": [45, 60],
+    "readers": {"floor": 266, "shelves": [360, 479, 601, 846, 965, 1087], "spread": 20, "speed": [45, 60],
                 "browse": [[600, 900], [900, 1300], [700, 900], [2500, 12000]]},
 }
 LAMPS = 246                                              # the reading lamps' tops: above them, nothing stands in front of the readers

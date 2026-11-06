@@ -117,7 +117,8 @@ Its walkers are painted people: `web3d/pixel/gen_walkers.py` draws 8 walk-cycle 
 repaints them as each of six people with one seed apiece (`paint`), and `bake` turns the picked frames in
 `web3d/pixel/paintings/picks/walkers/NAME_K.png` into `walkers.webp` (a row per person, a frame per column) and
 `walkers.json`, a person 60 art px tall (`PERSON`, against the street's ~100 px roller doors). A walker steps one frame
-per `stride` / 8 px of ground, so its feet do not slide, at 0.71-0.97 strides a second; 8 by day, 4 dimmed at night. The
+per `stride` / 8 px of ground, so its feet do not slide, at 0.71-0.97 strides a second, and stands on each frame's own
+sole (`foot`, the lowest painted row the bake finds); 8 by day, 4 dimmed at night. The
 lamp posts in `workshop-depth.png` are stood up by `gen_workshop.py` (`upright`): the model fades their thin poles into the
 wall as they rise, and a whole post must hide a walker passing behind it.
 `library-fx.js`, its own bundle (`--mode library`): the fire, dust in the window's light and clouds only over the

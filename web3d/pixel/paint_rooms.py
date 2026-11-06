@@ -5,14 +5,17 @@
 """Paint floor candidates with the local model in Draw Things (HTTP API, Settings > API Server, port 7860).
 
 Run: uv run web3d/pixel/paint_rooms.py <room> [--count N] [--start SEED] [--host URL]
+     uv run web3d/pixel/paint_rooms.py retime --src <pick>.png --time dawn|day|night
 
 Every floor continues the lift lobby: the base image is the picked lobby painting on the left with its plain wall,
 skirting and plank floor carried across the whole width, and the model *edits* it, keeping all of that and
-furnishing the space right of the lift with the room's objects. The lobby itself is painted from text.
+furnishing the space right of the lift with the room's objects. The lobby is an edit of the old one, so its lift stays
+where it was. retime paints a dusk pick (the roof, or the lobby's view) at another hour.
 
-Writes web3d/pixel/paintings/candidates/<room>_<seed>.png. Existing candidates are kept, never repainted: the model
-does not redraw a seed bit for bit, so a picked candidate is the input of later steps. The model runs at guidance 1,
-so prompts say what to show; negative prompts do nothing. Draw Things runs one job at a time.
+Writes web3d/pixel/paintings/candidates/<room>_<seed>.png (retime: <pick>-<time>_<seed>.png). Existing candidates are
+kept, never repainted: the model does not redraw a seed bit for bit, so a picked candidate is the input of later steps.
+The model runs at guidance 1, so prompts say what to show; negative prompts do nothing. Draw Things runs one job at a
+time.
 """
 import argparse
 import base64
@@ -26,48 +29,63 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent / "paintings"
 OUT = HERE / "candidates"
 FLOOR_SIZE = (1920, 640)      # the whole floor, lobby + room: art 464 x 154 px at about 4.15x
-LOBBY_SIZE = (576, 640)       # the lobby alone: art 132 x 154 px
 LOBBY_PICK = ("lobby_100.png", (6, 6, 570, 634))   # the picked lobby candidate and its crop (install_picks.py)
-# The new art standard, floor by floor (the city's): painterly, and twice the old floors' pixels, art 928 x 308 at
-# about 2.5 painting pixels each. A fine floor keeps the lobby's lift and continues its wall and floor like the others.
+# The new art standard (the city's): painterly, and twice the old floors' pixels, art 928 x 308 at about 2.5 painting
+# pixels each. Every room is painted at it, from the new lobby, whose lift stays where the old one was.
 FINE_SIZE = (2304, 768)
-FINE = {"billie_payments"}
-
-STYLE = (
-    "Flat 2D side-view video game background art of a single room, seen straight on like a dollhouse cutaway: "
-    "orthographic, no perspective, the back wall parallel to the picture, the floor a thin strip along the bottom. "
-    "Clean cel shading with bold dark outlines, chunky simple shapes that read well when reduced to pixel art, "
-    "a limited warm palette, cosy dusk lighting from hanging pendant lamps casting soft cones of light. "
-    "No people, no text, no letters, no logos. "
-)
-EDIT = (
-    "Edit this picture. Keep the elevator on the left exactly as it is, and keep the warm plaster wall, the skirting "
-    "board and the wooden plank floor exactly as they are across the whole picture: same colours, same flat "
-    "cel-shaded style with bold dark outlines. Keep it a straight-on side view with no perspective and no side walls. "
-    "In the empty space to the right of the elevator, furnish the room with: "
-)
-TAIL = (" Make every object large and chunky, standing on the floor and reaching up to near the ceiling, spaced apart "
-        "so each one reads clearly on its own. Add a few hanging pendant lamps with soft cones of light. "
-        "No people, no text, no letters, no logos.")
+LOBBY_FINE_SIZE = (704, 768)  # the lobby alone: art 264 x 308 px
+LOBBY_FINE = ("lobby_1017.png", (7, 7, 684, 761))   # the old LOBBY_PICK's crop, at this size
 
 EDIT_FINE = (
     "Edit this picture. Repaint it as highly detailed painterly city-builder video game art of a single room seen "
     "straight on like a dollhouse cutaway: orthographic side view, no perspective, no side walls, the back wall "
     "parallel to the picture. Warm golden dusk light, soft shadows, rich texture and fine detail. Keep the elevator on "
     "the left exactly where it is and the same size, and keep the warm plaster wall, the skirting board and the wooden "
-    "plank floor where they are across the whole picture. In the space to the right of the elevator, furnish the room "
-    "with: "
+    "plank floor where they are across the whole picture. The back wall is one flat continuous wall running straight "
+    "from the elevator to the right edge of the picture: no corner, no step, no pillar, no side wall and no change of "
+    "colour where the elevator's wall ends. In the space to the right of the elevator, furnish the room with: "
 )
 TAIL_FINE = (" Every object stands on the floor, detailed and clearly readable, spaced apart. A few hanging pendant "
-             "lamps cast warm soft pools of light, lit warm. No people, no text, no letters, no logos.")
-
-LOBBY = (
-    "A lift lobby: in the middle of a plain warm-beige plaster wall, a closed brushed-steel elevator with two "
-    "sliding door panels in a dark steel frame, a small black floor-number display above the doors with an "
-    "amber glow, and a call button panel beside the doors; a wooden skirting board and the same warm wooden "
-    "plank floor along the bottom; one hanging pendant lamp near the top casting a soft cone of light on the doors. "
-    "Simple and uncluttered, nothing else in the picture."
+             "lamps cast warm soft pools of light, lit warm. No people. No text, no letters, no numbers, no logos and "
+             "no labels on anything: every surface is plain.")
+PAINTERLY = ("highly detailed painterly city-builder video game art, warm golden dusk light, soft shadows, rich "
+             "texture and fine detail")
+LOBBY_EDIT = (
+    "Edit this picture. Repaint it as " + PAINTERLY + ", a single lift lobby seen straight on: orthographic side view, "
+    "no perspective, no side walls. Keep the elevator exactly where it is and the same size: a closed brushed-steel "
+    "elevator with two sliding door panels meeting in one straight vertical seam in the middle, in a dark steel frame, "
+    "a small black floor-number display above the doors with a plain amber glow, and a call button panel beside the "
+    "doors. Keep the plain warm-beige plaster wall, the wooden skirting board and the warm wooden plank floor along the "
+    "bottom, running straight out of both sides of the picture. One hanging pendant lamp near the top casts a warm soft "
+    "pool of light on the doors. Nothing else. No people, no text, no letters, no numbers, no logos."
 )
+ROOF_FINE = (
+    "Edit this picture. Repaint it as " + PAINTERLY + ", seen straight on: orthographic side view, no perspective. Keep "
+    "the elevator on the left exactly where it is, with its wall around it, as a small rooftop lift housing. Replace "
+    "everything to the right of the housing with an open flat rooftop at dusk: a low parapet wall along the bottom, a "
+    "big yellow tower crane lifting a steel beam on its hook, steel scaffolding framing the bare columns of an "
+    "unfinished next storey, a stack of steel beams and planks, a flagpole with a small plain amber flag, and behind it "
+    "a purple-to-peach sunset sky over a distant low city skyline on a coast, the sea glowing at the horizon. "
+    "No people, no text, no letters, no numbers, no logos."
+)
+# The other hours: an edit of the dusk pick that changes only the light. On the roof the whole picture; in the lobby
+# only what is seen through its glass door.
+HOURS = {
+    "dawn": "early dawn: a pale pearl-mauve sky going to cream at the horizon with thin pink streaks, the sun just rising, "
+            "soft cool morning light, street lamps off, almost every window dark",
+    "day": "bright noon: a clear deep blue sky fading pale at the horizon, a few fat white clouds, strong warm sunlight "
+           "on every wall, street lamps off, windows dark",
+    "night": "deep night: a dark blue night sky with stars and a thin crescent moon, cool blue moonlight on the walls, "
+             "warm lit windows here and there, street lamps glowing warm",
+}
+OUTDOOR = ("Edit this picture. Keep everything exactly as it is: every building, object, shape, material and where it "
+           "stands, the same painterly style and the same view. Change only the time of day, to {}. "
+           "No people, no text, no letters, no numbers, no logos.")
+VIEW = ("Edit this picture. Keep the room exactly as it is: every object, shape and material, its own warm lamps and "
+        "their light, the same painterly style. Change only what is seen outside through the {}, to {}. "
+        "No people, no text, no letters, no numbers, no logos.")
+WINDOWS = {"reception": "glass entrance door"}
+
 ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come from the lobby
     "sumup": (
         "an indoor market hall of small independent shops that take card payments, side by side: a coffee cart with a "
@@ -76,10 +94,12 @@ ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come 
         "glowing green screen; the upper wall in the middle of the room is bare plaster; warm amber accents."
     ),
     "nice": (
-        "a contact centre operations room: a row of desks with monitors and headsets resting on them, empty office "
+        "a contact centre operations room with no alcove and no recess, all of it in one shallow row along the flat back "
+        "wall: a single row of desks side "
+        "by side with monitors and headsets resting on them, empty office "
         "chairs, a large wall screen showing call queue bar charts and a world map with glowing dots, a glass-fronted "
         "cabinet holding neatly stacked coloured cubes, an office printer with paper coming out, a small server rack "
-        "with blue lights."
+        "with blue lights. The wall behind the desks is the very same flat wall as beside the elevator, in one plane."
     ),
     "billie_risk": (
         "a credit risk office where business purchases on invoice are checked, from left to right: a big brass balance "
@@ -100,9 +120,9 @@ ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come 
     "billie_payments": (
         "a payments vault room where money moves between businesses: a big round polished steel bank vault door set "
         "into the wall with a spoked wheel handle; shiny brass pneumatic tubes running along the ceiling and down into a "
-        "desk-high banknote counting machine with stacks of green banknotes and gold coins beside it; a red metal bin "
-        "for returned payments with a curved chute leading back up into the tubes; the upper wall in the middle of the "
-        "room is bare plaster; coral accents."
+        "desk-high banknote counting machine with stacks of green banknotes and gold coins beside it; a plain red metal "
+        "bin for returned payments with a curved chute leading back up into the tubes; the upper wall in the middle of "
+        "the room is bare plaster; coral-red paint accents."
     ),
     "inuitive": (
         "a hardware and robotics test lab: a long workbench with green circuit boards, small black chips and soldering "
@@ -124,31 +144,24 @@ ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come 
         "against the wall, a workbench under a pegboard of tools, and on the far right a ramp rising toward daylight."
     ),
     "reichman": (
-        "a university lecture room: rows of wooden benches with fold-down desks, a large dark green chalkboard covered "
+        "a university lecture room, all of it in one shallow row along the back wall: a single row of wooden benches "
+        "with fold-down desks side by side, a large dark green chalkboard covered "
         "in white chalk diagrams of trees, graphs and boxes joined by arrows, a wooden lectern with an open laptop, a "
-        "tall bookshelf full of thick textbooks, a globe, a framed diploma, deep green accents."
+        "tall bookshelf full of thick textbooks, a globe, a framed diploma, deep green accents. The wall behind the "
+        "chalkboard is the very same flat wall as beside the elevator, in one plane, with no corner."
     ),
 }
 
 
-# The roof is where the ride ends: the lift becomes a small rooftop housing and the rest opens to the sky.
-ROOF = (
-    "Edit this picture. Keep the elevator on the left exactly as it is, with its wall around it, as a small rooftop "
-    "lift housing; keep the same flat cel-shaded style with bold dark outlines and a straight-on side view. Replace "
-    "everything to the right of the housing with an open flat rooftop at dusk: a low parapet wall along the bottom, "
-    "a big yellow tower crane lifting a steel beam on its hook, steel scaffolding framing the bare columns of an "
-    "unfinished next storey, a stack of steel beams and planks, a flagpole with a small amber flag, and behind it a "
-    "purple-to-peach sunset sky over a distant low city skyline on a coast, the sea glowing at the horizon. "
-    "No people, no text, no letters, no logos."
-)
-
-
 def floor_base(size=FLOOR_SIZE):
-    """The lobby on the left, its plain wall, skirting and floor (a strip from its left edge) carried rightwards."""
-    name, box = LOBBY_PICK
+    """The lobby on the left, its plain wall, skirting and floor (a strip from its edge) carried rightwards."""
+    name, box = LOBBY_PICK if size == FLOOR_SIZE else LOBBY_FINE
     lobby_w = round(size[1] * 132 / 154)
     lobby = Image.open(OUT / name).convert("RGB").crop(box).resize((lobby_w, size[1]), Image.LANCZOS)
-    plain = lobby.crop((0, 0, 48 * size[1] // FLOOR_SIZE[1], size[1]))
+    if size == FLOOR_SIZE:
+        plain = lobby.crop((0, 0, 48, size[1]))
+    else:   # a painterly wall tiled reads as stripes, and as a corner at the lobby's edge: carry each row's colour on
+        plain = lobby.crop((lobby_w - 40, 0, lobby_w, size[1])).resize((1, size[1]), Image.BOX)
     base = Image.new("RGB", size)
     for x in range(lobby_w, size[0], plain.width):
         base.paste(plain, (x, 0))
@@ -162,36 +175,49 @@ def call(host, path, payload):
         return json.loads(r.read())
 
 
+def paint(path, prompt, size, seed, host, init=None):
+    """One candidate, kept if painted already (the model does not redraw a seed bit for bit)."""
+    if path.exists():
+        print("kept", path.name)
+        return
+    job = {"prompt": prompt, "width": size[0], "height": size[1], "seed": seed, "batch_size": 1}
+    if init is not None:
+        buf = io.BytesIO()
+        init.save(buf, "PNG")
+        job |= {"strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]}
+    res = call(host, "/sdapi/v1/img2img" if init is not None else "/sdapi/v1/txt2img", job)
+    path.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
+    print("painted", path.name, flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("room", choices=["lobby", "roof", *sorted(ROOMS)])
-    ap.add_argument("--count", type=int, default=4)
-    ap.add_argument("--start", type=int, default=300)
+    ap.add_argument("room", choices=["lobby", "roof", "retime", *sorted(ROOMS)])
+    ap.add_argument("--count", type=int, default=3)
+    ap.add_argument("--start", type=int, default=1000)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
+    ap.add_argument("--src", help="retime: the dusk pick, a candidate's file name (roof_1017.png)")
+    ap.add_argument("--time", choices=sorted(HOURS), help="retime: the hour to paint it at")
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
-    size = FINE_SIZE if args.room in FINE else FLOOR_SIZE
-    if args.room != "lobby":
-        buf = io.BytesIO()
-        floor_base(size).save(buf, "PNG")
-        init = base64.b64encode(buf.getvalue()).decode()
-    for k in range(args.count):
-        seed = args.start + 17 * k
-        path = OUT / f"{args.room}_{seed}.png"
-        if path.exists():
-            print("kept", path.name)
-            continue
-        if args.room == "lobby":
-            w, h = LOBBY_SIZE
-            res = call(args.host, "/sdapi/v1/txt2img", {"prompt": STYLE + LOBBY, "width": w, "height": h, "seed": seed, "batch_size": 1})
-        else:
-            w, h = size
-            fine = (EDIT_FINE, TAIL_FINE) if args.room in FINE else (EDIT, TAIL)
-            prompt = ROOF if args.room == "roof" else fine[0] + ROOMS[args.room] + fine[1]
-            res = call(args.host, "/sdapi/v1/img2img", {"prompt": prompt, "width": w, "height": h,
-                                                        "seed": seed, "batch_size": 1, "strength": 1.0, "init_images": [init]})
-        path.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
-        print("painted", path.name, flush=True)
+    if args.room == "retime":   # the same picture at another hour: <src>-<time>_<seed>.png
+        init = Image.open(OUT / args.src).convert("RGB")
+        kind = args.src.split("_")[0]
+        prompt = VIEW.format(WINDOWS[kind], HOURS[args.time]) if kind in WINDOWS else OUTDOOR.format(HOURS[args.time])
+        stem = Path(args.src).stem
+        jobs = [(OUT / f"{stem}-{args.time}_{args.start + 17 * k}.png", prompt, init.size, args.start + 17 * k, init)
+                for k in range(args.count)]
+    elif args.room == "lobby":   # an edit of the old lobby, so its lift stays where the floors' code has it
+        init = Image.open(OUT / LOBBY_PICK[0]).convert("RGB").resize(LOBBY_FINE_SIZE, Image.LANCZOS)
+        jobs = [(OUT / f"lobby_{args.start + 17 * k}.png", LOBBY_EDIT, LOBBY_FINE_SIZE, args.start + 17 * k, init)
+                for k in range(args.count)]
+    else:
+        prompt = ROOF_FINE if args.room == "roof" else EDIT_FINE + ROOMS[args.room] + TAIL_FINE
+        init = floor_base(FINE_SIZE)
+        jobs = [(OUT / f"{args.room}_{args.start + 17 * k}.png", prompt, FINE_SIZE, args.start + 17 * k, init)
+                for k in range(args.count)]
+    for path, prompt, size, seed, init in jobs:
+        paint(path, prompt, size, seed, args.host, init)
 
 
 if __name__ == "__main__":

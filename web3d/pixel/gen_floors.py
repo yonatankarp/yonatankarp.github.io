@@ -31,7 +31,7 @@ FRAMES = 12                   # 12 frames at 8 fps, then the room rests (pixel.j
 LOBBY_X, ROOM_X = 8, 140      # the lobby painting spans 8..140 (under the text card), the room 140..472
 HOUSING_X = LOBBY_X + 107   # on the roof, the lift housing ends with the pasted lift (install_picks.LIFT)
 DOOR = dict(x0=51, x1=96, mid=74, y0=72, y1=153)   # lift doors in floor pixels; pixel.js mirrors these numbers
-FINE = {"7": 2}   # key: its strip's pixels to an art pixel, each way: floors at the new art standard (paint_rooms.FINE)
+FINE = {"7": 2}   # key: its strip's pixels to an art pixel, each way: floors at the new art standard (paint_rooms.FINE_SIZE)
 PICKS = Path(__file__).resolve().parent / "paintings" / "picks"
 ROOT = Path(__file__).resolve().parents[2]   # the repository
 

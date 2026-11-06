@@ -1003,7 +1003,7 @@ def crane(px):
 TOUCHUPS["roof"] = crane
 
 
-# --- The new art standard (paint_rooms.FINE, gen_floors.FINE) ---
+# --- The new art standard (paint_rooms.FINE_SIZE, gen_floors.FINE) ---
 FINE_PX = (2 * FLOOR_PX[0], 2 * FLOOR_PX[1])   # twice the old floors' pixels each way
 FINE_PICKS = {  # name: (seed, crop, colours), installed as <name>-fine-px.png
     "billie_payments": (900, (0, 0, 2304, 768), 64),

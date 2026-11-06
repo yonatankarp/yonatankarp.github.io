@@ -108,7 +108,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   {{ $texts := dict "radio" $home.contact.podcast.text "post" $home.contact.title }}
   <section class="city" id="city" aria-label="City map" data-city>
     <div class="city-scene">
-      <div class="city-map" style="aspect-ratio:{{ index $cityArt.size 0 }} / {{ index $cityArt.size 1 }}" data-zoom="{{ $cityArt.zoom | jsonify }}">
+      <div class="city-map" style="aspect-ratio:{{ index $cityArt.size 0 }} / {{ index $cityArt.size 1 }}" data-zoom="{{ $cityArt.zoom | jsonify }}" data-max-px="{{ $cityArt.maxPx }}">
         {{- /* Lazy, so a floor's address, which hides the city, never fetches it; on the city the script after it picks the hour's. */}}
         <img src="{{ $base }}pixel/city.webp?v={{ $artVersion }}" alt="{{ $city.alt }}" width="{{ index $cityArt.size 0 }}" height="{{ index $cityArt.size 1 }}" loading="lazy" data-base="{{ $base }}pixel/city" data-version="{{ $artVersion }}">
         {{- /* The city's life, drawn by city-fx.js at the art's pixels from the data beside the picture. */}}

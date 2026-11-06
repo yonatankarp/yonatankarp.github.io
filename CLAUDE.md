@@ -91,6 +91,17 @@ only that file) and bundled from there, and `data/floor_accents.yaml` is written
 the Python, rerun it, never the copies. `pixel.js` is the lift and the floors, `street.js` the street view and its
 flights, `art.js` what they share.
 
+The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
+laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the
+main street and the ring road (headlights at dusk and night), windows going dark at night, glints on the bay, the radio
+mast's beacon and the crane's lights, and flocks of birds. Movers hide behind what is nearer in `city-depth.png`
+(brighter = nearer). `gen_city.py build` writes `city-fx.json` (the windows and the bay found in the baked art, and the
+walks, plazas, lanes and lights in its `WALKS`, `PLAZAS`, `LANES` and `LIGHTS`) and copies `city-depth.png` from
+`web3d/pixel/paintings/picks/`, which `uv run web3d/pixel/city_depth.py` makes from the dusk pick (it needs torch, so
+it is not part of the build: rerun it, and commit its output, when the dusk pick changes). Nothing moves under reduced
+motion or with `?fx=off`, which the visual captures use; the loop stops while the tab is hidden, the city is off screen
+or the tower is entered.
+
 ## Content Structure
 
 - `content/experience/` — job entries (one .md per role)

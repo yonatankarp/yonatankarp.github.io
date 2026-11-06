@@ -132,8 +132,8 @@ h4 a,
   padding-bottom: 64px;
 }
 /* Covers and a post's inline art in steps of 192x108 (#123), the most that fit: inline art (576x324) fills the article's
-   column at its own pixels, and on a phone it and a cover's thumbnail (partials/blog-art.html: 192, 384 or 576 wide for 1x
-   to 3x screens) are 192px, a whole multiple of the screen's pixels, so the browser never shrinks the art.
+   column at its own pixels and is 192px on a phone (1:1 at 3x; a 2x phone shrinks it 1.5x, which its thick lines survive).
+   A cover's thumbnail is 192px too, from partials/blog-art.html's 192, 384 and 576 for 1x to 3x screens, at its own pixels.
    The ink frame is a shadow in the margin: a border would eat into the image. */
 .blog-px :is(.px-cover, .px-art) {
   display: block; width: 192px; width: max(192px, round(down, 100% - 8px, 192px)); height: auto; margin: 4px;

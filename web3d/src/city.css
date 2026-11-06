@@ -2,7 +2,7 @@
    its bay. The labels' % positions come from city.json, so they stay on their districts at any size. Only with at-city:
    without it (no script, or an address that names a floor) the building is the page. */
 html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-scrim, .exterior-windows, .elevator, .building-stops) { display: none; }
-:is(.city, .library) {   /* the blog's Library (library.css) wears the city's colours */
+.city {
   --city-ink: #1b1410;
   --city-panel: rgba(58, 38, 22, 0.92);
   --city-edge: #9a7148;
@@ -22,7 +22,7 @@ html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-
 }
 .city-tag::after { content: ''; position: absolute; left: 50%; top: 100%; width: 2px; height: 14px; background: var(--city-edge); }
 .city-tag:hover, .city-tag:focus-visible, .city-tag.on { background: var(--city-amber); color: var(--city-ink); border-color: var(--city-ink); }
-:is(.city, .library) :is(button, a):focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+.city :is(button, a):focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
 
 .city-panel {
   position: fixed; left: 24px; bottom: 24px; width: 380px; max-height: calc(100% - var(--bar-clear) - 24px); overflow: auto;
@@ -50,7 +50,7 @@ html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-
 
 /* A phone, or a screen too short for the panel beside the map, pans the city in the top of the page and reads the panel under it. */
 @media (max-width: 700px), (max-height: 499px) {
-  :is(.city, .library) { --bar-clear: 88px; }
+  .city { --bar-clear: 88px; }
   .city-scene { position: relative; height: 62vh; height: 62svh; }
   .city-panel { position: relative; left: auto; bottom: auto; width: auto; max-height: none; margin: -2px 0 0; border-width: 2px 0 0; box-shadow: none; }
   .city-say h2 { font-size: 30px; }

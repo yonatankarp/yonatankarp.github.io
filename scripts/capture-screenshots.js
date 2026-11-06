@@ -427,7 +427,7 @@ async function assertPageBasics(page, route, viewport) {
       brokenVisibleImages: visibleImages
         .filter((image) => !image.complete || image.naturalWidth === 0 || image.naturalHeight === 0)
         .map((image) => image.currentSrc || image.src),
-      blogCards: document.querySelectorAll(".library-posts li").length,
+      blogCards: document.querySelectorAll(".post-row").length,
       requiredSelectorCounts: requiredSelectors.map(([selector, minimum, label]) => ({
         selector,
         minimum,
@@ -454,7 +454,7 @@ async function assertPageBasics(page, route, viewport) {
   }
 
   if (route.name === "blog" && checks.blogCards < 2) {
-    fail(`${route.path} (${viewport.name}) has too few posts on its shelves`);
+    fail(`${route.path} (${viewport.name}) has too few blog cards`);
   }
 
   for (const selectorCheck of checks.requiredSelectorCounts) {

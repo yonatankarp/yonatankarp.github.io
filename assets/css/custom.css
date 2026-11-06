@@ -140,7 +140,7 @@ h4 a,
 .blog-px .px-art { margin-block: 16px; }
 
 /* Panels: the floor card's frame. */
-.blog-px :is(.page-head__copy, .post-row, .blog-sidebar, .article, .related-card) {
+.blog-px :is(.page-head__copy, .post-row, .article, .related-card) {
   background: var(--panel); clip-path: var(--stepped);
   box-shadow: inset 0 0 0 4px var(--ink), inset 16px 0 0 0 var(--post), inset 4px 4px 0 4px var(--panel-hi);
 }
@@ -154,10 +154,6 @@ h4 a,
 .blog-px .page-head__copy h1 { font-size: 60px; }
 .blog-px .page-head__copy p { margin: 0; max-width: 68ch; font-size: 17px; color: var(--px-soft); }
 
-/* The sidebar comes first in the markup, so phones get it above the list in reading order; wide screens place it beside. */
-.blog-px .blog-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 320px); align-items: start; padding-top: 16px; gap: 16px; }
-.blog-px .blog-layout > .post-list { grid-area: 1 / 1; }
-.blog-px .blog-layout > .blog-sidebar { grid-area: 1 / 2; }
 .blog-px .post-list { display: grid; gap: 8px; }
 .blog-px .post-row { position: relative; display: grid; gap: 1rem 1.5rem; align-items: start; padding: 16px 16px 16px 36px; grid-template-columns: minmax(0, 1fr) auto; }
 .blog-px .post-row h2 { font-size: 30px; }
@@ -170,7 +166,7 @@ h4 a,
 .blog-px .post-row__meta { margin: 0 0 0.6rem; }
 .blog-px .article__meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 20px; }
 .blog-px .post-row p { max-width: 68ch; font-size: 16px; color: var(--px-soft); }
-.blog-px .post-row__body > p:last-child { display: -webkit-box; margin: 0.4rem 0 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.blog-px .post-row__body > h2 + p { display: -webkit-box; margin: 0.4rem 0 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .blog-px .post-row__aside { display: grid; gap: 0.9rem; align-content: start; justify-items: start; }
 .blog-px .post-row__thumb { position: relative; display: grid; align-content: space-between; width: 100%; overflow: hidden; }
 
@@ -189,14 +185,45 @@ h4 a,
   content: "Copied!"; position: absolute; bottom: calc(100% + 0.45rem); left: 50%; transform: translateX(-50%); padding: 0.2rem 0.5rem;
   background: var(--amber); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); font-size: 0.7rem; font-weight: 600; white-space: nowrap;
 }
+/* The blog's index (layouts/blog/list.html, assets/js/library.js): the Library's room across the head, under the top bar,
+   then its tools and the posts on the city's warm panels. */
+:root:has(.library) .px-skin { background: #2a1d14; }
+:root:has(.library) .px-skin::before { display: none; }   /* the room is the backdrop here */
+:root:has(.library) .px-bar { position: absolute; inset: 0 0 auto; z-index: 2; pointer-events: none; }
+:root:has(.library) .px-bar > * { pointer-events: auto; }
+.library { --panel: #3a2616; --panel-hi: #5a4028; --ink: #1b1410; --edge: #9a7148; --post: #f2a93b; }
+.library-hero { position: relative; height: min(52vh, 470px); overflow: hidden; border-bottom: 3px solid var(--ink); }
+.library-hero img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; image-rendering: pixelated; }
+.library-hero::after { content: ''; position: absolute; inset: auto 0 0; height: 45%; background: linear-gradient(transparent, rgba(42, 29, 20, 0.92)); }
+.library-title { position: absolute; z-index: 1; inset: auto 0 22px; max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.library-back { font-size: 14px; color: var(--px-soft); }
+.library-title h1 { margin: 6px 0; font-size: 64px; text-shadow: 3px 3px 0 #000; }
+.library-title p { margin: 0; max-width: 640px; color: var(--px-soft); text-shadow: 1px 1px 0 #000; }
+.library-body { max-width: 1080px; margin: 0 auto; padding: 24px 24px 0; }
+.library-tools { display: grid; gap: 14px; padding: 18px; background: var(--panel); border: 2px solid var(--edge); box-shadow: 4px 4px 0 var(--ink); }
+.library-search { display: flex; gap: 10px; align-items: center; }
+.library-search form { flex: 1; }
+.library-rss { padding: 10px 12px 8px; font: 18px/1 var(--pixel-font); text-decoration: none; border: 2px solid var(--edge); }
+.library-topics { display: flex; flex-wrap: wrap; gap: 6px; }
+.library-topics__label { align-self: center; margin-right: 4px; font: 17px/1 var(--pixel-font); letter-spacing: 0.06em; text-transform: uppercase; color: var(--post); }
+.library-chip {
+  padding: 7px 9px 5px; font: 17px/1 var(--pixel-font); letter-spacing: 0.04em; text-decoration: none; color: var(--px-text);
+  background: transparent; border: 2px solid var(--edge); cursor: pointer;
+}
+.library-chip span { color: var(--px-soft); }
+.library-chip--track { border-color: var(--post); }   /* the curated topics, data/library.yaml */
+.library-chip:hover { border-color: var(--px-text); }
+.library-chip[aria-pressed='true'] { background: var(--post); color: var(--ink); border-color: var(--ink); }
+.library-chip[aria-pressed='true'] span { color: var(--ink); }
+.library-count { margin: 22px 2px 10px; font-size: 14px; color: var(--px-soft); }
+.library-list { margin: 0; padding: 0; list-style: none; }
+.library .post-row { grid-template-columns: auto minmax(0, 1fr); }
+.library .post-row__aside { order: -1; }   /* the cover first, as on the Library's mockup */
+.post-row__tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+.post-row__tags li { padding: 4px 6px 3px; font: 15px/1 var(--pixel-font); color: var(--px-soft); box-shadow: inset 0 0 0 1px var(--panel-hi); }
 /* Square corners, so the site's focus ring needs no rounding. */
 .blog-px :focus-visible { border-radius: 0; }
 
-/* Sidebar */
-.blog-px .blog-sidebar { position: sticky; padding: 24px 24px 24px 40px; top: 112px; }
-.blog-sidebar section + section { margin-top: 1.5rem; }
-.blog-px .blog-sidebar h2 { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font: 400 30px/1 var(--pixel-font); }
-.blog-px .blog-sidebar h2::before { content: ''; width: 12px; height: 12px; background: var(--amber); box-shadow: 4px 4px 0 var(--ink); }
 .blog-px .text-link { color: var(--amber); font-size: 14px; }
 .blog-px .text-link:hover { color: inherit; }
 
@@ -335,12 +362,14 @@ h4 a,
   .blog-px .page-head__copy h1 { font-size: 40px; }
   .blog-px .post-row { grid-template-columns: 1fr; }
   .blog-px .post-row__aside { display: none; }   /* a cover is 192px at the least (#123), too tall for a compact row */
-  /* The tags: one row that scrolls sideways, dimming in hard steps at the plate's edge to show there is more. The padding keeps focus rings in. */
-  .blog-px .blog-sidebar .chip-row {
-    flex-wrap: nowrap; gap: 8px; margin: 0 -16px 0 -6px; padding: 6px 48px 6px 6px; overflow-x: auto; scrollbar-width: none;
-    mask-image: linear-gradient(to left, #0000 8px, #0005 8px 24px, #000a 24px 40px, #000 40px);
-  }
-  .blog-px .blog-sidebar .chip-row > * { flex: none; }
+  .library .post-row { grid-template-columns: 1fr; }
+  .library .post-row__aside { display: grid; }   /* the Library's cards stack, the cover on top */
+  .library-hero { height: 38vh; }
+  .library-title h1 { font-size: 46px; }
+  .library-title p { font-size: 14px; }
+  .library-body { padding: 16px 12px 0; }
+  .library-topics { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 2px; }   /* every topic in one row that swipes */
+  .library-topics > * { flex: none; }
   .blog-px .article { padding: 28px 20px 28px 36px; }
   .blog-px .article__header h1 { font-size: 40px; }
 }
@@ -370,10 +399,10 @@ h4 a,
     --panel: #fff; --well: #fff; --panel-hi: #bbb; --ink: #111; --px-text: #111; --px-soft: #333; --amber: #9a5a00;
     padding-bottom: 0;
   }
-  .blog-px :is(.page-head__copy, .post-row, .blog-sidebar, .article, .related-card) { clip-path: none; box-shadow: none; }
+  .blog-px :is(.page-head__copy, .post-row, .article, .related-card) { clip-path: none; box-shadow: none; }
   .blog-px .article { width: auto; padding: 0; }
   .blog-px .article-shell { padding-top: 0; }
-  .blog-px :is(.reading-progress, .article-toc, .article-share, .article-discuss, .article-author, .article__footer, .related-posts, .code-copy, .blog-sidebar) { display: none; }
+  .blog-px :is(.reading-progress, .article-toc, .article-share, .article-discuss, .article-author, .article__footer, .related-posts, .code-copy, .library-tools) { display: none; }
   .blog-px .px-prose a { text-decoration: underline; }
   .blog-px .px-prose h2::before { display: none; }   /* paper drops the square's fill and keeps its shadow: a stray corner */
   .blog-px .px-prose pre {
@@ -771,17 +800,9 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
 .px-page .site-footer__copy { margin: 0; font-size: 15px; color: var(--px-soft); }
 .footer-social { display: flex; justify-content: flex-end; gap: 0.5rem; }
 @media (max-width: 1024px) {
-  .blog-px .blog-layout,
   .blog-px .article__footer {
     grid-template-columns: 1fr;
   }
-  .blog-px .blog-layout > :is(.post-list, .blog-sidebar) { grid-area: auto; }
-  /* One column: the sidebar is a plate above the list, its search box and tags with no headings or reading tracks. */
-  .blog-px .blog-sidebar { position: static; padding: 16px 16px 16px 36px; }
-  .blog-px .blog-sidebar h2 { position: absolute; width: 1px; height: 1px; margin: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .blog-sidebar section + section { margin-top: 12px; }
-  .blog-px .blog-sidebar .chip-row { margin-top: 0; }
-  .blog-sidebar__tracks { display: none; }
 
   .px-page .site-footer__inner { grid-template-columns: 1fr; }
   .footer-social { justify-content: flex-start; }
@@ -897,5 +918,5 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   :is(.px-card h3, .blog-px .post-row h2, .px-page .search-result) a:focus-visible::after { outline: 3px solid Highlight; outline-offset: -3px; }
   :is(.px-card, .px-cta, .px-bar__name, .px-download, .px-bar__tabs a, .px-bar__social a, .px-menu, .cv-floor, .code-copy, .share-btn,
     .copy-email, .px-chip, .search-input, .px-page .search-result, .px-well, .px-page .site-footer__inner,
-    .blog-px :is(.page-head__copy, .post-row, .blog-sidebar, .article, .related-card, .chip)) { border: 1px solid CanvasText; }
+    .blog-px :is(.page-head__copy, .post-row, .article, .related-card, .chip, .library-chip)) { border: 1px solid CanvasText; }
 }

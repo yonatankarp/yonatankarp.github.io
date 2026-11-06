@@ -2,12 +2,14 @@
 // chip or a label, whose projects the panel lists, as the city does (pan.js). Apps first. Without it every workshop's
 // list shows (workshop.css).
 import { panning } from './pan.js';
+import { workshopFx } from './workshop-fx.js';
 import './city.css';
 import './workshop.css';
 
 const row = document.querySelector('[data-workshop]');
 if (row) {
   const panel = row.querySelector('.city-panel'), scene = row.querySelector('.city-scene');
+  workshopFx(scene.querySelector('.city-fx'), scene.querySelector('img'));
   const tags = [...row.querySelectorAll('.city-tag')];
   // Every label whole on screen: one whose workshop is in view slides inside the edge, one whose workshop is not slides out.
   const fit = () => {

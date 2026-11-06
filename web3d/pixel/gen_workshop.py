@@ -7,7 +7,8 @@
 Run: uv run web3d/pixel/gen_workshop.py blockout [OUT]                  # the code blockout, for a look
      uv run web3d/pixel/gen_workshop.py paint [--count N] [--start S]   # Draw Things repaints the blockout at dusk (port 7860)
      uv run web3d/pixel/gen_workshop.py paint --time PHASE [...]        # ... or edits the dusk pick to another hour
-     uv run web3d/pixel/gen_workshop.py build [OUT]                     # OUT/workshop[-PHASE].webp and workshop.json
+     uv run web3d/pixel/gen_workshop.py build [OUT]                     # OUT/workshop[-PHASE].webp, workshop.json,
+                                                                        # workshop-fx.json and workshop-depth.png
      uv run web3d/pixel/gen_workshop.py json [OUT]                      # only OUT/workshop.json
 
 The Library's pipeline (gen_library.py) out on the street, so it follows the clock as the city does (gen_city.py): the
@@ -16,11 +17,15 @@ box-reduced and quantised undithered. The workshops are numbered, not named: the
 (layouts/projects/list.html) puts the groups in them in order, apps first.
 Paintings go to web3d/pixel/paintings/candidates/workshop[-PHASE]_SEED.png (not committed); the chosen one is copied to
 web3d/pixel/paintings/picks/workshop[-PHASE].png, the build's input, and its seed noted in PICKS.
+
+The row's animations (web3d/src/workshop-fx.js) draw from workshop-fx.json, the places below, and hide behind what
+stands nearer in picks/workshop-depth.png, made by depth_map.py (it needs torch) and copied here as it is.
 """
 import argparse
 import base64
 import io
 import json
+import shutil
 import sys
 import urllib.request
 from itertools import pairwise
@@ -168,6 +173,21 @@ def bake(phase):
     return im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
 
 
+# Where the row's animations go, in art pixels (workshop-fx.js).
+FX = {
+    "pavement": [270, 276, 1205, 278],   # x0, y0, x1, y1: walkers pace it, behind the lamp posts at the kerb
+    "wall": [20, 210, 255],              # x0, y, x1: the left brick wall's top, where the cat walks and sits
+    "weld": [615, 225],                  # the second workshop's bench: a welding torch
+    "screens": [[368, 209, 390, 223], [400, 223, 409, 229], [848, 206, 869, 219], [1086, 207, 1108, 221]],   # x0, y0, x1, y1
+    "lamps": [[126, 164], [245, 144], [497, 166], [739, 166], [981, 166], [1316, 171]],   # the street lamps' heads, for moths
+}
+
+
+def write_fx(out):
+    (out / "workshop-fx.json").write_text(json.dumps(FX, separators=(",", ":")))
+    shutil.copyfile(PICKED / "workshop-depth.png", out / "workshop-depth.png")   # depth_map.py's map, as it is
+
+
 def write_json(out):
     (out / "workshop.json").write_text(json.dumps({"size": SIZE, "labels": anchors()}))
 
@@ -181,6 +201,7 @@ def build(out):
         bake(phase).save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
         print("drew", path.name, "from seed", PICKS[phase], f"at {ART_W} wide")
     write_json(out)
+    write_fx(out)
 
 
 if __name__ == "__main__":

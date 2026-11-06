@@ -1,45 +1,18 @@
 // The city's life (city.js): walkers, cars, windows going dark, glints on the bay, the mast's and the crane's lights and
-// flocks of birds, drawn on a canvas at the art's own pixels laid over the picture, so they stay crisp pixel art.
-// Where they go is city-fx.json and what hides them is city-depth.png, both written by web3d/pixel/gen_city.py.
+// flocks of birds, over the picture (scene-fx.js). Where they go is city-fx.json and what hides them is city-depth.png,
+// both written by web3d/pixel/gen_city.py.
+import { animate, rnd } from './scene-fx.js';
+
 const root = document.documentElement;
-const rnd = (a, b) => a + Math.random() * (b - a);
-const TOL = 5;   // out of 255: how much nearer than a mover's feet a pixel may be and still not hide it
 
 export function cityFx(canvas, img) {
-  const still = matchMedia('(prefers-reduced-motion: reduce)');
-  if (still.matches || new URLSearchParams(location.search).get('fx') === 'off') return;   // ?fx=off keeps the visual captures still
   const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`;
-  Promise.all([
-    fetch(art('fx.json')).then((r) => r.json()),
-    // Raw values, untouched by colour management: they are depths, not colours.
-    fetch(art('depth.png')).then((r) => r.blob()).then((b) => createImageBitmap(b, { colorSpaceConversion: 'none' })),
-  ]).then(([fx, depth]) => run(canvas, fx, depth, still)).catch(() => {});   // without its data the city is just still
+  // Not once the tower is entered, which hides the city for good.
+  animate(canvas, { data: art('fx.json'), depth: art('depth.png'), live: () => root.classList.contains('at-city') }, (ctx, fx, { dfill, footAt }) => setup(ctx, fx, dfill, footAt));
 }
 
-function run(canvas, fx, bitmap, still) {
-  const W = canvas.width, H = canvas.height, ctx = canvas.getContext('2d');
-  const time = root.dataset.time, night = time === 'night', lamps = night || time === 'dusk';
-  const pad = new OffscreenCanvas(W, H).getContext('2d');
-  pad.drawImage(bitmap, 0, 0);
-  const rgba = pad.getImageData(0, 0, W, H).data, DEPTH = new Uint8Array(W * H);
-  for (let i = 0; i < DEPTH.length; i++) DEPTH[i] = rgba[i * 4];
-
-  // A mover's pixel is drawn only where nothing in the painting is nearer than the ground under its feet (brighter =
-  // nearer), so trees, lamp posts and walls in front of it hide it.
-  const dfill = (x, y, w, h, foot) => {
-    if (w < 0) { x += w; w = -w; }
-    for (let yy = Math.max(0, y); yy < Math.min(H, y + h); yy++) {
-      for (let xx = Math.max(0, x); xx < Math.min(W, x + w); xx++) if (DEPTH[yy * W + xx] <= foot + TOL) ctx.fillRect(xx, yy, 1, 1);
-    }
-  };
-  // The ground a mover stands on: the farthest depth within 8 px of its feet. Right under a tree the pixel at its feet
-  // is the tree, and taking that would put it level with the tree instead of behind it.
-  const footAt = (x, y) => {
-    let m = 255;
-    y = Math.min(H - 1, Math.max(0, y));
-    for (let xx = Math.max(0, x - 8); xx <= Math.min(W - 1, x + 8); xx++) m = Math.min(m, DEPTH[y * W + xx]);
-    return m;
-  };
+function setup(ctx, fx, dfill, footAt) {
+  const W = ctx.canvas.width, time = root.dataset.time, night = time === 'night', lamps = night || time === 'dusk';
 
   // Windows: at night each lit one switches off and on, slowly, in its own wall's colour.
   const now0 = performance.now();
@@ -148,21 +121,5 @@ function run(canvas, fx, bitmap, still) {
     flocks = flocks.filter((f) => f.x + f.tail < W + 20);   // gone once the last bird is past the edge
   };
 
-  // Drawn only while it can be seen: the tab shown, the city on screen and not yet left for the tower, and motion welcome.
-  let raf = 0, last = 0, seen = true;
-  const live = () => !document.hidden && seen && root.classList.contains('at-city') && !still.matches;
-  const frame = (now) => {
-    raf = 0;
-    if (!live()) { if (still.matches) ctx.clearRect(0, 0, W, H); return; }
-    const dt = Math.min(100, now - last);
-    last = now;
-    ctx.clearRect(0, 0, W, H);
-    drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt);
-    raf = requestAnimationFrame(frame);
-  };
-  const wake = () => { if (!raf && live()) { last = performance.now(); raf = requestAnimationFrame(frame); } };
-  document.addEventListener('visibilitychange', wake);
-  still.addEventListener('change', () => { if (still.matches) ctx.clearRect(0, 0, W, H); else wake(); });
-  new IntersectionObserver(([e]) => { seen = e.isIntersecting; wake(); }).observe(canvas);
-  wake();
+  return (now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); };
 }

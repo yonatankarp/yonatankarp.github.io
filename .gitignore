@@ -55,6 +55,8 @@ web3d/pixel/paintings/picks/*
 # gen_walkers.py reads every frame of every walker and cat
 !web3d/pixel/paintings/picks/walkers/
 !web3d/pixel/paintings/picks/cats/
+# floor 7's payment capsule, on magenta (paint_rooms.py capsule; gen_floors.py keys it)
+!web3d/pixel/paintings/picks/capsule.png
 __pycache__/
 
 # Machine-specific Claude Code launch config and agent worktrees

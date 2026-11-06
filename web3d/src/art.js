@@ -14,12 +14,13 @@ export const { door: DOOR, bayer: BAYER } = art;
 // Each room's hanging lamps, by strip x, the lift's own lamp first. The roof has none: it is outdoors, so it stays as
 // bright as its sky.
 export const LAMPS = art.lamps;
+export const CAPSULE = art.capsule;           // floor 7's payment, drawn live (capsule.js): its path, size, timing and clip, in strip pixels
 export const TIME = document.documentElement.dataset.time;   // picked once, in the page's head (#151): it never changes while the page is open
 const PHASE = PHASES[TIME];
 export const BAKED = PHASE?.baked;                              // the rooms with their own picture at this hour (the roof, the lobby's door); none at dusk
 export const HOUR = BAKED ? `-${TIME}` : '';                    // the file name's suffix
 export const SKY_AT_LOAD = PHASE?.sky ?? PHASES.dusk.sky;       // above the roof, until its strip gives its own top row
-const DARK = PHASE?.dark ?? PHASES.dusk.dark;                   // what a room's colours fall to with its lights off; by day its windows still let some in
+export const DARK = PHASE?.dark ?? PHASES.dusk.dark;            // what a room's colours fall to with its lights off; by day its windows still let some in
 export const SHADES = [16, 10, 5];                              // a lamp coming on: how many of 16 Bayer cells are still dark, step by step
 // The phone layout: the same query as every phone rule in pixel.css, so the canvas and the cards always agree (#46).
 export const narrow = matchMedia('(max-width: 760px), (max-aspect-ratio: 6/5)');
@@ -43,12 +44,9 @@ export function shade(img, lv) {
     const off = shade(img, 16), W = off.width, H = off.height;
     const c = document.createElement('canvas').getContext('2d');
     c.canvas.width = W; c.canvas.height = H;
-    const tile = document.createElement('canvas').getContext('2d');
-    tile.canvas.width = tile.canvas.height = 4;
-    BAYER.forEach((row, y) => row.forEach((b, x) => { if (b < lv) tile.fillRect(x, y, 1, 1); }));
     c.drawImage(off, 0, 0);
     c.globalCompositeOperation = 'destination-in';
-    c.fillStyle = c.createPattern(tile.canvas, 'repeat');
+    c.fillStyle = c.createPattern(bayer(lv), 'repeat');
     c.fillRect(0, 0, W, H);
     return (img.shades[lv] = c.canvas);
   }
@@ -57,6 +55,14 @@ export function shade(img, lv) {
   while (!(step = img.darkening.next()).done);   // whatever idle time has not done yet
   img.darkening = null;
   return (img.shades[16] = step.value);
+}
+
+// The 4x4 Bayer tile with lv of its 16 cells set: what of a lights-off picture is kept, from the strip's own (0, 0).
+export function bayer(lv) {
+  const tile = document.createElement('canvas').getContext('2d');
+  tile.canvas.width = tile.canvas.height = 4;
+  BAYER.forEach((row, y) => row.forEach((b, x) => { if (b < lv) tile.fillRect(x, y, 1, 1); }));
+  return tile.canvas;
 }
 
 // shade()'s lights-off picture, a few rows per step, so idle time can make it without a long task on a slow phone (#184).

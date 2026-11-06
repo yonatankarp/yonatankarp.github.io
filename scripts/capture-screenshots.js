@@ -45,13 +45,13 @@ const citySelectors = [
 const routes = [
   {
     name: "city",
-    path: "/?time=dusk",
+    path: "/?time=dusk&fx=off",   // fx=off: the city's walkers, cars and birds (city-fx.js) would move between captures
     pick: true,
     requiredSelectors: [...citySelectors, ["html.at-city[data-time='dusk']", 1, "the city at dusk"]],
   },
   {
     name: "city-night",
-    path: "/?time=night",
+    path: "/?time=night&fx=off",
     requiredSelectors: [...citySelectors, ["html.at-city[data-time='night']", 1, "the city at night"]],
   },
   {

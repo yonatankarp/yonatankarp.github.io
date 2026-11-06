@@ -8,7 +8,8 @@ Run: uv run web3d/pixel/gen_city.py blockout [OUT]                  # the code b
      uv run web3d/pixel/gen_city.py paint [--count N] [--start S]   # Draw Things repaints the blockout at dusk (port 7860)
      uv run web3d/pixel/gen_city.py paint --time PHASE [...]        # ... or edits the dusk pick to another hour
      uv run web3d/pixel/gen_city.py build [OUT]                     # OUT/city.webp, city-PHASE.webp for every other
-                                                                    # phase in data/phases.json, and city.json
+                                                                    # phase in data/phases.json, city.json, city-fx.json
+                                                                    # and city-depth.png
      uv run web3d/pixel/gen_city.py json [OUT]                      # only OUT/city.json
 
 The blockout fixes where every district sits; the model paints over it, and the picked painting (PICKS) is box-reduced
@@ -16,12 +17,17 @@ to ART_W wide on COLOURS colours, undithered. The other hours are the dusk pick 
 composition, so the labels' anchors (city.json, read by layouts/index.html) hold at every hour.
 Paintings go to web3d/pixel/paintings/candidates/city[-PHASE]_SEED.png (not committed); the chosen one is copied to
 web3d/pixel/paintings/picks/city[-PHASE].png, the build's input, and its seed noted in PICKS.
+
+The city's animations (web3d/src/city-fx.js) draw from city-fx.json: the lit windows and the bay found in the baked art,
+and the walks, lanes and lights below. Their depth map, picks/city-depth.png, is made by city_depth.py (it needs torch)
+and copied here as it is, so this script never needs torch.
 """
 import argparse
 import base64
 import io
 import json
 import math
+import shutil
 import sys
 from pathlib import Path
 from random import Random
@@ -208,6 +214,94 @@ def bake(phase):
     return small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
 
 
+# Where the city's animations go, in art pixels (city-fx.js). Only open ground, so nothing that stands in front of a
+# mover is drawn behind it; city-depth.png hides them behind trees and lamp posts on the way.
+WALKS = [[452, 299, 995, 299],    # x0, y0, x1, y1: the main street's near pavement
+         [737, 302, 739, 346]]    # the avenue toward the viewer, walked faster
+PLAZAS = [[670, 208, 708, 220], [774, 215, 816, 232]]   # x0, y0, x1, y1: the open paving either side of the tower
+LANES = [[[455, 293], [995, 293]], [[995, 296], [455, 296]],   # the main street's two lanes, and the ring road's curve up past Workshop Row
+         [[1000, 290], [1030, 280], [1052, 262], [1066, 240], [1080, 218], [1096, 198]]]
+LIGHTS = {"beacon": [457, 39], "blinks": [[800, 37], [746, 18]]}   # the radio mast's top, the crane's tips
+
+
+def spread(seeds, ok, size):
+    """Every pixel 4-connected to the seeds through pixels that pass ok."""
+    (w, h), seen = size, set(seeds)
+    todo = list(seen)
+    while todo:
+        x, y = todo.pop()
+        for q in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+            if 0 <= q[0] < w and 0 <= q[1] < h and q not in seen and ok(q):
+                seen.add(q)
+                todo.append(q)
+    return seen
+
+
+def ground(night, day, dusk):
+    """Everything but the sky: what the bottom row reaches without crossing it. The sky is what the top row reaches
+    through pixels that are sky at every hour: blue or cloud by day, dark at night and bright at dusk (the hazy hills and
+    islands are not as blue by day). The stars, warm spots in it like windows, are its holes, so outside this."""
+    n, d, u = night.load(), day.load(), dusk.load()
+
+    def blue(q):
+        a, b = d[q], n[q]
+        return (a[2] > a[0] + 40 or (min(a) > 140 and max(a) - min(a) < 45)) and b[2] >= b[0] - 2 and sum(b) < 150 and sum(u[q]) > 200
+
+    (w, h) = night.size
+    sky = spread([(x, 0) for x in range(w) if blue((x, 0))], blue, night.size)
+    return spread([(x, h - 1) for x in range(w) if (x, h - 1) not in sky], lambda q: q not in sky, night.size)
+
+
+def windows(night, day, dusk):
+    """The lit windows of the night art: small spots of warm light (4-connected, at most 14 px, inside 5x5), so the
+    library's lit facade and the lit roads stay out, and not in the sky, where they are stars. Each goes dark in its
+    wall's colour, the darkest pixel around it."""
+    (w, h), px, land = night.size, night.load(), ground(night, day, dusk)
+    lit = {(x, y) for y in range(h) for x in range(w)
+           if (p := px[x, y])[0] > 140 and p[1] > 100 and p[2] < 100 and p[0] - p[2] > 55}
+    found = []
+    for y in range(h):
+        for x in range(w):
+            if (x, y) not in lit:
+                continue
+            comp, todo = [], [(x, y)]
+            lit.discard((x, y))
+            while todo:
+                cx, cy = todo.pop()
+                comp.append((cx, cy))
+                for q in ((cx + 1, cy), (cx - 1, cy), (cx, cy + 1), (cx, cy - 1)):
+                    if q in lit:
+                        lit.discard(q)
+                        todo.append(q)
+            xs, ys = [c[0] for c in comp], [c[1] for c in comp]
+            if len(comp) > 14 or max(xs) - min(xs) > 4 or max(ys) - min(ys) > 4 or comp[0] not in land:
+                continue
+            ring = {(cx + dx, cy + dy) for cx, cy in comp for dx in (-1, 0, 1) for dy in (-1, 0, 1)} - set(comp)
+            wall = min((px[q] for q in sorted(ring) if 0 <= q[0] < w and 0 <= q[1] < h), key=sum)
+            found.append({"wall": list(wall), "px": sorted(comp)})
+    return found
+
+
+def sea(night, dusk):
+    """The bay, as runs [y, x0, x1] per row: dark blue water at night that glows at dusk, on the left of the art."""
+    n, d, runs = night.load(), dusk.load(), []
+    for y in range(101, night.size[1]):
+        for x in range(300):
+            if not ((p := n[x, y])[2] > p[0] + 10 and p[2] >= p[1] and sum(p) < 170 and sum(d[x, y]) > 330):
+                continue
+            if runs and runs[-1][0] == y and runs[-1][2] == x - 1:
+                runs[-1][2] = x
+            else:
+                runs.append([y, x, x])
+    return runs
+
+
+def write_fx(out, night, day, dusk):
+    (out / "city-fx.json").write_text(json.dumps({"windows": windows(night, day, dusk), "sea": sea(night, dusk), "walks": WALKS,
+                                                  "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}, separators=(",", ":")))
+    shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # city_depth.py's map, as it is
+
+
 def write_json(out):
     (out / "city.json").write_text(json.dumps({"size": SIZE, "labels": anchors()}))
 
@@ -216,11 +310,13 @@ def build(out):
     phases = json.loads((ROOT / "data" / "phases.json").read_text())
     if set(phases) != set(PICKS):
         sys.exit(f"PICKS has {sorted(PICKS)}, data/phases.json has {sorted(phases)}: give every phase a painting")
-    for phase in phases:
+    baked = {phase: bake(phase) for phase in phases}
+    for phase, im in baked.items():
         path = out / f"city{'' if phase == 'dusk' else '-' + phase}.webp"
-        bake(phase).save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
+        im.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
         print("drew", path.name, "from seed", PICKS[phase])
     write_json(out)
+    write_fx(out, baked["night"], baked["day"], baked["dusk"])
 
 
 if __name__ == "__main__":

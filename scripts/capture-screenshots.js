@@ -73,14 +73,16 @@ const routes = [
   },
   {
     name: "projects",
-    path: "/projects/",
+    path: "/projects/?time=dusk",   // Workshop Row follows the clock like the city, so pinned
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-bar__tabs a", 4, "top bar tabs"],
       [".px-bar__social a", 4, "social links"],
       [".px-download", 1, "CV download"],
-      [".px-grid", 2, "project grids"],
-      [".px-card", 14, "project cards"],
+      [".city-map img", 1, "workshop panorama"],
+      [".city-tag[aria-pressed]", 4, "workshop labels"],
+      [".city-chips button[aria-pressed]", 4, "workshop chips"],
+      [".workshop-projects li", 14, "projects"],
     ],
   },
   {

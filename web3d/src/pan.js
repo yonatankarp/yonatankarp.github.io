@@ -1,6 +1,6 @@
 // A wide painting that pans sideways to the label or chip picked (button[data-pick]) and shows that pick's
-// [data-district] in the panel: the homepage's city (city.js). `floats` says whether the panel lies over the painting,
-// which moves the middle of the free view right of it. Returns the pan.
+// [data-district] in the panel: the homepage's city (city.js) and the projects' Workshop Row (workshop.js). `floats`
+// says whether the panel lies over the painting, which moves the middle of the free view right of it. Returns the pan.
 export function panning(box, first, floats, onPick) {
   const scene = box.querySelector('.city-scene'), panel = box.querySelector('.city-panel');
   const still = matchMedia('(prefers-reduced-motion: reduce)');
@@ -17,7 +17,7 @@ export function panning(box, first, floats, onPick) {
     onPick?.(picked);
     for (const b of box.querySelectorAll('[data-pick]')) {   // a label that is a link (into its district) is marked too
       if (b.matches('.city-tag')) b.classList.toggle('on', b.dataset.pick === current);
-      else b.setAttribute('aria-pressed', b.dataset.pick === current);
+      if (b.hasAttribute('aria-pressed')) b.setAttribute('aria-pressed', b.dataset.pick === current);
     }
     for (const d of box.querySelectorAll('[data-district]')) d.hidden = d.dataset.district !== current;
     pan(true);

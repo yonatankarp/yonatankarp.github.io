@@ -27,25 +27,36 @@ function frontMatter(file) {
   const block = fs.readFileSync(path.join(projectsDir, file), "utf8").match(/^---\n([\s\S]*?)\n---/)[1];
   const scalar = (key) => block.match(new RegExp(`^\\s*${key}:\\s*"?([^"\\n]*)"?\\s*$`, "m"))?.[1];
 
-  return { slug: file.replace(/\.md$/, ""), caseStudy: scalar("caseStudy") === "true", btnText: scalar("btnText") || "View" };
+  return { slug: file.replace(/\.md$/, ""), caseStudy: scalar("caseStudy") === "true", btnText: scalar("btnText") || "View", archived: scalar("archived") === "true" };
 }
 
 function decodeEntities(value) {
   return value.replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, "&").replace(/&quot;/g, '"');
 }
 
+// Workshop Row (layouts/projects/list.html): a workshop per group, apps first, each listing its projects once.
 function checkProjectsPage(route, html) {
   const headings = Array.from(html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)).map((match) => stripTags(match[1]));
 
-  if (headings.join("|") !== "Apps|Libraries and tools|Games|Open-source contributions") {
-    failures.push(`${route}: h2s are [${headings.join(", ")}], expected [Apps, Libraries and tools, Games, Open-source contributions]`);
+  if (headings.join("|") !== "Apps|Libraries|Games|Open-source contributions") {
+    failures.push(`${route}: h2s are [${headings.join(", ")}], expected [Apps, Libraries, Games, Open-source contributions]`);
+  }
+
+  const picks = Array.from(html.matchAll(/<button\b[^>]*\bdata-pick=[^>]*>/g)).map((match) => match[0]);
+  const isLabel = (tag) => /\bcity-tag\b/.test(collectAttribute(tag, "class") ?? "");
+  for (const [what, buttons] of [["label", picks.filter(isLabel)], ["chip", picks.filter((tag) => !isLabel(tag))]]) {
+    const pressed = buttons.filter((tag) => collectAttribute(tag, "aria-pressed") === "true").map((tag) => collectAttribute(tag, "data-pick"));
+    if (buttons.length !== 4 || pressed.join() !== "app" || !buttons.every((tag) => collectAttribute(tag, "data-goatcounter-click") === `workshop-${collectAttribute(tag, "data-pick")}`)) {
+      failures.push(`${route}: expected four workshop ${what}s with workshop-<group> events, Apps pressed`);
+    }
   }
 
   const projects = fs.readdirSync(projectsDir).filter((file) => file.endsWith(".md") && file !== "_index.md").map(frontMatter);
-  const cards = html.split(/<li\b[^>]*class=["']?px-card["']?[\s>]/).slice(1);
+  const lists = Array.from(html.matchAll(/<ol\b[^>]*class=["']?workshop-projects["']?[\s>]([\s\S]*?)<\/ol>/g)).map((match) => match[1]);
+  const cards = lists.flatMap((list) => list.split(/<li\b[^>]*>/).slice(1));
 
-  if (cards.length !== projects.length) {
-    failures.push(`${route}: expected ${projects.length} px-card items, got ${cards.length}`);
+  if (lists.length !== 4 || cards.length !== projects.length) {
+    failures.push(`${route}: expected ${projects.length} projects in four workshops, got ${cards.length} in ${lists.length}`);
     return;
   }
 
@@ -55,18 +66,18 @@ function checkProjectsPage(route, html) {
     const card = cards.find((candidate) => decodeEntities(stripTags(candidate.match(/<h3\b[^>]*>([\s\S]*?)<\/h3>/)?.[1] ?? "")) === title);
 
     if (!card) {
-      failures.push(`${route}: no px-card titled "${title}"`);
+      failures.push(`${route}: no project titled "${title}"`);
       continue;
     }
 
     const link = card.match(/<h3\b[^>]*>\s*(<a\b[^>]*>)/)[1];
-    const cta = card.match(/<span\b[^>]*class=["']?px-cta[\s"'>][^>]*>([\s\S]*?)<\/span>/);
+    const cta = card.match(/<span\b[^>]*class=["']?workshop-cta[\s"'>][^>]*>([\s\S]*?)<\/span>/);
     const ctaText = cta ? stripTags(cta[1]).replace(/\s*(?:&#8594;|&#8599;|[\u2192\u2197])$/, "") : null;
     const href = collectAttribute(link, "href");
 
     if (project.caseStudy) {
       if (ctaText !== "Case study" || !href?.startsWith("/")) {
-        failures.push(`${route}: ${title} should link internally with a "Case study" px-cta, got "${ctaText}" ${href}`);
+        failures.push(`${route}: ${title} should link internally with a "Case study" workshop-cta, got "${ctaText}" ${href}`);
       }
     } else {
       if (collectAttribute(link, "target") !== "_blank" || !/\bnoopener\b/.test(collectAttribute(link, "rel") ?? "")) {
@@ -74,12 +85,16 @@ function checkProjectsPage(route, html) {
       }
 
       if (ctaText !== project.btnText) {
-        failures.push(`${route}: ${title} px-cta reads "${ctaText}", expected "${project.btnText}"`);
+        failures.push(`${route}: ${title} workshop-cta reads "${ctaText}", expected "${project.btnText}"`);
       }
     }
 
+    if (/class=["']?archived-tag/.test(card) !== project.archived) {
+      failures.push(`${route}: ${title} ${project.archived ? "needs" : "should not have"} the Archived label`);
+    }
+
     if (/<img\b/.test(card)) {
-      failures.push(`${route}: ${title} has an image; project cards have none`);
+      failures.push(`${route}: ${title} has an image; project entries have none`);
     }
   }
 

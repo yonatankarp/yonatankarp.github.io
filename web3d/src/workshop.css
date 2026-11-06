@@ -1,0 +1,45 @@
+/* The projects' Workshop Row (layouts/projects/list.html, workshop.js): the city's painting and panel (city.css) a screen
+   tall, under the top bar. The skin's tokens under city.css's names. A project's row is one link: its name's, stretched
+   over it, as the old cards were. */
+.workshop {
+  --text: var(--px-text); --text-soft: var(--px-soft); --display: var(--pixel-font);
+  position: relative; height: 100vh; height: 100svh;
+  --bar-clear: 160px;   /* the labels' tops clear the top bar's second row, which is in flow here */
+}
+:root:has(.workshop) .px-bar { position: absolute; inset: 0 0 auto; z-index: 2; pointer-events: none; }   /* over the painting, as on the city */
+:root:has(.workshop) .px-bar > * { pointer-events: auto; }
+main:has(.workshop) { padding-bottom: 0; }
+.workshop :is(.city-scene, .city-panel) { position: absolute; }
+.workshop .city-panel h1 { margin: 0 0 6px; }
+/* A label slides by --shift (workshop.js) to stay whole on screen; its stick stays on its spot. */
+.workshop .city-tag { transform: translate(calc(-50% + var(--shift, 0px)), -100%); }
+.workshop .city-tag::after { left: calc(50% - var(--shift, 0px)); }
+.workshop-back { display: inline-block; margin: 0 0 14px; color: var(--text-soft); font-size: 14px; }
+
+/* A phone, a short screen, or no script: the painting on top and the panel under it, as the city stacks. Without a script
+   the labels and chips, which only pick, go, and every pick's list shows. */
+@media (max-width: 700px), (max-height: 499px), (scripting: none) {
+  .workshop { height: auto; --bar-clear: 88px; }
+  .workshop :is(.city-scene, .city-panel) { position: relative; }
+  .workshop .city-scene { height: 62vh; height: 62svh; }
+  .workshop .city-panel { left: auto; bottom: auto; width: auto; max-height: none; margin: -2px 0 0; border-width: 2px 0 0; box-shadow: none; }
+}
+@media (scripting: none) {
+  .workshop :is(.city-tag, .city-chips) { display: none; }
+  .workshop [data-district][hidden] { display: block; }
+}
+
+.workshop-projects { margin: 0; padding: 0; list-style: none; }
+.workshop-projects li { position: relative; display: grid; gap: 4px; padding: 10px 0; border-bottom: 1px solid rgba(154, 113, 72, 0.45); }
+.workshop-projects li:last-child { border-bottom: 0; }
+.workshop-projects h3 { margin: 0; font: 400 26px/1 var(--display); }
+.workshop-projects h3 a { color: var(--text); text-decoration: none; }
+.workshop-projects h3 a::after { content: ''; position: absolute; inset: 0; }
+.workshop-projects li:hover h3 a { color: var(--city-amber); }
+.workshop-projects h3 a:focus-visible { outline: none; }
+.workshop-projects h3 a:focus-visible::after { outline: 3px solid var(--text); outline-offset: 2px; }
+.city-say .workshop-projects p { margin: 0; font-size: 13.5px; line-height: 1.45; }
+.city-say .workshop-meta { font-size: 12.5px; }
+.workshop-meta b { color: var(--city-amber); font-weight: 500; }
+.workshop-meta .archived-tag { font-size: 15px; padding: 1px 6px; }
+.workshop-cta { justify-self: start; font: 18px/1 var(--display); color: var(--city-amber); }

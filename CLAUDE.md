@@ -37,7 +37,16 @@ by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, 
 post as a card (`partials/blog-row.html`). A chip for every tag the listed posts carry filters the list, with the search
 box (`assets/js/library.js`): the curated topics and labels in `data/library.yaml` first (a tag no listed post carries is
 skipped, one with no tag page fails the build), then the rest, most posts first (ties by name). Without a script the
-chips are links to the tag pages and the search box a form to `/search/`. The homepage's script and styles live in
+chips are links to the tag pages and the search box a form to `/search/`.
+
+The projects' index (`layouts/projects/list.html`) is the city's Workshop Row: a street of four brick workshops, one per
+project `group` (apps, libraries, games, contributions, in that order), that pans like the city (the shared
+`web3d/src/pan.js`) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
+are a bundle of their own, `assets/building/workshop.*` (`vite build --mode workshop`). Each workshop lists its projects
+by `weight`; without a script every workshop's list shows. Its art follows the clock like the city:
+`workshop[-PHASE].webp`, baked by `web3d/pixel/gen_workshop.py` from `paintings/picks/workshop[-PHASE].png` (dusk painted,
+the other hours edited from it), with `workshop.json`, the labels' anchors. The page is standalone (no baseof) so the
+inline script that swaps in the hour's painting is in `.Store "bodyScripts"`, which `head.html` allows by its hash. The homepage's script and styles live in
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
 `npm run build:building` has run. That script also draws every Mermaid fence in `content/` to SVG with the `mermaid`
 package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitignored `assets/diagrams/<sha256>.svg`), which
@@ -135,7 +144,7 @@ The post shows it across the page behind its head, about 40 of its 108 rows on a
 Art inside a post goes in `static/images/blog/pixel/`, painted from `INLINE` in `paint_covers.py` at the covers' 192x108, which keeps it crisp: anything wider than 480px would get smeared webp sizes.
 
 ### New project
-Create `content/projects/name.md` with a `link` and a `group` of `app`, `library`, `game` or `contribution`, which picks its section on `/projects/` (the build fails without either). Projects render via the custom homepage project list and can expose their CTA through `params.button`. Set `archived: true` once the repository is archived: the project stays listed, with an "Archived" label on `/projects/`, its case study and the homepage's Parking floor, and "(archived)" after its name in the Parking card and `llms.txt`.
+Create `content/projects/name.md` with a `link` and a `group` of `app`, `library`, `game` or `contribution`, which picks its workshop on `/projects/` (the build fails without either; a new group needs a workshop in the painting). Its place in the workshop is its `weight`, lowest first. The entry links to its case study with `caseStudy: true`, else to `link` under `params.button.btnText`. Set `archived: true` once the repository is archived: the project stays listed, with an "Archived" label on `/projects/`, its case study and the homepage's Parking floor, and "(archived)" after its name in the Parking card and `llms.txt`.
 
 ### New experience
 Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `duration`, `summary`, and:
@@ -170,7 +179,8 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV or the footer),
   `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links),
   `district-<key>` (the city panel's go link, and the map labels that lead in, for the tower, library and workshop: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
-  `district-post`) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `floor-<key>` (the first time a visit's ride
+  `district-post`) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `workshop-<group>` (a workshop picked on Workshop Row, by its
+  label or chip, a `data-goatcounter-click`: `workshop-app`, `workshop-library`, `workshop-game`, `workshop-contribution`); `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)
   and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.
 

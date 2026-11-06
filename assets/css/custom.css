@@ -683,30 +683,10 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   .cv-bullets { grid-template-columns: 1fr; }   /* side-by-side bullets come out of the PDF as interleaved lines for ATS parsers */
 }
 
-/* Projects (/projects/, layouts/projects/list.html): the skin's cards in a grid, the whole card one link. */
-.px-projects .px-sheet { width: min(1200px, calc(100% - 2 * clamp(16px, 3vw, 36px))); }
-.px-projects__head { padding-bottom: 28px; border-bottom: 4px solid var(--panel-hi); }
-.px-projects h1 { margin: 0 0 12px; font-size: 60px; }
-.px-projects__lede { max-width: 70ch; margin: 0; font-size: 17px; color: var(--px-soft); }
-.px-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0; list-style: none; }
-.px-card { position: relative; display: flex; flex-direction: column; background: var(--well); clip-path: var(--stepped); box-shadow: inset 0 0 0 4px var(--ink); }
-.px-card:hover { box-shadow: inset 0 0 0 4px var(--amber); }
-.px-card__body { display: flex; flex-direction: column; gap: 8px; flex: 1; padding: 16px 20px 20px; }
-.px-card__meta { display: flex; justify-content: space-between; gap: 12px; margin: 0; font-size: 13px; color: var(--px-soft); }
-.px-card__meta b { color: var(--amber); font-weight: 500; }
-.px-card h3 { margin: 0; font: 400 30px/1 var(--pixel-font); }
-.px-card h3 a { text-decoration: none; }
-.px-card h3 a::after { content: ''; position: absolute; inset: 0; }
-.px-card h3 a:focus-visible { outline: none; }
-.px-card h3 a:focus-visible::after { box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
-.px-card__desc { margin: 0; flex: 1; font-size: 14.5px; line-height: 1.5; color: var(--px-soft); }
-.px-card__tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.px-card__tags .px-chip { padding: 2px 8px; font-size: 12.5px; background: var(--panel); }
+/* The skin's call to action: a stepped amber button, or a quiet one for a link that leaves the site. */
 .px-cta { align-self: flex-start; margin-top: 4px; padding: 6px 12px; font: 400 22px/1 var(--pixel-font); background: var(--amber); color: var(--ink);
   clip-path: var(--stepped); box-shadow: inset 0 0 0 3px var(--ink); }
 .px-cta--out { background: var(--panel); color: var(--px-text); box-shadow: inset 0 0 0 3px var(--panel-hi); }
-@media screen and (max-width: 1000px) { .px-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media screen and (max-width: 640px) { .px-grid { grid-template-columns: 1fr; } .px-projects h1 { font-size: 44px; } }
 
 /* Case study (/projects/<slug>/, layouts/projects/single.html): a sheet with the title block and the article body in .px-prose. */
 .px-case__head { display: grid; justify-items: start; gap: 14px; padding-bottom: 28px; border-bottom: 4px solid var(--panel-hi); }
@@ -914,9 +894,9 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   :focus-visible { outline: 3px solid Highlight !important; }
   :is(.px-bar a, .px-menu, .cv-floor, .px-cta, .code-copy, .share-btn, .copy-email, .search-input, .related-card, .blog-px .chip):focus-visible { outline-offset: -3px !important; }
   /* The whole card is the link: its ring is on the cover the link spreads over it. */
-  :is(.px-card h3, .blog-px .post-row h2, .px-page .search-result) a:focus-visible { outline: none !important; }
-  :is(.px-card h3, .blog-px .post-row h2, .px-page .search-result) a:focus-visible::after { outline: 3px solid Highlight; outline-offset: -3px; }
-  :is(.px-card, .px-cta, .px-bar__name, .px-download, .px-bar__tabs a, .px-bar__social a, .px-menu, .cv-floor, .code-copy, .share-btn,
+  :is(.workshop-projects h3, .blog-px .post-row h2, .px-page .search-result) a:focus-visible { outline: none !important; }
+  :is(.workshop-projects h3, .blog-px .post-row h2, .px-page .search-result) a:focus-visible::after { outline: 3px solid Highlight; outline-offset: -3px; }
+  :is(.px-cta, .px-bar__name, .px-download, .px-bar__tabs a, .px-bar__social a, .px-menu, .cv-floor, .code-copy, .share-btn,
     .copy-email, .px-chip, .search-input, .px-page .search-result, .px-well, .px-page .site-footer__inner,
     .blog-px :is(.page-head__copy, .post-row, .article, .related-card, .chip, .library-chip)) { border: 1px solid CanvasText; }
 }

@@ -25,24 +25,59 @@ function depthTest(ctx, bitmap) {
   pad.drawImage(bitmap, 0, 0);
   const rgba = pad.getImageData(0, 0, W, H).data, depth = new Uint8Array(W * H);
   for (let i = 0; i < depth.length; i++) depth[i] = rgba[i * 4];
-  return {
-    // A mover's pixels are drawn only where nothing in the painting is nearer than the ground under its feet, so trees,
-    // lamp posts and walls in front of it hide it.
-    dfill(x, y, w, h, foot) {
-      if (w < 0) { x += w; w = -w; }
-      for (let yy = Math.max(0, y); yy < Math.min(H, y + h); yy++) {
-        for (let xx = Math.max(0, x); xx < Math.min(W, x + w); xx++) if (depth[yy * W + xx] <= foot + TOL) ctx.fillRect(xx, yy, 1, 1);
-      }
-    },
-    // The ground a mover stands on: the farthest depth within 8 px of its feet. Right under a tree the pixel at its feet
-    // is the tree, and taking that would put it level with the tree instead of behind it.
-    footAt(x, y) {
-      let m = 255;
-      y = Math.min(H - 1, Math.max(0, y));
-      for (let xx = Math.max(0, x - 8); xx <= Math.min(W - 1, x + 8); xx++) m = Math.min(m, depth[y * W + xx]);
-      return m;
-    },
+  // A mover's pixels are drawn only where nothing in the painting is nearer than the ground under its feet, so trees,
+  // lamp posts and walls in front of it hide it.
+  const dfill = (x, y, w, h, foot) => {
+    if (w < 0) { x += w; w = -w; }
+    for (let yy = Math.max(0, y); yy < Math.min(H, y + h); yy++) {
+      for (let xx = Math.max(0, x); xx < Math.min(W, x + w); xx++) if (depth[yy * W + xx] <= foot + TOL) ctx.fillRect(xx, yy, 1, 1);
+    }
   };
+  // The ground a mover stands on: the farthest depth within 8 px of its feet. Right under a tree the pixel at its feet
+  // is the tree, and taking that would put it level with the tree instead of behind it.
+  const footAt = (x, y) => {
+    let m = 255;
+    y = Math.min(H - 1, Math.max(0, y));
+    for (let xx = Math.max(0, x - 8); xx <= Math.min(W - 1, x + 8); xx++) m = Math.min(m, depth[y * W + xx]);
+    return m;
+  };
+  // One frame of a painted person (people()) standing at (x, y), mirrored when facing left, depth-tested from its feet.
+  const sprite = (sheet, cells, x, y, left) => {
+    const x0 = Math.round(x) - (sheet.w >> 1), y0 = y - sheet.foot, f = footAt(Math.round(x), y);
+    for (const { fill, px } of cells) {
+      ctx.fillStyle = fill;
+      for (let i = 0; i < px.length; i += 2) dfill(x0 + (left ? sheet.w - 1 - px[i] : px[i]), y0 + px[i + 1], 1, 1, f);
+    }
+  };
+  return { dfill, footAt, sprite };
+}
+
+// A sheet of painted people (gen_walkers.py), a row per person and a column per frame, split once into each frame's
+// pixels grouped by colour, as they are or dimmed for the night. url(ext) is the sheet's .json or .webp. Resolves to null
+// without it: the scene goes without them.
+export function people(url, night) {
+  return Promise.all([
+    fetch(url('json')).then((r) => r.json()),
+    fetch(url('webp')).then((r) => r.blob()).then((b) => createImageBitmap(b, { colorSpaceConversion: 'none' })),
+  ]).then(([m, bitmap]) => {
+    const pad = new OffscreenCanvas(bitmap.width, bitmap.height).getContext('2d');
+    pad.drawImage(bitmap, 0, 0);
+    const d = pad.getImageData(0, 0, bitmap.width, bitmap.height).data, dim = (v, k) => Math.round(v * 0.45 + [14, 16, 34][k] * 0.55);   // under rgba(14,16,34,.55)
+    const frames = m.people.map((_, j) => Array.from({ length: m.frames }, (_, k) => {
+      const byColour = new Map();
+      for (let y = 0; y < m.h; y++) {
+        for (let x = 0; x < m.w; x++) {
+          const i = ((j * m.h + y) * bitmap.width + k * m.w + x) * 4;
+          if (d[i + 3] < 128) continue;
+          const fill = `rgb(${[d[i], d[i + 1], d[i + 2]].map((v, c) => (night ? dim(v, c) : v))})`;
+          if (!byColour.has(fill)) byColour.set(fill, []);
+          byColour.get(fill).push(x, y);
+        }
+      }
+      return [...byColour].map(([fill, px]) => ({ fill, px }));
+    }));
+    return { ...m, frames };
+  }).catch(() => null);
 }
 
 // Drawn only while it can be seen: the tab shown, the canvas on screen, motion welcome, and `live`.

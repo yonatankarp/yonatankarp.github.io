@@ -1,13 +1,17 @@
-// The Library's life (layouts/blog/list.html, its own bundle): the fire flickering with a breathing glow and rising
-// embers, dust turning in the window's light, and clouds passing outside, only over the window's sky, so behind its
-// frames and the rooftops. Over the header's picture, cropped as it is (scene-fx.js); where is library-fx.json, written
-// by web3d/pixel/gen_library.py. One painting, at dusk, so no hours.
-import { animate, rnd } from './scene-fx.js';
+// The Library's life (layouts/blog/list.html, its own bundle): readers browsing the shelves, the fire flickering with a
+// breathing glow and rising embers, dust turning in the window's light, and clouds passing outside, only over the
+// window's sky, so behind its frames and the rooftops. Over the header's picture, cropped as it is (scene-fx.js); where
+// is library-fx.json, written by web3d/pixel/gen_library.py, and the readers are gen_walkers.py's readers sheet. One
+// painting, at dusk, so no hours.
+import { animate, people, rnd } from './scene-fx.js';
 
 const canvas = document.querySelector('.library-fx');
-if (canvas) animate(canvas, { data: canvas.dataset.fx }, setup);
+if (canvas) {
+  const sheet = people((ext) => `${canvas.dataset.readers}.${ext}?v=${canvas.dataset.version}`, false);
+  animate(canvas, { data: canvas.dataset.fx, depth: canvas.dataset.depth }, (ctx, fx, test) => setup(ctx, fx, test, sheet));
+}
 
-function setup(ctx, fx) {
+function setup(ctx, fx, { sprite }, sheet) {
   const W = ctx.canvas.width, [x0, y0, x1, y1] = fx.fire, mid = (x0 + x1) / 2, base = y1 - 4;
   const sky = new Uint8Array(W * ctx.canvas.height);
   for (const [y, a, b] of fx.sky) sky.fill(1, y * W + a, y * W + b + 1);
@@ -53,5 +57,27 @@ function setup(ctx, fx) {
     }
   };
 
-  return (now, dt) => { drawFire(now, dt); drawClouds(dt); drawDust(now, dt); };
+  // Readers walk the floor in front of the bookcases to a shelf, face it, stand, reach up, take a book and read it, some for
+  // a long while, then walk on to another. The reading tables in front hide their legs (library-depth.png).
+  const { floor, shelves, spread, speed, browse } = fx.readers;
+  const shelf = () => shelves[Math.random() * shelves.length | 0] + rnd(-spread, spread);
+  let readers = [];
+  sheet.then((s) => {
+    if (s) readers = s.frames.map((frames) => ({ s, frames, x: rnd(shelves[0] - 60, shelves.at(-1) + 60), v: rnd(...speed), dist: rnd(0, 100), pose: -1, until: 0, to: shelf(), left: false }));
+  });
+  const drawReaders = (now, dt) => {
+    for (const r of readers) {
+      if (r.pose < 0) {   // walking to the shelf picked, a step of the cycle per stride of ground
+        const step = Math.min(Math.abs(r.to - r.x), r.v * dt / 1000);
+        r.left = r.to < r.x;
+        r.x += r.left ? -step : step;
+        r.dist += step;
+        if (Math.abs(r.to - r.x) < 1) { r.pose = 0; r.until = now + rnd(...browse[0]); r.left = false; }   // there: face the shelf
+      } else if (now > r.until && ++r.pose < browse.length) r.until = now + rnd(...browse[r.pose]);
+      else if (r.pose >= browse.length) { r.pose = -1; r.to = shelf(); }
+      sprite(r.s, r.frames[r.pose < 0 ? Math.floor(r.dist / r.s.stride * r.s.walk) % r.s.walk : r.s.walk + r.pose], r.x, floor, r.left);
+    }
+  };
+
+  return (now, dt) => { drawReaders(now, dt); drawFire(now, dt); drawClouds(dt); drawDust(now, dt); };
 }

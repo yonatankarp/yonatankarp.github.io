@@ -43,6 +43,7 @@ web3d/pixel/paintings/picks/*
 # gen_library.py, gen_workshop.py, gen_rooms.py)
 !web3d/pixel/paintings/picks/city*.png
 !web3d/pixel/paintings/picks/library.png
+!web3d/pixel/paintings/picks/library-depth.png
 !web3d/pixel/paintings/picks/radio.png
 !web3d/pixel/paintings/picks/post.png
 !web3d/pixel/paintings/picks/workshop*.png

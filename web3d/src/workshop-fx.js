@@ -85,14 +85,15 @@ function setup(ctx, fx, dfill, footAt, sheet) {
   let people = null;
   sheet.then((s) => { people = s; });
   const walkers = Array.from({ length: night ? 4 : 8 }, (_, i) => ({
-    x: rnd(px0 + 10, px1 - 5), dir: Math.random() < 0.5 ? 1 : -1, v: rnd(22, 30), lane: fx.lanes[i % 2], who: i, dist: rnd(0, 100),
+    x: rnd(px0 + 10, px1 - 5), dir: Math.random() < 0.5 ? 1 : -1, pace: rnd(0.71, 0.97), lane: fx.lanes[i % 2], who: i, dist: rnd(0, 100),
   })).sort((a, b) => a.lane - b.lane);
   const drawWalkers = (dt) => {
     for (const w of walkers) {
-      w.x += w.v * w.dir * dt / 1000;
-      if (w.x < px0 || w.x > px1) { w.dir = -w.dir; w.x = Math.min(px1, Math.max(px0, w.x)); }
-      w.dist += w.v * dt / 1000;
       if (!people) continue;
+      const v = w.pace * people.stride;   // px/s: a pace in strides a second, so speed keeps to the people's size
+      w.x += v * w.dir * dt / 1000;
+      if (w.x < px0 || w.x > px1) { w.dir = -w.dir; w.x = Math.min(px1, Math.max(px0, w.x)); }
+      w.dist += v * dt / 1000;
       const { frames, w: fw, foot, stride } = people, cycle = frames[w.who % frames.length], k = Math.floor(w.dist / stride * cycle.length) % cycle.length;
       const x = Math.round(w.x), x0 = x - (fw >> 1), y0 = w.lane - foot, f = footAt(x, w.lane);
       for (const { fill, px } of cycle[k]) {

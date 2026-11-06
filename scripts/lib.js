@@ -1,8 +1,9 @@
 // What the scripts in this folder share: the repository's folders, failing with a reason, walking a folder, reading an
-// attribute from a tag, loading Playwright, and finding the Hugo to run.
+// attribute from a tag, loading Playwright, finding the Hugo to run, and running the page's time-of-day pick.
 
 const fs = require("fs");
 const path = require("path");
+const vm = require("vm");
 
 const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
@@ -84,4 +85,35 @@ function loadPlaywright(what) {
   }
 }
 
-module.exports = { rootDir, publicDir, hugoBinary, fail, walk, collectAttribute, routeToPublicPath, loadPlaywright };
+// The zone table layouts/partials/time-pick.html builds from data/timezones.json: each zone and link's main city, to whole
+// degrees (halves away from zero, as Hugo rounds), grouped by the zone's folder ("Europe/": "... Berlin53,13 ...").
+function zoneTable() {
+  const round = (x) => Math.sign(x) * Math.round(Math.abs(x)) || 0;
+  const { zones, links } = require("../data/timezones.json");
+  const table = {};
+  for (const [name, [, lat, lon]] of Object.entries({ ...zones, ...Object.fromEntries(Object.entries(links).map(([link, to]) => [link, zones[to]])) })) {
+    const i = name.lastIndexOf("/") + 1, dir = name.slice(0, i);
+    table[dir] = `${table[dir] ? `${table[dir]} ` : ""}${name.slice(i)}${round(lat)},${round(lon)}`;
+  }
+  return table;
+}
+
+// The time-of-day pick (assets/js/time-pick.js) run as a page runs it, for a visitor in zone (undefined: none) at instant
+// ms with query ?time=: the phase it sets, and its sunPhase(ms, lat, lon). script is the whole inline script, by default
+// that file with zoneTable() written in; a built page's own works too (its sunPhase is then inside its wrapper).
+let defaultPick;
+function runTimePick({ zone, ms, query = "", script }) {
+  script ??= defaultPick ??= fs.readFileSync(path.join(rootDir, "assets", "js", "time-pick.js"), "utf8").replace("ZONES", JSON.stringify(zoneTable()));
+  const documentElement = { dataset: {} };
+  const context = vm.createContext({
+    URLSearchParams,
+    location: { search: query },
+    document: { documentElement },
+    Intl: { DateTimeFormat: () => ({ resolvedOptions: () => ({ timeZone: zone }) }) },
+    Date: { now: () => ms },
+  });
+  vm.runInContext(script, context);
+  return { time: documentElement.dataset.time, sunPhase: context.sunPhase };
+}
+
+module.exports = { rootDir, publicDir, hugoBinary, fail, walk, collectAttribute, routeToPublicPath, loadPlaywright, zoneTable, runTimePick };

@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
-// The hours the art is baked for live in data/phases.json (name, the hour it starts, the colour above the roof, the
-// rooms baked for it, how dark a room falls with its lights off), which web3d/src/art.js and the scripts read and
-// web3d/pixel/gen_floors.py checks against its PHASES. What cannot read JSON is checked against it here:
-// - layouts/partials/time-pick.html picks each phase at its hours, and takes exactly these names from ?time=;
+// The phases the art is baked for live in data/phases.json (name, the colour above the roof, the rooms baked for it, how
+// dark a room falls with its lights off), which web3d/src/art.js and the scripts read and web3d/pixel/gen_floors.py
+// checks against its PHASES. What cannot read JSON is checked against it here:
+// - assets/js/time-pick.js, through layouts/partials/time-pick.html, picks each phase from the sun over a day, and
+//   takes exactly these names from ?time=;
 // - web3d/src/pixel.css paints each phase's sky behind the street until the script runs;
 // - assets/css/custom.css puts each phase's backdrop behind the other pages;
 // - and the art those name is in static/building/pixel/, the homepage's city and the projects' Workshop Row at each hour
 //   too (gen_city.py, gen_workshop.py).
 const fs = require("fs");
 const path = require("path");
-const vm = require("vm");
-const { rootDir, fail } = require("./lib");
+const { rootDir, fail, runTimePick } = require("./lib");
 const phases = require("../data/phases.json");
 
 const read = (file) => fs.readFileSync(path.join(rootDir, file), "utf8");
@@ -19,33 +19,16 @@ const problems = [];
 const names = Object.keys(phases);
 const art = (file) => path.join("static", "building", "pixel", file);
 
-// The phase in force at hour h: the latest to start by then, or, before the first start of the day, the last of the day.
-const starts = names.map((name) => [phases[name].from, name]).sort((a, b) => a[0] - b[0]);
-const atHour = (h) => (starts.filter(([from]) => from <= h).pop() ?? starts[starts.length - 1])[1];
-
-// time-pick.html's script, run with a given hour and query.
-const pick = read("layouts/partials/time-pick.html").match(/\{\{ return `([^`]*)` \}\}/)?.[1];
-if (!pick) {
-  fail("layouts/partials/time-pick.html: no `{{ return `...` }}` script found.");
-}
-const run = (hour, query) => {
-  const documentElement = { dataset: {} };
-  vm.runInNewContext(pick, {
-    URLSearchParams,
-    location: { search: query },
-    document: { documentElement },
-    Date: class { getHours() { return hour; } },
-  });
-  return documentElement.dataset.time;
-};
-for (let h = 0; h < 24; h++) {
-  if (run(h, "") !== atHour(h)) problems.push(`time-pick.html picks ${run(h, "")} at ${h}:00, phases.json says ${atHour(h)}`);
-}
+// The pick over a spring day in Berlin, every ten minutes, gives every phase and nothing else.
+const noon = Date.UTC(2026, 2, 20, 11);
+const run = (ms, query = "") => runTimePick({ zone: "Europe/Berlin", ms, query }).time;
+const day = new Set(Array.from({ length: 144 }, (_, i) => run(Date.UTC(2026, 2, 20) + i * 10 * 60e3)));
+if ([...day].sort().join() !== [...names].sort().join()) problems.push(`time-pick.js picks ${[...day].join(", ")} over a day, phases.json has ${names.join(", ")}`);
 for (const name of names) {
-  if (run(12, `?time=${name}`) !== name) problems.push(`time-pick.html ignores ?time=${name}`);
+  if (run(noon, `?time=${name}`) !== name) problems.push(`time-pick.js ignores ?time=${name}`);
 }
 for (const other of ["noon", "Dusk", ""]) {
-  if (run(12, `?time=${other}`) !== atHour(12)) problems.push(`time-pick.html takes ?time=${other}`);
+  if (run(noon, `?time=${other}`) !== run(noon)) problems.push(`time-pick.js takes ?time=${other}`);
 }
 
 // pixel.css: the plain rule is dusk's sky, and each other phase has its own rule.

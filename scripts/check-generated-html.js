@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
-const { rootDir, publicDir, fail, walk, collectAttribute } = require("./lib");
+const { rootDir, publicDir, fail, walk, collectAttribute, zoneTable } = require("./lib");
 
 const failures = [];
 const placeholderPattern = /\b(?:TODO|FIXME|Lorem ipsum|Coming soon)\b/i;
@@ -609,6 +609,12 @@ for (const filePath of htmlFiles) {
   const about = fs.existsSync(path.join(publicDir, "about", "index.html")) ? fs.readFileSync(path.join(publicDir, "about", "index.html"), "utf8") : "";
   if (!isRedirectPage(about) || !/content=["']?noindex/.test(about) || !about.includes('url=https://yonatankarp.com/#floor-L"') || !/id=["']?floor-L["'\s>]/.test(home)) failures.push("/about/: should be a noindex redirect to /#floor-L");
   if (sitemap.includes("<loc>https://yonatankarp.com/about/<")) failures.push("sitemap.xml: lists /about/");
+}
+// The time pick's zone table, as layouts/partials/time-pick.html builds it, places every zone and link (scripts/lib.js).
+{
+  const built = fs.readFileSync(path.join(publicDir, "blog", "index.html"), "utf8").match(/<script>\(function\(\)\{var (?:\w+,)*\w+=(\{"".*?\}),/)?.[1];
+  const sorted = (table) => JSON.stringify(Object.entries(table).map(([dir, cities]) => [dir, cities.split(" ").sort()]).sort());
+  if (!built || sorted(JSON.parse(built)) !== sorted(zoneTable())) failures.push("/blog/: the time pick's zone table differs from data/timezones.json's zones and links");
 }
 
 if (failures.length > 0) {

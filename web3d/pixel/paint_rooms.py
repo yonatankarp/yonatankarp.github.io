@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pillow==12.1.0"]
+# dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """Paint floor candidates with the local model in Draw Things (HTTP API, Settings > API Server, port 7860).
 
@@ -24,7 +24,8 @@ import json
 import urllib.request
 from pathlib import Path
 
-from PIL import Image
+import numpy as np
+from PIL import Image, ImageFilter
 
 HERE = Path(__file__).resolve().parent / "paintings"
 OUT = HERE / "candidates"
@@ -175,6 +176,43 @@ def call(host, path, payload):
         return json.loads(r.read())
 
 
+def band(size, x1, y1, feather=40):
+    """The mask of the wall next to the lift: full from the lobby's edge to x1 - 40 and down to y1 - 20, fading out
+    over 40 px to the right and 20 below, and in over `feather` px of the lobby's wall on the left."""
+    x0 = round(size[1] * 132 / 154)
+    mask = Image.new("L", size)
+    px = mask.load()
+    for y in range(y1):
+        for x in range(x0 - feather // 2, x1):
+            px[x, y] = round(255 * min(1, (x - x0 + feather // 2) / feather, (x1 - x) / 40, (y1 - y) / 20))
+    return mask
+
+
+def mended(src, x1, y1, side="lobby"):
+    """The lobby's wall carried on over a corner the model painted beside the lift, faded in over band()'s feather. The
+    model would not paint the wall flat: asked to, it painted the corner again. From the lobby's side, the strip left
+    of its edge, mirrored again and again, so its plaster, light and skirting run on with no seam. From the room's
+    (where that would mirror the lobby lamp's light into a V), each row goes over from the lobby's edge colour to the
+    back wall's past x1, and the plaster's grain (the fine detail of the wall left of the edge) is mirrored across it."""
+    x0 = round(src.height * 132 / 154)
+    fill = src.copy()
+    if side == "lobby":
+        strip = src.crop((x0 - 100, 0, x0, src.height))
+        for i, x in enumerate(range(x0, x1, 100)):
+            fill.paste(strip.transpose(Image.FLIP_LEFT_RIGHT) if i % 2 == 0 else strip, (x, 0))
+        return Image.composite(fill, src, band(src.size, x1, y1))
+    a = np.asarray(src, dtype=np.float64)
+    smooth = np.asarray(src.filter(ImageFilter.GaussianBlur(12)), dtype=np.float64)
+    t = np.linspace(0, 1, x1 - x0)[None, :, None]
+    strip = (a - smooth)[:, x0 - 100:x0]                                   # the plain wall left of the edge, clear
+    tiles = [strip[:, ::-1] if i % 2 == 0 else strip for i in range((x1 - x0) // 100 + 1)]   # of the call buttons
+    grain = np.concatenate(tiles, axis=1)[:, :x1 - x0]
+    out = a.copy()
+    out[:, x0:x1] = smooth[:, x0 - 8, None] * (1 - t) + smooth[:, x1 + 8, None] * t + grain
+    fill = Image.fromarray(out.clip(0, 255).astype(np.uint8), "RGB")
+    return Image.composite(fill, src, band(src.size, x1, y1, 120))
+
+
 def paint(path, prompt, size, seed, host, init=None):
     """One candidate, kept if painted already (the model does not redraw a seed bit for bit)."""
     if path.exists():
@@ -192,14 +230,20 @@ def paint(path, prompt, size, seed, host, init=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("room", choices=["lobby", "roof", "retime", *sorted(ROOMS)])
+    ap.add_argument("room", choices=["lobby", "roof", "retime", "wall", *sorted(ROOMS)])
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--start", type=int, default=1000)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     ap.add_argument("--src", help="retime: the dusk pick, a candidate's file name (roof_1017.png)")
     ap.add_argument("--time", choices=sorted(HOURS), help="retime: the hour to paint it at")
+    ap.add_argument("--band", help="wall: X,Y[,room], how far right and down the wall beside the lift is mended, and from which side")
     args = ap.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
+    if args.room == "wall":   # a pick whose room turned a corner beside the lift: <src>-wall.png, the rest kept as is
+        src = Image.open(OUT / args.src).convert("RGB")
+        x1, y1, *side = args.band.split(",")
+        mended(src, int(x1), int(y1), *side).save(OUT / f"{Path(args.src).stem}-wall.png")
+        return
     if args.room == "retime":   # the same picture at another hour: <src>-<time>_<seed>.png
         init = Image.open(OUT / args.src).convert("RGB")
         kind = args.src.split("_")[0]

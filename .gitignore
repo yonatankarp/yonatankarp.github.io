@@ -40,8 +40,10 @@ web3d/pixel/paintings/candidates/*
 # the new art standard (paint_rooms.FINE_SIZE): the lobby, every room and the roof's and lobby's other hours
 !web3d/pixel/paintings/candidates/lobby_1017.png
 !web3d/pixel/paintings/candidates/reichman_1168.png
+!web3d/pixel/paintings/candidates/reichman_1168-wall.png
 !web3d/pixel/paintings/candidates/inuitive_1134.png
 !web3d/pixel/paintings/candidates/nice_1270.png
+!web3d/pixel/paintings/candidates/nice_1270-wall.png
 !web3d/pixel/paintings/candidates/sumup_1117.png
 !web3d/pixel/paintings/candidates/billie_risk_1100.png
 !web3d/pixel/paintings/candidates/billie_orchestrator_1117.png

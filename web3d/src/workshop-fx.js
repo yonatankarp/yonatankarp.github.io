@@ -1,17 +1,20 @@
-// Workshop Row's life (workshop.js): painted walkers on the pavement, a cat on the wall, a welder's sparks, code
-// scrolling on the screens and moths round the street lamps, over the picture (scene-fx.js). Where they go is
+// Workshop Row's life (workshop.js): painted walkers on the pavement, two cats on the wall and the street, a welder's
+// sparks, code scrolling on the screens and moths round the street lamps, over the picture (scene-fx.js). Where they go is
 // workshop-fx.json and what hides them is workshop-depth.png, both written by web3d/pixel/gen_workshop.py; the walkers
-// are walkers.webp and walkers.json, written by web3d/pixel/gen_walkers.py.
+// and the cats are walkers.webp and cats.webp with their .json, written by web3d/pixel/gen_walkers.py.
+import { cats } from './cats.js';
 import { animate, people, rnd } from './scene-fx.js';
 
 export function workshopFx(canvas, img) {
   const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`;
-  const sheet = new URL('walkers', new URL(img.dataset.base, location.href)).pathname;
-  const walkers = people((ext) => `${sheet}.${ext}?v=${img.dataset.version}`, document.documentElement.dataset.time === 'night');
-  animate(canvas, { data: art('fx.json'), depth: art('depth.png') }, (ctx, fx, test) => setup(ctx, fx, test, walkers));
+  const sheet = (name) => {
+    const url = new URL(name, new URL(img.dataset.base, location.href)).pathname;
+    return people((ext) => `${url}.${ext}?v=${img.dataset.version}`, document.documentElement.dataset.time === 'night');
+  };
+  animate(canvas, { data: art('fx.json'), depth: art('depth.png') }, (ctx, fx, test) => setup(ctx, fx, test, sheet('walkers'), sheet('cats')));
 }
 
-function setup(ctx, fx, { dfill, footAt, sprite }, sheet) {
+function setup(ctx, fx, { footAt, sprite }, sheet, catSheet) {
   const time = document.documentElement.dataset.time, night = time === 'night';
 
   // Screens: short lines of code scrolling by, and a faint flicker.
@@ -52,43 +55,50 @@ function setup(ctx, fx, { dfill, footAt, sprite }, sheet) {
     }
   };
 
-  // Painted walkers pacing the pavement's two lanes, the far one first; the lamp posts at the kerb stand in front of them.
-  // A step of the cycle per stride of ground, so the feet do not slide; mirrored walking left. Fewer, and dimmed, at night.
-  const [px0, px1] = fx.pavement;
+  // Painted walkers on the pavement's two lanes, the far one first; the lamp posts at the kerb stand in front of them. Each
+  // walks off an end of the street and, a few seconds later, someone comes on from either end, in either lane, at their own
+  // pace. A step of the cycle per stride of ground, so the feet do not slide; mirrored walking left. Fewer, and dimmed, at
+  // night. Past the pavement's end the van stands in front of it, so the feet keep the depth they had there.
+  const [px0, px1] = fx.pavement, [e0, e1] = fx.edge, clamp = (x) => Math.round(Math.min(Math.max(x, 8), px1));
   let crowd = null;
   sheet.then((s) => { crowd = s; });
   const walkers = Array.from({ length: night ? 4 : 8 }, (_, i) => ({
-    x: rnd(px0 + 10, px1 - 5), dir: Math.random() < 0.5 ? 1 : -1, pace: rnd(0.71, 0.97), lane: fx.lanes[i % 2], who: i, dist: rnd(0, 100),
-  })).sort((a, b) => a.lane - b.lane);
-  const drawWalkers = (dt) => {
+    x: rnd(px0 + 10, px1 - 5), dir: Math.random() < 0.5 ? 1 : -1, pace: rnd(0.71, 0.97), lane: fx.lanes[i % 2], who: i, dist: rnd(0, 100), away: 0,
+  }));
+  const drawWalkers = (now, dt) => {
+    if (!crowd) return;
+    walkers.sort((a, b) => a.lane - b.lane);
     for (const w of walkers) {
-      if (!crowd) continue;
+      if (w.away) {
+        if (now < w.away) continue;
+        Object.assign(w, { away: 0, dir: Math.random() < 0.5 ? 1 : -1, pace: rnd(0.71, 0.97), lane: fx.lanes[Math.random() * 2 | 0], who: Math.random() * crowd.frames.length | 0 });
+        w.x = w.dir > 0 ? e0 : e1;
+      }
       const v = w.pace * crowd.stride;   // px/s: a pace in strides a second, so speed keeps to the people's size
       w.x += v * w.dir * dt / 1000;
-      if (w.x < px0 || w.x > px1) { w.dir = -w.dir; w.x = Math.min(px1, Math.max(px0, w.x)); }
+      if (w.x < e0 || w.x > e1) { w.away = now + rnd(1000, 9000); continue; }
       w.dist += v * dt / 1000;
       const cycle = crowd.frames[w.who % crowd.frames.length];
-      sprite(crowd, cycle[Math.floor(w.dist / crowd.stride * cycle.length) % cycle.length], w.x, w.lane, w.dir < 0);
+      sprite(crowd, cycle[Math.floor(w.dist / crowd.stride * cycle.length) % cycle.length], w.x, w.lane, w.dir < 0, footAt(clamp(w.x), w.lane));
     }
   };
 
-  // A cat on the wall's top: walks, sits a while now and then, turns round at the ends.
-  const [cx0, cy, cx1] = fx.wall, cat = { x: cx0 + 10, v: 4, sit: 0 };
-  const drawCat = (now, dt) => {
-    if (cat.sit < now) {
-      cat.x += cat.v * dt / 1000;
-      if (cat.x < cx0 || cat.x > cx1) cat.v = -cat.v;
-      if (Math.random() < dt / 9000) cat.sit = now + rnd(2000, 5000);
-    }
-    const x = Math.round(cat.x), dir = cat.v > 0 ? 1 : -1, f = footAt(x, cy + 1);
-    ctx.fillStyle = night ? 'rgba(25,22,28,.95)' : '#2a2220';
-    if (cat.sit > now) { dfill(x, cy - 3, 2, 3, f); dfill(x + dir, cy - 4, 1, 1, f); dfill(x - dir, cy, 2, 1, f); }   // sitting, tail out
-    else {
-      const s = ((now / 200) | 0) % 2;
-      dfill(x - 2, cy - 2, 5, 2, f); dfill(x + dir * 3, cy - 3, 1, 2, f); dfill(x - dir * 3, cy - 3 - s, 1, 1, f);   // body, head, tail
-      dfill(x - 2 + s, cy, 1, 1, f); dfill(x + 1 - s, cy, 1, 1, f);                                                    // legs
-    }
+  // Yonatan's two cats (cats.js): on the wall's top, drawn before the walkers, and on the street, after them.
+  let pair = null;
+  catSheet.then((s) => {
+    if (s) pair = { sheet: s, cats: cats(fx, s.people, Math.random, (x, y) => footAt(y === fx.street ? clamp(x) : Math.round(x), y + 1)) };
+  });
+  const mid = (fx.wall[1] + fx.street) / 2;
+  const drawCats = (dt, front) => {
+    if (!pair) return;
+    if (!front) pair.cats.step(dt);
+    const { sheet: s } = pair;
+    pair.cats.all.forEach((c, j) => {
+      if (c.on === 'away' || (c.y > mid) !== front) return;
+      const k = c.pose === 'walk' ? Math.floor(c.dist / s.stride[j] * 8) % 8 : s.poses.indexOf(c.pose);
+      sprite(s, s.frames[j][k], c.x, Math.round(c.y), c.dir < 0, c.f);
+    });
   };
 
-  return (now, dt) => { drawScreens(now); drawWeld(now, dt); drawMoths(now, dt); drawWalkers(dt); drawCat(now, dt); };
+  return (now, dt) => { drawScreens(now); drawWeld(now, dt); drawMoths(now, dt); drawCats(dt, false); drawWalkers(now, dt); drawCats(dt, true); };
 }

@@ -1,0 +1,1 @@
+{"people": ["ginger", "black"], "frames": 12, "poses": ["walk_0", "walk_1", "walk_2", "walk_3", "walk_4", "walk_5", "walk_6", "walk_7", "sit", "loaf", "crouch", "leap"], "w": 45, "h": 22, "foot": [[19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 16], [19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 19, 16]], "stride": [9, 8]}

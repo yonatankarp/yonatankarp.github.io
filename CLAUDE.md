@@ -107,7 +107,7 @@ motion or with `?fx=off`, which the visual captures use; the loop stops while th
 or the tower is entered.
 
 Workshop Row (`/projects/`) and the Library's header (`/blog/`) move the same way, sharing `web3d/src/scene-fx.js` (the
-canvas loop, its pauses and the depth test) with the city. `workshop-fx.js`: walkers on the pavement, a cat on the left
+canvas loop, its pauses and the depth test) with the city. `workshop-fx.js`: walkers on the pavement, two cats on the left
 wall, a welder's sparks, code on the screens and moths round the lamps (not by day), from `workshop-fx.json` and
 `workshop-depth.png`, which `gen_workshop.py build` writes from its `FX` and the map `depth_map.py workshop` makes.
 Its walkers are painted people: `web3d/pixel/gen_walkers.py` draws 8 walk-cycle poses from a skeleton (`pose`), Draw Things
@@ -115,7 +115,14 @@ repaints them as each of six people with one seed apiece (`paint`), and `bake` t
 `web3d/pixel/paintings/picks/walkers/NAME_K.png` into `walkers.webp` (a row per person, a frame per column) and
 `walkers.json`, a person 60 art px tall (`PERSON`, against the street's ~100 px roller doors). A walker steps one frame
 per `stride` / 8 px of ground, so its feet do not slide, at 0.71-0.97 strides a second, and stands on each frame's own
-sole (`foot`, the lowest painted row the bake finds); 8 by day, 4 dimmed at night. The
+sole (`foot`, the lowest painted row the bake finds); 8 by day, 4 dimmed at night. They walk off either end of the
+art (`edge`) and, 1-9 s later, someone comes on from either end in either lane; past the pavement's end (`pavement`'s
+x1) their feet keep its depth, so they pass behind the parked van. Yonatan's two cats (`web3d/src/cats.js`, tested in
+`scripts/test/cats.test.js`) walk, sit and loaf on the wall's top (`wall`), turning back when they meet, and now and
+then leap down to the pavement (`street`), trot off either end and back, and leap up again; they are `cats.webp` and
+`cats.json`, which `gen_walkers.py bake` makes from `picks/cats/NAME_POSE.png` (`cats` paints them: a walk, sit, loaf,
+crouch and leap, `CAT` art px tall walking). The kerb lamp at x 245, painted dark at every hour, is lit by
+`gen_workshop.py` (`relight`) at every hour but day. The
 lamp posts in `workshop-depth.png` are stood up by `gen_workshop.py` (`upright`): the model fades their thin poles into the
 wall as they rise, and a whole post must hide a walker passing behind it.
 `library-fx.js`, its own bundle (`--mode library`): the fire, dust in the window's light and clouds only over the

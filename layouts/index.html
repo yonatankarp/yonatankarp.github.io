@@ -111,7 +111,9 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         {{- /* Lazy, so a floor's address, which hides the city, never fetches it; on the city the script after it picks the hour's. */}}
         <img src="{{ $base }}pixel/city.webp?v={{ $artVersion }}" alt="{{ $city.alt }}" width="{{ index $cityArt.size 0 }}" height="{{ index $cityArt.size 1 }}" loading="lazy" data-base="{{ $base }}pixel/city" data-version="{{ $artVersion }}">
         {{ range $city.districts }}{{ $at := index $cityArt.labels .key }}
-        <button class="city-tag" type="button" data-pick="{{ .key }}" style="--x:{{ index $at 0 }}%;--y:{{ index $at 1 }}%">{{ .name }}</button>
+        {{- /* A district with a page of its own: its label goes there. The others' labels pick it, as the chips do. */}}
+        {{ if in (slice "tower" "library" "workshop") .key }}<a class="city-tag" href="{{ index $go .key }}" data-pick="{{ .key }}" data-goatcounter-click="district-{{ .key }}" style="--x:{{ index $at 0 }}%;--y:{{ index $at 1 }}%">{{ .name }}</a>
+        {{ else }}<button class="city-tag" type="button" data-pick="{{ .key }}" style="--x:{{ index $at 0 }}%;--y:{{ index $at 1 }}%">{{ .name }}</button>{{ end }}
         {{ end }}
       </div>
     </div>

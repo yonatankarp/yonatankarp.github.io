@@ -15,7 +15,7 @@ export function panning(box, first, floats, onPick) {
     if (!picked) return;
     current = picked.dataset.pick;
     onPick?.(picked);
-    for (const b of box.querySelectorAll('button[data-pick]')) {
+    for (const b of box.querySelectorAll('[data-pick]')) {   // a label that is a link (into its district) is marked too
       if (b.matches('.city-tag')) b.classList.toggle('on', b.dataset.pick === current);
       else b.setAttribute('aria-pressed', b.dataset.pick === current);
     }

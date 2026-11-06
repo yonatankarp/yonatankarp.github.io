@@ -169,7 +169,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - Events (dashboard, Events): `cv-download` (the top bar's Download CV, and the city's Post Office), `social-<icon>` (its social icons:
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV or the footer),
   `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links),
-  `district-<key>` (the city panel's go link: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
+  `district-<key>` (the city panel's go link, and the map labels that lead in, for the tower, library and workshop: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
   `district-post`) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)
   and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.

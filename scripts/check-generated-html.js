@@ -502,8 +502,13 @@ for (const filePath of htmlFiles) {
     const srcset = collectAttribute(tag, "srcset");
     if (srcset !== null) {
       const sizes = srcset.split(", ").map((candidate) => candidate.split(" "));
-      if (!collectAttribute(tag, "sizes") || /\.svg$/i.test(src)) failures.push(`${route}: ${src} has a bad srcset: needs sizes, and no SVG gets one`);
       if (sizes.some(([url]) => !fs.existsSync(path.join(publicDir, url)))) failures.push(`${route}: ${src} has a srcset URL that is not published`);
+      // A cover's thumbnail (partials/blog-art.html) is the cover box-reduced for 1x to 3x screens: density, not widths.
+      if (/(?:^|\s)px-cover(?:\s|$)/.test(collectAttribute(tag, "class") ?? "")) {
+        if (sizes.map(([, x]) => x).join(" ") !== "1x 2x 3x") failures.push(`${route}: ${src} thumbnail srcset should be 1x 2x 3x`);
+        continue;
+      }
+      if (!collectAttribute(tag, "sizes") || /\.svg$/i.test(src)) failures.push(`${route}: ${src} has a bad srcset: needs sizes, and no SVG gets one`);
       if (sizes.at(-1)[0] !== src || sizes.at(-1)[1] !== `${collectAttribute(tag, "width")}w` || sizes.slice(0, -1).some(([, width]) => parseInt(width) >= parseInt(collectAttribute(tag, "width")))) failures.push(`${route}: ${src} srcset should end with the file at its own width, every other size below it`);
     }
   }

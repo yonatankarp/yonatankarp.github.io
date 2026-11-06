@@ -131,7 +131,9 @@ h4 a,
   --accent-strong: var(--amber);
   padding-bottom: 64px;
 }
-/* Covers and a post's inline art at whole multiples of their 192x108 pixels, the most that fit, so no pixel is wider than its neighbour (#123).
+/* Covers and a post's inline art in steps of 192x108 (#123), the most that fit: inline art (576x324) fills the article's
+   column at its own pixels, and on a phone it and a cover's thumbnail (partials/blog-art.html: 192, 384 or 576 wide for 1x
+   to 3x screens) are 192px, a whole multiple of the screen's pixels, so the browser never shrinks the art.
    The ink frame is a shadow in the margin: a border would eat into the image. */
 .blog-px :is(.px-cover, .px-art) {
   display: block; width: 192px; width: max(192px, round(down, 100% - 8px, 192px)); height: auto; margin: 4px;
@@ -331,12 +333,13 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
 .blog-px .article__header h1 { font-size: 60px; overflow-wrap: anywhere; hyphens: none; }
 .blog-px .article__summary { margin: 0; max-width: 68ch; font-size: 17px; line-height: 1.6; color: var(--px-soft); }
 .blog-px .article__header .chip-row { margin-top: 0; }
-/* The post's cover across the page behind its head, at a whole multiple of its pixels. The band above the panel is about 40
-   of its 108 rows on any wide screen, centred on --focus (coverFocus in the front matter), so the text still starts on the
-   first screen (#185). A phone has the width for all of the picture at 2x, with ink at the sides where it runs out. */
+/* The post's cover (960x540) across the page behind its head: an art pixel is ~1.5 screen px on a 1440 screen, as fine as
+   the paintings allow, and pixelated like the Library's header. The band above the panel is about 40 of its 108ths of
+   height on any wide screen, centred on --focus (coverFocus in the front matter, in 108ths, from the old 192x108 covers),
+   so the text still starts on the first screen (#185). A phone shows all of the picture, with ink at the sides. */
 .blog-px { --scene-w: 100vw; --scene-band: clamp(240px, 21vw, 420px); --scene-overlap: 24px; position: relative; }
 @supports (width: round(up, 1px, 1px)) {
-  .blog-px { --scene-w: max(960px, round(up, 100vw, 192px)); }   /* 5x at least: below that the band runs past the art */
+  .blog-px { --scene-w: max(960px, round(up, 100vw, 192px)); }   /* 960 at least: below that the band runs past the art */
 }
 .blog-px .post-scene {
   position: absolute; inset: 0 0 auto; height: calc(var(--scene-band) + var(--scene-overlap));
@@ -457,7 +460,7 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
   .blog-px .page-head__copy { padding: 24px 20px 24px 36px; }
   .blog-px .page-head__copy h1 { font-size: 40px; }
   .blog-px .post-row { grid-template-columns: 1fr; }
-  .blog-px .post-row__aside { display: none; }   /* a cover is 192px at the least (#123), too tall for a compact row */
+  .blog-px .post-row__aside { display: none; }   /* a cover's thumbnail is 192px at the least (#123), too tall for a compact row */
   .library .post-row { grid-template-columns: 1fr; }
   .library .post-row__aside { display: grid; }   /* the Library's cards stack, the cover on top */
   .library-hero { height: 38vh; }

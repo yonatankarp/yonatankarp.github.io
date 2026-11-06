@@ -1,15 +1,24 @@
-{{/* A post's pixel cover (static/images/blog/covers/pixel/, from its painting: web3d/pixel/paint_covers.py paints, web3d/pixel/pixelate.py pixelates) and
-     its accent, one of the job floors' colours (data/floor_accents.yaml), picked by the title so a post keeps it everywhere. */}}
+{{/* A post's pixel cover (static/images/blog/covers/pixel/, 960x540 from its painting: web3d/pixel/paint_covers.py paints, web3d/pixel/pixelate.py bakes),
+     its thumbnail srcset and its accent, one of the job floors' colours (data/floor_accents.yaml), picked by the title so a post keeps it everywhere.
+     A thumbnail shows at 192px (custom.css), so it gets the cover box-reduced to 192, 384 and 576 for 1x to 3x screens: shown at
+     its own pixels or a whole multiple of them, never shrunk by the browser, which would drop whole rows of the art. */}}
 {{ $cover := "" }}
+{{ $thumbs := "" }}
 {{ with .Params.images.featured_image }}
   {{ $px := replaceRE `^/?images/blog/covers/([^/]+)\.\w+$` "images/blog/covers/pixel/$1.png" . }}
   {{ if not (fileExists (path.Join "static" $px)) }}
-    {{ errorf "%s: no pixel cover at static/%s. Make it with: uv run web3d/pixel/pixelate.py static/%s static/%s --size 192x108 --colours 24" $.File.Path $px (strings.TrimPrefix "/" .) $px }}
+    {{ errorf "%s: no pixel cover at static/%s. Make it with: uv run web3d/pixel/pixelate.py static/%s static/%s --size 960x540" $.File.Path $px (strings.TrimPrefix "/" .) $px }}
   {{ end }}
   {{ $cover = $px | relURL }}
+  {{ with resources.Get $px }}{{/* static/images/blog is mounted into assets (hugo.toml) */}}
+    {{ $img := . }}
+    {{ $set := slice }}
+    {{ range $x := slice 1 2 3 }}{{ $set = $set | append (printf "%s %dx" ($img.Resize (printf "%dx Box png" (mul 192 $x))).RelPermalink $x) }}{{ end }}
+    {{ $thumbs = delimit $set ", " }}
+  {{ end }}
 {{ else }}
   {{ errorf "%s: set images.featured_image, the post's cover painting in static/images/blog/covers/ (web3d/pixel/paint_covers.py)" .File.Path }}
 {{ end }}
 {{ $floors := slice "7" "6" "5" "4" "3" "2" }}
 {{ $accent := index hugo.Data.floor_accents (index $floors (mod (len .Title) (len $floors))) }}
-{{ return dict "cover" $cover "accent" $accent }}
+{{ return dict "cover" $cover "thumbs" $thumbs "accent" $accent }}

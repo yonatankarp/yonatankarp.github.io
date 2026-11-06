@@ -182,11 +182,17 @@ A Mermaid diagram needs a text alternative on its fence, ```` ```mermaid {title=
 They become the SVG's `<title>` and `<desc>`. The fence starts at the line's beginning (not indented in a list), so the
 diagram script finds it.
 
-Every post needs a cover, `images.featured_image` (the build fails without it): a painting in `static/images/blog/covers/`, made with `web3d/pixel/paint_covers.py`. It also needs its pixel-art version in
-`static/images/blog/covers/pixel/`, which the blog shows; the build fails with the `pixelate.py` command to make it.
-The post shows it across the page behind its head, about 40 of its 108 rows on a wide screen: `coverFocus`, a row from 25 to 78 (default 54), picks the one to centre on, and a phone shows all of it.
+Every post needs a cover, `images.featured_image` (the build fails without it): a 1024x576 painting in `static/images/blog/covers/`, made with `web3d/pixel/paint_covers.py`. It also needs its pixel-art version in
+`static/images/blog/covers/pixel/`, which the blog shows: 960x540, baked from the painting by `pixelate.py` the way the city and the Library are (a 3px median against the JPEG's noise, a BOX
+downscale, 64 colours of its own by median cut, no dither), so an art pixel is about 1.5 screen px across a 1440 screen, the finest the paintings allow. The build fails with the
+`pixelate.py` command to make it, and `paint_covers.py --install` rebakes them all. Five covers touched up in code (break-hashmap, concurrency, redistemplate, real-life, twitter-bot)
+have no painting left: theirs are 5x copies of the old 192x108 art until they are repainted.
+The post shows it across the page behind its head, about 40 of its 108ths of height on a wide screen: `coverFocus`, from 25 to 78 in 108ths (default 54; the rows of the old covers),
+picks the height to centre on, and a phone shows all of it. The Library's list and a post's "Keep reading" show it at 192px, from the cover box-reduced by Hugo to 192, 384 and 576 for 1x to
+3x screens (`partials/blog-art.html`), so the browser never shrinks pixel art.
 
-Art inside a post goes in `static/images/blog/pixel/`, painted from `INLINE` in `paint_covers.py` at the covers' 192x108, which keeps it crisp: anything wider than 480px would get smeared webp sizes.
+Art inside a post goes in `static/images/blog/pixel/`, painted from `INLINE` in `paint_covers.py` and baked by `--install-inline` at 576x324, the article column's width at 1:1 (192px on a
+phone). It gets no webp sizes (`render-image.html`), which would smear it; its touch-ups work on the painting, before the bake.
 
 ### New project
 Create `content/projects/name.md` with a `link` and a `group` of `app`, `library`, `game` or `contribution`, which picks its workshop on `/projects/` (the build fails without either; a new group needs a workshop in the painting). Its place in the workshop is its `weight`, lowest first. The entry links to its case study with `caseStudy: true`, else to `link` under `params.button.btnText`. Set `archived: true` once the repository is archived: the project stays listed, with an "Archived" label on `/projects/` and its case study, and "(archived)" after its name in `llms.txt`.

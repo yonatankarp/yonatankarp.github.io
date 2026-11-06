@@ -2,16 +2,17 @@
 # requires-python = ">=3.11"
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
-"""Turn a room painting into pixel art on the site's palette (no model). Adapted from Before Dark's pixelate.py.
+"""Turn a painting into the blog's pixel art (no model): its covers and the art inside a post.
 
-uv run web3d/pixel/pixelate.py SRC.png OUT.png [--size 376x154] [--colours 32] [--line-art]
+uv run web3d/pixel/pixelate.py SRC OUT [--size 960x540] [--colours 64] [--line-art]
 
-Pipeline: median (kill painterly grain) -> BOX downscale -> pick this picture's colour budget (k-means in Lab,
-snapped to the palette) -> nearest colour in Lab -> the painting's dark ink lines forced to the outline colour ->
-lone-pixel cleanup. The palette is gen_floors.R (the code-drawn ramps) plus its outline. The blog's covers use it;
-the tower's rooms are baked by install_picks.py instead, on their own colours.
+bake() is the city's and the Library's bake (gen_library.bake): BOX downscale, then this picture's own colours by median
+cut with a few k-means passes, undithered. A 3px median first takes the cover JPEGs' block noise out, which a near 1:1
+reduction would otherwise keep as speckle. --line-art swaps the median for a 3px min filter, so a diagram's thin lines
+thicken instead of vanishing in the box.
 
---line-art swaps the median for a 5px min filter, so a diagram's thin lines thicken instead of vanishing in the box.
+pixelate() is the old, coarse bake (median, BOX, a budget snapped to gen_floors.R's palette, the ink lines, lone-pixel
+cleanup): only the covers touched up in paint_covers.py still use it, at 192x108, as their paintings are gone.
 """
 import argparse
 import sys
@@ -95,16 +96,22 @@ def pixelate(src, size, colours=32, keep=(), line_art=False):
     return Image.fromarray(pal[cleanup(idx, pal)].astype(np.uint8), "RGB")
 
 
+def bake(src, size, colours=64, line_art=False):
+    src = src.convert("RGB").filter(ImageFilter.MinFilter(3) if line_art else ImageFilter.MedianFilter(3))
+    return src.resize(size, Image.BOX).quantize(colours, method=Image.Quantize.MEDIANCUT, kmeans=3,
+                                                 dither=Image.Dither.NONE).convert("RGB")
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("src")
     ap.add_argument("out")
-    ap.add_argument("--size", default="376x154")
-    ap.add_argument("--colours", type=int, default=32)
+    ap.add_argument("--size", default="960x540")
+    ap.add_argument("--colours", type=int, default=64)
     ap.add_argument("--line-art", action="store_true", help="thin-line diagrams: thicken lines, no median")
     a = ap.parse_args()
     w, h = map(int, a.size.split("x"))
-    im = pixelate(Image.open(a.src), (w, h), a.colours, line_art=a.line_art)
+    im = bake(Image.open(a.src), (w, h), a.colours, a.line_art)
     G.save_lossless(im, a.out)
     print(a.out, im.size, "colours:", len({tuple(p) for p in np.asarray(im).reshape(-1, 3)}))
 

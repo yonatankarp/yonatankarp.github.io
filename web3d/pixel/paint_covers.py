@@ -11,12 +11,16 @@ Art inside a post: the same two steps, with a name from INLINE and --install-inl
 Every post's idea shown through nature, in one family: same style, same palette, a different habitat and hour. Candidates go
 to web3d/pixel/paintings/candidates/cover-<slug>_<seed>.png (gitignored). They are not kept in git: the model does not
 redraw a seed bit for bit, so static/images/blog/covers/<slug>.jpg is the source from here on. An untouched cover's .jpg is
-its painting and its PNG comes from pixelate.py's plain hint (layouts/partials/blog-art.html). A cover touched up in code
-below has no painting that matches, so its .jpg is a 6x nearest-neighbour upscale of the PNG, and the share card matches
-the post; the hint only approximates such a PNG.
+its painting and its PNG is pixelate.py's bake of it at SIZE, the command layouts/partials/blog-art.html names: --install
+rebakes them from the .jpg when the candidate is gone. A cover touched up in code below has no painting that matches: it
+is baked the old, coarse way at OLD (pixelate.pixelate), touched up there, and its PNG is a nearest-neighbour upscale to
+SIZE, its .jpg one to 6x OLD (the share card). Their candidates are gone too, so --install keeps their PNGs as they are,
+and only a repaint makes them as fine as the rest. Art inside a post is baked from its candidate at INLINE_SIZE, after
+its touch-up, which works on the painting.
 
-The committed PNGs are the final art. The 7 covers with a sky or touch-up below cannot be remade without their gitignored
-candidates, and that is accepted: --install needs those local files, and a fresh paint of the same seed will differ.
+SIZE is 5x the old 192x108: a post's head shows the cover across the screen, so the finest the 1024x576 paintings allow
+(the Library's header has an art pixel per screen pixel on a 1440 screen; a cover's is ~1.5), and a whole multiple keeps
+the touched-up covers crisp. INLINE_SIZE is 3x, so it fills the article's 758px column at 1:1 (custom.css).
 """
 import argparse
 import base64
@@ -26,7 +30,7 @@ import urllib.request
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pixelate as P  # noqa: E402
@@ -34,7 +38,7 @@ import pixelate as P  # noqa: E402
 CANDIDATES = Path(__file__).resolve().parent / "paintings" / "candidates"
 COVERS_DIR = Path(__file__).resolve().parents[2] / "static" / "images" / "blog" / "covers"
 INLINE_DIR = COVERS_DIR.parent / "pixel"
-SIZE = (192, 108)
+OLD, SIZE, INLINE_SIZE = (192, 108), (960, 540), (576, 324)
 STYLE = (
     "Flat 2D side-view video game background art, 16-bit adventure game style. Clean cel shading with bold "
     "dark outlines, chunky simple shapes that read well when reduced to pixel art, a limited palette. One big"
@@ -259,7 +263,7 @@ def moved_stone(img):
     """break-hashmap: the point is that the key changed, which no painting drew clearly. The stone moves next to the squirrel's
     empty hole, and a dashed ghost of it stays over the acorn, with the path it took."""
     a = np.asarray(img).copy()
-    shape = Image.new("L", SIZE)
+    shape = Image.new("L", OLD)
     ImageDraw.Draw(shape).polygon(STONE, fill=255)
     mask = np.asarray(shape) > 0
     ys, xs = np.nonzero(mask)
@@ -289,63 +293,70 @@ TOUCH_UPS = {"break-hashmap-less-than-a-minute": moved_stone, "interview-questio
 def install():
     COVERS_DIR.joinpath("pixel").mkdir(exist_ok=True)
     for slug, (seed, _, _, sky) in COVERS.items():
-        painting = Image.open(CANDIDATES / f"cover-{slug}_{seed}.png").convert("RGB")
+        candidate = CANDIDATES / f"cover-{slug}_{seed}.png"
         jpg, png = COVERS_DIR / f"{slug}.jpg", COVERS_DIR / "pixel" / f"{slug}.png"
         if sky is None and slug not in TOUCH_UPS:
-            painting.save(jpg, quality=90)                             # and the PNG comes from it, as the hint does
-            P.G.save_lossless(P.pixelate(Image.open(jpg), SIZE, 24), png)
+            if candidate.exists():
+                Image.open(candidate).convert("RGB").save(jpg, quality=90)
+            P.G.save_lossless(P.bake(Image.open(jpg), SIZE), png)       # from the .jpg, as the hint does
             continue
-        im = P.pixelate(painting, SIZE, 24)
+        if not candidate.exists():
+            print("kept, no painting:", slug)
+            continue
+        im = P.pixelate(Image.open(candidate), OLD, 24)
         if sky:
             im = sky_dither(im, *sky)
         if slug in TOUCH_UPS:
             im = TOUCH_UPS[slug](im)
-        P.G.save_lossless(im, png)
-        im.resize((SIZE[0] * 6, SIZE[1] * 6), Image.NEAREST).save(jpg, quality=95)
+        P.G.save_lossless(im.resize(SIZE, Image.NEAREST), png)
+        im.resize((OLD[0] * 6, OLD[1] * 6), Image.NEAREST).save(jpg, quality=95)
         print("touched up:", slug)
 
 
+def fill(a, mask, passes=400):
+    """Paint over the masked pixels from their surroundings: each pass gives every one the mean of its four neighbours."""
+    a = a.astype(np.float64)
+    for _ in range(passes):
+        a[mask] = ((np.roll(a, 1, 0) + np.roll(a, -1, 0) + np.roll(a, 1, 1) + np.roll(a, -1, 1)) / 4)[mask]
+    return a.astype(np.uint8)
+
+
 def unspun(img):
-    """The painted web is finished: take the spiral off its upper right, leave bare spokes, and put a bigger spider where it stops."""
+    """The painted web is finished: take the spiral off its upper right, leave bare spokes, and put a bigger spider where
+    it stops. Works on the painting, before the bake, in the old 192x108 cover's units (k painting px each)."""
     a = np.array(img)
-    sky, ink = np.array((205, 188, 255), np.uint8), np.array((10, 11, 16), np.uint8)
-    cx, cy = 96, 53
+    k = a.shape[1] / 192
+    cx, cy = 96 * k, 53 * k
     yy, xx = np.mgrid[:a.shape[0], :a.shape[1]]
-    angle = np.degrees(np.arctan2(yy - cy, xx - cx))
-    web = np.any(a != sky, axis=2) & (np.hypot(xx - cx, yy - cy) < 75) & (xx > cx) & (angle > -89) & (angle < 36)
-    a[web & (np.hypot(xx - cx, yy - cy) > 9)] = sky
-    box = a[62:76, 108:123]                                                          # the painted spider, too small to read
-    box[np.any(box != (242, 236, 224), axis=2)] = sky
-    out = Image.fromarray(a, "RGB")
+    r, angle = np.hypot(xx - cx, yy - cy), np.degrees(np.arctan2(yy - cy, xx - cx))
+    strand = np.asarray(Image.fromarray((a.min(2) > 225).astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(5))) > 0
+    gone = strand & (r > 9 * k) & (r < 75 * k) & (xx > cx) & (angle > -89) & (angle < 36)
+    box = np.zeros_like(gone)
+    box[int(62 * k):int(76 * k), int(108 * k):int(123 * k)] = True                   # the painted spider, too small to read
+    gone |= box & np.asarray(Image.fromarray((a.max(2) < 120).astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(5))) > 0
+    out = Image.fromarray(fill(a, gone), "RGB")
     d = ImageDraw.Draw(out)
-    for end in ((127, 6), (141, 24), (153, 53), (141, 81)):
-        d.line(((cx, cy), end), fill=(242, 236, 224), width=2)
-    x, y = 129, 73
+    white, ink = tuple(int(v) for v in np.median(a[a.min(2) > 240], 0)), (10, 11, 16)   # the painted strands' white
+    for ex, ey in ((127, 6), (141, 24), (153, 53), (141, 81)):
+        d.line(((cx, cy), (ex * k, ey * k)), fill=white, width=round(2.5 * k))
+    x, y = 129 * k, 73 * k
     for dy, reach in ((-4, 6), (-2, 7), (1, 7), (3, 6)):                             # eight legs, bent at the knee
         for side in (-1, 1):
-            d.line(((x, y), (x + side * reach, y + dy), (x + side * (reach + 2), y + dy + 3)), fill=tuple(ink))
-    d.ellipse((x - 3, y - 2, x + 3, y + 4), fill=tuple(ink))
-    d.ellipse((x - 2, y - 5, x + 2, y - 1), fill=tuple(ink))
+            d.line(((x, y), (x + side * reach * k, y + dy * k), (x + side * (reach + 2) * k, y + (dy + 3) * k)),
+                   fill=ink, width=round(k), joint="curve")
+    d.ellipse((x - 3 * k, y - 2 * k, x + 3 * k, y + 4 * k), fill=ink)
+    d.ellipse((x - 2 * k, y - 5 * k, x + 2 * k, y - k), fill=ink)
     return out
 
 
-def clear_fog(img):
-    """Plain fog between the webs: drop a stray fleck in the gap and the patch of hill behind the lower web."""
-    a = np.array(img)
-    for box in (a[66:78, 18:32], a[72:108, 125:172]):
-        fog = np.all(box == (142, 120, 160), axis=2) | np.all(box == (93, 90, 134), axis=2)
-        box[fog] = (205, 188, 255)
-    return Image.fromarray(a, "RGB")
-
-
-INLINE_TOUCH_UPS = {"openapi-spinning-spiral": unspun, "openapi-mismatched-webs": clear_fog}
+INLINE_TOUCH_UPS = {"openapi-spinning-spiral": unspun}
 
 
 def install_inline():
     INLINE_DIR.mkdir(exist_ok=True)
     for name, (seed, _, _) in INLINE.items():
-        im = P.pixelate(Image.open(CANDIDATES / f"inline-{name}_{seed}.png").convert("RGB"), SIZE, 24)
-        P.G.save_lossless(INLINE_TOUCH_UPS.get(name, lambda i: i)(im), INLINE_DIR / f"{name}.png")
+        painting = Image.open(CANDIDATES / f"inline-{name}_{seed}.png").convert("RGB")
+        P.G.save_lossless(P.bake(INLINE_TOUCH_UPS.get(name, lambda i: i)(painting), INLINE_SIZE), INLINE_DIR / f"{name}.png")
 
 
 def main():

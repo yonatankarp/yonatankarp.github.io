@@ -56,14 +56,16 @@ hook fails the build when a diagram changed since it was drawn: rerun `node scri
 `web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Each experience entry's `floor`
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
 
-The building's art follows the visitor's local clock: dawn 06:00-07:59, day 08:00-17:59, dusk 18:00-19:59, night
-20:00-05:59, picked once at load by the inline script in `layouts/index.html` (`html[data-time]`). `/?time=dawn|day|dusk|night`
-overrides it for testing; anything else means the clock. Dusk is the plain files; a variant is one more entry in
+The building's art follows the real sun where the visitor is: their time zone's main city (`data/timezones.json`, Berlin
+when unknown) gives the sun's elevation now, day above +6°, night at -8° or below, and dawn or dusk between, before or
+after noon. It is picked once at load by the inline script in `layouts/index.html` (`html[data-time]`), from
+`assets/js/time-pick.js` (tested in `scripts/test/time-pick.test.js`). `/?time=dawn|day|dusk|night` overrides it for
+testing; anything else means the sun. Dusk is the plain files; a variant is one more entry in
 `PHASES` in `web3d/pixel/gen_floors.py`, baked with `uv run web3d/pixel/gen_exterior.py build static/building/pixel --time NAME`
 into `exterior-NAME.webp`, `floor-{R,P,L}-NAME.webp` (only those rooms show outside) and `backdrop-NAME.webp`, the street
 without the tower behind every other page. The pick is `layouts/partials/time-pick.html`, shared by the homepage and
-`head.html`, so the other pages follow the same clock: `assets/css/custom.css` maps `html[data-time]` to the backdrop.
-`data/phases.json` lists the phases (start hour, the sky above the roof, the baked rooms, how far a dark room falls), and
+`head.html`, so the other pages follow the same sun: `assets/css/custom.css` maps `html[data-time]` to the backdrop.
+`data/phases.json` lists the phases (the sky above the roof, the baked rooms, how far a dark room falls), and
 `web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the street's sky in
 `web3d/src/pixel.css` and to the backdrop rules in `custom.css`: `npm run check:phases` (part of `npm run check`) fails
 until those agree with `phases.json`, and `gen_floors.py` checks `phases.json` against its `PHASES` on every run.

@@ -411,6 +411,20 @@ for (const filePath of htmlFiles) {
     if (!/^\/tags\//.test(route) && link(html, "alternate").filter((href) => href?.endsWith(".xml")).join() !== `${origin}/blog/index.xml`) fail(route, "should advertise the blog's RSS feed");
   }
 
+  // The Radio Mast and the Post Office (layouts/_default/radio.html, post.html), and the city's labels that go in to them.
+  const homeYaml = fs.readFileSync(path.join(rootDir, "data", "home", "en.yaml"), "utf8");
+  const emailAddress = homeYaml.match(/^ {4}address:\s*"([^"]+)"/m)[1], podcastUrl = homeYaml.match(/^ {2}podcast:[\s\S]*?^ {4}url:\s*"([^"]+)"/m)[1];
+  const hrefs = (html) => tags(html, "a").map((tag) => [collectAttribute(tag, "href"), collectAttribute(tag, "data-goatcounter-click")]);
+  const has = (html, href, event) => hrefs(html).some(([h, e]) => h === href && (event === undefined || e === event));
+  const radio = read("podcast/index.html"), office = read("contact/index.html");
+  if (!has(radio, podcastUrl, "podcast-radio") || !has(radio, "/blog/") || !has(radio, "/")) fail("/podcast/", "needs the show's link (podcast-radio), the Library and the way back to the city");
+  if (!has(office, `mailto:${emailAddress}`, "email") || !/data-copy-email=/.test(office) || !has(office, "/podcast/") || !has(office, "/")) fail("/contact/", "needs the email (email), its Copy chip, the podcast and the way back to the city");
+  if (!hrefs(office).some(([h, e]) => /^\/(yonatan-karp-rudin-cv\.pdf|cv\/)$/.test(h ?? "") && e === "cv-download")) fail("/contact/", "needs the CV parcel (cv-download)");
+  for (const [key, href] of [["radio", "/podcast/"], ["post", "/contact/"]]) {
+    const label = tags(read("index.html"), "a").find((tag) => /\bcity-tag\b/.test(collectAttribute(tag, "class") ?? "") && collectAttribute(tag, "data-pick") === key);
+    if (collectAttribute(label ?? "", "href") !== href || collectAttribute(label ?? "", "data-goatcounter-click") !== `district-${key}`) fail("/", `the city's ${key} label should go in to ${href} (district-${key})`);
+  }
+
   const blog = read("blog/index.html");
   if (!tags(blog, "a").some((tag) => collectAttribute(tag, "href") === "/blog/index.xml")) fail("/blog/", "missing the RSS link to /blog/index.xml");
 

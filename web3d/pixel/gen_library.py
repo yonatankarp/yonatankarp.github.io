@@ -141,12 +141,13 @@ def paint(count, start, host):
         print("painted", path.name, flush=True)
 
 
-def bake():
+def bake(path=PICKED):
     """The painting box-reduced to the art's size, on its own COLOURS colours: the city's pixel look, undithered. A few
-    k-means passes after the median cut, as plain median cut spends no colour on the small green lamps."""
-    if not PICKED.exists():
-        sys.exit(f"no {PICKED}: paint (gen_library.py paint), copy the chosen candidate there and note its seed in PICK")
-    im = Image.open(PICKED).convert("RGB").crop((0, 0, PW, PH))
+    k-means passes after the median cut, as plain median cut spends no colour on the small green lamps. gen_rooms.py
+    bakes its rooms with it too."""
+    if not path.exists():
+        sys.exit(f"no {path}: paint (gen_library.py paint), copy the chosen candidate there and note its seed in PICK")
+    im = Image.open(path).convert("RGB").crop((0, 0, PW, PH))
     return im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
 
 

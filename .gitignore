@@ -39,9 +39,12 @@ web3d/pixel/paintings/candidates/*
 # install_picks.py also saves each crop beside its pixel art; only the -px.png files are read
 web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/*-px.png
-# and the city's hours, the Library and Workshop Row's hours, painted whole (gen_city.py, gen_library.py, gen_workshop.py)
+# and the city's hours, the Library, Workshop Row's hours and the radio and post rooms, painted whole (gen_city.py,
+# gen_library.py, gen_workshop.py, gen_rooms.py)
 !web3d/pixel/paintings/picks/city*.png
 !web3d/pixel/paintings/picks/library.png
+!web3d/pixel/paintings/picks/radio.png
+!web3d/pixel/paintings/picks/post.png
 !web3d/pixel/paintings/picks/workshop*.png
 # gen_walkers.py reads every frame of every walker
 !web3d/pixel/paintings/picks/walkers/

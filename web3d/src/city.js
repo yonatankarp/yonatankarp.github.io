@@ -1,6 +1,6 @@
 // The homepage's city (layouts/index.html): a wide panorama. Picking a district from a chip or a label zooms the map into
-// its building and shows its text in the panel; picking it again, or "Whole city", zooms back out. A label that leads
-// somewhere (the tower, the library, the workshops) goes there on its second click. Any #floor-X address enters the
+// its building and shows its text in the panel; picking it again, or "Whole city", zooms back out. A label goes into its
+// district (the tower, the library, the workshops, the radio mast, the post office) on its second click. Any #floor-X address enters the
 // building, which pixel.js mounts on city:enter; back at the bare address the page loads afresh on the city (guide.js).
 import { cityFx } from './city-fx.js';
 import { floorShaped } from './hash.js';

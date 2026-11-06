@@ -7,8 +7,9 @@ const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 // homepage template (layouts/index.html) fingerprints. The art itself is served from static/building/pixel/.
 // `--mode workshop` builds the projects' Workshop Row (workshop.js, layouts/projects/list.html) the same way, apart, so
 // neither page loads the other's code and no shared chunk needs a URL of its own. `--mode library` builds the blog's
-// Library animations (library-fx.js, layouts/blog/list.html) so too.
-const ENTRIES = { workshop: ['src/workshop.js', 'workshop'], library: ['src/library-fx.js', 'library'] };
+// Library animations (library-fx.js, layouts/blog/list.html) so too, and `--mode rooms` the Radio Mast's and the Post
+// Office's (rooms-fx.js, layouts/_default/radio.html and post.html).
+const ENTRIES = { workshop: ['src/workshop.js', 'workshop'], library: ['src/library-fx.js', 'library'], rooms: ['src/rooms-fx.js', 'rooms'] };
 export default defineConfig(({ mode }) => {
   const [entry, name] = ENTRIES[mode] ?? ['src/pixel.js', 'building'];
   return {

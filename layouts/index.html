@@ -103,7 +103,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
        labels sit where gen_city.py's city.json puts them; JS zooms the map into the picked district and shows its text. */}}
   {{ $role := split $home.hero.eyebrow " · " }}
   {{ $pdf := cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}
-  {{ $go := dict "tower" "#floor-E" "library" ("blog/" | relURL) "workshop" ("projects/" | relURL) "radio" $home.contact.podcast.url "post" (printf "mailto:%s" $home.contact.email.address) }}
+  {{ $go := dict "tower" "#floor-E" "library" ("blog/" | relURL) "workshop" ("projects/" | relURL) "radio" ("podcast/" | relURL) "post" ("contact/" | relURL) }}
   {{ $counts := dict "tower" (len $experience) "library" (len $posts) "workshop" (len $projects) }}
   {{ $texts := dict "radio" $home.contact.podcast.text "post" $home.contact.title }}
   <section class="city" id="city" aria-label="City map" data-city>
@@ -114,9 +114,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         {{- /* The city's life, drawn by city-fx.js at the art's pixels from the data beside the picture. */}}
         <canvas class="city-fx" width="{{ index $cityArt.size 0 }}" height="{{ index $cityArt.size 1 }}" aria-hidden="true"></canvas>
         {{ range $city.districts }}{{ $at := index $cityArt.labels .key }}
-        {{- /* A district with a page of its own: its label zooms to it, then goes there (city.js). The others' labels only zoom, as the chips do. */}}
-        {{ if in (slice "tower" "library" "workshop") .key }}<a class="city-tag" href="{{ index $go .key }}" data-pick="{{ .key }}" data-goatcounter-click="district-{{ .key }}" style="--x:{{ index $at 0 }}%;--y:{{ index $at 1 }}%">{{ .name }}<span class="city-tag-in" aria-hidden="true"> →</span></a>
-        {{ else }}<button class="city-tag" type="button" data-pick="{{ .key }}" style="--x:{{ index $at 0 }}%;--y:{{ index $at 1 }}%">{{ .name }}</button>{{ end }}
+        {{- /* Every district has a page of its own: its label zooms to it, then goes there (city.js). */}}
+        <a class="city-tag" href="{{ index $go .key }}" data-pick="{{ .key }}" data-goatcounter-click="district-{{ .key }}" style="--x:{{ index $at 0 }}%;--y:{{ index $at 1 }}%">{{ .name }}<span class="city-tag-in" aria-hidden="true"> →</span></a>
         {{ end }}
       </div>
     </div>

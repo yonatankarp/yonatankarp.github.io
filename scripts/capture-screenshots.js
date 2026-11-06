@@ -107,6 +107,28 @@ const routes = [
     ],
   },
   {
+    name: "podcast",
+    path: "/podcast/?fx=off",   // the Radio Mast's studio (rooms-fx.js) held still
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-download", 1, "CV download"],
+      [".room-hero img", 1, "the studio"],
+      [".room-big", 1, "listen link"],
+    ],
+  },
+  {
+    name: "contact",
+    path: "/contact/?fx=off",   // the Post Office's hall held still
+    ruledLetter: true,
+    requiredSelectors: [
+      [".px-bar__name", 1, "name plate"],
+      [".px-download", 1, "CV download"],
+      [".room-hero img", 1, "the counter hall"],
+      [".post-letter li", 1, "the letter's priorities"],
+      [".post-stamp", 6, "stamps"],
+    ],
+  },
+  {
     name: "cv",
     path: "/cv/",
     requiredSelectors: [
@@ -469,6 +491,32 @@ async function assertPageBasics(page, route, viewport) {
   }
 }
 
+// Every line of the Post Office's letter on a ruled line (custom.css): its baseline 21px into a 30px row. A 0x0
+// inline-block put before a word sits with its bottom on that word's baseline.
+async function assertLetterOnRules(page, route, viewport) {
+  const off = await page.evaluate(async () => {
+    await document.fonts.ready;
+    const letter = document.querySelector(".post-letter"), top = letter.getBoundingClientRect().top + parseFloat(getComputedStyle(letter).borderTopWidth);
+    const wrong = [];
+    for (const el of letter.querySelectorAll(":scope > p:not(.post-mark), :scope > h1, li")) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT), words = [];
+      for (let t; (t = walker.nextNode());) for (const m of t.data.matchAll(/\S+/g)) words.push([t, m.index, m[0]]);
+      for (const [t, i, word] of words.reverse()) {
+        const probe = document.createElement("span"), range = document.createRange();
+        probe.style.cssText = "display:inline-block;width:0;height:0";
+        range.setStart(t, i);
+        range.insertNode(probe);
+        const y = Math.round(probe.getBoundingClientRect().bottom - top);
+        probe.remove();
+        if (y % 30 !== 21) wrong.push(`${el.tagName} "${word}" at ${y}`);
+      }
+      el.normalize();
+    }
+    return wrong;
+  });
+  if (off.length) fail(`${route.path} (${viewport.name}) letter lines off their rules: ${off.slice(0, 5).join("; ")}`);
+}
+
 async function assertCtaFocusRing(page, route, viewport) {
   await page.focus("a.px-cta");
   const shadow = await page.evaluate(() => getComputedStyle(document.activeElement).boxShadow);
@@ -670,6 +718,10 @@ async function main() {
 
         if (route.pauseLabel) {
           await assertPauseLabel(page, route, viewport);
+        }
+
+        if (route.ruledLetter) {
+          await assertLetterOnRules(page, route, viewport);
         }
 
         if (route.ctaFocus) {

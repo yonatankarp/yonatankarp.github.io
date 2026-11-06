@@ -32,7 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gen_city import ART_W, COLOURS, PH, PW, ROOT, SIZE, H  # noqa: E402
 from paint_rooms import OUT as CANDIDATES  # noqa: E402
 
-PICKS = {"dusk": 0, "dawn": 0, "day": 0, "night": 0}   # the seed of each hour's pick, for the record
+PICKS = {"dusk": 1000, "dawn": 1000, "day": 1000, "night": 1000}   # the seed of each hour's pick, for the record
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks"   # picks/workshop[-PHASE].png
 BAYS = [900, 1480, 2060, 2640]   # each workshop's centre, all pannable to the middle of the view
 HALF, EAVE, GROUND = 260, 330, 660   # half a workshop's width, its eaves, the pavement's edge

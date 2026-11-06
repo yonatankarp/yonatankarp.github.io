@@ -113,6 +113,7 @@ jobs:
           uv run web3d/pixel/gen_city.py build "$out"
           uv run web3d/pixel/gen_library.py build "$out"
           uv run web3d/pixel/gen_workshop.py build "$out"
+          uv run web3d/pixel/gen_walkers.py bake "$out"
           uv run web3d/pixel/compare_art.py "$out"
           if ! git diff --exit-code -- data; then
             echo "::error::The art pipeline rewrote committed files (diff above): rerun it locally and commit the result."

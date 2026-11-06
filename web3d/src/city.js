@@ -11,7 +11,8 @@ const city = document.querySelector('[data-city]');
 if (city && root.classList.contains('at-city')) {
   const scene = city.querySelector('.city-scene'), map = scene.querySelector('.city-map'), panel = city.querySelector('.city-panel');
   const kicker = city.querySelector('[data-city-kicker]'), out = city.querySelector('[data-city-out]'), overview = kicker.textContent;
-  const zoom = JSON.parse(map.dataset.zoom), still = matchMedia('(prefers-reduced-motion: reduce)');
+  const zoom = JSON.parse(map.dataset.zoom), maxPx = Number(map.dataset.maxPx), artH = scene.querySelector('.city-fx').height;
+  const still = matchMedia('(prefers-reduced-motion: reduce)');
   const floats = () => getComputedStyle(panel).position === 'fixed';
   cityFx(scene.querySelector('.city-fx'), scene.querySelector('img'));
 
@@ -26,11 +27,12 @@ if (city && root.classList.contains('at-city')) {
     map.style.transform = `translate(${at.x}px, ${at.y}px) scale(${s})`;
   };
   // The picked building's middle (city.json's zoom) at the middle of the free view: right of a floating panel and a little
-  // high, or the scene's middle where the panel stacks under it. Unpicked, the whole city on the tower, as the page opens.
+  // high, or the scene's middle where the panel stacks under it. Its zoom stops where an art pixel would pass maxPx screen
+  // px, which a big screen reaches first, and never goes under 1. Unpicked, the whole city on the tower, as the page opens.
   const view = (smooth) => {
     const p = panel.getBoundingClientRect(), fx = floats() ? (p.right + scene.clientWidth) / 2 : scene.clientWidth / 2;
     if (!current) return place(fx - city.querySelector('.city-tag[data-pick=tower]').offsetLeft, 0, 1, smooth);
-    const [x, y, s] = zoom[current], [w, h] = size();
+    const [w, h] = size(), [x, y, z] = zoom[current], s = Math.max(1, Math.min(z, maxPx / (h / artH)));
     place(fx - x / 100 * w * s, scene.clientHeight * (floats() ? 0.46 : 0.5) - y / 100 * h * s, s, smooth);
   };
   const pick = (key) => {

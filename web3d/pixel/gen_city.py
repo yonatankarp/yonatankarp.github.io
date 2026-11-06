@@ -51,6 +51,7 @@ LOTS = {"radio": (970, 380, 1210, 490), "post": (2290, 360, 2560, 490), "library
 # the free view (the tall tower and mast zoom less).
 ZOOM = {"tower": [51.4, 36, 1.2], "library": [35.3, 75, 2.4], "workshop": [66.5, 79, 2.4], "radio": [31.8, 33, 1.7],
         "post": [70, 44, 2.4]}
+MAX_PX = 4   # but never so far that an art pixel grows past this many screen px: a big screen's overview is already ~2.7
 # Where pick 700 painted a landmark's top away from the blockout's, in painting pixels: its mast and clock tower taller.
 PAINTED = {"radio": (9, -85), "library": (0, -6), "workshop": (27, -8), "post": (0, -26)}
 
@@ -307,7 +308,7 @@ def write_fx(out, night, day, dusk):
 
 
 def write_json(out):
-    (out / "city.json").write_text(json.dumps({"size": SIZE, "labels": anchors(), "zoom": ZOOM}))
+    (out / "city.json").write_text(json.dumps({"size": SIZE, "labels": anchors(), "zoom": ZOOM, "maxPx": MAX_PX}))
 
 
 def build(out):

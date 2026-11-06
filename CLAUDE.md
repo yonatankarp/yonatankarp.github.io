@@ -33,7 +33,8 @@ the mast's and the post office's only zoom). Its
 copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-PHASE].webp`, baked by
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
-middle in % of the art, and how far to zoom: `ZOOM`). The Career Tower is the pixel-art career
+middle in % of the art, and how far to zoom: `ZOOM`), capped where an art pixel would pass `MAX_PX` (4) screen px,
+so a big screen zooms less than a phone, and never under 1. The Career Tower is the pixel-art career
 building: any `#floor-X` address (`/#floor-E` is its street) opens it directly, and pixel.js mounts it only then; back
 at the bare address the page reloads on the city.
 

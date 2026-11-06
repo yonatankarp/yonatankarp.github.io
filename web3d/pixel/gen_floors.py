@@ -10,7 +10,8 @@ Run: uv run web3d/pixel/gen_floors.py <out_dir> [KEY ...]
 Every floor is a 960x360 side-on cutaway: slab, room, slab. Between the slabs is one Draw Things painting (paint_rooms.py:
 the lift lobby carried on into that floor's room) baked by install_picks.py; the slabs, the floor number and everything
 that moves are drawn here. Each floor writes floor-<key>.webp: its rest frame, then the two runs pixel.js tiles past the
-strip on a wide screen, then the box that moves (the same box in all FRAMES - 1 other frames), side by side. The rooms
+strip on a wide screen, the lift's cab (a painting of its own, shown as the doors open), then the box that moves (the
+same box in all FRAMES - 1 other frames), side by side. The rooms
 with another picture at another hour (data/phases.json "baked") also write floor-<key>-<phase>.webp. floors.json is what
 web3d/src/ draws by: the frame, the runs, each strip's moving box, the lift doors (pixel.js slides them), the lamps.
 
@@ -32,6 +33,8 @@ EDGE, BLOCK = 240, 24         # each run's columns; on the roof, a BLOCK of its 
 DOOR = dict(x0=102, x1=198, mid=150, y0=138, y1=306)   # the lift's door panels in strip pixels; pixel.js slides them
 SCREEN = (122, 83, 146, 95)   # the floor display over the lift, in the painting's pixels (install_picks.SIGN)
 HOUSING = 265                 # on the roof, the lift housing ends here, in the painting's pixels: open sky right of it
+CAB = W + 2 * EDGE            # in a strip, where its cab is, after the runs; the moving box's frames follow it
+BOXES = CAB + DOOR["x1"] - DOOR["x0"]
 PICKS = Path(__file__).resolve().parent / "paintings" / "picks"
 ROOT = Path(__file__).resolve().parents[2]   # the repository
 
@@ -406,11 +409,14 @@ def build(key, out, hours):
     x1, y1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
     assert x0 >= LOBBY_X + BLOCK and x1 <= W - LOBBY_X - BLOCK, (key, "moves over what its runs are read from")
     for hour, fs in pictures.items():
-        strip = Image.new("RGB", (W + 2 * EDGE + (FRAMES - 1) * (x1 - x0), H))
+        cab = Image.open(PICKS / "cab-px.png").convert("RGB")
+        assert cab.size == (DOOR["x1"] - DOOR["x0"], DOOR["y1"] - DOOR["y0"]), "the cab is not the doorway's size"
+        strip = Image.new("RGB", (BOXES + (FRAMES - 1) * (x1 - x0), H))
         strip.paste(fs[0], (0, 0))
         strip.paste(runs(fs[0], key), (W, 0))
+        strip.paste(cab, (CAB, 0))
         for f in range(1, FRAMES):
-            strip.paste(fs[f].crop((x0, y0, x1, y1)), (W + 2 * EDGE + (f - 1) * (x1 - x0), 0))
+            strip.paste(fs[f].crop((x0, y0, x1, y1)), (BOXES + (f - 1) * (x1 - x0), 0))
         save_lossless(strip, out / f"floor-{key}{'' if hour == 'dusk' else '-' + hour}.webp")
     print("drew floor", key, *hours)
     return [x0, y0, x1 - x0, y1 - y0]
@@ -476,6 +482,6 @@ if __name__ == "__main__":
     if not sys.argv[2:]:
         sky(out)
         lamps = {key: [DOOR["mid"], *(x + LOBBY_X for x in v[3])] for key, v in FLOORS.items() if v[3]}
-        art = {"frame": [W, H], "frames": FRAMES, "edge": EDGE, "room": [LOBBY_X, W - LOBBY_X], "door": DOOR,
+        art = {"frame": [W, H], "frames": FRAMES, "edge": EDGE, "room": [LOBBY_X, W - LOBBY_X], "door": DOOR, "cab": CAB, "boxes": BOXES,
                "bayer": BAYER, "lamps": lamps, "order": list(FLOORS), "anim": anim}
         (out / "floors.json").write_text(json.dumps(art))

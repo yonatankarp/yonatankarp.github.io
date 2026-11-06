@@ -23,6 +23,7 @@ web3d/pixel/paintings/candidates/*
 # (the first, cel-shaded lobby: paint_rooms.py's lobby is an edit of it) the lobby, every room, the roof's and the
 # lobby's other hours, and floors 1 and 3 with the wall beside the lift mended (paint_rooms.py wall)
 !web3d/pixel/paintings/candidates/lobby_1017.png
+!web3d/pixel/paintings/candidates/cab_1000.png
 !web3d/pixel/paintings/candidates/reichman_1168.png
 !web3d/pixel/paintings/candidates/reichman_1168-wall.png
 !web3d/pixel/paintings/candidates/inuitive_1134.png

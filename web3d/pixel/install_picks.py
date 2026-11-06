@@ -22,11 +22,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from paint_rooms import LOBBY  # noqa: E402
 
 HERE = Path(__file__).resolve().parent / "paintings"
-LOBBY_PX, FLOOR_PX, COLOURS = (264, 308), (928, 308), 64
+LOBBY_PX, FLOOR_PX, CAB_PX, COLOURS = (264, 308), (928, 308), (96, 168), 64   # the cab: gen_floors.DOOR's size
 LIFT = (76, 100, 194, 284)   # the lift's frame and doors in the lobby's pixels, down to its sill
 SIGN = (117, 79, 152, 96)    # the floor display over them, which gen_floors lights with the floor's number
 PICKS = {  # name: its candidate. The roof's and the reception's other hours are the dusk pick edited (paint_rooms retime)
     "lobby": "lobby_1017.png",
+    "cab": "cab_1000.png",   # the lift's cab, behind its doors as they open (gen_floors)
     "reichman": "reichman_1168-wall.png",
     "inuitive": "inuitive_1134.png",
     "nice": "nice_1270-wall.png",
@@ -118,8 +119,9 @@ def install(name):
         src.paste(hour.crop(VIEW[room]), VIEW[room][:2])
     if room in BLANK:
         src = blank(src, *BLANK[room])
-    small = src.crop(LOBBY[1]).resize(LOBBY_PX, Image.BOX) if name == "lobby" else src.resize(FLOOR_PX, Image.BOX)
-    if name != "lobby":   # before the colours are cut, so the lift has its share of the floor's budget
+    small = {"lobby": lambda: src.crop(LOBBY[1]).resize(LOBBY_PX, Image.BOX), "cab": lambda: src.resize(CAB_PX, Image.BOX)}.get(
+        name, lambda: src.resize(FLOOR_PX, Image.BOX))()
+    if name not in ("lobby", "cab"):   # before the colours are cut, so the lift has its share of the floor's budget
         lobby = Image.open(HERE / "picks" / "lobby-px.png").convert("RGB")
         for box in (LIFT, SIGN):
             small.paste(lobby.crop(box), box[:2])

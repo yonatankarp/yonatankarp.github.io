@@ -3,7 +3,7 @@
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 // The art's numbers come from art.js. The city (city.js) leads in at the lobby.
 import { guide, roomy } from './guide.js';
-import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, narrow, clamp01, colourAt, shade, darken } from './art.js';
+import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, narrow, clamp01, colourAt, shade, darken } from './art.js';
 import { floorKey, floorShaped } from './hash.js';
 import './city.js';
 import '../../assets/js/copy-email.js';
@@ -266,7 +266,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
           for (let gx = x0 + ROOM_X1 * s; gx < w; gx += EDGE * s) ctx.drawImage(src, FW + EDGE, 0, EDGE, FH, gx, y, EDGE * s, FH * s);
         }
         const [bx, by, bw, bh] = ANIM[key];
-        if (f) ctx.drawImage(src, FW + 2 * EDGE + (f - 1) * bw, 0, bw, bh, x0 + bx * s, y + by * s, bw * s, bh * s);
+        if (f) ctx.drawImage(src, BOXES + (f - 1) * bw, 0, bw, bh, x0 + bx * s, y + by * s, bw * s, bh * s);
       };
       paint(img, f);
       // Lights off in transit; on arrival each lamp's pool spreads from its shade, the lift's first, in blocks of whole-pixel
@@ -312,7 +312,8 @@ function release(img) {
   if (img.close) img.close(); else img.src = '';
 }
 
-// The painted door halves slide apart over a lit cab, a whole pixel at a time. They are the rest frame's: doors never move in a loop.
+// The painted door halves slide apart over the painted cab, a whole pixel at a time. They are the rest frame's: doors
+// never move in a loop.
 function drawDoors(ctx, img, x0, y0, s, open) {
   if (open <= 0) return;                                        // closed: the strip already shows the doors
   const gap = Math.round(open * (DOOR.mid - DOOR.x0 - 2));
@@ -323,10 +324,7 @@ function drawDoors(ctx, img, x0, y0, s, open) {
   ctx.beginPath();
   ctx.rect(left, top, width, h * s);
   ctx.clip();
-  ctx.fillStyle = '#30363e'; ctx.fillRect(left, top, width, h * s);              // the cab's back wall
-  ctx.fillStyle = '#f2b13b'; ctx.fillRect(left, top, width, 2 * s);              // its ceiling light
-  ctx.fillStyle = '#4a525c'; ctx.fillRect(left, top + 92 * s, width, 2 * s);     // the handrail
-  ctx.fillStyle = '#1c2026'; ctx.fillRect(left, top + (h - 2) * s, width, 2 * s);   // the floor
+  ctx.drawImage(img, CAB, 0, DOOR.x1 - DOOR.x0, h, left, top, width, h * s);   // the cab
   ctx.drawImage(img, DOOR.x0, DOOR.y0, lw, h, x0 + (DOOR.x0 - gap) * s, top, lw * s, h * s);
   ctx.drawImage(img, DOOR.mid, DOOR.y0, rw, h, x0 + (DOOR.mid + gap) * s, top, rw * s, h * s);
   ctx.restore();

@@ -88,7 +88,8 @@ city), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an
 wall, skirting and floor run on from the lift), `install_picks.py` bakes the picks (`PICKS`) and pastes the lobby's one
 lift into each, and `gen_floors.py` draws the slabs, the floor number and what moves (each room's animation, which only
 paints over what is there: lights, screens, a glint). A strip is its rest frame, two runs pixel.js tiles past it on a
-wide screen, and its moving box's other frames. The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
+wide screen, the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
+they slide apart), and its moving box's other frames. The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
 box, lift doors, dither, each room's lamps, the floors' order) are written into `static/building/pixel/floors.json` by
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
 rerun it, never the copies. `pixel.js` is the lift and the floors, `art.js` what it reads; it keeps only the storeys

@@ -49,6 +49,15 @@ TAIL = (" Every object stands on the floor, detailed and clearly readable, space
              "no labels on anything: every surface is plain.")
 PAINTERLY = ("highly detailed painterly city-builder video game art, warm golden dusk light, soft shadows, rich "
              "texture and fine detail")
+# The lift's cab, seen through its open doors on every floor (gen_floors draws it behind the sliding doors): painted on its
+# own, as tall as the doorway.
+CAB_SIZE = (448, 768)
+CAB = (
+    "A " + PAINTERLY + " picture of the inside of an empty elevator cab seen straight on through its open doorway, "
+    "filling the whole picture edge to edge: a brushed-steel back wall with soft vertical highlights, a polished brass "
+    "handrail across it at waist height, a warm glowing ceiling light panel along the top, a dark polished floor along "
+    "the bottom, narrow steel side walls in perspective. Nothing else. No people, no text, no buttons, no numbers, no logos."
+)
 LOBBY_EDIT = (
     "Edit this picture. Repaint it as " + PAINTERLY + ", a single lift lobby seen straight on: orthographic side view, "
     "no perspective, no side walls. Keep the elevator exactly where it is and the same size: a closed brushed-steel "
@@ -234,7 +243,7 @@ def paint(path, prompt, size, seed, host, init=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("room", choices=["lobby", "roof", "retime", "wall", *sorted(ROOMS)])
+    ap.add_argument("room", choices=["lobby", "cab", "roof", "retime", "wall", *sorted(ROOMS)])
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--start", type=int, default=1000)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
@@ -262,6 +271,8 @@ def main():
         stem = Path(args.src).stem
         jobs = [(OUT / f"{stem}-{args.time}_{args.start + 17 * k}.png", prompt, init.size, args.start + 17 * k, init)
                 for k in range(args.count)]
+    elif args.room == "cab":
+        jobs = [(OUT / f"cab_{args.start + 17 * k}.png", CAB, CAB_SIZE, args.start + 17 * k, None) for k in range(args.count)]
     elif args.room == "lobby":   # an edit of the old lobby, so its lift stays where the floors' code has it
         init = Image.open(OUT / OLD_LOBBY).convert("RGB").resize(LOBBY_SIZE, Image.LANCZOS)
         jobs = [(OUT / f"lobby_{args.start + 17 * k}.png", LOBBY_EDIT, LOBBY_SIZE, args.start + 17 * k, init)

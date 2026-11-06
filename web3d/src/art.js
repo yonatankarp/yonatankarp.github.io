@@ -8,7 +8,8 @@ export const FRAMES = art.frames;
 export const EDGE = art.edge;                // a run's columns, tiled past the strip on a wide screen
 export const [ROOM_X0, ROOM_X1] = art.room;  // the painting's span in the strip: the runs go on from there
 export const ORDER = art.order;              // the floors bottom to top, L to R: gen_floors.FLOORS
-export const ANIM = art.anim;                // each strip's moving box, x, y, w, h: its other frames follow the runs
+export const ANIM = art.anim;                // each strip's moving box, x, y, w, h: its other frames start at BOXES
+export const { cab: CAB, boxes: BOXES } = art;   // in a strip, the lift's cab (the doorway's size, behind the doors), and those frames
 export const { door: DOOR, bayer: BAYER } = art;
 // Each room's hanging lamps, by strip x, the lift's own lamp first. The roof has none: it is outdoors, so it stays as
 // bright as its sky.

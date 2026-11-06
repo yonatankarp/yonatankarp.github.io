@@ -13,7 +13,8 @@ Run: uv run web3d/pixel/gen_workshop.py blockout [OUT]                  # the co
 
 The Library's pipeline (gen_library.py) out on the street, so it follows the clock as the city does (gen_city.py): the
 blockout fixes where every workshop sits, the model paints it at dusk, the other hours are that pick edited, and each is
-box-reduced and quantised undithered. The workshops are numbered, not named: the projects' template
+box-reduced and quantised undithered; the kerb lamp at x 245, which the model left dark at every hour, is lit after
+that but by day (relight). The workshops are numbered, not named: the projects' template
 (layouts/projects/list.html) puts the groups in them in order, apps first.
 Paintings go to web3d/pixel/paintings/candidates/workshop[-PHASE]_SEED.png (not committed); the chosen one is copied to
 web3d/pixel/paintings/picks/workshop[-PHASE].png, the build's input, and its seed noted in PICKS.
@@ -25,6 +26,7 @@ import argparse
 import base64
 import io
 import json
+import math
 import sys
 import urllib.request
 from itertools import pairwise
@@ -169,15 +171,36 @@ def bake(phase):
     """The painting box-reduced to the art's size on its own COLOURS colours, undithered, with the Library's k-means
     passes after the median cut so the small lamps keep a colour of their own."""
     im = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
-    return im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
+    im = im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
+    return im if phase == "day" else relight(im)
+
+
+def relight(im, cx=245, cy=151, glass=(239, 146, 252, 157)):
+    """Lights the kerb lamp at x 245, which every hour's painting left dark: its glass glows and five flat warm rings
+    spread round it to ~32 px, as the median cut leaves the other lamps' halos, over all but the dark iron."""
+    px = im.load()
+    for y in range(cy - 36, cy + 36):
+        for x in range(cx - 36, cx + 36):
+            r, g, b = px[x, y]
+            if glass[0] <= x <= glass[2] and glass[1] <= y <= glass[3] and r > 100 and r > b + 20:   # the panes, not the frame
+                px[x, y] = (252, 246, 214) if r > 150 else (246, 206, 140)
+                continue
+            band = 5 - min(5, int(math.hypot(x - cx, (y - cy) * 1.05) // 6.5))
+            if band and r + g + b > 150:   # the sky, wall and leaves round it, not the dark iron
+                k = (.1, .2, .32, .46, .62)[band - 1]
+                px[x, y] = tuple(int(c + (w - c) * k) for c, w in zip((r, g, b), (246, 178, 112), strict=True))
+    return im
 
 
 # Where the row's animations go, in art pixels (workshop-fx.js).
 FX = {
-    "pavement": [270, 1205],             # x0, x1: the painted walkers (gen_walkers.py) pace it, behind the lamp posts at the kerb
+    "pavement": [270, 1205],             # x0, x1: where the painted walkers (gen_walkers.py) start, behind the lamp posts at the
+                                         # kerb; past x1 the van stands in front of it, so a walker's feet stay at x1's depth
+    "edge": [-30, 1470],                 # off the art's ends, where walkers and cats leave and come back
     "lanes": [271, 277],                 # their feet's rows, far then near: the near one 6 rows above the lamp posts' bases
                                          # (row 283), so its walkers pass behind the posts at the kerb as the far one's do
-    "wall": [20, 210, 255],              # x0, y, x1: the left brick wall's top, where the cat walks and sits
+    "wall": [24, 210, 250],              # x0, y, x1: the left brick wall's top, where the cats (cats.js) walk, sit and loaf
+    "street": 284,                       # the pavement's front by the kerb, the row the cats trot along when they jump down
     "weld": [615, 225],                  # the second workshop's bench: a welding torch
     "screens": [[368, 209, 390, 223], [400, 223, 409, 229], [848, 206, 869, 219], [1086, 207, 1108, 221]],   # x0, y0, x1, y1
     "lamps": [[126, 164], [245, 144], [497, 166], [739, 166], [981, 166], [1316, 171]],   # the street lamps' heads, for moths

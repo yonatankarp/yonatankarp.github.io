@@ -3,19 +3,25 @@
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """The painted people: six on Workshop Row's pavement (web3d/src/workshop-fx.js), each an 8-frame walk cycle, and three
-of them in the Library (library-fx.js), who also stand at a shelf, reach up, take a book and read it.
+of them in the Library (library-fx.js), who also stand at a shelf, reach up, take a book and read it. And Yonatan's two
+cats on Workshop Row's wall and pavement (cats.js): an 8-frame walk, a sit, a loaf, a crouch and a leap each.
 
-Run: uv run web3d/pixel/gen_walkers.py pose                  # the 8 walk poses and 4 browse poses, from a skeleton on magenta
+Run: uv run web3d/pixel/gen_walkers.py pose                  # the 8 walk poses and 4 browse poses, from a skeleton on magenta,
+                                                             # and each cat's 12 poses
      uv run web3d/pixel/gen_walkers.py paint [NAME...]       # Draw Things repaints each walk pose as that person (port 7860)
      uv run web3d/pixel/gen_walkers.py browse [NAME...]      # ... and each browse pose, for the Library's readers
-     uv run web3d/pixel/gen_walkers.py bake [OUT]            # OUT/walkers.webp + .json, and OUT/readers.webp + .json
+     uv run web3d/pixel/gen_walkers.py cats [NAME...]        # ... and each cat pose as that cat
+     uv run web3d/pixel/gen_walkers.py bake [OUT]            # OUT/walkers.webp + .json, OUT/readers.webp + .json and
+                                                             # OUT/cats.webp + .json
 
 The poses go to web3d/pixel/paintings/candidates/walkers/walk_K_pose.png and the paintings beside them as NAME_K.png
 (not committed); a person's chosen frames are copied to web3d/pixel/paintings/picks/walkers/NAME_K.png, the bake's input,
-and the browse poses to NAME_browse_KIND.png.
-Every frame of a person is painted with the same seed and prompt, so the eight stay one person. The bake keys the magenta
-out, eats its pink fringe, scales the person to PERSON (READER) art px tall (premultiplied, so no halo) on 32 colours, and lays the
-people out as rows of one sheet, a frame per column, all standing on the same foot row.
+and the browse poses to NAME_browse_KIND.png. The cats' go to candidates/cats/NAME_POSE_pose.png and NAME_POSE.png, and
+their picks to picks/cats/NAME_POSE.png.
+Every frame of a person (a cat) is painted with the same seed and prompt, so the frames stay one person. The bake keys the
+magenta out, eats its pink fringe, scales the person to PERSON (READER) art px tall (premultiplied, so no halo) on 32 colours, and lays the
+people out as rows of one sheet, a frame per column, all standing on the same foot row. A cat is CAT art px tall walking
+(the black one smaller) on 24 colours.
 """
 import argparse
 import base64
@@ -63,9 +69,9 @@ PROMPT = ("Edit this picture. Repaint the figure as one ordinary adult pedestria
           "One person only, no text, no shadow on the ground.")
 
 
-def limb(d, a, b, w, col):
-    d.line([a, b], fill=col, width=int(w * U))
-    r = w * U / 2
+def limb(d, a, b, w, col, u=U):
+    d.line([a, b], fill=col, width=int(w * u))
+    r = w * u / 2
     for x, y in (a, b):
         d.ellipse([x - r, y - r, x + r, y + r], fill=col)
 
@@ -206,6 +212,176 @@ def paint(name, host):
         print("painted", out.name, flush=True)
 
 
+CAT_PAINTED, CAT_PICKED = CANDIDATES / "cats", PICKED.parent / "cats"
+CW, CH, CAT_FOOT, CU = 768, 384, 330, 12.0   # a cat's painting, its ground line and pixels per skeleton unit
+CAT = 14                                     # art px from paw to ear tip of the ginger's walk, on the wall's top
+CAT_POSES = [f"walk_{k}" for k in range(FRAMES)] + ["sit", "loaf", "crouch", "leap"]
+CATS = {   # name: (seed, coat colour for the skeleton, how it looks, size against the ginger)
+    "ginger": (2100, (214, 128, 58), "a big stocky ginger tabby cat with a round face, bold orange mackerel tabby stripes "
+               "on the back, legs and tail, a cream chin, muzzle and chest, pale green eyes and a pink nose", 1.0),
+    "black": (2117, (34, 30, 30), "a small slender black cat with a soft warm brown sheen in its short coat, a narrow "
+              "face, large upright pointed ears, pale yellow-green eyes and a dark nose", 0.88),
+}
+RELATIVE = {"sit": 1.15, "loaf": 0.78, "crouch": 0.72, "leap": 0.78}   # each pose's height against the walk's, as a real cat stands; the paintings vary
+CAT_PROMPT = ("Edit this picture. Repaint the shape as one real domestic cat, {action}, seen exactly from the side facing "
+              "right, in highly detailed painterly video game art: {look}, natural proportions, warm golden dusk light from "
+              "the left, soft shading, fur texture. Keep the exact pose, the exact position and size of the body, every "
+              "leg, the head, the ears and the tail. Keep the background perfectly flat solid magenta. One cat only, no "
+              "text, no shadow.")
+CAT_ACTION = {"walk": "walking calmly", "sit": "sitting upright with its tail wrapped round its front paws",
+              "loaf": "lying in a loaf with its paws tucked under its chest and its head up",
+              "crouch": "crouched low on all four paws, hind legs bunched under it, about to spring",
+              "leap": "leaping through the air, body stretched long, front legs reaching forward, hind legs stretched "
+                      "back, tail straight out behind"}
+
+
+def cat_head(d, hx, hy, col):
+    r = 3.4 * CU
+    d.ellipse([hx - r, hy - r * .9, hx + r, hy + r * .9], fill=col)
+    d.ellipse([hx + r * .5, hy - r * .1, hx + r * 1.45, hy + r * .75], fill=col)   # muzzle
+    for ex in (-.55, .35):   # ears: the far one a little back
+        d.polygon([(hx + ex * r - 1.3 * CU, hy - .55 * r), (hx + ex * r + .2 * CU, hy - r - 2.6 * CU),
+                   (hx + ex * r + 1.5 * CU, hy - .6 * r)], fill=col)
+
+
+def cat_tail(d, pts, col, w=1.5):
+    for a, b in zip(pts, pts[1:], strict=False):
+        limb(d, a, b, w, col, CU)
+
+
+def cat_pose(kind, col):
+    """A cat's skeleton facing right on magenta: walk_K (a lateral-sequence walk, the far legs another shade), sit, loaf,
+    crouch (about to spring) or leap (stretched long in the air)."""
+    im = Image.new("RGB", (CW, CH), MAGENTA)
+    d = ImageDraw.Draw(im)
+    x, g = CW / 2, CAT_FOOT
+
+    def lb(a, b, w):
+        limb(d, a, b, w, col, CU)
+
+    if kind.startswith("walk"):
+        ph = 2 * math.pi * int(kind[5:]) / FRAMES
+        dark = tuple(int(v * .65) for v in col) if sum(col) > 200 else tuple(min(255, int(v * 1.6) + 8) for v in col)
+        bob = -abs(math.sin(2 * ph)) * .4 * CU
+        hip, sh = (x - 8 * CU, g - 11.5 * CU + bob), (x + 7 * CU, g - 11.8 * CU + bob)
+
+        def leg(top, a, c, front):   # a: this leg's phase; it swings forward while lifted
+            sw = .38 * math.sin(a)
+            lift = max(0, math.cos(a)) * (1.2 if front else 1.6) * CU
+            k = (top[0] + math.sin(sw) * 5.5 * CU + (0 if front else -1.2 * CU), top[1] + 5.5 * CU)
+            f = (top[0] + math.sin(sw) * 10 * CU, g - lift)
+            limb(d, top, k, 2.4, c, CU)
+            limb(d, k, f, 1.8, c, CU)
+            limb(d, f, (f[0] + 1.3 * CU, f[1]), 1.6, c, CU)
+
+        leg(hip, ph + math.pi, dark, False)
+        leg(sh, ph + 1.5 * math.pi, dark, True)
+        cat_tail(d, [hip, (hip[0] - 4 * CU, hip[1] - 1 * CU), (hip[0] - 7.5 * CU, hip[1] - 3.5 * CU - math.sin(ph) * CU),
+                     (hip[0] - 9 * CU, hip[1] - 7 * CU - math.sin(ph) * 1.5 * CU)], col)
+        d.ellipse([hip[0] - 4 * CU, hip[1] - 4.5 * CU, sh[0] + 4 * CU, sh[1] + 4.5 * CU], fill=col)   # body
+        leg(hip, ph, col, False)
+        leg(sh, ph + .5 * math.pi, col, True)
+        lb((sh[0] + 1 * CU, sh[1] - 1 * CU), (sh[0] + 3.5 * CU, sh[1] - 2.5 * CU), 4.8)   # neck
+        cat_head(d, sh[0] + 5 * CU, sh[1] - 4.2 * CU + bob * .3, col)
+    elif kind == "sit":
+        d.ellipse([x - 8 * CU, g - 9 * CU, x + 1 * CU, g], fill=col)   # haunch on the ground
+        d.polygon([(x - 6 * CU, g - 7 * CU), (x + 1 * CU, g - 16.5 * CU), (x + 6.5 * CU, g - 14 * CU), (x + 4 * CU, g - 2 * CU),
+                   (x - 2 * CU, g)], fill=col)   # chest up
+        lb((x + 3.5 * CU, g - 12 * CU), (x + 4.5 * CU, g - .8 * CU), 2.2)   # front leg
+        lb((x + 4.5 * CU, g - .8 * CU), (x + 6 * CU, g - .8 * CU), 1.6)
+        cat_tail(d, [(x - 7.5 * CU, g - 1 * CU), (x - 3 * CU, g - .8 * CU), (x + 2 * CU, g - .8 * CU), (x + 7 * CU, g - 1.4 * CU)], col, 1.4)
+        cat_head(d, x + 4.5 * CU, g - 18 * CU, col)
+    elif kind == "loaf":
+        d.ellipse([x - 11 * CU, g - 9 * CU, x + 6 * CU, g + .3 * CU], fill=col)
+        cat_tail(d, [(x - 10 * CU, g - 1.2 * CU), (x - 5 * CU, g - .6 * CU), (x + 1 * CU, g - .6 * CU)], col, 1.6)
+        cat_head(d, x + 6 * CU, g - 10.5 * CU, col)
+    elif kind == "crouch":
+        d.ellipse([x - 11 * CU, g - 8 * CU, x + 6 * CU, g - .5 * CU], fill=col)   # the body pressed low
+        lb((x - 7 * CU, g - 3 * CU), (x - 4 * CU, g - .4 * CU), 2.6)            # haunch folded, hind paw
+        lb((x + 4 * CU, g - 4 * CU), (x + 7 * CU, g - .4 * CU), 1.8)            # front leg, paw forward
+        lb((x + 7 * CU, g - .4 * CU), (x + 8.5 * CU, g - .4 * CU), 1.6)
+        cat_tail(d, [(x - 10 * CU, g - 4 * CU), (x - 14 * CU, g - 3 * CU), (x - 17 * CU, g - 2 * CU)], col)
+        cat_head(d, x + 7.5 * CU, g - 8.5 * CU, col)
+    else:   # leap
+        y = g - 10 * CU
+        d.ellipse([x - 11 * CU, y - 4 * CU, x + 8 * CU, y + 3.5 * CU], fill=col)   # stretched long
+        for dx in (0, -1.2):                                                       # hind legs straight back
+            limb(d, (x - 8 * CU + dx * CU, y + 1 * CU), (x - 15 * CU + dx * CU, y + 6 * CU), 2, col, CU)
+        for dx in (0, 1.2):                                                        # front legs reaching ahead
+            limb(d, (x + 6 * CU + dx * CU, y + 1 * CU), (x + 13 * CU + dx * CU, y + 5 * CU), 1.8, col, CU)
+        cat_tail(d, [(x - 10 * CU, y - 1 * CU), (x - 15 * CU, y - 2 * CU), (x - 20 * CU, y - 2.5 * CU)], col)
+        cat_head(d, x + 10 * CU, y - 3 * CU, col)
+    return im
+
+
+def paint_cat(name, host):
+    seed, _, look, _ = CATS[name]
+    for p in CAT_POSES:
+        out = CAT_PAINTED / f"{name}_{p}.png"
+        if out.exists():
+            print("kept", out.name)
+            continue
+        buf = io.BytesIO()
+        Image.open(CAT_PAINTED / f"{name}_{p}_pose.png").save(buf, "PNG")
+        res = call(host, "/sdapi/v1/img2img", {"prompt": CAT_PROMPT.format(action=CAT_ACTION[p.split("_")[0]], look=look), "width": CW,
+                                               "height": CH, "seed": seed, "batch_size": 1, "strength": 1.0,
+                                               "init_images": [base64.b64encode(buf.getvalue()).decode()]})
+        out.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
+        print("painted", out.name, flush=True)
+
+
+def cat_keyed(pick, black=False):
+    """A picked cat painting with its magenta keyed out: its pixels, its alpha and its height from paw to ear tip. The
+    model paints the black cat brown, so it is pulled towards black, keeping a little of the warm sheen."""
+    path = CAT_PICKED / f"{pick}.png"
+    if not path.exists():
+        sys.exit(f"no {path}: paint it (gen_walkers.py cats) and copy the chosen frame there")
+    a = np.asarray(Image.open(path).convert("RGB").resize((CW, CH))).astype(int)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    bg = (g < 0.55 * np.minimum(r, b)) & (r > 60) & (b > 60)
+    if black:
+        lum = (a * [.3, .59, .11]).sum(-1, keepdims=True)
+        a = np.clip((lum + (a - lum) * .35) * .7, 0, 255).astype(int)
+    alpha = np.asarray(Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5)))
+    ys = np.nonzero(alpha.max(1))[0]
+    return a, alpha, ys[-1] - ys[0]
+
+
+def cat_frame(pick, s, black):
+    """One picked cat painting scaled by s (premultiplied, so no halo) on 24 colours."""
+    a, alpha, _ = cat_keyed(pick, black)
+    im = Image.fromarray(a.astype(np.uint8), "RGB")
+    im.putalpha(Image.fromarray(alpha))
+    small = im.convert("RGBa").resize((round(CW * s), round(CH * s)), Image.BOX).convert("RGBA")
+    rgb = small.convert("RGB").quantize(24, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
+    rgb.putalpha(small.getchannel("A").point(lambda v: 255 if v > 140 else 0))
+    return rgb
+
+
+def cat_sheet(out):
+    """OUT/cats.webp, a row per cat and a column per pose (CAT_POSES), every frame on one canvas, centred across and
+    standing on its bottom; and cats.json with the frame's size, each frame's foot and each cat's stride. A cat's walk is
+    CAT art px tall times its size; the other poses are scaled from their own painted height by RELATIVE."""
+    rows, strides = [], []
+    for n, (*_, size) in CATS.items():
+        walk_h = cat_keyed(f"{n}_walk_0")[2]
+        s = CAT * size / walk_h
+        rows.append([cat_frame(f"{n}_{p}", s * RELATIVE.get(p, 1) * walk_h / (cat_keyed(f"{n}_{p}")[2] if p in RELATIVE else walk_h), n == "black")
+                     for p in CAT_POSES])
+        strides.append(round(15 * CU * s))   # the skeleton's stride, 15 units
+    fw, fh = max(f.width for r in rows for f in r), max(f.height for r in rows for f in r)
+    im = Image.new("RGBA", (fw * len(CAT_POSES), fh * len(rows)))
+    for j, row in enumerate(rows):
+        for k, f in enumerate(row):
+            im.paste(f, (k * fw + (fw - f.width) // 2, j * fh + fh - f.height))
+    im.save(out / "cats.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    frames = [[im.crop((k * fw, j * fh, (k + 1) * fw, (j + 1) * fh)) for k in range(len(CAT_POSES))] for j in range(len(rows))]
+    foot = [[max(y for y in range(fh) for x in range(fw) if f.getpixel((x, y))[3]) for f in row] for row in frames]
+    (out / "cats.json").write_text(json.dumps({"people": list(CATS), "frames": len(CAT_POSES), "poses": CAT_POSES, "w": fw, "h": fh,
+                                               "foot": foot, "stride": strides}))
+    print("baked cats.webp:", len(CATS), "cats of", len(CAT_POSES), "frames,", fw, "x", fh)
+
+
 def frame(pick, person):
     """One picked frame: the magenta out, its pink fringe eaten, the person `person` art px tall on 32 colours."""
     path = PICKED / f"{pick}.png"
@@ -245,12 +421,13 @@ def bake(out):
     walk = list(range(FRAMES))
     sheet(out, "walkers", list(PEOPLE), walk, PERSON)
     sheet(out, "readers", READERS, walk + [f"browse_{k}" for k in BROWSE], READER, walk=FRAMES, browse=BROWSE)
+    cat_sheet(out)
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["pose", "paint", "browse", "bake"])
-    ap.add_argument("args", nargs="*", help="paint, browse: the people to paint (all, or the readers, by default); bake: OUT")
+    ap.add_argument("cmd", choices=["pose", "paint", "browse", "cats", "bake"])
+    ap.add_argument("args", nargs="*", help="paint, browse, cats: the people (cats) to paint (all, or the readers, by default); bake: OUT")
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     a = ap.parse_args()
     if a.cmd == "pose":
@@ -259,12 +436,19 @@ if __name__ == "__main__":
             pose(2 * math.pi * k / FRAMES).save(PAINTED / f"walk_{k}_pose.png")
         for kind in BROWSE:
             browse_pose(kind).save(PAINTED / f"browse_{kind}_pose.png")
-        print("posed", FRAMES, "walk and", len(BROWSE), "browse frames in", PAINTED)
+        CAT_PAINTED.mkdir(parents=True, exist_ok=True)
+        for n, (_, coat, *_) in CATS.items():
+            for p in CAT_POSES:
+                cat_pose(p, coat).save(CAT_PAINTED / f"{n}_{p}_pose.png")
+        print("posed", FRAMES, "walk and", len(BROWSE), "browse frames in", PAINTED, "and", len(CAT_POSES), "per cat in", CAT_PAINTED)
     elif a.cmd == "paint":
         for n in a.args or PEOPLE:
             paint(n, a.host)
     elif a.cmd == "browse":
         for n in a.args or READERS:
             paint_browse(n, a.host)
+    elif a.cmd == "cats":
+        for n in a.args or CATS:
+            paint_cat(n, a.host)
     else:
         bake(Path(a.args[0] if a.args else "static/building/pixel"))

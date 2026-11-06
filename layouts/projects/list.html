@@ -24,7 +24,7 @@
 })();` | minify | fingerprint "sha256" }}
 {{ .Store.Set "bodyScripts" (slice $hour) }}
 {{ $version := "" }}{{ range $k, $_ := hugo.Data.phases }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/workshop%s.webp" (cond (eq $k "dusk") "" (printf "-%s" $k)))) | sha256 }}{{ end }}
-{{ range slice "workshop-fx.json" "workshop-depth.png" "walkers.json" "walkers.webp" }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/%s" .)) | sha256 }}{{ end }}{{/* the animations' data and walkers too */}}
+{{ range slice "workshop-fx.json" "workshop-depth.png" "walkers.json" "walkers.webp" "cats.json" "cats.webp" }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/%s" .)) | sha256 }}{{ end }}{{/* the animations' data, walkers and cats too */}}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">
 <head>

@@ -41,9 +41,10 @@ function depthTest(ctx, bitmap) {
     for (let xx = Math.max(0, x - 8); xx <= Math.min(W - 1, x + 8); xx++) m = Math.min(m, depth[y * W + xx]);
     return m;
   };
-  // One frame of a painted person (people()) with its sole on (x, y), mirrored when facing left, depth-tested from its feet.
-  const sprite = (sheet, frame, x, y, left) => {
-    const x0 = Math.round(x) - (sheet.w >> 1), y0 = y - frame.foot, f = footAt(Math.round(x), y);
+  // One frame of a painted person (people()) with its sole on (x, y), mirrored when facing left, depth-tested from its feet
+  // (the ground under them, or the depth f).
+  const sprite = (sheet, frame, x, y, left, f = footAt(Math.round(x), y)) => {
+    const x0 = Math.round(x) - (sheet.w >> 1), y0 = y - frame.foot;
     for (const { fill, px } of frame.cells) {
       ctx.fillStyle = fill;
       for (let i = 0; i < px.length; i += 2) dfill(x0 + (left ? sheet.w - 1 - px[i] : px[i]), y0 + px[i + 1], 1, 1, f);
@@ -52,7 +53,7 @@ function depthTest(ctx, bitmap) {
   return { dfill, footAt, sprite };
 }
 
-// A sheet of painted people (gen_walkers.py), a row per person and a column per frame, split once into each frame's
+// A sheet of painted people or cats (gen_walkers.py), a row per person and a column per frame, split once into each frame's
 // pixels grouped by colour, as they are or dimmed for the night, with the row of its sole. url(ext) is the sheet's .json or .webp. Resolves to null
 // without it: the scene goes without them.
 export function people(url, night) {

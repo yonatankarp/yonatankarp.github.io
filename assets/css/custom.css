@@ -187,10 +187,10 @@ h4 a,
 }
 /* The blog's index (layouts/blog/list.html, assets/js/library.js): the Library's room across the head, under the top bar,
    then its tools and the posts on the city's warm panels. */
-:root:has(.library) .px-skin { background: #2a1d14; }
-:root:has(.library) .px-skin::before { display: none; }   /* the room is the backdrop here */
-:root:has(.library) .px-bar { position: absolute; inset: 0 0 auto; z-index: 2; pointer-events: none; }
-:root:has(.library) .px-bar > * { pointer-events: auto; }
+:root:has(:is(.library, .room)) .px-skin { background: #2a1d14; }
+:root:has(:is(.library, .room)) .px-skin::before { display: none; }   /* the room is the backdrop here */
+:root:has(:is(.library, .room)) .px-bar { position: absolute; inset: 0 0 auto; z-index: 2; pointer-events: none; }
+:root:has(:is(.library, .room)) .px-bar > * { pointer-events: auto; }
 .library { --panel: #3a2616; --panel-hi: #5a4028; --ink: #1b1410; --edge: #9a7148; --post: #f2a93b; }
 .library-hero { position: relative; height: min(52vh, 470px); overflow: hidden; border-bottom: 3px solid var(--ink); }
 .library-hero :is(img, .library-fx) { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; image-rendering: pixelated; }
@@ -222,6 +222,101 @@ h4 a,
 .library .post-row__aside { order: -1; }   /* the cover first, as on the Library's mockup */
 .post-row__tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
 .post-row__tags li { padding: 4px 6px 3px; font: 15px/1 var(--pixel-font); color: var(--px-soft); box-shadow: inset 0 0 0 1px var(--panel-hi); }
+/* The Radio Mast (/podcast/, layouts/_default/radio.html) and the Post Office (/contact/, post.html): the room across the
+   head at its own 1440:347 shape (partials/room-hero.html), a phone panning it, then a panel lifted over its foot. */
+.room { --panel: #3a2616; --ink: #1b1410; --edge: #9a7148; --cream: #f1e6cf; }
+.room-hero { position: relative; overflow: auto hidden; scrollbar-width: none; border-bottom: 3px solid var(--ink); }
+.room-hero::-webkit-scrollbar { display: none; }
+.room-hero:focus-visible { outline: 3px solid var(--px-text); outline-offset: -3px; }
+.room-map { position: relative; height: clamp(230px, 24.1vw, 480px); aspect-ratio: 1440 / 347; min-width: 100%; }
+.room-map :is(img, canvas) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+.room-fx { pointer-events: none; }   /* the room's animations (rooms-fx.js), over the picture */
+.room-sheet { position: relative; max-width: 1080px; margin: -64px auto 0; padding: 0 24px; }
+.room-back { display: inline-block; margin: 0 0 10px; padding: 4px 8px; font-size: 14px; color: var(--px-soft); background: rgba(27, 20, 16, 0.85); border: 2px solid var(--ink); }
+.room-kicker { margin: 0; font: 18px/1 var(--pixel-font); letter-spacing: 0.05em; text-transform: uppercase; color: var(--amber); }
+.room h1 { margin: 8px 0 10px; font-size: 58px; }
+.room-lede { max-width: 680px; margin: 0 0 22px; font-size: 17px; color: var(--px-soft); }
+.room-big {
+  display: inline-flex; gap: 10px; align-items: center; padding: 14px 18px 12px; font: 24px/1 var(--pixel-font); text-decoration: none;
+  color: var(--ink); background: var(--amber); border: 2px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+}
+.room-big:hover { background: var(--amber-hover); }
+.room-also { margin: 18px 0 0; font-size: 15px; color: var(--px-soft); }
+.room-also a { color: var(--amber); }
+.room :is(a, button):focus-visible { outline: 3px solid var(--px-text); outline-offset: 2px; border-radius: 0; }
+/* The Radio Mast: a now-playing card. */
+.radio-player { display: grid; grid-template-columns: 210px 1fr; gap: 26px; align-items: center; padding: 26px; background: var(--panel); border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink); }
+.radio-cover {
+  position: relative; display: grid; place-items: center; aspect-ratio: 1; border: 3px solid var(--ink); color: var(--amber);
+  background: radial-gradient(circle at 50% 45%, #6a2a1a 0 30%, #2a1712 31% 100%);
+}
+.radio-cover svg { width: 108px; height: 108px; }
+.radio-onair { position: absolute; left: 10px; top: 10px; display: flex; gap: 7px; align-items: center; font: 15px/1 var(--pixel-font); letter-spacing: 0.08em; text-transform: uppercase; color: #ffb3a6; }
+.radio-onair i { width: 10px; height: 10px; background: #ff3b2a; animation: radio-pulse 1.4s infinite; }
+@keyframes radio-pulse { from { box-shadow: 0 0 0 0 #ff3b2a99; } to { box-shadow: 0 0 0 10px #ff3b2a00; } }
+.radio-eq { display: flex; gap: 3px; align-items: flex-end; height: 34px; margin: 6px 0 18px; }
+.radio-eq i { width: 8px; background: var(--amber); box-shadow: 2px 2px 0 var(--ink); animation: radio-eq 1s infinite steps(4) alternate; }
+@keyframes radio-eq { from { height: 6px; } to { height: 34px; } }
+/* The Post Office: a ruled letter and a sheet of stamps. Every line of the letter sits on a ruled line: 30px rows, the
+   rule 1px at 22px into each (the gradient's last pixel, moved up 7px), the body's baselines at 21px. The kicker and the
+   headline, in the pixel face, are nudged onto the same baselines; capture-screenshots.js measures them. */
+.post-desk { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 22px; align-items: start; }
+.post-letter {
+  --row: 30px; position: relative; padding: var(--row) 30px; line-height: var(--row); color: #2b2017; border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
+  background: repeating-linear-gradient(var(--cream) 0 calc(var(--row) - 1px), #e6d6b6 calc(var(--row) - 1px) var(--row)) 0 -7px var(--cream);
+}
+.post-letter::before { content: ''; position: absolute; inset: 8px; border: 2px dashed #c9b08a; pointer-events: none; }
+.post-letter .room-kicker { position: relative; top: 2px; line-height: var(--row); color: #a4521f; }
+.room .post-letter h1 { position: relative; top: 9px; margin: 0 0 var(--row); font-size: 44px; line-height: calc(var(--row) * 2); color: #2b2017; }
+.post-letter :is(p, li) { font-size: 16px; line-height: var(--row); }
+.post-letter p { margin: 0 0 var(--row); color: #4a3a2a; }
+.post-letter p:last-child { margin: 0; min-height: calc(var(--row) * 2); padding-right: 130px; }   /* room for the postmark */
+.room .post-letter ul { margin: 0 0 var(--row); }
+.post-letter li { position: relative; padding-left: 22px; color: #3a2c1e; }
+.post-letter li::before { content: ''; position: absolute; left: 2px; top: 11px; width: 9px; height: 9px; background: #c0601e; box-shadow: 2px 2px 0 #2b2017; }
+.post-letter p.post-mark {
+  position: absolute; right: 22px; bottom: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 112px;
+  height: 112px; min-height: 0; margin: 0; padding: 0; font: 15px/1.15 var(--pixel-font); text-align: center; text-transform: uppercase; color: #8a3d1b;
+  border: 3px double #8a3d1b; border-radius: 50%; transform: rotate(-12deg); opacity: 0.8;
+}
+.post-mark b { font-size: 22px; font-weight: 400; }
+.post-stamps { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.post-stamp {   /* a cream frame with a perforated edge */
+  position: relative; display: flex; flex-direction: column; gap: 8px; padding: 14px 12px 12px; color: var(--px-text); text-decoration: none; background: var(--panel);
+  border: 6px solid var(--cream); outline: 4px dotted #2a1d14; outline-offset: -2px; box-shadow: 0 0 0 2px var(--ink), 5px 5px 0 2px var(--ink); transition: transform 0.15s;
+}
+a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1deg); outline: 4px dotted #2a1d14; outline-offset: -2px; box-shadow: 0 0 0 2px var(--px-text), 5px 5px 0 2px var(--ink); }
+.post-stamp svg { width: 36px; height: 36px; color: var(--amber); }
+.post-stamp b { font: 400 22px/1 var(--pixel-font); letter-spacing: 0.03em; }
+.post-stamp span { font-size: 14px; color: var(--px-soft); overflow-wrap: anywhere; }
+.post-stamp--email { grid-column: 1 / -1; background: #2f6b4a; }
+.post-stamp--email :is(svg, span) { color: var(--cream); }   /* cream, as the soft grey is too faint on the green */
+.post-stamp--email p { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0; }
+.post-btn, .post-stamp .copy-email {
+  padding: 8px 11px 6px; font: 17px/1 var(--pixel-font); text-decoration: none; color: var(--ink); background: var(--amber);
+  border: 2px solid var(--ink); box-shadow: 2px 2px 0 var(--ink); cursor: pointer;
+}
+.post-stamp .copy-email { color: var(--cream); background: transparent; border-color: var(--cream); box-shadow: none; }
+.post-stamp--parcel { grid-column: 1 / -1; flex-direction: row; align-items: center; color: var(--ink); background: #c9a227; }
+.post-stamp--parcel span { color: var(--ink); }
+.post-stamp--parcel > span:first-child { display: grid; gap: 6px; }
+.post-stamp--parcel span span { color: #3a2c1e; }
+.post-stamp .post-go { margin-left: auto; font: 28px/1 var(--pixel-font); }
+@media (prefers-reduced-motion: reduce) {
+  .radio-onair i, .radio-eq i { animation: none; }
+  .radio-eq i { height: 18px; }
+  .post-stamp { transition: none; }
+}
+@media (max-width: 860px) {
+  .post-desk, .radio-player { grid-template-columns: 1fr; }
+  .room-sheet { margin-top: -30px; padding: 0 14px; }
+  .room h1 { font-size: 44px; }
+  .room .post-letter h1 { top: 11px; font-size: 36px; }   /* a smaller face sits higher in its two rows */
+  .post-letter p.post-mark { display: none; }
+  .post-letter p:last-child { min-height: 0; padding-right: 0; }
+  .radio-cover { max-width: 200px; }
+}
+
 /* Square corners, so the site's focus ring needs no rounding. */
 .blog-px :focus-visible { border-radius: 0; }
 

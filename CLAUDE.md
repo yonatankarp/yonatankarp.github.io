@@ -25,11 +25,10 @@ files pixel for pixel (`web3d/pixel/compare_art.py`).
 
 The homepage (`layouts/index.html`) opens on the city: an aerial pixel-art panorama (`web3d/src/city.js`, `city.css`)
 that zooms into five districts, picked from a label or a chip in its panel: the Career Tower, the
-Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (the podcast) and the Post Office (email and the CV). The
+Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (`/podcast/`) and the Post Office (`/contact/`). The
 map moves by one transform (translate and scale, never scrolling), clamped so no edge of the art shows; a wheel, a
 trackpad or a finger pans it sideways at any zoom. The same chip again, or "Whole city", zooms back out. A label's first
-click zooms to its district; the picked label then shows "→" and its next click goes in (the tower, library and workshop;
-the mast's and the post office's only zoom). Its
+click zooms to its district; the picked label then shows "→" and its next click goes in. Its
 copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-PHASE].webp`, baked by
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
@@ -123,6 +122,9 @@ lamp posts in `workshop-depth.png` are stood up by `gen_workshop.py` (`upright`)
 wall as they rise, and a whole post must hide a walker passing behind it.
 `library-fx.js`, its own bundle (`--mode library`): the fire, dust in the window's light and clouds only over the
 window's sky, from `library-fx.json`, which `gen_library.py build` writes from its `FX` and the sky it reads off the art.
+`rooms-fx.js`, its own bundle (`--mode rooms`): the Radio Mast's on-air lamp, tape reels, VU needles and the mast's
+beacon, and the Post Office's clock (the visitor's real seconds), lamps and dust, from `radio-fx.json` and `post-fx.json`
+(`FX` in `gen_rooms.py`).
 
 ## Content Structure
 
@@ -135,6 +137,12 @@ window's sky, from `library-fx.json`, which `gen_library.py build` writes from i
   them with `layouts/_default/redirect.html`, a noindex redirect to their homepage floor
 - `content/skills/_index.md` — skills page
 - `content/cv.md` — printable CV page
+- `content/podcast.md` and `content/contact.md` — the Radio Mast (`/podcast/`, `layouts/_default/radio.html`) and the Post
+  Office (`/contact/`, `post.html`). Each opens on its room, painted across the head at its own 1440:347 shape
+  (`partials/room-hero.html`; a phone pans it): `radio.webp` and `post.webp`, baked by `web3d/pixel/gen_rooms.py` from
+  `web3d/pixel/paintings/picks/{radio,post}.png` (one painting each, at dusk), with `ROOM-fx.json` for their animations
+  (`web3d/src/rooms-fx.js`, its own bundle, `--mode rooms`). Their copy is `contact` in `data/home/en.yaml`. The Post
+  Office's letter is ruled: every line sits 21px into a 30px row, and the visual captures fail when one does not
 
 ## Languages
 
@@ -208,10 +216,10 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - Dashboard: `https://yonatankarp.goatcounter.com`
 - Localhost and private IPs are automatically excluded
 - To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into the script)
-- Events (dashboard, Events): `cv-download` (the top bar's Download CV, and the city's Post Office), `social-<icon>` (its social icons:
-  `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV or the footer),
-  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links),
-  `district-<key>` (the city panel's go link, and the second click on a map label that leads in, for the tower, library and workshop, whose first click only zooms: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
+- Events (dashboard, Events): `cv-download` (the top bar's Download CV, the city's Post Office and the Post Office's CV parcel), `social-<icon>` (its social icons, and the Post Office's stamps:
+  `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV, the Post Office or the footer),
+  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links), `podcast-radio` (the Radio Mast's Listen button),
+  `district-<key>` (the city panel's go link, and a map label's second click, which leads in; its first only zooms: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
   `district-post`) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `workshop-<group>` (a workshop picked on Workshop Row, by its
   label or chip, a `data-goatcounter-click`: `workshop-app`, `workshop-library`, `workshop-game`, `workshop-contribution`); `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)

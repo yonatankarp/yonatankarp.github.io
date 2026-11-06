@@ -112,6 +112,7 @@ jobs:
           done
           uv run web3d/pixel/gen_city.py build "$out"
           uv run web3d/pixel/gen_library.py build "$out"
+          uv run web3d/pixel/gen_rooms.py build "$out"
           uv run web3d/pixel/gen_workshop.py build "$out"
           uv run web3d/pixel/gen_walkers.py bake "$out"
           uv run web3d/pixel/compare_art.py "$out"

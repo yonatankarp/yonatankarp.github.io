@@ -25,7 +25,6 @@ import argparse
 import base64
 import io
 import json
-import shutil
 import sys
 import urllib.request
 from itertools import pairwise
@@ -185,9 +184,22 @@ FX = {
 }
 
 
+def upright(depth):
+    """The lamp posts stand upright, so all of one is as near as its foot. The depth model fades a thin pole into the
+    wall behind it as it rises, which would let a walker's head show in front of a post its legs pass behind. A post is
+    what stands out from both sides of its lamp's column, from the lamp down to the kerb (row 284)."""
+    px = depth.load()
+    for x0, top in FX["lamps"]:
+        post = [(x, y) for y in range(top, 284) for x in range(x0 - 8, x0 + 9) if px[x, y] - max(px[x0 - 10, y], px[x0 + 10, y]) > 4]
+        near = max(px[q] for q in post)
+        for q in post:
+            px[q] = near
+    return depth
+
+
 def write_fx(out):
     (out / "workshop-fx.json").write_text(json.dumps(FX, separators=(",", ":")))
-    shutil.copyfile(PICKED / "workshop-depth.png", out / "workshop-depth.png")   # depth_map.py's map, as it is
+    upright(Image.open(PICKED / "workshop-depth.png").convert("L")).save(out / "workshop-depth.png")   # depth_map.py's map, posts stood up
 
 
 def write_json(out):

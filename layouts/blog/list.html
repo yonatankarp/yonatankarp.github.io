@@ -5,18 +5,24 @@
 {{ $posts := sort .RegularPages "Date" "desc" }}
 {{ $art := os.ReadFile "static/building/pixel/library.json" | transform.Unmarshal }}{{/* written by gen_library.py */}}
 {{ $bays := 0 }}{{ range $k, $_ := $art.labels }}{{ if hasPrefix $k "shelf-" }}{{ $bays = add $bays 1 }}{{ end }}{{ end }}
-{{- /* A shelf for each of the tags most of the listed posts carry, most posts first (ties by name), as many as the
-     painting has shelves; each lists its posts newest first. The catalogue under the window holds every post. */}}
+{{- /* A shelf for each curated tag (data/library.yaml) that listed posts carry, then for the tags most of them carry,
+     most posts first (ties by name), as many as the painting has shelves; each lists its posts newest first. The
+     catalogue under the window holds every post. */}}
 {{ $byTag := dict }}
 {{ range $posts }}{{ $post := . }}{{ range .GetTerms "tags" }}
   {{ $pages := slice }}{{ with index $byTag .Data.Term }}{{ $pages = .pages }}{{ end }}
   {{ $byTag = merge $byTag (dict .Data.Term (dict "term" . "pages" ($pages | append $post))) }}
 {{ end }}{{ end }}
+{{ $picked := slice }}{{ $used := slice }}
+{{ range hugo.Data.library.shelves }}{{ $label := .label }}
+  {{ if not (site.GetPage (printf "/tags/%s" .tag)) }}{{ errorf "data/library.yaml: shelf %q has no tag page; no post is tagged %s" $label .tag }}{{ end }}
+  {{ with index $byTag .tag }}{{ $picked = $picked | append (merge . (dict "name" $label)) }}{{ $used = $used | append .term.Data.Term }}{{ end }}
+{{ end }}
 {{ $topics := slice }}
-{{ range $byTag }}{{ $topics = $topics | append (merge . (dict "order" (printf "%05d %s" (sub 99999 (len .pages)) .term.Title))) }}{{ end }}
+{{ range $byTag }}{{ if not (in $used .term.Data.Term) }}{{ $topics = $topics | append (merge . (dict "name" .term.Title "order" (printf "%05d %s" (sub 99999 (len .pages)) .term.Title))) }}{{ end }}{{ end }}
 {{ $shelves := slice (dict "key" "all" "name" "All posts" "pages" $posts "at" $art.labels.all) }}
-{{ range $i, $t := first $bays (sort $topics "order") }}
-  {{ $shelves = $shelves | append (dict "key" $t.term.Data.Term "name" $t.term.Title "pages" $t.pages "href" $t.term.RelPermalink "at" (index $art.labels (printf "shelf-%d" (add $i 1)))) }}
+{{ range $i, $t := first $bays ($picked | append (sort $topics "order")) }}
+  {{ $shelves = $shelves | append (dict "key" $t.term.Data.Term "name" $t.name "pages" $t.pages "href" $t.term.RelPermalink "at" (index $art.labels (printf "shelf-%d" (add $i 1)))) }}
 {{ end }}
 {{ $css := resources.Get "building/library.css" }}
 {{ $js := resources.Get "building/library.js" }}
@@ -46,7 +52,7 @@
         <h2>{{ .name }}</h2>
         <p>{{ len .pages }} {{ cond (eq (len .pages) 1) "post" "posts" }}{{ with .href }}, also on <a href="{{ . }}">the tag's page</a>{{ end }}.</p>
         <ol class="library-posts">
-          {{ range .pages }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time></li>
+          {{ range .pages }}<li><a href="{{ .RelPermalink }}">{{ .Title }}</a> <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "Jan 2, 2006" }}</time><p>{{ .Description | default (.Summary | plainify) | truncate 200 }}</p></li>
           {{ end }}
         </ol>
       </div>

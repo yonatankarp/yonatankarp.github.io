@@ -34,8 +34,10 @@ at the bare address the page reloads on the city.
 
 The blog's index (`layouts/blog/list.html`) is the city's Library, inside: a painted reading room that pans the same way
 (the shared `web3d/src/pan.js`; `library.js` and `library.css`, a bundle of its own, `assets/building/library.*`, built by
-`vite build --mode library`). Its six shelves hold the tags most listed posts carry, most first (ties by name), the card
-catalogue under the window every post; the template computes them, so a new tag needs no art. Its art is `library.webp`,
+`vite build --mode library`). Its six shelves start with the curated tags and labels in `data/library.yaml` (a tag no listed
+post carries is skipped, one with no tag page fails the build), then take the tags most listed posts carry, most first
+(ties by name); the card catalogue under the window holds every post. The template computes them, so a new tag needs no
+art, and `library.js` slides each label to stay whole on screen. Its art is `library.webp`,
 baked by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png` (one painting, at dusk), which also
 writes `library.json`, the shelves' anchors. Without a script every shelf's list shows. The homepage's script and styles live in
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until

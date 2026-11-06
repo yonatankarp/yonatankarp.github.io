@@ -84,8 +84,15 @@ export function readers(cfg, count, random = Math.random) {
         if (stop(r.steps[1]) && crowded(r)) {   // someone is here: on to the nearest clear shelf for the same stop, or a fresh plan
           const [next] = free(r).filter((i) => i !== s.shelf).map((i) => [i, at(r, i)]).filter(([, x]) => x != null)
             .sort(([, a], [, b]) => Math.abs(a - r.x) - Math.abs(b - r.x));
-          if (next) Object.assign(s, { walk: next[1], shelf: next[0] });
-          else r.steps = plan(r);
+          if (next) {
+            Object.assign(s, { walk: next[1], shelf: next[0] });
+            const k = r.steps.findIndex((t, j) => j && 'walk' in t);   // a browse of the shelf next door: next to this one now
+            if (k > 0) {
+              const nearby = free(r).filter((i) => Math.abs(i - next[0]) === 1).map((i) => [i, at(r, i)]).filter(([, x]) => x != null);
+              if (nearby.length) [r.steps[k].shelf, r.steps[k].walk] = nearby[random() * nearby.length | 0];
+              else r.steps.splice(k, 1 + cfg.browse.length + 1);   // its walk, stand, reach, take and read
+            }
+          } else r.steps = plan(r);
           begin(r, now);
           continue;
         }

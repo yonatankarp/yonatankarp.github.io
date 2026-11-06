@@ -174,6 +174,7 @@ FX = {
 }
 LAMPS = 222                                              # the armchairs' tops, above the globe's and the lamps': above them, nothing stands in front of the readers
 REACH = 64                                               # px either side: past half a reading table or an armchair, to the floor beside it
+TABLES, GROW = 271, 4                                    # the reading tables' tops, and how far up their back edges grow
 SHADOW = 3                                               # the soles' row and the two under it, which the readers' shadows reach
 WINDOW = (655, 20, 795, 175)                             # x0, y0, x1, y1: where the sky shows through the window
 
@@ -202,8 +203,9 @@ def backdrop(depth):
     keeps its depth: the lamps, the tables, the armchairs and the globe at the left edge. The rest goes to 0, so
     library-fx.js tests the readers from depth 0. The floor under a reader is its column's depth on the floor row, or,
     where a table or a chair crosses that row (40 nearer than the farthest floor within REACH), that farthest floor;
-    the model paints its own floor in bands that differ by up to 35. What is kept grows two rows up, as the model
-    softens the tables' top edges into the floor behind them."""
+    the model paints its own floor in bands that differ by up to 35. Over the tables' tops (TABLES) what is kept grows
+    GROW rows up, as the model softens their back edges into the floor behind them, and a reader's raised toe would
+    show on the table there."""
     px, (w, _), floor = depth.load(), depth.size, FX["readers"]["floor"]
     row = [px[x, floor] for x in range(w)]
     for x in range(w):
@@ -212,8 +214,8 @@ def backdrop(depth):
         for y in range(floor + SHADOW):
             if y < LAMPS or px[x, y] <= foot + 15:
                 px[x, y] = 0
-        for y in range(LAMPS, floor + SHADOW):   # top down, so each row grows from the rows under it as they were
-            px[x, y] = max(px[x, yy] for yy in range(y, min(y + 3, floor + SHADOW)))
+        for y in range(TABLES - GROW, floor + SHADOW):   # top down, so each row grows from the rows under it as they were
+            px[x, y] = max(px[x, yy] for yy in range(y, min(y + GROW + 1, floor + SHADOW)))
     return depth
 
 

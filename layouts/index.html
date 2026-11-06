@@ -66,6 +66,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 {{ $cityStart := resources.FromString "js/home-city.js" `(function () {
   var d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel');
   if (!d.classList.contains('at-city')) return;
+  i.loading = 'eager';
   i.src = i.dataset.base + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
   s.scrollLeft = c.querySelector('.city-tag[data-pick=tower]').offsetLeft - (getComputedStyle(p).position === 'fixed' ? (p.getBoundingClientRect().right + s.clientWidth) / 2 : s.clientWidth / 2);
 })();` | minify | fingerprint "sha256" }}
@@ -167,8 +168,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         {{ with $now }}<p class="floor-now"><a href="#floor-{{ .floor }}" data-goto="{{ .floor }}">Now: {{ .label }} →</a></p>{{ end }}
         <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <span class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</span></p>
         <p class="floor-lead">{{ index (split $home.hero.lede ". ") 0 }}.</p>
-        <p class="floor-city"><a href="{{ "" | relURL }}">← Back to the city</a></p>
-        <p class="floor-how"><span class="floor-how-why">Every floor is a chapter of my CV. </span><span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, or pick a window.</p>
+        <p class="floor-how"><span class="floor-how-why">Every floor is a chapter of my CV. </span><span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, pick a window, or <a href="{{ "" | relURL }}">go back to the city</a>.</p>
       </article>
     </section>
     {{- /* The street is where the lift starts, so its card is there at the first paint; not under a floor's address. */}}

@@ -48,8 +48,8 @@ html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-
 }
 .city-pdf { margin-left: 10px; }
 
-/* A phone pans the city in the top of the page and reads the panel under it. */
-@media (max-width: 700px) {
+/* A phone, or a screen too short for the panel beside the map, pans the city in the top of the page and reads the panel under it. */
+@media (max-width: 700px), (max-height: 499px) {
   .city { --bar-clear: 88px; }
   .city-scene { position: relative; height: 62vh; height: 62svh; }
   .city-panel { position: relative; left: auto; bottom: auto; width: auto; max-height: none; margin: -2px 0 0; border-width: 2px 0 0; box-shadow: none; }

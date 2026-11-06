@@ -16,7 +16,7 @@ import math
 import sys
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from paint_rooms import LOBBY  # noqa: E402
@@ -76,7 +76,38 @@ def unneedle(px):
     return out
 
 
-TOUCHUPS = {"billie_risk": unneedle}
+PLAQUES = [(312, 73, 370, 148), (392, 75, 450, 149), (471, 77, 530, 150)]   # the reception's three papers, in its pixels
+INK, HEADER, SEAL = (64, 44, 30), (122, 85, 48), (160, 50, 39)
+
+
+def plaques(px):
+    """The lobby: the three recommendations, blank paper in the painting (it painted scrawl, and its dawn none), are
+    written in code as the old cel-shaded lobby's were, at 2x: a header bar, four lines of text, a signature and its
+    seal. The paper keeps its painted light."""
+    d = ImageDraw.Draw(px)
+    for x0, y0, x1, y1 in PLAQUES:
+        d.rectangle((x0 + 6, y0 + 6, x1 - 6, y0 + 9), HEADER)
+        for k in range(4):
+            y = y0 + 18 + 8 * k
+            d.rectangle((x0 + 6, y, x1 - 6 - (x1 - x0) // 3 * (k == 3), y + 1), INK)
+        d.rectangle((x1 - 20, y1 - 10, x1 - 8, y1 - 9), INK)
+        d.rectangle((x1 - 7, y1 - 13, x1 - 4, y1 - 10), SEAL)
+    return px
+
+
+def unletter(*boxes):
+    """Lettering the model painted on a floor: each row of a box takes its median, so the planks keep their colour."""
+    def fix(px):
+        for x0, y0, x1, y1 in boxes:
+            for y in range(y0, y1):
+                row = sorted(px.getpixel((x, y)) for x in range(x0, x1))
+                for x in range(x0, x1):
+                    px.putpixel((x, y), row[len(row) // 2])
+        return px
+    return fix
+
+
+TOUCHUPS = {"billie_risk": unneedle, "reception": plaques, "roof-day": unletter((136, 278, 164, 286))}   # a room, or one hour of it
 
 
 def install(name):
@@ -93,8 +124,8 @@ def install(name):
         for box in (LIFT, SIGN):
             small.paste(lobby.crop(box), box[:2])
     px = small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
-    if room in TOUCHUPS:
-        px = TOUCHUPS[room](px)
+    for key in {room, name} & TOUCHUPS.keys():
+        px = TOUCHUPS[key](px)
     px.save(HERE / "picks" / f"{name}-px.png")
     print("installed", name, src.size, "->", px.size, "colours:", len(px.getcolors(4096)))
 

@@ -20,6 +20,7 @@ import json
 import math
 import sys
 from pathlib import Path
+from random import Random
 
 from PIL import Image, ImageChops
 
@@ -27,7 +28,7 @@ W, H = 960, 360
 CEIL, SLAB = 28, 24           # the slab above the room (rows 0..CEIL), and below it (H - SLAB..H)
 LOBBY_X = 16                  # the painting spans 16..944, between the facade posts
 FRAMES = 12                   # 12 frames at 8 fps, then the room rests (pixel.js)
-EDGE, BLOCK = 240, 24         # each run: EDGE columns, a BLOCK of the room's edge mirrored back and forth, so it tiles
+EDGE, BLOCK = 240, 24         # each run's columns; on the roof, a BLOCK of its sky's edge mirrored for its stars
 DOOR = dict(x0=102, x1=198, mid=150, y0=138, y1=306)   # the lift's door panels in strip pixels; pixel.js slides them
 SCREEN = (122, 83, 146, 95)   # the floor display over the lift, in the painting's pixels (install_picks.SIGN)
 HOUSING = 265                 # on the roof, the lift housing ends here, in the painting's pixels: open sky right of it
@@ -170,8 +171,10 @@ PLATES = [(566, 95, 584, 98), (598, 105, 609, 108), (612, 125, 623, 128), (638, 
 
 def reception(room, f, phase):
     for i, (x0, y0, x1, y1) in enumerate(PLATES):
-        if f and (f + 2 * i) % 6 < 2:
-            room.rect(x0, y0, x1, y1, (255, 226, 160))
+        if f and (f + 2 * i) % 6 < 2:                                     # lit from behind: its own brass, brighter
+            for y in range(y0, y1):
+                for x in range(x0, x1):
+                    room.brighten(x, y, 0.3)
 
 
 # Floor 1, Reichman: a tree is drawn in chalk on the board's clean panel, row by row from its root.
@@ -337,17 +340,44 @@ def frame_base(key, painting, accent):
     return img
 
 
-def runs(rest):
-    """The two runs pixel.js tiles past the strip on a wide screen: a BLOCK of the room's own edge, mirrored at the edge
-    and then back and forth, EDGE columns each, so it meets the strip, and the next run, with no seam."""
+def runs(rest, key):
+    """The two runs pixel.js tiles past the strip on a wide screen, EDGE columns each: every row goes on as the room's edge
+    leaves it, so the run meets the strip, and the next run, with no seam and no pattern (a mirrored block of a painterly
+    wall repeated its light in arches). The roof's sky keeps its stars, scattered afresh (scatter)."""
     out = Image.new("RGB", (2 * EDGE, H))
-    left = rest.crop((LOBBY_X, 0, LOBBY_X + BLOCK, H))
-    right = rest.crop((W - LOBBY_X - BLOCK, 0, W - LOBBY_X, H))
-    flip = Image.FLIP_LEFT_RIGHT
-    for i in range(EDGE // BLOCK):
-        out.paste(left.transpose(flip) if i % 2 == 0 else left, (EDGE - (i + 1) * BLOCK, 0))
-        out.paste(right.transpose(flip) if i % 2 == 0 else right, (EDGE + i * BLOCK, 0))
+    for y in range(H):
+        out.paste(rest.getpixel((LOBBY_X, y)), (0, y, EDGE, y + 1))
+        out.paste(rest.getpixel((W - LOBBY_X - 1, y)), (EDGE, y, 2 * EDGE, y + 1))
+    if key == "R":   # the right run only: the left one is the lift housing's wall
+        block = rest.crop((W - LOBBY_X - BLOCK, 0, W - LOBBY_X, H))
+        for i in range(EDGE // BLOCK):
+            out.paste(block.transpose(Image.FLIP_LEFT_RIGHT) if i % 2 == 0 else block, (EDGE + i * BLOCK, 0))
+        out.paste(scatter(out.crop((EDGE, 0, 2 * EDGE, H))), (EDGE, 0))
     return out
+
+
+SKY_ROWS, HORIZON = CEIL + 168, CEIL + 194   # the roof's open sky; the far city under it, down to the sea
+
+
+def scatter(run):
+    """Each row of the sky and the far city to its median, and what stood out of the sky (stars, a cloud's edge) put
+    back at its own seeded random place in the same row band: the same light, no pattern. The far city, mirrored, read
+    as battlements: past the strip it is just the dusk over the sea. Below that, every row goes on as the edge leaves it."""
+    px, rnd = run.load(), Random(7)
+    lit, rows = [], SKY_ROWS
+    for y in range(HORIZON):
+        row = [px[x, y] for x in range(run.width)]
+        m = sorted(row, key=lum)[len(row) // 2]
+        for x, col in enumerate(row):
+            if abs(lum(col) - lum(m)) > 24 and y < rows:
+                lit.append((y, col))
+            px[x, y] = m
+    for y, col in lit:
+        px[rnd.randrange(run.width), min(rows - 1, max(0, y + rnd.randrange(-6, 7)))] = col
+    for y in range(HORIZON, run.height):   # the sea and the parapet, whose slope mirrored into a zigzag: the edge's rows
+        for x in range(run.width):
+            px[x, y] = px[0, y]
+    return run
 
 
 def frames(key, phase):
@@ -378,7 +408,7 @@ def build(key, out, hours):
     for hour, fs in pictures.items():
         strip = Image.new("RGB", (W + 2 * EDGE + (FRAMES - 1) * (x1 - x0), H))
         strip.paste(fs[0], (0, 0))
-        strip.paste(runs(fs[0]), (W, 0))
+        strip.paste(runs(fs[0], key), (W, 0))
         for f in range(1, FRAMES):
             strip.paste(fs[f].crop((x0, y0, x1, y1)), (W + 2 * EDGE + (f - 1) * (x1 - x0), 0))
         save_lossless(strip, out / f"floor-{key}{'' if hour == 'dusk' else '-' + hour}.webp")

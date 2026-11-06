@@ -64,8 +64,8 @@ def ramp(*hexes):
     return [tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in hexes]
 
 
-# The palette of what is drawn in code (slabs, lights, screens), the accents, the icons (gen_icons.py) and the blog's
-# covers (pixelate.py). The paintings keep their own colours.
+# The palette of what is drawn in code (slabs, lights, screens), the accents, the icons (gen_icons.py) and the five blog
+# covers touched up in code (pixelate.pixelate). The paintings, and the covers baked from them, keep their own colours.
 R = {
     "wall": ramp("#2a2226", "#3d3034", "#574447", "#77605c", "#9a8072", "#bfa58c"),
     "wood": ramp("#24170f", "#3b2618", "#583a22", "#7a5530", "#9e7441", "#c39a5c"),

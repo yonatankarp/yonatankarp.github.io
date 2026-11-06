@@ -9,7 +9,7 @@
   </div>
   <div class="post-row__aside">
     <div class="post-row__thumb" aria-hidden="true">
-      <img class="px-cover" src="{{ $art.cover }}" alt="" width="192" height="108" loading="lazy" decoding="async">
+      <img class="px-cover" src="{{ $art.cover }}"{{ with $art.thumbs }} srcset="{{ . }}"{{ end }} alt="" width="192" height="108" loading="lazy" decoding="async">
     </div>
   </div>
 </article>

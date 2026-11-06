@@ -7,7 +7,7 @@
 {{- if and (not $u.Scheme) (not $u.Host) $u.Path (not (strings.HasSuffix (lower $u.Path) ".svg")) -}}
   {{- with or (.PageInner.Resources.Get $u.Path) (resources.Get $u.Path) -}}
     {{- $r := . }}{{ with try ($r.Width) }}{{ with .Value }}{{ $size = dict "Width" . "Height" $r.Height }}{{ end }}{{ end -}}
-    {{- if and $size.Width (ne $r.MediaType.SubType "gif") -}}
+    {{- if and $size.Width (ne $r.MediaType.SubType "gif") (not (strings.HasPrefix $u.Path "/images/blog/pixel/")) -}}
       {{- range $w := slice 480 800 1080 1520 -}}
         {{- if lt $w $size.Width -}}
           {{- with try ($r.Process (printf "resize %dx webp" $w)) }}{{ with .Value }}{{ if lt (len .Content) (len $r.Content) }}{{ $srcset = $srcset | append (printf "%s %dw" .RelPermalink $w) }}{{ end }}{{ end }}{{ end -}}

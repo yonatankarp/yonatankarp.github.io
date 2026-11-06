@@ -4,9 +4,9 @@
 {{ $art := partial "blog-art.html" . }}
 {{ $toc := ge (len (findRE "<a " .TableOfContents)) 3 }}
 {{ $focus := .Params.coverFocus | default 54 }}
-{{ if or (lt $focus 25) (gt $focus 78) }}{{ errorf "%s: coverFocus is the cover's row to centre on, 25 to 78 so the art still fills the band; got %v" .File.Path $focus }}{{ end }}
+{{ if or (lt $focus 25) (gt $focus 78) }}{{ errorf "%s: coverFocus is the height on the cover to centre on, in 108ths (its rows when covers were 192x108), 25 to 78 so the art still fills the band; got %v" .File.Path $focus }}{{ end }}
 <div class="post-scene" style="--focus: {{ $focus }}">
-  <img class="px-cover article__cover" src="{{ $art.cover }}" alt="" width="192" height="108" fetchpriority="high" decoding="async">
+  <img class="px-cover article__cover" src="{{ $art.cover }}" alt="" width="960" height="540" fetchpriority="high" decoding="async">
 </div>
 <section class="shell article-shell">
   <article class="article{{ if $toc }} article--toc{{ end }}" style="--post: {{ $art.accent | safeCSS }}">
@@ -103,7 +103,7 @@
     {{ range . }}
     {{ $art := partial "blog-art.html" . }}
     <a class="related-card" href="{{ .RelPermalink }}" style="--post: {{ $art.accent | safeCSS }}">
-      <img class="px-cover" src="{{ $art.cover }}" alt="" width="192" height="108" loading="lazy" decoding="async">
+      <img class="px-cover" src="{{ $art.cover }}"{{ with $art.thumbs }} srcset="{{ . }}"{{ end }} alt="" width="192" height="108" loading="lazy" decoding="async">
       <span class="related-card__date">{{ .Date.Format "Jan 2, 2006" }}</span>
       <h3>{{ .Title }}</h3>
     </a>

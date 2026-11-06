@@ -88,10 +88,11 @@ function loadPlaywright(what) {
 // The zone table layouts/partials/time-pick.html builds from data/timezones.json: each zone and link's main city, to whole
 // degrees (halves away from zero, as Hugo rounds), grouped by the zone's folder ("Europe/": "... Berlin53,13 ...").
 function zoneTable() {
+  // The links skip a retired alias the site leaves out, as the partial does.
   const round = (x) => Math.sign(x) * Math.round(Math.abs(x)) || 0;
   const { zones, links } = require("../data/timezones.json");
   const table = {};
-  for (const [name, [, lat, lon]] of Object.entries({ ...zones, ...Object.fromEntries(Object.entries(links).map(([link, to]) => [link, zones[to]])) })) {
+  for (const [name, [, lat, lon]] of Object.entries({ ...zones, ...Object.fromEntries(Object.entries(links).filter(([link]) => link !== "Asia/Tel_Aviv").map(([link, to]) => [link, zones[to]])) })) {
     const i = name.lastIndexOf("/") + 1, dir = name.slice(0, i);
     table[dir] = `${table[dir] ? `${table[dir]} ` : ""}${name.slice(i)}${round(lat)},${round(lon)}`;
   }

@@ -23,7 +23,14 @@ npm run lint             # ESLint, and Ruff over web3d/pixel/ (needs uv)
 Scripts share their helpers through `scripts/lib.js`. CI also rebuilds the art and fails unless it matches the committed
 files pixel for pixel (`web3d/pixel/compare_art.py`).
 
-The homepage (`layouts/index.html`) is the pixel-art career building. Its script and styles live in
+The homepage (`layouts/index.html`) opens on the city: an aerial pixel-art panorama that pans sideways
+(`web3d/src/city.js`, `city.css`) to five districts, picked from a label or a chip in its panel: the Career Tower, the
+Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (the podcast) and the Post Office (email and the CV). Its
+copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-PHASE].webp`, baked by
+`web3d/pixel/gen_city.py` from the picks in its `PICKS` (Draw Things paintings, the other hours edited from the dusk
+one), which also writes `city.json`, the labels' anchors the template reads. The Career Tower is the pixel-art career
+building: any `#floor-X` address (`/#floor-E` is its street) opens it directly, and pixel.js mounts it only then; back
+at the bare address the page reloads on the city. Its script and styles live in
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
 `npm run build:building` has run. That script also draws every Mermaid fence in `content/` to SVG with the `mermaid`
 package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitignored `assets/diagrams/<sha256>.svg`), which
@@ -152,9 +159,11 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - Dashboard: `https://yonatankarp.goatcounter.com`
 - Localhost and private IPs are automatically excluded
 - To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into the script)
-- Events (dashboard, Events): `cv-download` (the top bar's Download CV), `social-<icon>` (its social icons:
+- Events (dashboard, Events): `cv-download` (the top bar's Download CV, and the city's Post Office), `social-<icon>` (its social icons:
   `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV or the footer),
-  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
+  `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `podcast-roof` (the roof's podcast links),
+  `district-<key>` (the city panel's go link: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
+  `district-post`) — all `data-goatcounter-click`; `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`, `floor-E` for back on the street; the load's own floor is not counted)
   and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.
 

@@ -535,15 +535,15 @@ html.building--guided .pixel .floor-top .floor-quotes li:last-child { margin-bot
 }
 /* Short or narrow (zoomed) screens, and no JavaScript: the plain page (#24). The top bar scrolls away with it,
    cards are full width and never scroll inside themselves, and there is no lift to describe. */
-html:not(.building--guided) .pixel .building-top { position: relative; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "name . download" "links . social"; align-items: start; gap: 8px 16px; }   /* the inner pages' bar */
-html:not(.building--guided) .pixel .building-name { grid-area: name; justify-self: start; }
-html:not(.building--guided) .pixel .building-links { display: contents; }
-html:not(.building--guided) .pixel .building-links nav:first-child { grid-area: links; flex-wrap: wrap; }
-html:not(.building--guided) .pixel .building-download { grid-area: download; justify-self: end; }
-html:not(.building--guided) .pixel .building-social { grid-area: social; justify-self: end; }
-@media (max-width: 579px) { html:not(.building--guided) .pixel .building-top { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; } }
-@media (max-width: 359px) { html:not(.building--guided) .pixel .building-name { padding: 0 12px; font-size: 24px; } }
-html:not(.building--guided) .pixel .building-social { position: static; flex-wrap: wrap; }
+html:not(.building--guided, .at-city) .pixel .building-top { position: relative; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "name . download" "links . social"; align-items: start; gap: 8px 16px; }   /* the inner pages' bar */
+html:not(.building--guided, .at-city) .pixel .building-name { grid-area: name; justify-self: start; }
+html:not(.building--guided, .at-city) .pixel .building-links { display: contents; }
+html:not(.building--guided, .at-city) .pixel .building-links nav:first-child { grid-area: links; flex-wrap: wrap; }
+html:not(.building--guided, .at-city) .pixel .building-download { grid-area: download; justify-self: end; }
+html:not(.building--guided, .at-city) .pixel .building-social { grid-area: social; justify-self: end; }
+@media (max-width: 579px) { html:not(.building--guided, .at-city) .pixel .building-top { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; } }
+@media (max-width: 359px) { html:not(.building--guided, .at-city) .pixel .building-name { padding: 0 12px; font-size: 24px; } }
+html:not(.building--guided, .at-city) .pixel .building-social { position: static; flex-wrap: wrap; }
 html:not(.building--guided) .pixel .building-stops { padding-top: 0; }
 html:not(.building--guided) .pixel .building-stop { min-height: 0; padding: 12px clamp(12px, 3vw, 36px); }
 html:not(.building--guided) .pixel .building-stop .floor-card { width: min(640px, 100%); max-height: none; }
@@ -596,7 +596,7 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
   @media (max-width: 760px), (max-aspect-ratio: 6/5), (max-height: 499px) {
     .building.pixel { --street-top: 60px; }
     .pixel .building-top { gap: 4px; padding: 8px; }
-    html:not(.building--guided) .pixel .building-top { display: flex; }
+    html:not(.building--guided, .at-city) .pixel .building-top { display: flex; }
     .pixel .building-name { height: 48px; margin-right: auto; padding: 0 12px; }
     .pixel .building-menu, .pixel .building-download { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; box-sizing: border-box; width: 46px; min-height: 48px; padding: 0; }
     .pixel .building-download span { display: none; }

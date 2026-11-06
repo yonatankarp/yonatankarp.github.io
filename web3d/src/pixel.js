@@ -6,6 +6,7 @@ import { guide, roomy } from './guide.js';
 import { FW, FH, FRAMES, ORDER, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, narrow, easeInOut, clamp01, colourAt, shade, darken } from './art.js';
 import { streetView } from './street.js';
 import { floorKey, floorShaped } from './hash.js';
+import './city.js';
 import '../../assets/js/copy-email.js';
 import '../../assets/js/site-menu.js';
 import './pixel.css';
@@ -391,9 +392,12 @@ function darkenSome(deadline) {
 }
 
 const canvas = document.querySelector('#pixel-canvas');
-if (canvas) {
+const mount = () => {
   const stops = [...document.querySelectorAll('section[data-floor]')];
   const api = mountPixel({ canvas, stops, base: canvas.dataset.base || '/building/', version: canvas.dataset.version, windowsBox: document.querySelector('[data-exterior-windows]'), pauseButton: document.querySelector('[data-building-pause]') });
   guide(api);
   if (import.meta.env?.DEV) window.__building = api;
-}
+};
+// On the city (city.js) the building waits, unloaded, until the visitor enters it.
+if (canvas && document.documentElement.classList.contains('at-city')) document.addEventListener('city:enter', mount, { once: true });
+else if (canvas) mount();

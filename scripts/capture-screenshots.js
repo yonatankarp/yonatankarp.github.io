@@ -36,22 +36,39 @@ const homeSelectors = [
 
 // The street follows the visitor's season, holidays and weather too (web3d/src/outside.js): pinned to a plain summer's day.
 const plain = "season=summer&weather=clear&holiday=none";
+const citySelectors = [
+  [".city-map img", 1, "city panorama"],
+  [".city-tag", 5, "district labels"],
+  [".city-chips button[aria-pressed]", 5, "district chips"],
+];
+// "/" opens on the city; the building's routes name its street (#floor-E), which opens it directly.
 const routes = [
   {
+    name: "city",
+    path: "/?time=dusk",
+    pick: true,
+    requiredSelectors: [...citySelectors, ["html.at-city[data-time='dusk']", 1, "the city at dusk"]],
+  },
+  {
+    name: "city-night",
+    path: "/?time=night",
+    requiredSelectors: [...citySelectors, ["html.at-city[data-time='night']", 1, "the city at night"]],
+  },
+  {
     name: "home",
-    path: `/?time=dusk&${plain}`,   // pinned: the art follows the clock otherwise, so captures could not be compared (#151)
+    path: `/?time=dusk&${plain}#floor-E`,   // pinned: the art follows the clock otherwise, so captures could not be compared (#151)
     pauseLabel: true,
     ride: true,
     requiredSelectors: [...homeSelectors, ["html[data-time='dusk']", 1, "dusk art"]],
   },
   ...Object.keys(phases).filter((time) => time !== "dusk").map((time) => ({
     name: `home-${time}`,
-    path: `/?time=${time}&${plain}`,
+    path: `/?time=${time}&${plain}#floor-E`,
     requiredSelectors: [...homeSelectors, [`html[data-time='${time}']`, 1, `${time} art`]],
   })),
   {
     name: "home-dressed",   // the decorations drawn over it: a snowy winter's night, the last of Hanukkah and Christmas
-    path: "/?time=night&season=winter&weather=snow&holiday=hanukkah:7,christmas",
+    path: "/?time=night&season=winter&weather=snow&holiday=hanukkah:7,christmas#floor-E",
     requiredSelectors: [...homeSelectors, ["html[data-weather='snow'][data-holiday='hanukkah christmas']", 1, "the dressed street"]],
   },
   {
@@ -139,7 +156,8 @@ const assertions = [
   "Mobile pages do not horizontally overflow the viewport.",
   "Visible images are loaded with non-zero natural dimensions.",
   "Every page renders the shared top bar (layouts/partials/pixel-bar.html): name plate, four tabs, CV download and the social row.",
-  "Home page renders the building: its canvas, every floor and the street view's windows.",
+  "Home page opens on the city: its panorama, five district labels and chips; a chip picks its district and the tower's link enters the building.",
+  "Home page renders the building at #floor-E: its canvas, every floor and the street view's windows.",
   "Home page rides the lift: a floor button (the hero's CTA on mobile) rides to the roof or floor 8, the name plate rides back to the street, and scrolling and the garage door's sign both reach the garage.",
   "Home page pause button shows a Pause label that turns to Play on click, on mobile inside the top bar's Menu.",
   "CV page renders every role.",
@@ -485,6 +503,19 @@ async function assertRide(page, route, viewport) {
   await arrive("P", "ArrowDown");
 }
 
+async function assertPick(page, route, viewport) {
+  await page.click(".city-chips button[data-pick='post']");
+  const shown = await page.evaluate(() => !document.querySelector("[data-district='post']").hidden && document.querySelector(".city-chips [aria-pressed='true']")?.dataset.pick);
+  if (shown !== "post") {
+    fail(`${route.path} (${viewport.name}) picking the Post Office showed ${shown || "nothing"}`);
+  }
+  await page.click(".city-chips button[data-pick='tower']");
+  await page.click("[data-district='tower'] .city-go");
+  await page
+    .waitForSelector("section[data-floor='E'].is-here", { timeout: 8000 })
+    .catch(() => fail(`${route.path} (${viewport.name}) Enter the tower did not reach the street`));
+}
+
 async function assertPauseLabel(page, route, viewport) {
   const read = () =>
     page.evaluate(() => {
@@ -652,6 +683,14 @@ async function main() {
 
           if (pageErrors.length > 0) {
             fail(`${route.path} (${viewport.name}) threw uncaught page errors while riding: ${pageErrors.join("; ")}`);
+          }
+        }
+
+        if (route.pick) {   // after the capture too, which shows the city as it opens
+          await assertPick(page, route, viewport);
+
+          if (pageErrors.length > 0) {
+            fail(`${route.path} (${viewport.name}) threw uncaught page errors in the city: ${pageErrors.join("; ")}`);
           }
         }
         await page.close();

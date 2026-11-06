@@ -1,7 +1,9 @@
-{{- /* The homepage is the career building: a pixel-art street view, then one storey per chapter of the CV, top
-     to bottom. A standalone document (no baseof): the shared top bar (partials/pixel-bar.html) and no site footer.
-     Every card is real HTML from content/ and data/home; web3d/src/pixel.js (bundled into assets/building/ by
-     `npm run build:building`) draws the building behind them and rides the lift between them. */ -}}
+{{- /* The homepage opens on the city: a pixel-art aerial panorama that pans between five districts (web3d/src/city.js).
+     Its Career Tower is the career building: a pixel-art street view, then one storey per chapter of the CV, top
+     to bottom, which any #floor-X address opens directly. A standalone document (no baseof): the shared top bar
+     (partials/pixel-bar.html) and no site footer. Every card is real HTML from content/ and data/home;
+     web3d/src/pixel.js (bundled into assets/building/ by `npm run build:building`) draws the building behind them and
+     rides the lift between them. */ -}}
 {{ $home := hugo.Data.home.en }}
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Params.floor" "desc" }}
 {{ $education := sort (where .Site.RegularPages "Type" "education") "Date" "desc" }}
@@ -20,6 +22,8 @@
 {{ $skills := .Site.GetPage "/skills" }}
 {{ $posts := sort (where .Site.RegularPages "Type" "blog") "Date" "desc" }}
 {{ $accent := hugo.Data.floor_accents }}{{/* each storey's accent band, shared with the CV */}}
+{{ $city := $home.city }}
+{{ $cityArt := os.ReadFile "static/building/pixel/city.json" | transform.Unmarshal }}{{/* written by web3d/pixel/gen_city.py */}}
 {{ $js := resources.Get "building/building.js" }}
 {{ $css := resources.Get "building/building.css" }}
 {{ $base := "building/" | relURL }}{{/* where pixel.js finds its art: the canvas's data-base */}}
@@ -40,10 +44,13 @@
      minifyOutput finds nothing left to change; scripts/check-generated-html.js checks the built bytes still match. The
      error listener replaces the module tag's onerror attribute, which the CSP would block: capture phase, as a script's
      error event does not bubble, and registered before the tag, so no failure comes too early for it. */}}
+{{- /* The city (at-city) wherever the address names no floor and a module can run; without one, the plain page. */}}
 {{ $guided := resources.FromString "js/home-guided.js" `
-addEventListener('error', function (e) { if (e.target.type === 'module') { document.documentElement.classList.remove('building--guided'); document.querySelector('[data-building-pause]').hidden = true; } }, true);
+addEventListener('error', function (e) { if (e.target.type === 'module') { document.documentElement.classList.remove('building--guided', 'at-city'); document.querySelector('[data-building-pause]').hidden = true; } }, true);
 addEventListener('pagereveal', function (e) { if (e.viewTransition) { document.documentElement.classList.add('px-arrive'); document.dispatchEvent(new Event('building:reveal')); } });
-if ('noModule' in HTMLScriptElement.prototype && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
+var modular = 'noModule' in HTMLScriptElement.prototype, floor = /^#floor-/i.test(location.hash);
+if (modular && !floor) document.documentElement.classList.add('at-city');
+if (modular && floor && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
 if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.add('at-street');
 ` | minify | fingerprint "sha256" }}
 {{- /* The hour's art (#151): dawn, day, dusk or night, picked once here (partials/time-pick.html) and read by pixel.js,
@@ -51,11 +58,18 @@ if (/^(#(floor-e)?)?$/i.test(location.hash)) document.documentElement.classList.
      starts at once; a static preload tag would fetch the dusk street at every hour. */}}
 {{ $time := resources.FromString "js/home-time.js" (printf `
 (function(){%s
-var time=document.documentElement.dataset.time,l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/exterior'+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
+var time=document.documentElement.dataset.time,l=document.createElement('link');l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/'+(/^#floor-/i.test(location.hash)?'exterior':'city')+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
 ` (partial "time-pick.html" .) $base $artVersion) | minify | fingerprint "sha256" }}
 {{ $street := resources.FromString "js/home-street.js" `document.documentElement.classList.contains('at-street') || document.currentScript.previousElementSibling.classList.remove('is-here');
 document.documentElement.classList.contains('building--guided') && !matchMedia('(prefers-reduced-motion: reduce)').matches && (document.querySelector('[data-building-pause]').hidden = false);` | minify | fingerprint "sha256" }}
-{{ .Store.Set "inlineScripts" (slice $time $guided $street) }}
+{{- /* The city's picture at the hour, and its first view on the tower before the first paint, as city.js pans it. */}}
+{{ $cityStart := resources.FromString "js/home-city.js" `(function () {
+  var d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel');
+  if (!d.classList.contains('at-city')) return;
+  i.src = i.dataset.base + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
+  s.scrollLeft = c.querySelector('.city-tag[data-pick=tower]').offsetLeft - (getComputedStyle(p).position === 'fixed' ? (p.getBoundingClientRect().right + s.clientWidth) / 2 : s.clientWidth / 2);
+})();` | minify | fingerprint "sha256" }}
+{{ .Store.Set "inlineScripts" (slice $time $guided $street $cityStart) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
@@ -83,6 +97,46 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   <div class="building-scrim" aria-hidden="true"></div>
 
   {{ partial "pixel-bar.html" . }}
+  {{- /* The city: shown only where html has at-city (the pre-paint script above), else the building is the page. Its
+       labels sit where gen_city.py's city.json puts them; JS only pans the map and shows the picked district's text. */}}
+  {{ $role := split $home.hero.eyebrow " · " }}
+  {{ $pdf := cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}
+  {{ $go := dict "tower" "#floor-E" "library" ("blog/" | relURL) "workshop" ("projects/" | relURL) "radio" $home.contact.podcast.url "post" (printf "mailto:%s" $home.contact.email.address) }}
+  {{ $counts := dict "tower" (len $experience) "library" (len $posts) "workshop" (len $projects) }}
+  {{ $texts := dict "radio" $home.contact.podcast.text "post" $home.contact.title }}
+  <section class="city" aria-label="City map" data-city>
+    <div class="city-scene">
+      <div class="city-map" style="aspect-ratio:{{ index $cityArt.size 0 }} / {{ index $cityArt.size 1 }}">
+        {{- /* Lazy, so a floor's address, which hides the city, never fetches it; on the city the script after it picks the hour's. */}}
+        <img src="{{ $base }}pixel/city.webp?v={{ $artVersion }}" alt="{{ $city.alt }}" width="{{ index $cityArt.size 0 }}" height="{{ index $cityArt.size 1 }}" loading="lazy" data-base="{{ $base }}pixel/city" data-version="{{ $artVersion }}">
+        {{ range $city.districts }}{{ $at := index $cityArt.labels .key }}
+        <button class="city-tag" type="button" data-pick="{{ .key }}" style="--x:{{ index $at 0 }}%;--y:{{ index $at 1 }}%">{{ .name }}</button>
+        {{ end }}
+      </div>
+    </div>
+    <div class="city-panel">
+      <h1 class="sr-only">{{ site.Title }}</h1>
+      <p class="city-kicker" data-city-kicker>{{ $city.kicker }}</p>
+      <p class="city-lede">{{ index $role 0 }}: {{ index $role 1 }}. {{ $city.hint }}</p>
+      <div class="city-chips" role="group" aria-label="Districts">{{ range $city.districts }}<button type="button" data-pick="{{ .key }}" aria-pressed="false">{{ .name }}</button>{{ end }}</div>
+      <div class="city-say" aria-live="polite">
+        <div data-district>
+          <h2>{{ $home.hero.title }}</h2>
+          <p>{{ $home.hero.availability }}</p>
+          <p><a class="city-go" href="#floor-E" data-goatcounter-click="district-tower">{{ $city.enter }} →</a></p>
+        </div>
+        {{ range $city.districts }}{{ $title := .title }}
+        <div data-district="{{ .key }}" hidden>
+          <h2>{{ with index $counts .key }}{{ printf $title . }}{{ else }}{{ $title }}{{ end }}</h2>
+          <p>{{ .text | default (index $texts .key) }}</p>
+          {{ if eq .key "post" }}<p class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</p>{{ end }}
+          <p><a class="city-go" href="{{ index $go .key }}" data-goatcounter-click="district-{{ .key }}">{{ .go }} →</a>{{ if eq .key "post" }} <a class="city-pdf" href="{{ $pdf }}"{{ if not hugo.IsServer }} download{{ end }} data-goatcounter-click="cv-download">Download the CV (PDF)</a>{{ end }}</p>
+        </div>
+        {{ end }}
+      </div>
+    </div>
+  </section>
+  <script>{{ $cityStart.Content | safeJS }}</script>
   <div class="exterior-windows" data-exterior-windows></div>
   <p class="sr-only" role="status" aria-live="polite" data-building-status data-copy-status></p>
 
@@ -113,6 +167,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         {{ with $now }}<p class="floor-now"><a href="#floor-{{ .floor }}" data-goto="{{ .floor }}">Now: {{ .label }} →</a></p>{{ end }}
         <p class="floor-cta">{{ with $home.hero.primaryAction }}<a class="hero-cta" href="{{ .url }}" data-goto="R">{{ .label }}</a>{{ end }} <span class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</span></p>
         <p class="floor-lead">{{ index (split $home.hero.lede ". ") 0 }}.</p>
+        <p class="floor-city"><a href="{{ "" | relURL }}">← Back to the city</a></p>
         <p class="floor-how"><span class="floor-how-why">Every floor is a chapter of my CV. </span><span class="hint-fine">Scroll</span><span class="hint-coarse">Swipe</span> to go inside, or pick a window.</p>
       </article>
     </section>

@@ -2,7 +2,8 @@
 
 // Loads every built page in Chromium with its Content-Security-Policy meta enforced and fails on any
 // securitypolicyviolation, CSP console error or page error (#149). It also runs the paths that load
-// late: the diagram zoom, video, search, the homepage lift and a floor panel, the arrival at the homepage from
+// late: the diagram zoom, video, search, the homepage's city and the way from it into the building, the lift and a floor
+// panel, the arrival at the homepage from
 // another page, and the 404's GoatCounter setup.
 //
 // GoatCounter is made to fire on localhost (allow_local) so its CSP is exercised, but no hit reaches it:
@@ -43,7 +44,7 @@ let AxeBuilder;
 
 // A built page that only sends the reader on: Hugo's alias pages and layouts/_default/redirect.html.
 function isRedirect(route) {
-  const file = path.join(publicDir, route.split("?")[0], "index.html");
+  const file = path.join(publicDir, route.split(/[?#]/)[0], "index.html");
   return fs.existsSync(file) && /<meta\b[^>]*http-equiv=["']?refresh/i.test(fs.readFileSync(file, "utf8"));
 }
 
@@ -75,7 +76,8 @@ function builtRoutes() {
 
   // The homepage at every hour: this script runs at wall-clock time, so "/" alone would only ever see one (#151).
   // and the street dressed: every flight then carries the decorations' layers, and the snow and the fireworks fall (outside.js)
-  return routes.sort().concat(missingRoute, arrivalRoute, ...Object.keys(phases).map((time) => `/?time=${time}`), "/?time=night&season=winter&weather=snow&holiday=hanukkah:7,christmas,new-year,lunar-new-year");
+  // "/" opens on the city; a floor's address opens the building, which axe then sees at load.
+  return routes.sort().concat(missingRoute, arrivalRoute, ...Object.keys(phases).map((time) => `/?time=${time}`), "/#floor-E", "/?time=night&season=winter&weather=snow&holiday=hanukkah:7,christmas,new-year,lunar-new-year#floor-E");
 }
 
 // Runs in every page before its own scripts.
@@ -185,7 +187,18 @@ async function exercise(page, route) {
     did.push("arrived at the homepage");
   }
 
-  if (route === "/" || route.startsWith("/?time=")) {
+  if (route === "/" || (route.startsWith("/?time=") && !route.includes("#"))) {
+    await page.click(".city-chips button[data-pick='library']");
+    if (await page.getAttribute(".city-chips button[data-pick='library']", "aria-pressed") !== "true" || await page.isHidden("[data-district='library']")) {
+      throw new Error("picking the library did not show it");
+    }
+    await page.click(".city-tag[data-pick='tower']");
+    await page.click("[data-district='tower'] .city-go");
+    await page.waitForSelector("html.building--guided:not(.at-city)", { timeout: 5000 });
+    did.push("city district picked; the tower entered");
+  }
+
+  if (route === "/" || route.startsWith("/?time=") || route.startsWith("/#")) {
     await page.keyboard.press("ArrowDown");
     await page.waitForTimeout(800);
     await page.locator(".building-floor-btn").nth(3).click();

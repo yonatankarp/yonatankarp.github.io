@@ -12,7 +12,7 @@ if (canvas) {
   animate(canvas, { data: canvas.dataset.fx, depth: canvas.dataset.depth }, (ctx, fx, test) => setup(ctx, fx, test, sheet));
 }
 
-function setup(ctx, fx, { sprite }, sheet) {
+function setup(ctx, fx, { dfill, sprite }, sheet) {
   const W = ctx.canvas.width, [x0, y0, x1, y1] = fx.fire, mid = (x0 + x1) / 2, base = y1 - 4;
   const sky = new Uint8Array(W * ctx.canvas.height);
   for (const [y, a, b] of fx.sky) sky.fill(1, y * W + a, y * W + b + 1);
@@ -59,17 +59,39 @@ function setup(ctx, fx, { sprite }, sheet) {
   };
 
   // Readers walking the floor in front of the bookcases, stopping to look, to take a book and read, each its own way
-  // (readers.js). Only the reading lamps hide them (library-depth.png).
-  const crowd = readers(fx.readers, 3);
+  // (readers.js), each on a soft shadow the width of its feet. Only the reading lamps and tables hide them: the depth map
+  // is made for them (gen_library.py's backdrop), so they are tested from depth 0.
+  const crowd = readers(fx.readers, 3), floor = fx.readers.floor;
   let looks = null;
   sheet.then((s) => { looks = s; });
+  const feet = (fr) => {   // the columns its feet cover: its pixels in the 4 rows down to its sole
+    if (!fr.feet) {
+      const xs = fr.cells.flatMap(({ px }) => px.filter((_, i) => i % 2 === 0 && px[i + 1] >= fr.foot - 3));
+      fr.feet = [Math.min(...xs), Math.max(...xs)];
+    }
+    return fr.feet;
+  };
+  const shadow = (fr, x, left) => {   // a wider faint ellipse and a darker core, in the room's own shadow brown
+    let [a, b] = feet(fr);
+    if (left) [a, b] = [looks.w - 1 - b, looks.w - 1 - a];
+    const cx = Math.round(x) - (looks.w >> 1) + (a + b) / 2, w = (b - a) / 2 + 6;
+    for (const [alpha, across, down] of [[0.3, 1, 2.6], [0.35, 0.7, 1.6]]) {
+      ctx.fillStyle = `rgba(24,10,6,${alpha})`;
+      for (let y = -2; y <= 2; y++) {
+        const t = 1 - (y / down) ** 2, half = Math.round(w * across * Math.sqrt(t));
+        if (t > 0) dfill(Math.round(cx - half), floor + y, 2 * half + 1, 1, 0);
+      }
+    }
+  };
   const drawReaders = (now, dt) => {
     crowd.step(now, dt);
     if (!looks) return;
     crowd.all.forEach((r, i) => {
       if (!r.shown) return;
       const frames = looks.frames[i % looks.frames.length], p = crowd.pose(r);
-      sprite(looks, frames[p < 0 ? Math.floor(r.dist / looks.stride * looks.walk) % looks.walk : looks.walk + p], r.x, fx.readers.floor, r.left);
+      const fr = frames[p < 0 ? Math.floor(r.dist / looks.stride * looks.walk) % looks.walk : looks.walk + p];
+      shadow(fr, r.x, r.left);
+      sprite(looks, fr, r.x, floor, r.left, 0);
     });
   };
 

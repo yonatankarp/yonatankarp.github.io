@@ -20,13 +20,14 @@ function seeded(seed) {
 async function run(seed) {
   const { readers } = await load();
   const crowd = readers(cfg, 3, seeded(seed)), dt = 1000 / 60, frames = [];
+  frames.start = crowd.all.map((r) => r.x);
   const doing = (r) => {
     const s = r.steps[0];
     return "walk" in s ? "walk" : "pose" in s ? ["stand", "reach", "take", "read"][s.pose] : "idle" in s ? "idle" : "away";
   };
   for (let now = 0; now < 5 * 60 * 1000; now += dt) {
     crowd.step(now, dt);
-    frames.push(crowd.all.map((r) => ({ doing: doing(r), shelf: r.shelf, left: r.left, ms: r.steps[0].ms })));
+    frames.push(crowd.all.map((r) => ({ doing: doing(r), shelf: r.shelf, left: r.left, ms: r.steps[0].ms, x: r.x, shown: r.shown })));
   }
   return frames;
 }
@@ -67,4 +68,34 @@ test("the readers walk past and leave the room, look, take books and read short 
   assert.ok(frames.some((r) => r.doing === "read" && r.ms < 10000), "nobody read for a moment");
   const stops = frames.filter((r) => r.doing !== "walk" && r.doing !== "away" && r.shelf != null);
   assert.ok(stops.some((r) => r.left) && stops.some((r) => !r.left), "every stop at a shelf faced the same way");
+});
+
+// Stopped: standing, reaching, taking, reading or idling, in the room. Out of it, a reader is nowhere, so two may wait
+// at the same edge.
+const stopped = (r) => r.shown && r.doing !== "walk" && r.doing !== "away";
+const pairs = (f) => f.flatMap((a, i) => f.slice(i + 1).map((b) => [a, b]));
+
+test("the readers start apart, and never stop within the gap of another", async () => {
+  assert.ok(cfg.gap >= 60, `a gap of ${cfg.gap} px is less than a reader's width`);
+  let starts = 0;
+  for (const seed of [280, 281, 282, 283, 284]) {
+    const frames = await run(seed), step = cfg.speed[1] / 60;   // a later reader in the same frame walks on up to this far
+    for (const [a, b] of pairs(frames.start)) {
+      assert.ok(Math.abs(a - b) >= cfg.gap, `seed ${seed}: two readers started ${Math.abs(a - b).toFixed(1)} px apart`);
+    }
+    frames.forEach((f, i) => {
+      for (const [a, b] of pairs(f)) {
+        if (stopped(a) && stopped(b)) assert.ok(Math.abs(a.x - b.x) >= cfg.gap, `seed ${seed}: two readers stopped ${Math.abs(a.x - b.x).toFixed(1)} px apart at frame ${i}`);
+      }
+      if (!i) return;
+      f.forEach((r, k) => {
+        if (!stopped(r) || frames[i - 1][k].doing !== "walk") return;
+        starts++;
+        for (const o of f) {
+          if (o !== r && o.shown) assert.ok(Math.abs(o.x - r.x) >= cfg.gap - step, `seed ${seed}: a reader stopped ${Math.abs(o.x - r.x).toFixed(1)} px from another at frame ${i}`);
+        }
+      });
+    });
+  }
+  assert.ok(starts > 50, `the readers barely stopped: ${starts} stops`);
 });

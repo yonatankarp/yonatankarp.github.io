@@ -75,9 +75,9 @@ function builtRoutes() {
   const routes = walk(publicDir, ".html").map((file) => `/${path.relative(publicDir, file).split(path.sep).join("/").replace(/index\.html$/, "")}`);
 
   // The homepage at every hour: this script runs at wall-clock time, so "/" alone would only ever see one (#151).
-  // and the street dressed: every flight then carries the decorations' layers, and the snow and the fireworks fall (outside.js)
-  // "/" opens on the city; a floor's address opens the building, which axe then sees at load.
-  return routes.sort().concat(missingRoute, arrivalRoute, ...Object.keys(phases).map((time) => `/?time=${time}`), "/#floor-E", "/?time=night&season=winter&weather=snow&holiday=hanukkah:7,christmas,new-year,lunar-new-year#floor-E");
+  // "/" opens on the city; a floor's address opens the building, which axe then sees at load: the lobby, and the roof at
+  // night.
+  return routes.sort().concat(missingRoute, arrivalRoute, ...Object.keys(phases).map((time) => `/?time=${time}`), "/#floor-L", "/?time=night#floor-R");
 }
 
 // Runs in every page before its own scripts.
@@ -240,10 +240,6 @@ async function check(context, baseUrl, route) {
     }
   });
   page.on("pageerror", (error) => result.errors.push(String(error.message || error)));
-  // The street's one weather call (web3d/src/outside.js), answered here: the check runs the same with or without a network.
-  await page.route(/api\.open-meteo\.com/, (request) => {
-    request.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ current: { weather_code: 71, temperature_2m: -2 } }) });
-  });
   await page.route(/goatcounter\.com/, (request) => {
     result.goatcounter += 1;
     request.fulfill({ status: 200, contentType: "image/gif", body: pixel });

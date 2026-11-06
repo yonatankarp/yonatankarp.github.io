@@ -261,7 +261,7 @@ function checkTopBar(route, html) {
 
   // The homepage's building scripts and styles read these (web3d/src/guide.js, pixel.js, pixel.css).
   const homeHooks = [
-    /<a\b[^>]*class=["']?building-name["']?[^>]*data-goto=["']?E["']?[\s>]/,
+    /<a\b[^>]*class=["']?building-name["']?[^>]*href=["']?#city["']?[\s>]/,
     /class=["']?building-links["']?[\s>]/,
     /<button\b[^>]*class=["']?building-pause["']?[^>]*data-building-pause[\s>]/,
     /data-building-pause-label[\s>]/,

@@ -1,7 +1,8 @@
 // The floor an address names, for pixel.js. No DOM and no bundled JSON, so scripts/test can import it as it is.
 // The old one-page site's anchors, still linked from elsewhere, land on the floor that took their place (#29); the
-// closed newsroom's (floor 8) on the lobby, whose newsstand has the writing now.
-const LEGACY = { about: 'L', testimonial: 'L', contact: 'R', experience: '7', proof: '7', 'client-and-work-section': 'P', 'floor-8': 'L' };
+// closed newsroom's (floor 8) and the street's (E), which the city replaced as the way in, on the lobby. The garage's
+// (#floor-P, #client-and-work-section) go to /projects/ before this runs (layouts/index.html).
+const LEGACY = { about: 'L', testimonial: 'L', contact: 'R', experience: '7', proof: '7', 'floor-8': 'L', 'floor-e': 'L' };
 
 // '#floor-5', '#FLOOR-l' (Hugo lowercases menu URLs, so the site menu's About arrives as #floor-l) or a legacy anchor:
 // the floor's key. Any other hash: undefined. The pre-paint test in layouts/index.html ignores case too.

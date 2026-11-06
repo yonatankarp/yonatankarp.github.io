@@ -609,7 +609,7 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
 /* The stepped clip-path cuts outlines away, so focus is a ring drawn inside the box: cream, then ink. */
 .px-bar a:focus-visible, .px-menu:focus-visible, .cv-floor:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
 
-/* The homepage street without its tower behind the sheet of every pixel page, dimmed (gen_exterior.py: backdrop.webp),
+/* The city round the Career Tower behind the sheet of every pixel page, dimmed (gen_city.py: backdrop.webp, a crop of it),
    at the visitor's hour like the homepage: html[data-time] is set before the first paint (partials/time-pick.html).
    Without JS it stays dusk. Relative to the published css/ folder. */
 .px-skin { --scene: url(../building/pixel/backdrop.webp); }

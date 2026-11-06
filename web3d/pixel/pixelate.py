@@ -8,8 +8,8 @@ uv run web3d/pixel/pixelate.py SRC.png OUT.png [--size 376x154] [--colours 32] [
 
 Pipeline: median (kill painterly grain) -> BOX downscale -> pick this picture's colour budget (k-means in Lab,
 snapped to the palette) -> nearest colour in Lab -> the painting's dark ink lines forced to the outline colour ->
-lone-pixel cleanup. The palette is gen_floors.R (the rooms' ramps) plus its outline, so painted rooms and
-code-drawn props share colours, and gen_floors' lighting pass can shift painted pixels along their ramps.
+lone-pixel cleanup. The palette is gen_floors.R (the code-drawn ramps) plus its outline. The blog's covers use it;
+the tower's rooms are baked by install_picks.py instead, on their own colours.
 
 --line-art swaps the median for a 5px min filter, so a diagram's thin lines thicken instead of vanishing in the box.
 """

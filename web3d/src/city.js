@@ -85,7 +85,6 @@ if (city && root.classList.contains('at-city')) {
     if (!floorShaped(location.hash)) return;
     removeEventListener('hashchange', enter);
     root.classList.remove('at-city');
-    root.classList.toggle('at-street', /^#floor-e$/i.test(location.hash));
     scrollTo(0, 0);   // a phone may have scrolled down to the panel; the building's page does not scroll
     document.dispatchEvent(new Event('city:enter'));
   });

@@ -1,5 +1,5 @@
-// The calendar behind the street's decorations (outside.js): the season at a latitude and the holidays on a date, worked
-// out in the browser, with no service to ask. Pure, so scripts/test/calendar.test.js runs it under Node.
+// The calendar behind the parked seasonal and holiday dressing (outside.js): the season at a latitude and the holidays on
+// a date, worked out in the browser, with no service to ask. Pure, so scripts/test/calendar.test.js runs it under Node.
 // The Jewish, Chinese and Islamic dates come from the browser's own calendars (Intl, with ICU's); Easter is a formula;
 // Diwali, whose date neither gives, is a table.
 

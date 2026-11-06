@@ -1,6 +1,5 @@
 # The colour of each storey's accent band, as painted: written by web3d/pixel/gen_floors.py (accents()) from
-# FLOORS. Read by the homepage building and the CV, so a role keeps its colour in both. Do not edit by hand.
-E: "#F2B13B"
+# FLOORS. Read by the tower and the CV, so a role keeps its colour in both. Do not edit by hand.
 R: "#F2B13B"
 "7": "#FF6B5A"
 "6": "#9B7BFF"
@@ -10,4 +9,4 @@ R: "#F2B13B"
 "2": "#62B08E"
 "1": "#62B08E"
 L: "#C39A5C"   # the wood ramp's top step: its #9E7441 was muddy on the button, under AA as link text
-P: "#9499A0"
+P: "#9499A0"   # not a storey: the CV's open source and courses, in the old garage's grey

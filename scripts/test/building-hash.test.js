@@ -8,7 +8,6 @@ test("floorKey reads a floor's address in any case (#249)", async () => {
   assert.equal(floorKey("#floor-5"), "5");
   assert.equal(floorKey("#FLOOR-3"), "3");
   assert.equal(floorKey("#floor-l"), "L");
-  assert.equal(floorKey("#Floor-E"), "E");
 });
 
 test("floorKey sends the old one-page anchors to their floors, in any case", async () => {
@@ -16,7 +15,8 @@ test("floorKey sends the old one-page anchors to their floors, in any case", asy
   assert.equal(floorKey("#about"), "L");
   assert.equal(floorKey("#Contact"), "R");
   assert.equal(floorKey("#floor-8"), "L");
-  assert.equal(floorKey("#floor-8", ["P", "L", "1", "8", "R"]), "8", "a floor 8 that exists again is its own");
+  assert.equal(floorKey("#Floor-E"), "L", "the street's, which the city replaced: the lobby");
+  assert.equal(floorKey("#floor-8", ["L", "1", "8", "R"]), "8", "a floor 8 that exists again is its own");
 });
 
 test("floorKey places nothing else", async () => {

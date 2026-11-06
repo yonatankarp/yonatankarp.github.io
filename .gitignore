@@ -16,26 +16,31 @@ assets/building/
 # The Mermaid diagrams, drawn to SVG by scripts/render-diagrams.js (npm run build:building)
 assets/diagrams/
 
-# Draw Things paintings: only the picked candidates are inputs (install_picks.PICKS, paint_rooms.LOBBY_PICK,
-# gen_exterior.PICK); the rest are kept locally for comparison
+# Draw Things paintings: only the picked candidates are inputs (install_picks.PICKS, paint_rooms.LOBBY and OLD_LOBBY);
+# the rest are kept locally for comparison
 web3d/pixel/paintings/candidates/*
 !web3d/pixel/paintings/candidates/lobby_100.png
-!web3d/pixel/paintings/candidates/sumup_451.png
-!web3d/pixel/paintings/candidates/nice_400.png
-!web3d/pixel/paintings/candidates/billie_risk_400.png
-!web3d/pixel/paintings/candidates/inuitive_400.png
-!web3d/pixel/paintings/candidates/reichman_400.png
-!web3d/pixel/paintings/candidates/billie_orchestrator_417.png
-!web3d/pixel/paintings/candidates/billie_payments_417.png
-!web3d/pixel/paintings/candidates/roof_400.png
-!web3d/pixel/paintings/candidates/reception_400.png
-!web3d/pixel/paintings/candidates/parking_400.png
-!web3d/pixel/paintings/candidates/writing_400.png
-!web3d/pixel/paintings/candidates/street9_634.png
-!web3d/pixel/paintings/candidates/sumup_717.png
-!web3d/pixel/paintings/candidates/billie_risk_834.png
-!web3d/pixel/paintings/candidates/billie_orchestrator_800.png
-!web3d/pixel/paintings/candidates/billie_payments_717.png
+# (the first, cel-shaded lobby: paint_rooms.py's lobby is an edit of it) the lobby, every room, the roof's and the
+# lobby's other hours, and floors 1 and 3 with the wall beside the lift mended (paint_rooms.py wall)
+!web3d/pixel/paintings/candidates/lobby_1017.png
+!web3d/pixel/paintings/candidates/cab_1000.png
+!web3d/pixel/paintings/candidates/reichman_1168.png
+!web3d/pixel/paintings/candidates/reichman_1168-wall.png
+!web3d/pixel/paintings/candidates/inuitive_1134.png
+!web3d/pixel/paintings/candidates/nice_1270.png
+!web3d/pixel/paintings/candidates/nice_1270-wall.png
+!web3d/pixel/paintings/candidates/sumup_1117.png
+!web3d/pixel/paintings/candidates/billie_risk_1100.png
+!web3d/pixel/paintings/candidates/billie_orchestrator_1117.png
+!web3d/pixel/paintings/candidates/billie_payments_1134.png
+!web3d/pixel/paintings/candidates/reception_1117.png
+!web3d/pixel/paintings/candidates/roof_1100.png
+!web3d/pixel/paintings/candidates/roof_1100-dawn_1000.png
+!web3d/pixel/paintings/candidates/roof_1100-day_1000.png
+!web3d/pixel/paintings/candidates/roof_1100-night_1017.png
+!web3d/pixel/paintings/candidates/reception_1117-dawn_1000.png
+!web3d/pixel/paintings/candidates/reception_1117-day_1000.png
+!web3d/pixel/paintings/candidates/reception_1117-night_1000.png
 # install_picks.py also saves each crop beside its pixel art; only the -px.png files are read
 web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/*-px.png

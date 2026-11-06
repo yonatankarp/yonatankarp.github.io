@@ -1,13 +1,13 @@
 {{- /* The one top bar of every page, the homepage included: name plate, the tabs, Download CV, then the social row
      under it. Takes the page. On the homepage it wears the building's classes (web3d/src/pixel.css places it over
-     the canvas), the name rides the lift to the street and the pause joins the tabs; elsewhere it is .px-bar
+     the canvas), the name goes back to the city and the pause joins the tabs; elsewhere it is .px-bar
      (custom.css) and the current tab is marked. The tags pages belong to the Blog tab. On phones the links, pause and
      social row are a native popover under Menu; on wider screens each stylesheet undoes the popover's UA styles. */ -}}
 {{ $home := .IsHome }}
 {{ $here := .RelPermalink }}
 <header class="{{ cond $home "building-top" "px-bar" }}">
   {{ if $home }}
-  <a class="building-name" href="#floor-E" data-goto="E">Yonatan Karp-Rudin</a>
+  <a class="building-name" href="#city">Yonatan Karp-Rudin</a>
   {{ else }}
   <a class="px-bar__name" href="{{ .Site.Home.RelPermalink }}">Yonatan Karp-Rudin</a>
   {{ end }}

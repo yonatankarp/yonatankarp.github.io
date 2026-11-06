@@ -97,10 +97,17 @@ main street and the ring road (headlights at dusk and night), windows going dark
 mast's beacon and the crane's lights, and flocks of birds. Movers hide behind what is nearer in `city-depth.png`
 (brighter = nearer). `gen_city.py build` writes `city-fx.json` (the windows and the bay found in the baked art, and the
 walks, plazas, lanes and lights in its `WALKS`, `PLAZAS`, `LANES` and `LIGHTS`) and copies `city-depth.png` from
-`web3d/pixel/paintings/picks/`, which `uv run web3d/pixel/city_depth.py` makes from the dusk pick (it needs torch, so
+`web3d/pixel/paintings/picks/`, which `uv run web3d/pixel/depth_map.py city` makes from the dusk pick (it needs torch, so
 it is not part of the build: rerun it, and commit its output, when the dusk pick changes). Nothing moves under reduced
 motion or with `?fx=off`, which the visual captures use; the loop stops while the tab is hidden, the city is off screen
 or the tower is entered.
+
+Workshop Row (`/projects/`) and the Library's header (`/blog/`) move the same way, sharing `web3d/src/scene-fx.js` (the
+canvas loop, its pauses and the depth test) with the city. `workshop-fx.js`: walkers on the pavement, a cat on the left
+wall, a welder's sparks, code on the screens and moths round the lamps (not by day), from `workshop-fx.json` and
+`workshop-depth.png`, which `gen_workshop.py build` writes from its `FX` and the map `depth_map.py workshop` makes.
+`library-fx.js`, its own bundle (`--mode library`): the fire, dust in the window's light and clouds only over the
+window's sky, from `library-fx.json`, which `gen_library.py build` writes from its `FX` and the sky it reads off the art.
 
 ## Content Structure
 

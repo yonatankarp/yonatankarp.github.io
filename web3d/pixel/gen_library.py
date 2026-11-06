@@ -6,7 +6,7 @@
 
 Run: uv run web3d/pixel/gen_library.py blockout [OUT]                  # the code blockout, for a look
      uv run web3d/pixel/gen_library.py paint [--count N] [--start S]   # Draw Things repaints the blockout (port 7860)
-     uv run web3d/pixel/gen_library.py build [OUT]                     # OUT/library.webp
+     uv run web3d/pixel/gen_library.py build [OUT]                     # OUT/library.webp and library-fx.json
 
 The city's pipeline (gen_city.py) at the city's size and colours, so the grain matches: the blockout fixes where every
 shelf sits, the model paints over it, and the pick is box-reduced and quantised undithered. One painting, at dusk: the
@@ -14,10 +14,14 @@ room is lit by its own lamps, and the window's dusk is the city's. No shelf stan
 needs new art.
 Paintings go to web3d/pixel/paintings/candidates/library_SEED.png (not committed); the chosen one is copied to
 web3d/pixel/paintings/picks/library.png, the build's input, and its seed noted in PICK.
+
+The room's animations (web3d/src/library-fx.js) draw from library-fx.json: the fire, the dust in the window's light,
+and clouds passing only over the window's sky, which is read off the baked art.
 """
 import argparse
 import base64
 import io
+import json
 import sys
 from pathlib import Path
 from itertools import pairwise
@@ -146,8 +150,35 @@ def bake():
     return im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
 
 
+# Where the room's animations go, in art pixels (library-fx.js): x0, y0, x1, y1.
+FX = {
+    "fire": [1276, 215, 1310, 258],                      # the flames, above the logs
+    "glow": [[1240, 250, 1350, 280], [1255, 280, 1345, 300]],   # the hearth and the floor before it
+    "dust": [655, 40, 795, 300],                         # the window's shaft of light
+    "clouds": [620, 40, 820, 110],                       # where clouds drift past outside, left to right
+}
+WINDOW = (655, 20, 795, 175)                             # x0, y0, x1, y1: where the sky shows through the window
+
+
+def sky(im):
+    """The window's sky, as runs [y, x0, x1] per row: its bright, bluish pixels, so clouds pass behind the frames and
+    the rooftops outside."""
+    px, (x0, y0, x1, y1), runs = im.load(), WINDOW, []
+    for y in range(y0, y1):
+        for x in range(x0, x1):
+            if not (sum(p := px[x, y]) > 470 and p[2] > p[1] - 10):
+                continue
+            if runs and runs[-1][0] == y and runs[-1][2] == x - 1:
+                runs[-1][2] = x
+            else:
+                runs.append([y, x, x])
+    return runs
+
+
 def build(out):
-    bake().save(out / "library.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    im = bake()
+    im.save(out / "library.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    (out / "library-fx.json").write_text(json.dumps({**FX, "sky": sky(im)}, separators=(",", ":")))
     print("drew library.webp from seed", PICK, f"at {ART_W} wide")
 
 

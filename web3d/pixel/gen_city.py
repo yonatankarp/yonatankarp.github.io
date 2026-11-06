@@ -19,7 +19,7 @@ Paintings go to web3d/pixel/paintings/candidates/city[-PHASE]_SEED.png (not comm
 web3d/pixel/paintings/picks/city[-PHASE].png, the build's input, and its seed noted in PICKS.
 
 The city's animations (web3d/src/city-fx.js) draw from city-fx.json: the lit windows and the bay found in the baked art,
-and the walks, lanes and lights below. Their depth map, picks/city-depth.png, is made by city_depth.py (it needs torch)
+and the walks, lanes and lights below. Their depth map, picks/city-depth.png, is made by depth_map.py (it needs torch)
 and copied here as it is, so this script never needs torch.
 """
 import argparse
@@ -299,7 +299,7 @@ def sea(night, dusk):
 def write_fx(out, night, day, dusk):
     (out / "city-fx.json").write_text(json.dumps({"windows": windows(night, day, dusk), "sea": sea(night, dusk), "walks": WALKS,
                                                   "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}, separators=(",", ":")))
-    shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # city_depth.py's map, as it is
+    shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # depth_map.py's map, as it is
 
 
 def write_json(out):

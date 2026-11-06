@@ -193,7 +193,8 @@ h4 a,
 :root:has(.library) .px-bar > * { pointer-events: auto; }
 .library { --panel: #3a2616; --panel-hi: #5a4028; --ink: #1b1410; --edge: #9a7148; --post: #f2a93b; }
 .library-hero { position: relative; height: min(52vh, 470px); overflow: hidden; border-bottom: 3px solid var(--ink); }
-.library-hero img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; image-rendering: pixelated; }
+.library-hero :is(img, .library-fx) { width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; image-rendering: pixelated; }
+.library-fx { position: absolute; inset: 0; pointer-events: none; }   /* the room's animations (library-fx.js), cropped as the picture is */
 .library-hero::after { content: ''; position: absolute; inset: auto 0 0; height: 45%; background: linear-gradient(transparent, rgba(42, 29, 20, 0.92)); }
 .library-title { position: absolute; z-index: 1; inset: auto 0 22px; max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 .library-back { font-size: 14px; color: var(--px-soft); }

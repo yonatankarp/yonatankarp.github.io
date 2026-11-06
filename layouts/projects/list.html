@@ -24,6 +24,7 @@
 })();` | minify | fingerprint "sha256" }}
 {{ .Store.Set "bodyScripts" (slice $hour) }}
 {{ $version := "" }}{{ range $k, $_ := hugo.Data.phases }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/workshop%s.webp" (cond (eq $k "dusk") "" (printf "-%s" $k)))) | sha256 }}{{ end }}
+{{ range slice "fx.json" "depth.png" }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/workshop-%s" .)) | sha256 }}{{ end }}{{/* the animations' data too */}}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">
 <head>
@@ -40,6 +41,7 @@
       <div class="city-map" style="aspect-ratio:{{ index $art.size 0 }} / {{ index $art.size 1 }}">
         <img src="{{ "building/pixel/workshop.webp" | relURL }}?v={{ substr $version 0 12 }}" alt="A row of four red-brick maker workshops with sawtooth glass roofs along a cobbled street, each roller door rolled up onto a lit workbench with tools, parts and a screen: one workshop for each kind of project." width="{{ index $art.size 0 }}" height="{{ index $art.size 1 }}" loading="lazy" fetchpriority="high" data-base="{{ "building/pixel/workshop" | relURL }}" data-version="{{ substr $version 0 12 }}">
         <script>{{ $hour.Content | safeJS }}</script>
+        <canvas class="city-fx" width="{{ index $art.size 0 }}" height="{{ index $art.size 1 }}" aria-hidden="true"></canvas>{{/* the row's life: workshop-fx.js */}}
         {{ range $workshops }}
         <button class="city-tag{{ if eq .key "app" }} on{{ end }}" type="button" data-pick="{{ .key }}" data-goatcounter-click="workshop-{{ .key }}" aria-pressed="{{ eq .key "app" }}" style="--x:{{ index .at 0 }}%;--y:{{ index .at 1 }}%">{{ .name }}</button>
         {{ end }}

@@ -45,7 +45,7 @@ const citySelectors = [
 const routes = [
   {
     name: "city",
-    path: "/?time=dusk&fx=off",   // fx=off: the city's walkers, cars and birds (city-fx.js) would move between captures
+    path: "/?time=dusk&fx=off",   // fx=off: the animations (scene-fx.js) would move between captures
     pick: true,
     requiredSelectors: [...citySelectors, ["html.at-city[data-time='dusk']", 1, "the city at dusk"]],
   },
@@ -73,7 +73,7 @@ const routes = [
   },
   {
     name: "projects",
-    path: "/projects/?time=dusk",   // Workshop Row follows the clock like the city, so pinned
+    path: "/projects/?time=dusk&fx=off",   // Workshop Row follows the clock like the city, so pinned; still, as the city is
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-bar__tabs a", 4, "top bar tabs"],
@@ -98,7 +98,7 @@ const routes = [
   },
   {
     name: "blog",
-    path: "/blog/",
+    path: "/blog/?fx=off",   // the Library's fire and dust (library-fx.js) held still
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-bar__tabs a", 4, "top bar tabs"],

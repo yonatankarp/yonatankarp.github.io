@@ -8,13 +8,15 @@ between encoder runs while every pixel is the same, so a byte compare would fail
 Run: uv run web3d/pixel/compare_art.py NEW [OLD]   # OLD defaults to static/building/pixel
 
 Fails when a picture in OLD (WebP, or the city's depth map, a PNG) is missing from NEW or differs in size or in any pixel,
-or when exterior.json, city.json, city-fx.json or workshop.json differs.
+or when one of the JSON files the pipeline writes differs.
 """
 import json
 import sys
 from pathlib import Path
 
 from PIL import Image, ImageChops
+
+JSONS = ("exterior.json", "city.json", "city-fx.json", "workshop.json", "workshop-fx.json", "library-fx.json")
 
 
 def main(new, old):
@@ -31,12 +33,12 @@ def main(new, old):
             elif box := ImageChops.difference(a, b).getbbox():
                 problems.append(f"{path.name}: pixels differ in {box}")
         count += 1
-    for name in ("exterior.json", "city.json", "city-fx.json", "workshop.json"):
+    for name in JSONS:
         if json.loads((new / name).read_text()) != json.loads((old / name).read_text()):
             problems.append(f"{name}: differs")
     if problems:
         sys.exit("The art does not rebuild as committed:\n" + "\n".join(f"- {p}" for p in problems))
-    print(f"The art rebuilds pixel for pixel: {count} pictures, exterior.json, city.json, city-fx.json and workshop.json.")
+    print(f"The art rebuilds pixel for pixel: {count} pictures and {', '.join(JSONS)}.")
 
 
 if __name__ == "__main__":

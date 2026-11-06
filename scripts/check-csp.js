@@ -187,6 +187,14 @@ async function exercise(page, route) {
     did.push("arrived at the homepage");
   }
 
+  if (route === "/projects/") {
+    await page.click(".city-tag[data-pick='game']");
+    if (await page.getAttribute(".city-chips button[data-pick='game']", "aria-pressed") !== "true" || await page.isHidden("[data-district='game']") || await page.isVisible("[data-district='app']")) {
+      throw new Error("picking the games workshop did not show it");
+    }
+    did.push("workshop picked");
+  }
+
   if (route === "/" || (route.startsWith("/?time=") && !route.includes("#"))) {
     await page.click(".city-chips button[data-pick='library']");
     if (await page.getAttribute(".city-chips button[data-pick='library']", "aria-pressed") !== "true" || await page.isHidden("[data-district='library']")) {

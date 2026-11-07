@@ -468,12 +468,17 @@ BAY_SEED = (40, 210)
 
 
 def bay(day):
-    """The bay's water: what the blue of the day art reaches from BAY_SEED. Its beach and the grass behind it part it from
-    the far shore's buildings and the open sea beyond them, which sea()'s test alone would let in."""
+    """The bay's water: what the blue of the day art reaches from BAY_SEED, each row filled across, so the grey
+    reflections inside it count too. Its beach and the grass behind it part it from the far shore's buildings and the
+    open sea beyond them, which sea()'s test alone would let in."""
     d = day.load()
     blue = lambda q: (p := d[q])[2] > p[0] + 30
     assert blue(BAY_SEED), f"BAY_SEED {BAY_SEED} is not water in the day art"
-    return spread([BAY_SEED], blue, day.size)
+    rows = {}
+    for x, y in spread([BAY_SEED], blue, day.size):
+        lo, hi = rows.get(y, (x, x))
+        rows[y] = (min(lo, x), max(hi, x))
+    return {(x, y) for y, (lo, hi) in rows.items() for x in range(lo, hi + 1)}
 
 
 def sea(night, dusk, water):

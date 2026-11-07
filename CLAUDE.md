@@ -111,7 +111,7 @@ needs them adds the pick back in `head.html`.
 `web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the backdrop rules in
 `custom.css`, and paint the city, Workshop Row, the roof and the lobby's view at it: `npm run check:phases` (part of
 `npm run check`) fails until those agree with `phases.json`, and `gen_floors.py` checks its baked rooms (the paintings
-there are) and its sky (the roof strip's top row) on every run.
+there are) and its sky (the roof strip's top row, which `sky_band` draws in it) on every run.
 
 The same script picks the visitor's season, `html[data-season]`, from the date and their zone's latitude (`seasonOn`,
 `assets/js/season.js`, which `time-pick.html` and `scripts/lib.js` append after `sun.js`, and `calendar.js` re-exports;
@@ -138,8 +138,11 @@ visitor's city after noon (`isEvening` in calendar.js), from `assets/js/sun.js`,
 The tower's art is 928x308 a room (painted at 2304x768, box-reduced and median-cut to 64 colours, no dither, like the
 city), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an edit of the lobby carried across, so the
 wall, skirting and floor run on from the lift), `install_picks.py` bakes the picks (`PICKS`) and pastes the lobby's one
-lift into each, and `gen_floors.py` draws the slabs, the floor number and what moves (each room's animation, which only
-paints over what is there: lights, screens, a glint). A strip is its rest frame, two runs pixel.js tiles past it on a
+lift into each (on the roof, whose hours repainted it, its call panel too: `PANEL`, relit to the hour's wall), and
+`gen_floors.py` draws the slabs, the floor number and what moves (each room's animation, which only paints over what is
+there: lights, screens, a glint in the room's own colours). The roof has open sky for its top slab (`sky_band`): the
+painting's own sky at its top blended up, in its own colours and flat bands, into `phases.json`'s sky, its masts carried
+on up and, at night, its stars scattered over it. A strip is its rest frame, two runs pixel.js tiles past it on a
 wide screen, the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
 they slide apart), and its moving box's other frames. The lobby has one more picture at each hour,
 `floor-L-open[-PHASE].webp`, its glass entrance standing open (cut at `ENTRANCE`), which the push-in from the city lands on:

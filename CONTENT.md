@@ -12,8 +12,8 @@ the build fails, and nothing is published, when one is broken.
 - Keys stay as they are; change only the text in quotes.
 - `%s` and `%d` are filled in by the site: a name, a title, a count. Keep them, as many as there were, in the same
   order. A literal percent sign in such a line is `%%`.
-- Where a comment says Markdown, a link is `[words](https://address)`. Elsewhere the text is plain: write `&`, not
-  `&amp;`.
+- Where a comment says Markdown, a link is `[words](https://address)`, and a straight `'` comes out curly (`’`).
+  Elsewhere the text is plain: write `&`, not `&amp;`.
 
 ## I want to change …
 

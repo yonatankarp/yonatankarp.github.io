@@ -54,7 +54,7 @@ chips are links to the tag pages and the search box a form to `/search/`.
 
 The projects' index (`layouts/projects/list.html`) is the city's Workshop Row: a street of four brick workshops, one per
 project `group` (apps, libraries, games, contributions, in that order), that pans sideways by scrolling
-(`web3d/src/pan.js`) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
+(`web3d/src/pan.js`; an up or down wheel too, where the panel floats) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
 are a bundle of their own, `assets/building/workshop.*` (`vite build --mode workshop`). Each workshop lists its projects
 by `weight`; without a script every workshop's list shows. Its art follows the clock and the season like the city:
 `workshop[-winter][-PHASE].webp`, baked by `web3d/pixel/gen_workshop.py` from `paintings/picks/workshop[-winter][-PHASE].png`
@@ -306,7 +306,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
   `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `roof-post` (the roof's Get in touch, to `/contact/`), `podcast-radio` (the Radio Mast's Listen button),
   `district-<key>` (the city panel's go link, and a map label's second click, which leads in; its first only zooms: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
   `district-post`) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `workshop-<group>` (a workshop picked on Workshop Row, by its
-  label or chip, a `data-goatcounter-click`: `workshop-app`, `workshop-library`, `workshop-game`, `workshop-contribution`); `floor-<key>` (the first time a visit's ride
+  label or chip, sent by `web3d/src/workshop.js`, as count.js may bind before the buttons exist: `workshop-app`, `workshop-library`, `workshop-game`, `workshop-contribution`); `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`; the load's own floor is not counted; there is no `floor-E` or `floor-P`:
   the way back out to the city is a page view of `/`)
   and `step-in-<key>` (each Step inside), both from `web3d/src/guide.js`. A 404 counts as `404/<path>`.

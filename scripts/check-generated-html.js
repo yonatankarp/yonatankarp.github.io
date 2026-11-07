@@ -46,8 +46,8 @@ function checkProjectsPage(route, html) {
   const isLabel = (tag) => /\bcity-tag\b/.test(collectAttribute(tag, "class") ?? "");
   for (const [what, buttons] of [["label", picks.filter(isLabel)], ["chip", picks.filter((tag) => !isLabel(tag))]]) {
     const pressed = buttons.filter((tag) => collectAttribute(tag, "aria-pressed") === "true").map((tag) => collectAttribute(tag, "data-pick"));
-    if (buttons.length !== 4 || pressed.join() !== "app" || !buttons.every((tag) => collectAttribute(tag, "data-goatcounter-click") === `workshop-${collectAttribute(tag, "data-pick")}`)) {
-      failures.push(`${route}: expected four workshop ${what}s with workshop-<group> events, Apps pressed`);
+    if (buttons.length !== 4 || pressed.join() !== "app" || buttons.some((tag) => collectAttribute(tag, "data-goatcounter-click") !== null)) {
+      failures.push(`${route}: expected four workshop ${what}s, Apps pressed, and no data-goatcounter-click (workshop.js counts workshop-<group>)`);
     }
   }
 

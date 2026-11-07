@@ -16,12 +16,13 @@
 {{ if not (and $css $js) }}{{ errorf "The projects' Workshop Row needs its bundle in assets/building/: run `npm run build:building` first." }}{{ end }}
 {{ $css = $css | fingerprint }}
 {{ $js = $js | fingerprint }}
-{{- /* The painting at the visitor's hour and, in winter, under snow (head.html's time pick), set before it loads; lazy
-     only so that it waits for this, as a page without a script loads it at once, at dusk. */}}
+{{- /* The painting at the visitor's hour and, in winter, under snow (head.html's time pick), set before it loads: src
+     before eager, so the dusk one is never asked for (#300). Lazy only so that it waits for this, as a page without a
+     script loads it at once, at dusk. */}}
 {{ $hour := resources.FromString "js/workshop-time.js" `(function () {
   var i = document.currentScript.previousElementSibling, d = document.documentElement.dataset, t = d.time;
-  i.loading = 'eager';
   i.src = i.dataset.base + (d.season === 'winter' ? '-winter' : '') + (t === 'dusk' ? '' : '-' + t) + '.webp?v=' + i.dataset.version;
+  i.loading = 'eager';
 })();` | minify | fingerprint "sha256" }}
 {{ .Store.Set "bodyScripts" (slice $hour) }}
 {{ $version := "" }}{{ range $season := slice "" "-winter" }}{{ range $k, $_ := hugo.Data.phases }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/workshop%s%s.webp" $season (cond (eq $k "dusk") "" (printf "-%s" $k)))) | sha256 }}{{ end }}{{ end }}
@@ -44,7 +45,7 @@
         <script>{{ $hour.Content | safeJS }}</script>
         <canvas class="city-fx" width="{{ index $art.size 0 }}" height="{{ index $art.size 1 }}" aria-hidden="true"></canvas>{{/* the row's life: workshop-fx.js */}}
         {{ range $workshops }}
-        <button class="city-tag{{ if eq .key "app" }} on{{ end }}" type="button" data-pick="{{ .key }}" data-goatcounter-click="workshop-{{ .key }}" aria-pressed="{{ eq .key "app" }}" style="--x:{{ index .at 0 }}%;--y:{{ index .at 1 }}%">{{ .name }}</button>
+        <button class="city-tag{{ if eq .key "app" }} on{{ end }}" type="button" data-pick="{{ .key }}" aria-pressed="{{ eq .key "app" }}" style="--x:{{ index .at 0 }}%;--y:{{ index .at 1 }}%">{{ .name }}</button>
         {{ end }}
       </div>
     </div>
@@ -52,12 +53,14 @@
       <a class="workshop-back" href="{{ "" | relURL }}">{{ hugo.Data.ui.back_to_city }}</a>
       <h1 class="city-kicker">{{ $t.title }}</h1>
       <p class="city-lede">{{ .Content | plainify }} {{ $t.pick }}</p>
-      <div class="city-chips" role="group" aria-label="{{ $t.chips }}">{{ range $workshops }}<button type="button" data-pick="{{ .key }}" data-goatcounter-click="workshop-{{ .key }}" aria-pressed="{{ eq .key "app" }}">{{ .name }}</button>{{ end }}</div>
-      <div class="city-say" aria-live="polite">
+      <div class="city-chips" role="group" aria-label="{{ $t.chips }}">{{ range $workshops }}<button type="button" data-pick="{{ .key }}" aria-pressed="{{ eq .key "app" }}">{{ .name }}</button>{{ end }}</div>
+      <div class="sr-only" aria-live="polite" data-said></div>{{/* a pick's short line, not its whole list (workshop.js) */}}
+      <div class="city-say">
         {{ range $workshops }}
-        <div data-district="{{ .key }}"{{ if ne .key "app" }} hidden{{ end }}>
+        {{ $count := printf "%d %s" (len .pages) (cond (eq (len .pages) 1) $t.project $t.projects) }}
+        <div data-district="{{ .key }}" data-say="{{ printf $t.say .name $count }}"{{ if ne .key "app" }} hidden{{ end }}>
           <h2>{{ .name }}</h2>
-          <p>{{ len .pages }} {{ cond (eq (len .pages) 1) $t.project $t.projects }}.</p>
+          <p>{{ $count }}.</p>
           <ol class="workshop-projects">
             {{ range .pages }}
             {{ $case := .Params.caseStudy }}

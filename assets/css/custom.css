@@ -984,6 +984,13 @@ html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night
   from { mask-size: 100% 0, var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile); mask-position: 0 0, 0 0, 0 var(--tile), 0 calc(2 * var(--tile)); }
   to { mask-size: 100% var(--wiped), var(--tile) var(--tile), var(--tile) var(--tile), var(--tile) var(--tile); mask-position: 0 0, 0 var(--wiped), 0 calc(var(--wiped) + var(--tile)), 0 calc(var(--wiped) + 2 * var(--tile)); }
 }
+/* In from the city's push-in (html.iris, from the head's pre-paint, assets/js/push-in.js): no wipe. The old page's last
+   frame holds as it is until web3d/src/iris.js has laid the same frame over this page and ends the transition, then opens
+   it in its iris. Without a view transition, nothing of the page but its top bar shows before the frame. */
+html.iris::view-transition-old(root) { animation: px-hold 3s step-end; }
+html.iris::view-transition-new(root) { display: none; }
+@keyframes px-hold { to { opacity: 1; } }
+html.iris:not(.iris-open) body > :not(.px-bar, .px-iris) { visibility: hidden; }
 
 /* Forced colors (Windows High Contrast) drop every box-shadow, and the skin draws its focus rings and most frames with
    them (#251). There focus is a system-colour outline, drawn inside the box where the stepped clip-path would cut it

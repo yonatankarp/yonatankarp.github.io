@@ -124,14 +124,14 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         <div data-district>
           <h2>{{ $home.hero.title }}</h2>
           <p>{{ $home.hero.availability }}</p>
-          <p><a class="city-go" href="#floor-L" data-goatcounter-click="district-tower">{{ $city.enter }} →</a></p>
+          <p><a class="city-go" href="#floor-L" data-go="tower" data-goatcounter-click="district-tower">{{ $city.enter }} →</a></p>
         </div>
         {{ range $city.districts }}{{ $title := .title }}
         <div data-district="{{ .key }}" hidden>
           <h2>{{ with index $counts .key }}{{ printf $title . }}{{ else }}{{ $title }}{{ end }}</h2>
           <p>{{ .text | default (index $texts .key) }}</p>
           {{ if eq .key "post" }}<p class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</p>{{ end }}
-          <p><a class="city-go" href="{{ index $go .key }}" data-goatcounter-click="district-{{ .key }}">{{ .go }} →</a>{{ if eq .key "post" }} <a class="city-pdf" href="{{ $pdf }}"{{ if not hugo.IsServer }} download{{ end }} data-goatcounter-click="cv-download">Download the CV (PDF)</a>{{ end }}</p>
+          <p><a class="city-go" href="{{ index $go .key }}" data-go="{{ .key }}" data-goatcounter-click="district-{{ .key }}">{{ .go }} →</a>{{ if eq .key "post" }} <a class="city-pdf" href="{{ $pdf }}"{{ if not hugo.IsServer }} download{{ end }} data-goatcounter-click="cv-download">Download the CV (PDF)</a>{{ end }}</p>
         </div>
         {{ end }}
       </div>

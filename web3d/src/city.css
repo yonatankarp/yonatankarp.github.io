@@ -25,6 +25,15 @@ html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-
 }
 .city.zoomed .city-tag:not(.on) { opacity: 0; visibility: hidden; transition: transform var(--glide, 0s), opacity 0.4s, visibility 0s 0.4s; }
 .city-tag-in { display: none; }   /* the picked label's arrow: its next click goes in */
+/* Going in (city.js): the map pushes on into the district, gathering speed, as its labels and the panel step away. A
+   phone's map, only the top of the page, grows out over the panel to fill the screen (city.js fixes it). Then the frame it ends on lies
+   over the tower (iris.js) under the top bar. */
+.city.going .city-map { transition-timing-function: cubic-bezier(0.55, 0, 0.9, 0.4); }
+.city.going .city-tag { visibility: hidden; }
+.city .city-panel { transition: opacity 240ms steps(3); }
+.city.going .city-panel { opacity: 0; pointer-events: none; }
+.city.going .city-scene { overflow: visible; z-index: 2; }
+html:has(.px-iris) .pixel .building-top { z-index: 5; }
 .city-tag.on .city-tag-in { display: inline; }
 
 .city-tag {

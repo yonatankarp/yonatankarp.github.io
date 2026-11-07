@@ -34,7 +34,21 @@ copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-
 one; the dusk pick carries one more edit, the tower's glass entrance doors, from `gen_city.py door`, and the hours were
 edited from it with the door), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
 middle in % of the art, and how far to zoom: `ZOOM`), capped where an art pixel would pass `MAX_PX` (4) screen px,
-so a big screen zooms less than a phone, and never under 1. The Career Tower is the pixel-art career
+so a big screen zooms less than a phone, and never under 1. Going in (a district's go link, or its label's second
+click) the map pushes on, ease-in over 450 ms, and the next view opens from it in a dithered iris (`web3d/src/iris.js`)
+while it settles from 1.18 to 1; every other link keeps the wipe. The tower and Workshop Row have doors (`doors` in
+`city.json`, `DOORS` in `gen_city.py`): the city's lands on the next view's door at its size, to 14 screen px a city art
+px. The tower's is the lobby's lift, where pixel.js lays it out (`lay` in `web3d/src/art.js`; a phone's lobby starts on
+its lift and pans to its usual focus), and its entrance opens first: `door-open[-PHASE].webp`, the same hour's painting
+with the doors open, kept as its crop round the door (`picks/city-open[-PHASE].png`, from `gen_city.py door --open`),
+pasted on the pick, baked on the pick's own colours and cut at `DOOR_OPEN` (`doorOpen` in `city.json`). The tower is
+this page, so city.js lays the frame over it and enters `#floor-L`. Workshop Row's is the Apps door where `/projects/`
+pans it on load (`door` and `shutter` in `workshop.json`, from `gen_workshop.py`), whose shutter then rolls up. The
+Library, the Radio Mast and the Post Office push into the building's middle, ending on their room header's middle.
+Those are pages of their own: the city leaves its last frame in sessionStorage, and their head's pre-paint
+(`assets/js/push-in.js`, allowed by its hash in `head.html`) holds the old page's view transition (`html.iris` in
+`custom.css`) until iris.js lays the frame over the page. A plain link under reduced motion, with `?fx=off`, where the
+tower is the plain page, or for a click that opens a tab; Back restores the city as it was (`pageshow`). The Career Tower is the pixel-art career
 building, entered at its lobby: any `#floor-X` address opens it directly, and pixel.js mounts it only then; back
 at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city. It is the career
 only: every other topic has its building in the city. The old street's `#floor-E` lands in the lobby (`web3d/src/hash.js`),

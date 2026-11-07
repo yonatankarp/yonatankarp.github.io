@@ -8,11 +8,13 @@ Run: uv run web3d/pixel/gen_city.py blockout [OUT]                  # the code b
      uv run web3d/pixel/gen_city.py paint [--count N] [--start S]   # Draw Things repaints the blockout at dusk (port 7860)
      uv run web3d/pixel/gen_city.py door [--count N] [--start S]    # Draw Things paints the tower's entrance doors
      uv run web3d/pixel/gen_city.py door --pick SEED                # ... and one goes into the dusk pick
+     uv run web3d/pixel/gen_city.py door --open PAINTING [--time PHASE]  # the hour's whole painting with its doors open:
+                                                                    # its crop at DOOR goes to picks/city-open[-PHASE].png
      uv run web3d/pixel/gen_city.py paint --time PHASE [...]        # ... or edits the dusk pick to another hour
      uv run web3d/pixel/gen_city.py build [OUT]                     # OUT/city.webp, city-PHASE.webp for every other
                                                                     # phase in data/phases.json, backdrop[-PHASE].webp
-                                                                    # (BACKDROP of each), city.json, city-fx.json
-                                                                    # and city-depth.png
+                                                                    # (BACKDROP of each), door-open[-PHASE].webp,
+                                                                    # city.json, city-fx.json and city-depth.png
      uv run web3d/pixel/gen_city.py json [OUT]                      # only OUT/city.json
 
 The blockout fixes where every district sits; the model paints over it, and the picked painting (PICKS) is box-reduced
@@ -273,11 +275,37 @@ def install_door(seed):
     print("wrote", PICKED / "city.png", "with door", seed, "(note it in DOOR_SEED, then repaint the other hours)")
 
 
+# Going into the tower from the city (city.js), its entrance's doors open: the same hour's painting with them open, edited
+# from the pick at that hour, of which only the crop at DOOR is kept (picks/city-open[-PHASE].png, ample for DOOR_OPEN at
+# the box filter's 2.4:1). It is pasted back on the pick, baked on the pick's own colours and cut at DOOR_OPEN, in art px.
+DOOR_OPEN = (710, 196, 756, 240)
+
+
 def bake(phase):
-    """The painting box-reduced to the art's size, on its own COLOURS colours: the pixel look, with no dither to shimmer."""
+    """The painting box-reduced to the art's size, on its own COLOURS colours: the pixel look, with no dither to shimmer.
+    Paletted, so the open doors can be baked on the same colours."""
     im = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
     small = im.resize(SIZE, Image.BOX)
-    return small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
+    return small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+
+
+def open_crop(phase):
+    return PICKED / f"city-open{'' if phase == 'dusk' else '-' + phase}.png"
+
+
+def cut_open(painting, phase):
+    """Keep the crop of a whole painting with the doors open that the bake needs."""
+    Image.open(painting).convert("RGB").crop(DOOR).save(open_crop(phase))
+    print("wrote", open_crop(phase))
+
+
+def bake_open(phase, art):
+    """The tower's entrance at this hour with its doors open, on the hour's own colours (art, bake's), cut at DOOR_OPEN."""
+    if not open_crop(phase).exists():
+        sys.exit(f"no {open_crop(phase)}: cut it from the whole painting with the doors open (gen_city.py door --open PAINTING --time {phase})")
+    im = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
+    im.paste(Image.open(open_crop(phase)).convert("RGB"), DOOR[:2])
+    return im.resize(SIZE, Image.BOX).quantize(palette=art, dither=Image.Dither.NONE).convert("RGB").crop(DOOR_OPEN)
 
 
 # Where the city's animations go, in art pixels (city-fx.js). Only open ground, so nothing that stands in front of a
@@ -368,8 +396,15 @@ def write_fx(out, night, day, dusk):
     shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # depth_map.py's map, as it is
 
 
+# The doors going in pushes through (city.js): the tower's entrance and the Apps workshop's roller door, in art px (their
+# middle x, y and their width), which the push-in lays on the next view's door.
+DOORS = {"tower": [733, 224, 12], "workshop": [900, 287, 16]}
+
+
 def write_json(out):
-    (out / "city.json").write_text(json.dumps({"size": SIZE, "labels": anchors(), "zoom": ZOOM, "maxPx": MAX_PX}))
+    x0, y0, x1, y1 = DOOR_OPEN
+    (out / "city.json").write_text(json.dumps({"size": SIZE, "labels": anchors(), "zoom": ZOOM, "maxPx": MAX_PX,
+                                               "doors": DOORS, "doorOpen": [x0, y0, x1 - x0, y1 - y0]}))
 
 
 # The other pages' backdrop (custom.css, under html[data-time]): the middle of the city round the tower, about as tall
@@ -381,12 +416,14 @@ def build(out):
     phases = json.loads((ROOT / "data" / "phases.json").read_text())
     if set(phases) != set(PICKS):
         sys.exit(f"PICKS has {sorted(PICKS)}, data/phases.json has {sorted(phases)}: give every phase a painting")
-    baked = {phase: bake(phase) for phase in phases}
+    paletted = {phase: bake(phase) for phase in phases}
+    baked = {phase: im.convert("RGB") for phase, im in paletted.items()}
     for phase, im in baked.items():
         path = out / f"city{'' if phase == 'dusk' else '-' + phase}.webp"
         im.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
         im.crop(BACKDROP).save(out / f"backdrop{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
-        print("drew", path.name, "and its backdrop, from seed", PICKS[phase])
+        bake_open(phase, paletted[phase]).save(out / f"door-open{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
+        print("drew", path.name, "its backdrop and its open door, from seed", PICKS[phase])
     write_json(out)
     write_fx(out, baked["night"], baked["day"], baked["dusk"])
 
@@ -400,6 +437,7 @@ if __name__ == "__main__":
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     ap.add_argument("--time", choices=list(PICKS), default="dusk")
     ap.add_argument("--pick", type=int, help="door: put this candidate into the dusk pick")
+    ap.add_argument("--open", type=Path, help="door: keep this whole painting's crop with the doors open, for --time")
     a = ap.parse_args()
     if a.cmd == "blockout":
         blockout().save(Path(a.out) / "city-blockout.png")
@@ -407,7 +445,12 @@ if __name__ == "__main__":
     elif a.cmd == "paint":
         paint(a.count, a.start, a.host, a.time)
     elif a.cmd == "door":
-        install_door(a.pick) if a.pick is not None else paint_door(a.count, a.start, a.host)
+        if a.open:
+            cut_open(a.open, a.time)
+        elif a.pick is not None:
+            install_door(a.pick)
+        else:
+            paint_door(a.count, a.start, a.host)
     elif a.cmd == "json":
         write_json(Path(a.out))
     else:

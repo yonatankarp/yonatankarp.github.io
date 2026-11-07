@@ -161,7 +161,9 @@ pushes everything else in `depth_map.py library`'s map back to 0 down to the sha
 books and the wall's seams as nearer than the floor, so `library-fx.js` tests them from depth 0.
 `rooms-fx.js`, its own bundle (`--mode rooms`): the Radio Mast's on-air lamp, tape reels, VU needles and the mast's
 beacon, and the Post Office's clock (the visitor's real seconds), lamps and dust, from `radio-fx.json` and `post-fx.json`
-(`FX` in `gen_rooms.py`).
+(`FX` in `gen_rooms.py`). The tape reels turn their painted cutouts: `gen_rooms.py` (`reels()`) bakes `radio-reels.webp`,
+each reel's bare metal over its cutouts, which rooms-fx.js turns about the hub on the slanted disc (a reel is its hub, its
+flange's half-width and half-height, its turn and its plain hub's reach, in `FX`).
 
 ## Content Structure
 

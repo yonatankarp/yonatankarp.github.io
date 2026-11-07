@@ -2,11 +2,12 @@
 // opened on its middle where a phone pans it, and comes alive over its picture (scene-fx.js). The studio's on-air lamp
 // breathes, its tape reels turn, its VU needles bounce and the mast's beacon blinks out of the window; the hall's clock
 // ticks the real seconds, its lamps' warmth breathes and dust drifts in the grille window's light. Where, from
-// ROOM-fx.json, written by web3d/pixel/gen_rooms.py.
+// ROOM-fx.json, written by web3d/pixel/gen_rooms.py, with the studio's reels from radio-reels.webp.
 import { animate, rnd } from './scene-fx.js';
 
 const hero = document.querySelector('.room-hero');
 const canvas = hero?.querySelector('.room-fx');
+const sheet = canvas?.dataset.sheet && Object.assign(new Image(), { src: canvas.dataset.sheet });   // the studio's reels
 if (hero) {
   // Where the room is wider than the screen, it opens at its data-open (0 the left edge, 1 the right).
   const open = () => { hero.scrollLeft = (hero.scrollWidth - hero.clientWidth) * Number(hero.dataset.open); };
@@ -24,13 +25,25 @@ const ray = (ctx, cx, cy, a, from, to, size = 1) => {
 
 function radio(ctx, fx) {
   const [lx, ly] = fx.lamp, [bx, by] = fx.beacon;
+  // The reels' sheet (gen_rooms.py reels()): a column each, the bare reel over its cutouts, which turn about the hub on
+  // the slanted disc, in the art's own pixels.
+  const row = Math.max(...fx.reels.map(([, , , ry]) => 2 * ry + 1));
+  let left = 0;
+  const reels = fx.reels.map(([x, y, rx, ry, dir]) => { const r = { x, y, rx, ry, dir, sx: left }; left += 2 * rx + 1; return r; });
+  ctx.imageSmoothingEnabled = false;
   return (now) => {
+    for (const { x, y, rx, ry, dir, sx } of sheet?.complete && sheet.naturalWidth ? reels : []) {
+      const w = 2 * rx + 1, h = 2 * ry + 1;
+      ctx.drawImage(sheet, sx, 0, w, h, x - rx, y - ry, w, h);
+      ctx.save();
+      ctx.translate(x + 0.5, y + 0.5); ctx.scale(rx, ry); ctx.rotate(now / 700 * dir); ctx.scale(1 / rx, 1 / ry);
+      ctx.drawImage(sheet, sx, row, w, h, -rx - 0.5, -ry - 0.5, w, h);
+      ctx.restore();
+    }
     const p = 0.55 + 0.45 * Math.sin(now / 520);   // the on-air lamp, its glow spilling on the wall
     for (const [r, c] of [[22, `rgba(255,70,50,${0.12 * p})`], [15, `rgba(255,90,60,${0.18 * p})`], [8, `rgba(255,150,120,${0.35 * p})`]]) {
       ctx.fillStyle = c; disc(ctx, lx, ly, r);
     }
-    ctx.fillStyle = 'rgba(40,30,25,.75)';   // three spokes go round over each painted hub
-    for (const [cx, cy, r, dir] of fx.reels) for (let s = 0; s < 3; s++) ray(ctx, cx, cy, now / 700 * dir + s * 2.094, 4, r - 3, 2);
     ctx.fillStyle = 'rgba(30,20,15,.9)';
     for (const [cx, cy] of fx.needles) ray(ctx, cx, cy, -2.4 + 1.6 * (0.35 + 0.45 * Math.abs(Math.sin(now / 130 + cx) * Math.sin(now / 410))), 0, 7);
     if ((now / 900 | 0) % 2) {

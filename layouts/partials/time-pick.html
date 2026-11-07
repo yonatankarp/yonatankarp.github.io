@@ -12,7 +12,7 @@
 {{- range $name, $to := $tz.links }}{{ if ne $name "Asia/Tel_Aviv" }}{{ $z.SetInMap "at" $name (index $tz.zones $to) }}{{ end }}{{ end }}
 {{- range $name, $at := merge ($z.Get "at") $tz.zones }}
   {{- $p := path.Split $name }}
-  {{- $z.Set $p.Dir (trim (printf "%s %s%d,%d" ($z.Get $p.Dir | default "") $p.File (int (math.Round (index $at 1))) (int (math.Round (index $at 2)))) " ") }}
+  {{- $z.Set $p.Dir (trim (printf "%s %s%d,%d" ($z.Get $p.Dir | default "") $p.File (int (math.Round (index $at 0))) (int (math.Round (index $at 1)))) " ") }}
 {{- end }}
 {{- $z.Delete "at" }}
 {{- /* Then sunAt and seasonOn, from assets/js/sun.js and season.js: modules, for web3d/src/, so their exports go. Last,

@@ -6,6 +6,7 @@
 
 Run: uv run web3d/pixel/paint_rooms.py <room> [--count N] [--start SEED] [--host URL]
      uv run web3d/pixel/paint_rooms.py capsule [--count N] [--start SEED]   # floor 7's payment, on magenta (gen_floors keys it)
+     uv run web3d/pixel/paint_rooms.py receptionists   # the lobby's two, each pose at its person's seed (gen_floors bakes them)
      uv run web3d/pixel/paint_rooms.py retime --src <pick>.png --time dawn|day|night
 
 Every floor continues the lift lobby: the base image is the picked lobby painting on the left with its plain wall,
@@ -114,6 +115,70 @@ def capsule_pose():
     d.rounded_rectangle([x0, y0, x1, y1], radius=56, fill=(196, 150, 70))
     d.rectangle([360, y0, 408, y1], fill=(214, 96, 80))                  # the coral band
     d.rectangle([x0 + 50, y0 + 14, x1 - 50, y0 + 26], fill=(246, 222, 160))   # its highlight
+    return im
+
+
+# The lobby's two receptionists, behind its desk (gen_floors.py bakes them, pixel.js draws them): upper bodies seen from the
+# front, in each of DESK_POSES, painted from a skeleton on magenta (desk_pose), one seed per person, into
+# candidates/reception/NAME_POSE.png; the picks are picks/reception/NAME_POSE.png.
+DESK_SIZE, DESK_U = (512, 768), 20.0   # a frame; pixels per skeleton unit (a person ~36 units; the top 22 are drawn)
+DESK_TOP = 600                         # the desk's top edge in the frame
+DESK_POSES = ["idle", "write", "left", "right"]
+RECEPTIONISTS = {   # name: (seed, top colour, how they look)
+    "ana": (4100, (40, 52, 90), "a woman in her thirties with dark brown hair in a neat low bun, a navy blazer over a "
+            "white blouse, small gold earrings"),
+    "ben": (4117, (120, 52, 48), "a man in his forties with short greying hair, a trimmed beard and round glasses, a "
+            "burgundy cardigan over a light blue shirt"),
+}
+DESK_ACTION = {
+    "idle": "standing behind a reception desk facing the viewer, hands resting on the desk, a friendly look",
+    "write": "standing behind a reception desk, head bowed, writing with a pen in an open ledger on the desk",
+    "left": "standing behind a reception desk, head and shoulders turned to their left (the viewer's left), looking that way",
+    "right": "standing behind a reception desk, head turned to their right (the viewer's right), looking that way",
+}
+DESK_PROMPT = (
+    "Edit this picture. Repaint the figure as one hotel lobby receptionist, upper body, {action}, seen from the front, "
+    "in highly detailed painterly video game art: {look}, natural proportions, warm golden light from the left, soft "
+    "shading. Keep the exact pose, the exact position and size of the head, shoulders and arms, and the desk's top edge "
+    "exactly where it is. Keep the background perfectly flat solid magenta above the desk. One person only. No lamp, no "
+    "ceiling, no light fixture: flat magenta all round and above the head. No text."
+)
+
+
+def desk_pose(kind, top):
+    """A receptionist's skeleton in one pose: torso, neck, head and hair, the arms down to the hands on the desk."""
+    (w, h), u = DESK_SIZE, DESK_U
+    im = Image.new("RGB", (w, h), (255, 0, 255))
+    d = ImageDraw.Draw(im)
+
+    def limb(a, b, width, col):
+        d.line([a, b], fill=col, width=int(width * u))
+        r = width * u / 2
+        for x, y in (a, b):
+            d.ellipse([x - r, y - r, x + r, y + r], fill=col)
+
+    cx, y0 = w / 2, 3 * u                                        # the crown at unit 0 (+ a margin)
+    turn = {"left": -1, "right": 1}.get(kind, 0)
+    hx, hy = cx + turn * 1.2 * u, y0 + (4.2 if kind == "write" else 3.4) * u
+    sh_y = y0 + 9.5 * u
+    half = (5.2 if turn == 0 else 4.4) * u                       # the torso, narrower when turned
+    d.polygon([(cx - half, sh_y), (cx + half, sh_y), (cx + half * .82, DESK_TOP + 2 * u), (cx - half * .82, DESK_TOP + 2 * u)], fill=top)
+    skin, hair = (225, 180, 145), (60, 40, 28)
+    d.rectangle([cx - 1.2 * u, sh_y - 1.6 * u, cx + 1.2 * u, sh_y + .5 * u], fill=skin)      # the neck
+    d.ellipse([hx - 3.1 * u, hy - 3.6 * u, hx + 3.1 * u, hy + 3.6 * u], fill=skin)            # the head
+    d.chord([hx - 3.3 * u, hy - 3.9 * u, hx + 3.3 * u, hy + 3.2 * u], 180, 360, fill=hair)   # hair over the crown
+    dark = tuple(int(v * .8) for v in top)
+    for side in (-1, 1):
+        s = (cx + side * (half - .8 * u), sh_y + 1 * u)
+        if kind == "write" and side == 1:                     # the writing hand on the ledger, in front
+            e, hand = (cx + 5 * u, DESK_TOP - 4 * u), (cx + 1.5 * u, DESK_TOP - .3 * u)
+        else:                                                  # resting on the desk
+            e, hand = (cx + side * (half + .6 * u), DESK_TOP - 7 * u), (cx + side * (half + 1.4 * u), DESK_TOP - .3 * u)
+        limb(s, e, 2.6, dark if turn and side == -turn else top)
+        limb(e, hand, 2.2, top)
+        limb(hand, (hand[0], hand[1] + .4 * u), 2, skin)
+    d.rectangle([0, DESK_TOP, w, h], fill=(110, 70, 40))           # the desk, so the hands rest on it
+    d.rectangle([0, DESK_TOP, w, DESK_TOP + .6 * u], fill=(150, 100, 60))
     return im
 
 
@@ -266,7 +331,7 @@ def paint(path, prompt, size, seed, host, init=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("room", choices=["lobby", "cab", "capsule", "roof", "retime", "wall", *sorted(ROOMS)])
+    ap.add_argument("room", choices=["lobby", "cab", "capsule", "receptionists", "roof", "retime", "wall", *sorted(ROOMS)])
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--start", type=int, default=1000)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
@@ -299,6 +364,10 @@ def main():
     elif args.room == "capsule":
         jobs = [(OUT / f"capsule_{args.start + 17 * k}.png", CAPSULE, CAPSULE_SIZE, args.start + 17 * k, capsule_pose())
                 for k in range(args.count)]
+    elif args.room == "receptionists":
+        (OUT / "reception").mkdir(exist_ok=True)
+        jobs = [(OUT / "reception" / f"{name}_{kind}.png", DESK_PROMPT.format(action=DESK_ACTION[kind], look=look), DESK_SIZE, seed,
+                 desk_pose(kind, top)) for name, (seed, top, look) in RECEPTIONISTS.items() for kind in DESK_POSES]
     elif args.room == "lobby":   # an edit of the old lobby, so its lift stays where the floors' code has it
         init = Image.open(OUT / OLD_LOBBY).convert("RGB").resize(LOBBY_SIZE, Image.LANCZOS)
         jobs = [(OUT / f"lobby_{args.start + 17 * k}.png", LOBBY_EDIT, LOBBY_SIZE, args.start + 17 * k, init)

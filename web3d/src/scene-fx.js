@@ -6,17 +6,19 @@ const TOL = 5;   // out of 255: how much nearer than a mover's feet a pixel may 
 
 // Animates `canvas` from the JSON at `data` and, given one, the depth map at `depth` (brighter = nearer).
 // setup(ctx, fx, test) returns draw(now, dt), called each frame on a cleared canvas; `test` is the depth test, if any.
-// Nothing at all under reduced motion, or with ?fx=off, which keeps the visual captures still; `live` can hold it too.
-export function animate(canvas, { data, depth, live = () => true }, setup) {
+// Nothing moves under reduced motion, or with ?fx=off, which keeps the visual captures still; `live` can hold it too.
+// Then poster(ctx), if given, draws what stands still (the city's holiday props) once instead, and again whenever motion
+// is turned off while the page is open.
+export function animate(canvas, { data, depth, live = () => true, poster }, setup) {
   const still = matchMedia('(prefers-reduced-motion: reduce)');
-  if (still.matches || new URLSearchParams(location.search).get('fx') === 'off') return;
+  if (still.matches || new URLSearchParams(location.search).get('fx') === 'off') { poster?.(canvas.getContext('2d')); return; }
   Promise.all([
     fetch(data).then((r) => r.json()),
     // Raw values, untouched by colour management: they are depths, not colours.
     depth && fetch(depth).then((r) => r.blob()).then((b) => createImageBitmap(b, { colorSpaceConversion: 'none' })),
   ]).then(([fx, bitmap]) => {
     const ctx = canvas.getContext('2d');
-    loop(ctx, setup(ctx, fx, bitmap && depthTest(ctx, bitmap)), live, still);
+    loop(ctx, setup(ctx, fx, bitmap && depthTest(ctx, bitmap)), live, still, poster);
   }).catch(() => {});   // without its data the picture is just still
 }
 
@@ -81,14 +83,37 @@ export function people(url, night) {
   }).catch(() => null);
 }
 
+// Snow falling over the whole art in winter, in front of everything: about 520 flakes, 1 px and some 2 px, drifting
+// side to side as they fall at 7-23 px a second, bluish and dimmer at night. Returns draw(now, dt), for a scene's frame.
+// The flakes keep to a few shades, so a frame sets its fill a handful of times, not once a flake.
+export function snowfall(ctx, night) {
+  const { width: W, height: H } = ctx.canvas, SHADES = 6;
+  const fills = Array.from({ length: SHADES }, (_, k) => { const a = 0.45 + 0.5 * (k + 0.5) / SHADES; return night ? `rgba(215,228,255,${a * 0.8})` : `rgba(255,255,255,${a})`; });
+  const flakes = Array.from({ length: SHADES }, () => []);
+  for (let i = 0; i < 520; i++) flakes[Math.random() * SHADES | 0].push({ x: rnd(0, W), y: rnd(0, H), v: rnd(7, 23), w: rnd(0.4, 1.6), p: rnd(0, 6.3), s: Math.random() < 0.12 ? 2 : 1 });
+  return (now, dt) => {
+    const t = now / 1000, k = dt / 1000;
+    flakes.forEach((shade, j) => {
+      ctx.fillStyle = fills[j];
+      for (const f of shade) {
+        f.y += f.v * k; f.x += (Math.sin(t * f.w + f.p) * 4 - 2) * k;
+        if (f.y > H) { f.y = -2; f.x = rnd(0, W); }
+        if (f.x < -2) f.x += W + 4;
+        ctx.fillRect(Math.round(f.x), Math.round(f.y), f.s, f.s);
+      }
+    });
+  };
+}
+
 // Drawn only while it can be seen: the tab shown, the canvas on screen, motion welcome, and `live`.
-function loop(ctx, draw, live, still) {
+function loop(ctx, draw, live, still, poster) {
   const { canvas } = ctx, clear = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const hold = () => { clear(); poster?.(ctx); };   // motion turned off: what stands still, as a still page has it
   let raf = 0, last = 0, seen = true;
   const going = () => !document.hidden && seen && !still.matches && live();
   const frame = (now) => {
     raf = 0;
-    if (!going()) { if (still.matches) clear(); return; }
+    if (!going()) { if (still.matches) hold(); return; }
     const dt = Math.min(100, now - last);
     last = now;
     clear();
@@ -97,7 +122,7 @@ function loop(ctx, draw, live, still) {
   };
   const wake = () => { if (!raf && going()) { last = performance.now(); raf = requestAnimationFrame(frame); } };
   document.addEventListener('visibilitychange', wake);
-  still.addEventListener('change', () => { if (still.matches) clear(); else wake(); });
+  still.addEventListener('change', () => { if (still.matches) hold(); else wake(); });
   new IntersectionObserver(([e]) => { seen = e.isIntersecting; wake(); }).observe(canvas);
   wake();
 }

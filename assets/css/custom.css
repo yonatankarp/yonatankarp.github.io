@@ -613,12 +613,17 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
 .px-bar a:focus-visible, .px-menu:focus-visible, .cv-floor:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
 
 /* The city round the Career Tower behind the sheet of every pixel page, dimmed (gen_city.py: backdrop.webp, a crop of it),
-   at the visitor's hour like the homepage: html[data-time] is set before the first paint (partials/time-pick.html).
+   at the visitor's hour like the homepage, and in winter under snow: html[data-time] and html[data-season] are set
+   before the first paint (partials/time-pick.html).
    Without JS it stays dusk. Relative to the published css/ folder. */
 .px-skin { --scene: url(../building/pixel/backdrop.webp); }
 html[data-time="dawn"] .px-skin { --scene: url(../building/pixel/backdrop-dawn.webp); }
 html[data-time="day"] .px-skin { --scene: url(../building/pixel/backdrop-day.webp); }
 html[data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-night.webp); }
+html[data-season="winter"][data-time="dusk"] .px-skin { --scene: url(../building/pixel/backdrop-winter.webp); }
+html[data-season="winter"][data-time="dawn"] .px-skin { --scene: url(../building/pixel/backdrop-winter-dawn.webp); }
+html[data-season="winter"][data-time="day"] .px-skin { --scene: url(../building/pixel/backdrop-winter-day.webp); }
+html[data-season="winter"][data-time="night"] .px-skin { --scene: url(../building/pixel/backdrop-winter-night.webp); }
 .px-skin::before {
   content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; image-rendering: pixelated;
   background: linear-gradient(rgba(12, 14, 20, 0.5), rgba(12, 14, 20, 0.5)), var(--scene) 0 100% / 100% auto no-repeat;

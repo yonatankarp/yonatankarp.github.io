@@ -8,13 +8,15 @@ Run: uv run web3d/pixel/paint_rooms.py <room> [--count N] [--start SEED] [--host
      uv run web3d/pixel/paint_rooms.py capsule [--count N] [--start SEED]   # floor 7's payment, on magenta (gen_floors keys it)
      uv run web3d/pixel/paint_rooms.py receptionists   # the lobby's two, each pose at its person's seed (gen_floors bakes them)
      uv run web3d/pixel/paint_rooms.py retime --src <pick>.png --time dawn|day|night
+     uv run web3d/pixel/paint_rooms.py winter --src <pick>.png [--start 700]   # that pick under snow, its hour kept
 
 Every floor continues the lift lobby: the base image is the picked lobby painting on the left with its plain wall,
 skirting and plank floor carried across the whole width, and the model *edits* it, keeping all of that and
 furnishing the space right of the lift with the room's objects. The lobby is an edit of the old one, so its lift stays
-where it was. retime paints a dusk pick (the roof, or the lobby's view) at another hour.
+where it was. retime paints a dusk pick (the roof, or the lobby's view) at another hour, and winter paints any hour's pick
+(dusk's, or retime's) in deep winter.
 
-Writes web3d/pixel/paintings/candidates/<room>_<seed>.png (retime: <pick>-<time>_<seed>.png). Existing candidates are
+Writes web3d/pixel/paintings/candidates/<room>_<seed>.png (retime: <pick>-<time>_<seed>.png, winter: <pick>-winter_<seed>.png). Existing candidates are
 kept, never repainted: the model does not redraw a seed bit for bit, so a picked candidate is the input of later steps.
 The model runs at guidance 1, so prompts say what to show; negative prompts do nothing. Draw Things runs one job at a
 time.
@@ -95,6 +97,29 @@ VIEW = ("Edit this picture. Keep the room exactly as it is: every object, shape 
         "their light, the same painterly style. Change only what is seen outside through the {}, to {}. "
         "No people, no text, no letters, no numbers, no logos.")
 WINDOWS = {"reception": "glass entrance door"}
+# Winter: an edit of an hour's pick that keeps its light and adds only snow; at night its lamps and windows kept too. On
+# the roof the whole picture; in the lobby only what is seen through its glass door (install_picks.VIEW).
+SNOW = {"roof": "fresh white snow lying on the rooftop, along the top of the parapet, on the stacked steel beams and "
+                "planks, the scaffolding's boards and the crane's jib, and on the roofs of the distant city, a cold blue-grey sea",
+        "reception": "fresh white snow lying on the road, the pavement and the window ledges and sills of the buildings across it"}
+# Asked only to keep "the time of day", the model painted winter as an overcast day: so each hour's sky and light is named.
+LIGHT = HOURS | {"dusk": "golden dusk: a purple-to-peach sunset sky with soft clouds, the low sun glowing on the sea at the "
+                         "horizon, warm golden light on everything"}
+WINTER = ("Edit this picture. Keep everything exactly as it is: every building, object, shape, material and where it "
+          "stands, the same painterly style and the same view. Keep the time of day exactly as it is, {1}, with the same "
+          "sky and the same light, and change only the season to deep winter: {0}. Keep the lift housing on the left "
+          "exactly as it is, dry, with no snow: it is indoors. No people, no text, no letters, no numbers, no logos.")
+WINTER_NIGHT = ("Edit this picture. Keep everything exactly as it is: every building, object, shape, material and where it "
+                "stands, the same painterly style and the same view. Keep it night and change only the season to deep "
+                "winter: {0}, the snow blue in the moonlight and warm under the lamps. Keep every lit window and lamp. Keep "
+                "the lift housing on the left exactly as it is, dry, with no snow: it is indoors. "
+                "No people, no text, no letters, no numbers, no logos.")
+WINTER_VIEW = ("Edit this picture. Keep the room exactly as it is: every object, shape and material, its own warm lamps and "
+               "their light, the same painterly style. Keep the {0} exactly as it is: its frame, handles and bars stay clean and "
+               "dry, as it is warm indoors, and no snow lies on this side of the glass. Outside, keep the same street, its "
+               "buildings, lamp post and shop fronts where they are, and the time of day exactly as it is, {2}, with the same "
+               "sky and light, and change only the season out there to deep winter: {1}. No people, no text, no letters, no "
+               "numbers, no logos.")
 
 # Floor 7's payment, which gen_floors.py keys off its magenta and pixel.js draws riding the room's copper pipe: painted from a
 # flat 10:3 capsule on magenta (capsule_pose), at the picked seed 3100.
@@ -259,7 +284,7 @@ def floor_base(size=FLOOR_SIZE):
 
 def call(host, path, payload):
     req = urllib.request.Request(host + path, data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=900) as r:
+    with urllib.request.urlopen(req, timeout=4 * 3600) as r:   # a shared queue can hold a job long
         return json.loads(r.read())
 
 
@@ -331,11 +356,11 @@ def paint(path, prompt, size, seed, host, init=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("room", choices=["lobby", "cab", "capsule", "receptionists", "roof", "retime", "wall", *sorted(ROOMS)])
+    ap.add_argument("room", choices=["lobby", "cab", "capsule", "receptionists", "roof", "retime", "winter", "wall", *sorted(ROOMS)])
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--start", type=int, default=1000)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
-    ap.add_argument("--src", help="retime: the dusk pick, a candidate's file name (roof_1017.png)")
+    ap.add_argument("--src", help="retime: the dusk pick, a candidate's file name (roof_1017.png); winter: any hour's")
     ap.add_argument("--time", choices=sorted(HOURS), help="retime: the hour to paint it at")
     ap.add_argument("--band", action="append", help="wall: X,Y[,room], how far right and down the wall beside the lift "
                     "is mended, and from which side; again for another band over the first")
@@ -358,6 +383,14 @@ def main():
         prompt = VIEW.format(WINDOWS[kind], HOURS[args.time]) if kind in WINDOWS else OUTDOOR.format(HOURS[args.time])
         stem = Path(args.src).stem
         jobs = [(OUT / f"{stem}-{args.time}_{args.start + 17 * k}.png", prompt, init.size, args.start + 17 * k, init)
+                for k in range(args.count)]
+    elif args.room == "winter":   # the same picture under snow: <src>-winter_<seed>.png
+        init = Image.open(OUT / args.src).convert("RGB")
+        kind, stem = args.src.split("_")[0], Path(args.src).stem
+        hour = next((h for h in HOURS if f"-{h}_" in args.src), "dusk")
+        prompt = (WINTER_VIEW.format(WINDOWS[kind], SNOW[kind], LIGHT[hour]) if kind in WINDOWS
+                  else (WINTER_NIGHT if hour == "night" else WINTER).format(SNOW[kind], LIGHT[hour]))
+        jobs = [(OUT / f"{stem}-winter_{args.start + 17 * k}.png", prompt, init.size, args.start + 17 * k, init)
                 for k in range(args.count)]
     elif args.room == "cab":
         jobs = [(OUT / f"cab_{args.start + 17 * k}.png", CAB, CAB_SIZE, args.start + 17 * k, None) for k in range(args.count)]

@@ -1,4 +1,4 @@
-// The calendar behind the parked seasonal and holiday dressing (outside.js): the season at a latitude and the holidays on
+// The calendar behind the seasonal and holiday dressing (outside.js): the season at a latitude and the holidays on
 // a date, worked out in the browser, with no service to ask. Pure, so scripts/test/calendar.test.js runs it under Node.
 // The Jewish, Chinese and Islamic dates come from the browser's own calendars (Intl, with ICU's); Easter is a formula;
 // Diwali, whose date neither gives, is a table.
@@ -47,13 +47,8 @@ export function holidaysOn(date, countries = [], evening = false) {
   return out;
 }
 
-// The season at a latitude: meteorological, by whole months, flipped south of the equator. Within the tropics none of
-// them really shows, so it is summer there all year.
-export function seasonOn(date, lat) {
-  if (Math.abs(lat) < 23.5) return 'summer';
-  const m = (date.getMonth() + (lat < 0 ? 6 : 0)) % 12;
-  return ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'][m];
-}
+// The season at a latitude (assets/js/season.js, which the page's head picks it by too).
+export { seasonOn } from '../../assets/js/season.js';
 
 // Where a timezone is, from data/timezones.json: its country and its main city's latitude and longitude, or null.
 export function placeOf(zone, table) {

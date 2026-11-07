@@ -76,8 +76,9 @@ function builtRoutes() {
 
   // The homepage at every hour: this script runs at wall-clock time, so "/" alone would only ever see one (#151).
   // "/" opens on the city; a floor's address opens the building, which axe then sees at load: the lobby, and the roof at
-  // night.
-  return routes.sort().concat(missingRoute, arrivalRoute, ...Object.keys(phases).map((time) => `/?time=${time}`), "/#floor-L", "/?time=night#floor-R");
+  // night. And winter, which has art of its own: the city at night with the holidays' props on its plaza, and the roof by day.
+  return routes.sort().concat(missingRoute, arrivalRoute, ...Object.keys(phases).map((time) => `/?time=${time}`), "/#floor-L", "/?time=night#floor-R",
+    "/?time=night&season=winter&holiday=hanukkah:3,christmas", "/?time=day&season=winter#floor-R");
 }
 
 // Runs in every page before its own scripts.

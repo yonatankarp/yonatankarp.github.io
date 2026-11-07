@@ -7,7 +7,8 @@
 Run: uv run web3d/pixel/gen_workshop.py blockout [OUT]                  # the code blockout, for a look
      uv run web3d/pixel/gen_workshop.py paint [--count N] [--start S]   # Draw Things repaints the blockout at dusk (port 7860)
      uv run web3d/pixel/gen_workshop.py paint --time PHASE [...]        # ... or edits the dusk pick to another hour
-     uv run web3d/pixel/gen_workshop.py build [OUT]                     # OUT/workshop[-PHASE].webp, workshop.json,
+     uv run web3d/pixel/gen_workshop.py paint --winter [--time PHASE]   # ... or edits an hour's pick to winter
+     uv run web3d/pixel/gen_workshop.py build [OUT]                     # OUT/workshop[-winter][-PHASE].webp, workshop.json,
                                                                         # workshop-fx.json and workshop-depth.png
      uv run web3d/pixel/gen_workshop.py json [OUT]                      # only OUT/workshop.json
 
@@ -16,8 +17,9 @@ blockout fixes where every workshop sits, the model paints it at dusk, the other
 box-reduced and quantised undithered; the kerb lamp at x 245, which the model left dark at every hour, is lit after
 that but by day (relight). The workshops are numbered, not named: the projects' template
 (layouts/projects/list.html) puts the groups in them in order, apps first.
-Paintings go to web3d/pixel/paintings/candidates/workshop[-PHASE]_SEED.png (not committed); the chosen one is copied to
-web3d/pixel/paintings/picks/workshop[-PHASE].png, the build's input, and its seed noted in PICKS.
+Winter is each hour's pick edited to snow, its light kept (WINTER), at seed 700, the seed that held the city's layout.
+Paintings go to web3d/pixel/paintings/candidates/workshop[-winter][-PHASE]_SEED.png (not committed); the chosen one is
+copied to web3d/pixel/paintings/picks/workshop[-winter][-PHASE].png, the build's input, and its seed noted in PICKS.
 
 The row's animations (web3d/src/workshop-fx.js) draw from workshop-fx.json, the places below, and hide behind what
 stands nearer in picks/workshop-depth.png, made by depth_map.py (it needs torch) and copied here as it is.
@@ -39,6 +41,7 @@ from gen_city import ART_W, COLOURS, PH, PW, ROOT, SIZE, H  # noqa: E402
 from paint_rooms import OUT as CANDIDATES  # noqa: E402
 
 PICKS = {"dusk": 1000, "dawn": 1000, "day": 1000, "night": 1000}   # the seed of each hour's pick, for the record
+WINTER_PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}   # ... and of each hour's winter
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks"   # picks/workshop[-PHASE].png
 BAYS = [900, 1480, 2060, 2640]   # each workshop's centre, all pannable to the middle of the view
 HALF, EAVE, GROUND = 260, 330, 660   # half a workshop's width, its eaves, the pavement's edge
@@ -131,14 +134,26 @@ HOURS = {
 }
 
 
-def name(phase):
-    return f"workshop{'' if phase == 'dusk' else '-' + phase}"
+# Winter: the hour's own pick under snow, its light kept; at night its lamps and lit workshops kept too.
+SNOW = ("fresh white snow lying on the sawtooth roofs, the parapets, the window sills, the top of the low brick wall and "
+        "the parked van, snow banked along the pavement and the kerb, the cobbled street white with trodden snow, the "
+        "trees bare and dusted with snow")
+# Asked only to keep "the time of day", the rooms' model painted winter as an overcast day: so each hour's light is named.
+LIGHT = HOURS | {"dusk": "golden dusk: a purple and peach sunset sky, warm golden light, the street lamps and the workshops glowing"}
+WINTER = {"day": "Edit this picture. Keep the time of day exactly as it is, {}, with the same sky and the same light, and change "
+                 f"only the season to deep winter: {SNOW}. ",
+          "night": f"Edit this picture. Keep it night and change only the season to deep winter: {SNOW}, the snow lit warm "
+                   "under the street lamps and blue in the moonlight. Keep every lit window, lamp and workshop light. "}
 
 
-def pick(phase):
-    path = PICKED / f"{name(phase)}.png"
+def name(phase, winter=False):
+    return f"workshop{'-winter' if winter else ''}{'' if phase == 'dusk' else '-' + phase}"
+
+
+def pick(phase, winter=False):
+    path = PICKED / f"{name(phase, winter)}.png"
     if not path.exists():
-        sys.exit(f"no {path}: paint {phase} (gen_workshop.py paint --time {phase}), copy the chosen candidate there and note its seed in PICKS")
+        sys.exit(f"no {path}: paint it (gen_workshop.py paint --time {phase}{' --winter' if winter else ''}), copy the chosen candidate there and note its seed in {'WINTER_PICKS' if winter else 'PICKS'}")
     return path
 
 
@@ -149,15 +164,19 @@ def call(host, payload):
         return json.loads(r.read())
 
 
-def paint(count, start, host, phase):
-    base = blockout().resize((PW, PH), Image.LANCZOS) if phase == "dusk" else Image.open(pick("dusk")).convert("RGB").crop((0, 0, PW, PH))
+def paint(count, start, host, phase, winter=False):
+    if winter:
+        base = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
+        prompt = (WINTER["night"] if phase == "night" else WINTER["day"].format(LIGHT[phase])) + KEEP
+    else:
+        base = blockout().resize((PW, PH), Image.LANCZOS) if phase == "dusk" else Image.open(pick("dusk")).convert("RGB").crop((0, 0, PW, PH))
+        prompt = DUSK if phase == "dusk" else f"Edit this picture. Change only the time of day to {HOURS[phase]}. {KEEP}"
     buf = io.BytesIO()
     base.save(buf, "PNG")
-    prompt = DUSK if phase == "dusk" else f"Edit this picture. Change only the time of day to {HOURS[phase]}. {KEEP}"
     CANDIDATES.mkdir(parents=True, exist_ok=True)
     for k in range(count):
         seed = start + 17 * k
-        path = CANDIDATES / f"{name(phase)}_{seed}.png"
+        path = CANDIDATES / f"{name(phase, winter)}_{seed}.png"
         if path.exists():
             print("kept", path.name)
             continue
@@ -167,10 +186,10 @@ def paint(count, start, host, phase):
         print("painted", path.name, flush=True)
 
 
-def bake(phase):
+def bake(phase, winter=False):
     """The painting box-reduced to the art's size on its own COLOURS colours, undithered, with the Library's k-means
     passes after the median cut so the small lamps keep a colour of their own."""
-    im = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
+    im = Image.open(pick(phase, winter)).convert("RGB").crop((0, 0, PW, PH))
     im = im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
     return im if phase == "day" else relight(im)
 
@@ -231,12 +250,14 @@ def write_json(out):
 
 def build(out):
     phases = json.loads((ROOT / "data" / "phases.json").read_text())
-    if set(phases) != set(PICKS):
-        sys.exit(f"PICKS has {sorted(PICKS)}, data/phases.json has {sorted(phases)}: give every phase a painting")
-    for phase in phases:
-        path = out / f"{name(phase)}.webp"
-        bake(phase).save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
-        print("drew", path.name, "from seed", PICKS[phase], f"at {ART_W} wide")
+    for picks in (PICKS, WINTER_PICKS):
+        if set(phases) != set(picks):
+            sys.exit(f"PICKS and WINTER_PICKS must each have data/phases.json's {sorted(phases)}: give every phase a painting")
+    for winter, picks in ((False, PICKS), (True, WINTER_PICKS)):
+        for phase in phases:
+            path = out / f"{name(phase, winter)}.webp"
+            bake(phase, winter).save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
+            print("drew", path.name, "from seed", picks[phase], f"at {ART_W} wide")
     write_json(out)
     write_fx(out)
 
@@ -249,12 +270,13 @@ if __name__ == "__main__":
     ap.add_argument("--start", type=int, default=1000)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     ap.add_argument("--time", choices=list(PICKS), default="dusk")
+    ap.add_argument("--winter", action="store_true", help="paint: edit the hour's pick to winter")
     a = ap.parse_args()
     if a.cmd == "blockout":
         blockout().save(Path(a.out) / "workshop-blockout.png")
         print("wrote", Path(a.out) / "workshop-blockout.png")
     elif a.cmd == "paint":
-        paint(a.count, a.start, a.host, a.time)
+        paint(a.count, a.start, a.host, a.time, a.winter)
     elif a.cmd == "json":
         write_json(Path(a.out))
     else:

@@ -50,12 +50,12 @@ var modular = 'noModule' in HTMLScriptElement.prototype, floor = /^#floor-/i.tes
 if (modular && !floor) document.documentElement.classList.add('at-city');
 if (modular && floor && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
 ` ("projects/" | relURL)) | minify | fingerprint "sha256" }}
-{{- /* The hour's art (#151): dawn, day, dusk or night, picked once here (partials/time-pick.html) and read by pixel.js,
-     never changed while the page is open. Before the stylesheet, which would hold this script back, so the city's art
+{{- /* The hour's art (#151): dawn, day, dusk or night, and in winter its snowy art (city-winter[-PHASE].webp), picked
+     once here (partials/time-pick.html) and read by pixel.js, never changed while the page is open. Before the stylesheet, which would hold this script back, so the city's art
      starts at once; a static preload tag would fetch the dusk city at every hour. A floor's address has no city. */}}
 {{ $time := resources.FromString "js/home-time.js" (printf `
 (function(){%s
-var time=document.documentElement.dataset.time,l=document.createElement('link');if(/^#floor-/i.test(location.hash))return;l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/city'+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
+var d=document.documentElement.dataset,time=d.time,l=document.createElement('link');if(/^#floor-/i.test(location.hash))return;l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/city'+(d.season==='winter'?'-winter':'')+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
 ` (partial "time-pick.html" .) $base $artVersion) | minify | fingerprint "sha256" }}
 {{- /* The lobby is where the lift starts, so its card is there at the first paint, unless the address names another floor;
      and the pause, wherever the tower moves. */}}
@@ -66,7 +66,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   var x, d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel'), m = s.firstElementChild;
   if (!d.classList.contains('at-city')) return;
   i.loading = 'eager';
-  i.src = i.dataset.base + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
+  i.src = i.dataset.base + (d.dataset.season === 'winter' ? '-winter' : '') + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
   x = (getComputedStyle(p).position === 'fixed' ? (p.getBoundingClientRect().right + s.clientWidth) / 2 : s.clientWidth / 2) - c.querySelector('.city-tag[data-pick=tower]').offsetLeft;
   m.style.transform = 'translate(' + Math.min(0, Math.max(s.clientWidth - m.offsetWidth, x)) + 'px, 0px) scale(1)';
 })();` | minify | fingerprint "sha256" }}

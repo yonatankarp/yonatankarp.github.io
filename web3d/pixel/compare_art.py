@@ -16,7 +16,7 @@ from pathlib import Path
 
 from PIL import Image, ImageChops
 
-JSONS = ("floors.json", "city.json", "city-fx.json", "workshop.json", "workshop-fx.json", "library-fx.json", "radio-fx.json", "post-fx.json",
+JSONS = ("floors.json", "city.json", "city-fx.json", "city-winter-fx.json", "props.json", "workshop.json", "workshop-fx.json", "library-fx.json", "radio-fx.json", "post-fx.json",
          "walkers.json", "readers.json", "cats.json", "cats-lobby.json")
 
 

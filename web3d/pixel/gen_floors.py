@@ -12,7 +12,8 @@ the lift lobby carried on into that floor's room) baked by install_picks.py; the
 that moves are drawn here. Each floor writes floor-<key>.webp: its rest frame, then the two runs pixel.js tiles past the
 strip on a wide screen, the lift's cab (a painting of its own, shown as the doors open), then the box that moves (the
 same box in all FRAMES - 1 other frames), side by side. The rooms
-with another picture at another hour (data/phases.json "baked") also write floor-<key>-<phase>.webp. floors.json is what
+with another picture at another hour (data/phases.json "baked") also write floor-<key>-<phase>.webp, and those with one in
+winter (each phase's "winter" "baked") floor-<key>-winter[-<phase>].webp. floors.json is what
 web3d/src/ draws by: the frame, the runs, each strip's moving box, the lift doors (pixel.js slides them), the lamps, and
 floor 7's capsule (capsule.webp), the lobby's receptionists (receptionists.webp) and its cats (cats-lobby.webp, from
 gen_walkers.py), which pixel.js draws live.
@@ -501,10 +502,21 @@ def scatter(run):
     return run
 
 
-def frames(key, phase):
-    """The floor's FRAMES pictures at an hour (its own painting there, else dusk's)."""
+def hour(variant):
+    """A strip's hour: dusk, dawn, day or night, from its variant (winter-night's is night, winter's dusk)."""
+    return variant.removeprefix("winter").strip("-") or "dusk"
+
+
+def winter(phase):
+    """The variant of a phase in winter: winter at dusk, else winter-<phase>."""
+    return "winter" if phase == "dusk" else f"winter-{phase}"
+
+
+def frames(key, variant):
+    """The floor's FRAMES pictures at an hour, or an hour in winter (its own painting there, else dusk's)."""
     name, accent, animate, _ = FLOORS[key]
-    pick = PICKS / f"{name}-{phase}-px.png"
+    pick = PICKS / f"{name}-{variant}-px.png"
+    phase = hour(variant)
     painting = Image.open(pick if pick.exists() else PICKS / f"{name}-px.png").convert("RGB")
     base = frame_base(key, painting, accent)
     out = []
@@ -518,15 +530,15 @@ def frames(key, phase):
 
 
 def build(key, out, hours):
-    """floor-<key>.webp, and floor-<key>-<hour>.webp for each hour given: rest frame, runs, the moving box's other frames.
-    Every hour's strip has the same box: where any of them moves. Returns it, (x, y, w, h) in strip pixels."""
-    pictures = {hour: frames(key, hour) for hour in ["dusk", *hours]}
+    """floor-<key>.webp, and floor-<key>-<hour>.webp for each hour (or winter variant) given: rest frame, runs, the moving
+    box's other frames. Every one's strip has the same box: where any of them moves. Returns it, (x, y, w, h) in strip pixels."""
+    pictures = {variant: frames(key, variant) for variant in ["dusk", *hours]}
     boxes = [ImageChops.difference(fs[0], f).getbbox() for fs in pictures.values() for f in fs[1:]]
     boxes = [b for b in boxes if b]
     x0, y0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
     x1, y1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
     assert x0 >= LOBBY_X + BLOCK and x1 <= W - LOBBY_X - BLOCK, (key, "moves over what its runs are read from")
-    for hour, fs in pictures.items():
+    for variant, fs in pictures.items():
         cab = Image.open(PICKS / "cab-px.png").convert("RGB")
         assert cab.size == (DOOR["x1"] - DOOR["x0"], DOOR["y1"] - DOOR["y0"]), "the cab is not the doorway's size"
         strip = Image.new("RGB", (BOXES + (FRAMES - 1) * (x1 - x0), H))
@@ -535,7 +547,7 @@ def build(key, out, hours):
         strip.paste(cab, (CAB, 0))
         for f in range(1, FRAMES):
             strip.paste(fs[f].crop((x0, y0, x1, y1)), (BOXES + (f - 1) * (x1 - x0), 0))
-        save_lossless(strip, out / f"floor-{key}{'' if hour == 'dusk' else '-' + hour}.webp")
+        save_lossless(strip, out / f"floor-{key}{'' if variant == 'dusk' else '-' + variant}.webp")
     print("drew floor", key, *hours)
     return [x0, y0, x1 - x0, y1 - y0]
 
@@ -564,11 +576,12 @@ def accents():
 def phases(path=ROOT / "data" / "phases.json"):
     """data/phases.json, which the site reads (the time pick, pixel.js, the backdrops' CSS and the scripts), checked
     against the art: each hour bakes exactly the rooms that have a painting at that hour (picks/<room>-<hour>-px.png),
-    and dusk, the plain files, none. Returns {hour: its baked keys}."""
+    and dusk, the plain files, none; and in winter (its "winter") those with one in winter
+    (picks/<room>-winter[-<hour>]-px.png). Returns {hour or winter variant: its baked keys}."""
     site = json.loads(path.read_text())
-    want = {hour: "".join(k for k, (name, *_) in FLOORS.items() if (PICKS / f"{name}-{hour}-px.png").exists())
-            for hour in site}
-    have = {hour: p["baked"] for hour, p in site.items()}
+    keys = lambda variant: "".join(k for k, (name, *_) in FLOORS.items() if (PICKS / f"{name}-{variant}-px.png").exists())  # noqa: E731
+    want = {hour: keys(hour) for hour in site} | {winter(hour): keys(winter(hour)) for hour in site}
+    have = {hour: p["baked"] for hour, p in site.items()} | {winter(hour): p["winter"]["baked"] for hour, p in site.items()}
     assert have == want, f"{path}'s baked rooms disagree with the paintings in {PICKS}: {have} != {want}"
     return want
 
@@ -577,10 +590,11 @@ def sky(out, path=ROOT / "data" / "phases.json"):
     """Each hour's sky in phases.json is the colour pixel.js paints above the roof until its strip arrives: the roof
     strip's own top row (pixel.js reads it at x 600 once it has)."""
     site = json.loads(path.read_text())
-    for hour, p in site.items():
-        with Image.open(out / f"floor-R{'' if hour == 'dusk' else '-' + hour}.webp") as strip:
+    for variant, file, want in [x for h, p in site.items() for x in ((h, f"floor-R{'' if h == 'dusk' else '-' + h}", p["sky"]),
+                                                                    (winter(h), f"floor-R-{winter(h)}", p["winter"]["sky"]))]:
+        with Image.open(out / f"{file}.webp") as strip:
             got = "#{:02x}{:02x}{:02x}".format(*strip.convert("RGB").getpixel((600, 0)))
-        assert p["sky"] == got, f"{path}: {hour}'s sky is {p['sky']}, its roof strip's top is {got}"
+        assert want == got, f"{path}: {variant}'s sky is {want}, its roof strip's top is {got}"
 
 
 def write_data():

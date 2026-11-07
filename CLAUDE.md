@@ -142,7 +142,8 @@ lift into each (on the roof, whose hours repainted it, its call panel too: `PANE
 `gen_floors.py` draws the slabs, the floor number and what moves (each room's animation, which only paints over what is
 there: lights, screens, a glint in the room's own colours). The roof has open sky for its top slab (`sky_band`): the
 painting's own sky at its top blended up, in its own colours and flat bands, into `phases.json`'s sky, its masts carried
-on up and, at night, its stars scattered over it. A strip is its rest frame, two runs pixel.js tiles past it on a
+on up (mirrored: the one shape that still is, as a lattice reads the same either way) and, at night, its stars
+scattered over it. A strip is its rest frame, two runs pixel.js tiles past it on a
 wide screen, the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
 they slide apart), and its moving box's other frames. The lobby has one more picture at each hour,
 `floor-L-open[-PHASE].webp`, its glass entrance standing open (cut at `ENTRANCE`), which the push-in from the city lands on:

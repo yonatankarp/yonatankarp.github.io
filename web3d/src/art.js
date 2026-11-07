@@ -2,6 +2,7 @@
 // hour, and the lights-off picture of a strip.
 import art from '../../static/building/pixel/floors.json';   // gen_floors.py, bundled: needed from the first strip
 import PHASES from '../../data/phases.json';                 // the hours the art is baked for, checked by gen_floors.py
+import catSheet from '../../static/building/pixel/cats-lobby.json';   // gen_walkers.py: the lobby's cats' frames
 
 export const [FW, FH] = art.frame;
 export const FRAMES = art.frames;
@@ -16,6 +17,8 @@ export const { door: DOOR, bayer: BAYER } = art;
 export const LAMPS = art.lamps;
 export const CAPSULE = art.capsule;           // floor 7's payment, drawn live (capsule.js): its path, size, timing and clip, in strip pixels
 export const RECEPTION = art.reception;       // the lobby's receptionist, drawn live (reception.js): the sheet, the spot, the desk, weights and times, in strip pixels
+export const CATS = art.cats;                 // the lobby's cats, drawn live (cats.js): their perches, floor, edges, starts, scale, still poses and clip, in strip pixels
+export const CAT_SHEET = catSheet;            // ... and cats-lobby.webp's frame size, feet and strides
 export const TIME = document.documentElement.dataset.time;   // picked once, in the page's head (#151): it never changes while the page is open
 const PHASE = PHASES[TIME];
 export const BAKED = PHASE?.baked;                              // the rooms with their own picture at this hour (the roof, the lobby's door); none at dusk

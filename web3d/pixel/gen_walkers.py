@@ -12,7 +12,7 @@ Run: uv run web3d/pixel/gen_walkers.py pose                  # the 8 walk poses 
      uv run web3d/pixel/gen_walkers.py browse [NAME...]      # ... and each browse pose, for the Library's readers
      uv run web3d/pixel/gen_walkers.py cats [NAME...]        # ... and each cat pose as that cat
      uv run web3d/pixel/gen_walkers.py bake [OUT]            # OUT/walkers.webp + .json, OUT/readers.webp + .json and
-                                                             # OUT/cats.webp + .json
+                                                             # OUT/cats.webp + .json, and the lobby's, cats-lobby.webp + .json
 
 The poses go to web3d/pixel/paintings/candidates/walkers/walk_K_pose.png and the paintings beside them as NAME_K.png
 (not committed); a person's chosen frames are copied to web3d/pixel/paintings/picks/walkers/NAME_K.png, the bake's input,
@@ -215,6 +215,7 @@ def paint(name, host):
 CAT_PAINTED, CAT_PICKED = CANDIDATES / "cats", PICKED.parent / "cats"
 CW, CH, CAT_FOOT, CU = 768, 384, 330, 12.0   # a cat's painting, its ground line and pixels per skeleton unit
 CAT = 14                                     # art px from paw to ear tip of the ginger's walk, on the wall's top
+CAT_LOBBY = 26                               # ... and in the tower's lobby (cats-lobby.webp), against its bench and desk
 CAT_POSES = [f"walk_{k}" for k in range(FRAMES)] + ["sit", "loaf", "crouch", "leap"]
 CATS = {   # name: (seed, coat colour for the skeleton, how it looks, size against the ginger)
     "ginger": (2100, (214, 128, 58), "a big stocky ginger tabby cat with a round face, bold orange mackerel tabby stripes "
@@ -358,14 +359,14 @@ def cat_frame(pick, s, black):
     return rgb
 
 
-def cat_sheet(out):
-    """OUT/cats.webp, a row per cat and a column per pose (CAT_POSES), every frame on one canvas, centred across and
-    standing on its bottom; and cats.json with the frame's size, each frame's foot and each cat's stride. A cat's walk is
-    CAT art px tall times its size; the other poses are scaled from their own painted height by RELATIVE."""
+def cat_sheet(out, height=CAT, stem="cats"):
+    """OUT/STEM.webp, a row per cat and a column per pose (CAT_POSES), every frame on one canvas, centred across and
+    standing on its bottom; and STEM.json with the frame's size, each frame's foot and each cat's stride. A cat's walk is
+    height art px tall times its size; the other poses are scaled from their own painted height by RELATIVE."""
     rows, strides = [], []
     for n, (*_, size) in CATS.items():
         walk_h = cat_keyed(f"{n}_walk_0")[2]
-        s = CAT * size / walk_h
+        s = height * size / walk_h
         rows.append([cat_frame(f"{n}_{p}", s * RELATIVE.get(p, 1) * walk_h / (cat_keyed(f"{n}_{p}")[2] if p in RELATIVE else walk_h), n == "black")
                      for p in CAT_POSES])
         strides.append(round(15 * CU * s))   # the skeleton's stride, 15 units
@@ -374,12 +375,12 @@ def cat_sheet(out):
     for j, row in enumerate(rows):
         for k, f in enumerate(row):
             im.paste(f, (k * fw + (fw - f.width) // 2, j * fh + fh - f.height))
-    im.save(out / "cats.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    im.save(out / f"{stem}.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
     frames = [[im.crop((k * fw, j * fh, (k + 1) * fw, (j + 1) * fh)) for k in range(len(CAT_POSES))] for j in range(len(rows))]
     foot = [[max(y for y in range(fh) for x in range(fw) if f.getpixel((x, y))[3]) for f in row] for row in frames]
-    (out / "cats.json").write_text(json.dumps({"people": list(CATS), "frames": len(CAT_POSES), "poses": CAT_POSES, "w": fw, "h": fh,
+    (out / f"{stem}.json").write_text(json.dumps({"people": list(CATS), "frames": len(CAT_POSES), "poses": CAT_POSES, "w": fw, "h": fh,
                                                "foot": foot, "stride": strides}))
-    print("baked cats.webp:", len(CATS), "cats of", len(CAT_POSES), "frames,", fw, "x", fh)
+    print(f"baked {stem}.webp:", len(CATS), "cats of", len(CAT_POSES), "frames,", fw, "x", fh)
 
 
 def frame(pick, person):
@@ -422,6 +423,7 @@ def bake(out):
     sheet(out, "walkers", list(PEOPLE), walk, PERSON)
     sheet(out, "readers", READERS, walk + [f"browse_{k}" for k in BROWSE], READER, walk=FRAMES, browse=BROWSE)
     cat_sheet(out)
+    cat_sheet(out, CAT_LOBBY, "cats-lobby")
 
 
 if __name__ == "__main__":

@@ -14,7 +14,8 @@ strip on a wide screen, the lift's cab (a painting of its own, shown as the door
 same box in all FRAMES - 1 other frames), side by side. The rooms
 with another picture at another hour (data/phases.json "baked") also write floor-<key>-<phase>.webp. floors.json is what
 web3d/src/ draws by: the frame, the runs, each strip's moving box, the lift doors (pixel.js slides them), the lamps, and
-floor 7's capsule (capsule.webp) and the lobby's receptionists (receptionists.webp), which pixel.js draws live.
+floor 7's capsule (capsule.webp), the lobby's receptionists (receptionists.webp) and its cats (cats-lobby.webp, from
+gen_walkers.py), which pixel.js draws live.
 
 Every run also writes data/floor_accents.yaml from FLOORS (accents()) and checks data/phases.json (check_phases()).
 """
@@ -374,6 +375,32 @@ def receptionists(out):
                         "deskY": DESK_Y + CEIL, "spot": RECEPTION["spot"] + LOBBY_X}
 
 
+# Yonatan's two cats in the lobby, as on Workshop Row (web3d/src/cats.js), at the lobby's scale (cats-lobby.webp:
+# gen_walkers.py bake). Their perches are the bench's seat and the reception counter's top, right of the ledger and bell,
+# in front of the receptionist; their street is the floor in front of the desk, off either end of the room and back. Each
+# perch is [x0, feet's row, x1], in the painting's pixels; start is where each starts, [x, perch] (None: the floor); still
+# is how they are drawn held (reduced motion, the plain page): [pose, x, perch, dir].
+LOBBY_CATS = dict(
+    perches=[[578, 238, 680], [405, 200, 528]],
+    street=302,
+    edge=[-50, 978],
+    start=[[594, 0], [250, None]],
+    still=[["loaf", 640, 0, 1], ["sit", 515, 1, -1]],
+)
+
+
+def lobby_cats():
+    """LOBBY_CATS for floors.json, in strip pixels, with k, the cats' size against Workshop Row's, and the room they are
+    clipped to."""
+    from gen_walkers import CAT, CAT_LOBBY  # here, not at the top: it needs numpy (see receptionists)
+
+    perches = [[x0 + LOBBY_X, y + CEIL, x1 + LOBBY_X] for x0, y, x1 in LOBBY_CATS["perches"]]
+    return {"street": LOBBY_CATS["street"] + CEIL, "edge": [x + LOBBY_X for x in LOBBY_CATS["edge"]], "perches": perches,
+            "start": [[x + LOBBY_X, p] for x, p in LOBBY_CATS["start"]], "k": CAT_LOBBY / CAT,
+            "still": [[pose, x + LOBBY_X, perches[p][1], d] for pose, x, p, d in LOBBY_CATS["still"]],
+            "clip": [LOBBY_X, CEIL, W - 2 * LOBBY_X, H - CEIL - SLAB]}
+
+
 # Roof: the flag's folds run along it, the crane's warning light blinks, and at night the far city's windows twinkle.
 FLAG = (812, 94, 845, 127)
 
@@ -575,5 +602,5 @@ if __name__ == "__main__":
         lamps = {key: [DOOR["mid"], *(x + LOBBY_X for x in v[3])] for key, v in FLOORS.items() if v[3]}
         art = {"frame": [W, H], "frames": FRAMES, "edge": EDGE, "room": [LOBBY_X, W - LOBBY_X], "door": DOOR, "cab": CAB, "boxes": BOXES,
                "bayer": BAYER, "lamps": lamps, "order": list(FLOORS), "anim": anim, "capsule": {"floor": "7", **capsule(out)},
-               "reception": {"floor": "L", **receptionists(out)}}
+               "reception": {"floor": "L", **receptionists(out)}, "cats": {"floor": "L", **lobby_cats()}}
         (out / "floors.json").write_text(json.dumps(art))

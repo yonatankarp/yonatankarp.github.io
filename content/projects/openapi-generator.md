@@ -9,7 +9,7 @@ draft: false
 link: "https://github.com/OpenAPITools/openapi-generator"
 caseStudy: true
 tech: ["Kotlin", "Spring Boot", "OpenAPI"]
-years: "2023-2026"
+years: "2023–2026"
 params:
     button:
         btnText: "GitHub"

@@ -40,7 +40,26 @@ copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-
 one; the dusk pick carries one more edit, the tower's glass entrance doors, from `gen_city.py door`, and the hours were
 edited from it with the door), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
 middle in % of the art, and how far to zoom: `ZOOM`), capped where an art pixel would pass `MAX_PX` (4) screen px,
-so a big screen zooms less than a phone, and never under 1. The Career Tower is the pixel-art career
+so a big screen zooms less than a phone, and never under 1. Going in (a district's go link, or its label's second
+click) the map pushes on, ease-in over 450 ms, and the next view opens from it in a dithered iris (`web3d/src/iris.js`)
+while it settles from 1.18 to 1; every other link keeps the wipe. The tower and Workshop Row have doors (`doors` in
+`city.json`, `DOORS` in `gen_city.py`): the city's lands on the next view's door at its size, to 14 screen px a city art
+px. The tower's is the lobby's glass entrance, at the right of the lobby, where pixel.js lays it out (`lay` in
+`web3d/src/art.js`; a phone's lobby starts on it and pans to its usual focus, art x 600, as it settles). The lobby opens
+with that entrance standing open (`floor-L-open[-winter][-PHASE].webp`, below), which dissolves into the strip's shut doors 250 to
+650 ms into the settle, whole art pixels at a time in the iris's 4x4 Bayer order. The city's entrance opens first: `door-open[-PHASE].webp`, the same hour's painting
+with the doors open, kept as its crop round the door (`picks/city-open[-PHASE].png`, from `gen_city.py door --open`),
+pasted on the pick, baked on the pick's own colours and cut at `DOOR_OPEN` (`doorOpen` in `city.json`); in winter,
+`door-open-winter[-PHASE].webp`, that crop edited to snow as the winter picks are (`gen_city.py door --winter`), of which
+only the doorway (`DOORWAY`) goes on the winter pick's crop (`picks/city-open-winter[-PHASE].png`). Both pick their
+file by `html[data-season]` and the hour, as the shut art does. The tower is
+this page, so city.js lays the frame over it and enters `#floor-L`. Workshop Row's is the Apps door where `/projects/`
+pans it on load (`door` and `shutter` in `workshop.json`, from `gen_workshop.py`), whose shutter then rolls up. The
+Library, the Radio Mast and the Post Office push into the building's middle, ending on their room header's middle.
+Those are pages of their own: the city leaves its last frame in sessionStorage, and their head's pre-paint
+(`assets/js/push-in.js`, allowed by its hash in `head.html`) holds the old page's view transition (`html.iris` in
+`custom.css`) until iris.js lays the frame over the page. A plain link under reduced motion, with `?fx=off`, where the
+tower is the plain page, or for a click that opens a tab; Back restores the city as it was (`pageshow`). The Career Tower is the pixel-art career
 building, entered at its lobby: any `#floor-X` address, or an old one-page anchor (`LEGACY` in `web3d/src/hash.js`, which the pre-paint
 `$floorHash` in `layouts/index.html` must match: `scripts/test/building-hash.test.js`), opens it directly, and pixel.js mounts it only then; back
 at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city. It is the career
@@ -122,8 +141,16 @@ wall, skirting and floor run on from the lift), `install_picks.py` bakes the pic
 lift into each, and `gen_floors.py` draws the slabs, the floor number and what moves (each room's animation, which only
 paints over what is there: lights, screens, a glint). A strip is its rest frame, two runs pixel.js tiles past it on a
 wide screen, the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
-they slide apart), and its moving box's other frames. The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
-box, lift doors, dither, each room's lamps, the floors' order, floor 7's capsule, the lobby's receptionists and cats) are written into `static/building/pixel/floors.json` by
+they slide apart), and its moving box's other frames. The lobby has one more picture at each hour,
+`floor-L-open[-PHASE].webp`, its glass entrance standing open (cut at `ENTRANCE`), which the push-in from the city lands on:
+`paint_rooms.py entrance` edits a crop round the doors of that hour's shut lobby, the leaves blocked out at either side
+of the doorway, every hour at the dusk pick's seed (`ENTRANCE_SEED`); `entrance --time PHASE --pick SEED` puts the pick
+back under a tight mask on the doorway and keeps only its crop, `picks/reception-open[-PHASE].png`; and `gen_floors.py`
+box-reduces that crop exactly as the whole painting is (the same filter at the same offset) and bakes it on that hour's
+lobby colours. In winter (`floor-L-open-winter[-PHASE].webp`), `entrance --winter` edits the hour's open lobby to snow as
+the shut winter lobby was (`WINTER_VIEW`, at that hour's winter seed), and its pick puts only the doorway on the shut
+winter lobby (`picks/reception-open-winter[-PHASE].png`). The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
+box, lift doors, the lobby's entrance, dither, each room's lamps, the floors' order, floor 7's capsule, the lobby's receptionists and cats) are written into `static/building/pixel/floors.json` by
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
 rerun it, never the copies. `pixel.js` is the lift and the floors, `art.js` what it reads; it keeps only the storeys
 round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most, and loads the stop's strip

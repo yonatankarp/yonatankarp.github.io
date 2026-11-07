@@ -73,6 +73,8 @@ web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/reception/
 # the holidays' props, keyed off their magenta, and the hanukkiah's candle tops (gen_props.py bakes them)
 !web3d/pixel/paintings/picks/props/
+# the lobby's glass entrance standing open at each hour, its doorway's crop (paint_rooms.py entrance; gen_floors.py bakes it)
+!web3d/pixel/paintings/picks/reception-open*.png
 __pycache__/
 
 # Machine-specific Claude Code launch config and agent worktrees

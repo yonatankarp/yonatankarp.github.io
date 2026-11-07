@@ -3,6 +3,7 @@
 // window's sky, so behind its frames and the rooftops. Over the header's picture, cropped as it is (scene-fx.js); where
 // is library-fx.json, written by web3d/pixel/gen_library.py, and the readers are gen_walkers.py's readers sheet. One
 // painting, at dusk, so no hours.
+import { arrive } from './iris.js';
 import { readers } from './readers.js';
 import { animate, people, rnd } from './scene-fx.js';
 
@@ -10,6 +11,12 @@ const canvas = document.querySelector('.library-fx');
 if (canvas) {
   const sheet = people((ext) => `${canvas.dataset.readers}.${ext}?v=${canvas.dataset.version}`, false);
   animate(canvas, { data: canvas.dataset.fx, depth: canvas.dataset.depth }, (ctx, fx, test) => setup(ctx, fx, test, sheet));
+  // In from the city's push-in: its frame opens from the header's middle, the room and its life settling about it.
+  const img = canvas.previousElementSibling;
+  arrive(img, () => {
+    const r = img.getBoundingClientRect(), o = [r.width / 2, r.height / 2];
+    return { at: [r.left + o[0], r.top + o[1]], settle: [[img, ...o], [canvas, ...o]] };
+  });
 }
 
 function setup(ctx, fx, { dfill, sprite }, sheet) {

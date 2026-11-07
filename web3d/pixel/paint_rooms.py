@@ -9,6 +9,8 @@ Run: uv run web3d/pixel/paint_rooms.py <room> [--count N] [--start SEED] [--host
      uv run web3d/pixel/paint_rooms.py receptionists   # the lobby's two, each pose at its person's seed (gen_floors bakes them)
      uv run web3d/pixel/paint_rooms.py retime --src <pick>.png --time dawn|day|night
      uv run web3d/pixel/paint_rooms.py winter --src <pick>.png [--start 700]   # that pick under snow, its hour kept
+     uv run web3d/pixel/paint_rooms.py entrance [--time PHASE] [--winter] [--count N] [--start S]   # the lobby's glass doors, open
+     uv run web3d/pixel/paint_rooms.py entrance --time PHASE [--winter] --pick SEED     # ... the pick, into picks/
 
 Every floor continues the lift lobby: the base image is the picked lobby painting on the left with its plain wall,
 skirting and plank floor carried across the whole width, and the model *edits* it, keeping all of that and
@@ -268,6 +270,85 @@ ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come 
 }
 
 
+# The lobby's glass entrance standing open: the way in from the city (city.js, pixel.js). Each hour's is an edit of a crop
+# round the doors of that hour's shut lobby (install_picks' dusk room with the hour's view through the door), with the
+# leaves blocked out slid aside (doorway()), every hour at the dusk pick's seed (ENTRANCE_SEED).
+# The pick goes back under a tight mask on the doorway, and only the doorway and a margin are kept:
+# picks/reception-open[-PHASE].png, which gen_floors.py bakes into floor-L-open[-PHASE].webp. In winter, the hour's open
+# lobby is edited to snow as the shut one was (WINTER_VIEW, at that hour's winter seed), and only its doorway goes onto
+# the shut winter lobby: picks/reception-open-winter[-PHASE].png.
+ENTRANCE_CROP = (1792, 0, 2304, 768)     # painting px: what the model sees, 512 x 768
+ENTRANCE = (1990, 212, 2232, 735)        # painting px: the doorway, under the transom and between the frame's posts
+ENTRANCE_SILL = 36                       # painting px: how much higher the doorway's sill is at its left than its right
+ENTRANCE_KEEP = (1976, 200, 2248, 748)   # painting px: what is kept, the doorway and a margin for the box filter
+ENTRANCE_SEED = 2634   # the dusk pick's seed, at which every other hour is painted too
+ENTRANCE_PROMPT = (
+    "Edit this picture. The tall glass sliding entrance doors on the right stand wide open: their two glass leaves have "
+    "slid sideways into the bronze frame, one at the left edge and one at the right edge of the doorway, flat against "
+    "the wall, not swung. Between them the doorway is an empty opening with no glass, no door, no handles and no bars, "
+    "and through it the street outside {}, exactly the street seen through the glass now: {}, all in the same places. "
+    "Keep the bronze door "
+    "frame, the transom window above it, the wall, the palm, the skirting board and the wooden floor exactly as they are, "
+    "in the same painterly video game style and the same warm lamp light inside. No people, no text, no letters, no "
+    "numbers, no signs, no logos.")
+DUSK = "at dusk: a purple and peach sky, the street lamps coming on"
+# What each hour's shut lobby shows through its glass, which the open doorway keeps.
+THROUGH = {"dusk": "the building across the street fills the doorway up to its top, no sky, with its street lamp and shop "
+                   "window, the road and the pavement",
+           "dawn": "the pale pink dawn sky low over the far side of the street, the sun just rising, the road and the pavement",
+           "day": "the clear blue sky with fat white clouds, a tall street lamp, the road and the pavement",
+           "night": "the dark starry sky with a crescent moon, glowing street lamps along the far side, the road and the pavement"}
+
+
+def shut_lobby(phase):
+    """The lobby's painting at an hour, as install_picks bakes it: the dusk room with that hour's view through the door."""
+    from install_picks import PICKS, VIEW   # here only: install_picks imports this module
+    room = Image.open(OUT / PICKS["reception"]).convert("RGB")
+    if phase != "dusk":
+        room.paste(Image.open(OUT / PICKS[f"reception-{phase}"]).convert("RGB").crop(VIEW["reception"]), VIEW["reception"][:2])
+    return room
+
+
+def open_lobby(phase):
+    """The crop round the doors at an hour with its entrance standing open (the pick), the input of its winter edit."""
+    room = shut_lobby(phase)
+    room.paste(Image.open(HERE / "picks" / f"reception-open{'' if phase == 'dusk' else '-' + phase}.png").convert("RGB"), ENTRANCE_KEEP[:2])
+    return room.crop(ENTRANCE_CROP)
+
+
+def doorway(phase):
+    """The crop round the doors at an hour, and the same with the two leaves, slid aside, blocked out as bronze-framed
+    glass slivers at either side of the doorway; the street its glass shows stays as it is, so the model keeps it."""
+    crop = shut_lobby(phase).crop(ENTRANCE_CROP)
+    x0, y0, x1, y1 = (v - o for v, o in zip(ENTRANCE, ENTRANCE_CROP[:2] * 2, strict=True))
+    base = crop.copy()
+    d, bronze, glass = ImageDraw.Draw(base), (120, 92, 48), (96, 92, 100)
+    for a, b in ((x0, x0 + 34), (x1 - 34, x1)):
+        d.rectangle((a, y0, b - 1, y1 - 1), fill=bronze)
+        d.rectangle((a + 7, y0 + 10, b - 8, y1 - 14), fill=glass)
+    return crop, base
+
+
+def entrance_pick(phase, seed, winter=False):
+    """The picked candidate back into the shut crop (the hour's, or its winter's) under a tight mask on the doorway; the
+    doorway and a margin kept."""
+    tag = f"{'-winter' if winter else ''}{'' if phase == 'dusk' else '-' + phase}"
+    if winter:
+        from install_picks import painting   # here only, as in shut_lobby()
+        crop = painting(f"reception{tag}").crop(ENTRANCE_CROP)
+    else:
+        crop, _ = doorway(phase)
+    x0, y0, x1, y1 = (v - o for v, o in zip(ENTRANCE, ENTRANCE_CROP[:2] * 2, strict=True))
+    mask = Image.new("L", crop.size)
+    ImageDraw.Draw(mask).polygon([(x0, y0), (x1, y0), (x1, y1), (x0, y1 - ENTRANCE_SILL)], fill=255)   # the sill falls to the right
+    painted = Image.open(OUT / f"reception-open{tag}_{seed}.png").convert("RGB")
+    out = Image.composite(painted, crop, mask.filter(ImageFilter.GaussianBlur(1)))
+    keep = [v - o for v, o in zip(ENTRANCE_KEEP, ENTRANCE_CROP[:2] * 2, strict=True)]
+    path = HERE / "picks" / f"reception-open{tag}.png"
+    out.crop(keep).save(path)
+    print("wrote", path)
+
+
 def floor_base(size=FLOOR_SIZE):
     """The lobby on the left, its plain wall, skirting and floor (a strip from its edge) carried rightwards."""
     name, box = LOBBY
@@ -356,12 +437,14 @@ def paint(path, prompt, size, seed, host, init=None):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("room", choices=["lobby", "cab", "capsule", "receptionists", "roof", "retime", "winter", "wall", *sorted(ROOMS)])
+    ap.add_argument("room", choices=["lobby", "cab", "capsule", "receptionists", "roof", "retime", "winter", "wall", "entrance", *sorted(ROOMS)])
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--start", type=int, default=1000)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     ap.add_argument("--src", help="retime: the dusk pick, a candidate's file name (roof_1017.png); winter: any hour's")
-    ap.add_argument("--time", choices=sorted(HOURS), help="retime: the hour to paint it at")
+    ap.add_argument("--time", choices=sorted(HOURS) + ["dusk"], help="retime, entrance: the hour to paint it at")
+    ap.add_argument("--winter", action="store_true", help="entrance: the hour's open entrance under snow")
+    ap.add_argument("--pick", type=int, help="entrance: the candidate to keep")
     ap.add_argument("--band", action="append", help="wall: X,Y[,room], how far right and down the wall beside the lift "
                     "is mended, and from which side; again for another band over the first")
     ap.add_argument("--ceiling", help="wall: X,Y, a lowered ceiling over the room to take down, to x X and row Y")
@@ -377,7 +460,19 @@ def main():
             out = ceiling(out, *map(int, args.ceiling.split(",")))
         out.save(OUT / f"{Path(args.src).stem}-wall.png")
         return
-    if args.room == "retime":   # the same picture at another hour: <src>-<time>_<seed>.png
+    if args.room == "entrance":   # reception-open[-winter][-<time>]_<seed>.png, or the pick into picks/
+        phase = args.time or "dusk"
+        if args.pick is not None:
+            return entrance_pick(phase, args.pick, args.winter)
+        if args.winter:
+            base, tag = open_lobby(phase), f"-winter{'' if phase == 'dusk' else '-' + phase}"
+            prompt = WINTER_VIEW.format("open glass entrance doorway and its open doors", SNOW["reception"], LIGHT[phase])
+        else:
+            _, base = doorway(phase)
+            tag, prompt = "" if phase == "dusk" else f"-{phase}", ENTRANCE_PROMPT.format(DUSK if phase == "dusk" else HOURS[phase], THROUGH[phase])
+        jobs = [(OUT / f"reception-open{tag}_{args.start + 17 * k}.png", prompt, base.size, args.start + 17 * k, base)
+                for k in range(args.count)]
+    elif args.room == "retime":   # the same picture at another hour: <src>-<time>_<seed>.png
         init = Image.open(OUT / args.src).convert("RGB")
         kind = args.src.split("_")[0]
         prompt = VIEW.format(WINDOWS[kind], HOURS[args.time]) if kind in WINDOWS else OUTDOOR.format(HOURS[args.time])

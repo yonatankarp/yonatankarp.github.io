@@ -8,7 +8,8 @@
 // - assets/css/custom.css puts each phase's backdrop (a crop of the city, gen_city.py) behind the other pages, and in
 //   winter (html[data-season]) its snowy one;
 // - and the art those name is in static/building/pixel/: the tower's baked rooms (gen_floors.py), the homepage's city and
-//   the projects' Workshop Row at each hour (gen_city.py, gen_workshop.py), each in winter too.
+//   the projects' Workshop Row at each hour (gen_city.py, gen_workshop.py), each in winter too, and the open doors the
+//   city's push-in goes through: the city's tower door (gen_city.py) and the lobby's entrance (gen_floors.py).
 const fs = require("fs");
 const path = require("path");
 const { rootDir, fail, runTimePick } = require("./lib");
@@ -65,6 +66,10 @@ for (const winter of [false, true]) {
     for (const file of [`backdrop${suffix}.webp`, ...[...baked].map((key) => `floor-${key}${suffix}.webp`)]) {
       const how = file.startsWith("backdrop") ? "gen_city.py build" : "gen_floors.py";
       if (!fs.existsSync(path.join(rootDir, art(file)))) problems.push(`${label} needs ${art(file)} (uv run web3d/pixel/${how} static/building/pixel)`);
+    }
+    for (const [file, how] of [[`door-open${suffix}.webp`, `the tower's open doors, web3d/pixel/paintings/picks/city-open${suffix}.png, then uv run web3d/pixel/gen_city.py build`],
+      [`floor-L-open${suffix}.webp`, `the lobby's open entrance, web3d/pixel/paintings/picks/reception-open${suffix}.png, then uv run web3d/pixel/gen_floors.py`]]) {
+      if (!fs.existsSync(path.join(rootDir, art(file)))) problems.push(`${label} needs ${art(file)} (${how})`);
     }
     for (const scene of ["city", "workshop"]) {
       const file = `${scene}${suffix}.webp`;

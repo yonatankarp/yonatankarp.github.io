@@ -15,6 +15,7 @@ import './city.css';
 const root = document.documentElement;
 const city = document.querySelector('[data-city]');
 if (city && root.classList.contains('at-city')) {
+  city.setAttribute('role', 'main');   // the page's main while it shows (#305): the tower's <main> is hidden, and without a script the city is not the page
   const scene = city.querySelector('.city-scene'), map = scene.querySelector('.city-map'), panel = city.querySelector('.city-panel');
   const kicker = city.querySelector('[data-city-kicker]'), out = city.querySelectorAll('[data-city-out]'), overview = kicker.textContent;
   const zoom = JSON.parse(map.dataset.zoom), maxPx = Number(map.dataset.maxPx), artH = scene.querySelector('.city-fx').height;

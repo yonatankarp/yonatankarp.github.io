@@ -9,7 +9,8 @@ new_tab: ", opens in a new tab"   # after a link that opens a new tab, for scree
 skip:   # the skip links, the first thing a keyboard reaches
   content: "Skip to content"
   cv: "Skip to the CV"
-  floor: "Skip to the current floor"   # the homepage
+  floor: "Skip to the current floor"   # the homepage's tower
+  city: "Skip to the city"   # the homepage's city
   projects: "Skip to the projects"
 
 bar:   # the top bar (layouts/partials/pixel-bar.html)

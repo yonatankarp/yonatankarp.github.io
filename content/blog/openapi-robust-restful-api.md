@@ -32,7 +32,7 @@ As a backend engineer, I have developed numerous REST APIs during my career. One
 <!--more-->
 
 
-![Two spider webs built out from opposite branches at different heights, with a wide gap between them](/images/blog/pixel/openapi-mismatched-webs.png)
+![Two spider webs built out from opposite branches at different heights, with a wide gap between them](/images/blog/pixel/openapi-mismatched-webs.webp)
 
 
 ## Use OpenAPI Spec for Our New API
@@ -166,7 +166,7 @@ In the `components` section, we define the API models. In our case, we define a 
 ## Step 2: Use OpenAPI Generator to Create the Code
 
 
-![A spider web with only bare spokes on its upper right, and a spider where the spiral stops](/images/blog/pixel/openapi-spinning-spiral.png)
+![A spider web with only bare spokes on its upper right, and a spider where the spiral stops](/images/blog/pixel/openapi-spinning-spiral.webp)
 
 
 ### Setting Up OpenAPI Spec to The Project
@@ -308,7 +308,7 @@ Running the `build` command in Gradle should generate the code in your project f
 ## Step 3: Implementation of the API! 🎉
 
 
-![A finished spider web holding a fly, with the spider walking towards it](/images/blog/pixel/openapi-first-catch.png)
+![A finished spider web holding a fly, with the spider walking towards it](/images/blog/pixel/openapi-first-catch.webp)
 
 
 ### Implementing The Code

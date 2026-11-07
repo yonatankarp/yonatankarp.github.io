@@ -1,7 +1,6 @@
-// web3d/src/calendar.js: the seasons and holidays for the parked dressing, on dates whose answer is known.
+// web3d/src/calendar.js: the seasons and holidays for the dressing, on dates whose answer is known.
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const table = require("../../data/timezones.json");
 
 const load = () => import("../../web3d/src/calendar.js");
 const on = (iso) => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); };
@@ -12,19 +11,18 @@ test("Hanukkah counts its nights from 25 Kislev, and is kept for every visitor",
   assert.equal(holidaysOn(on("2026-12-05")).hanukkah, 0);
   assert.equal(holidaysOn(on("2026-12-12")).hanukkah, 7);
   assert.equal(holidaysOn(on("2026-12-13")).hanukkah, undefined);
-  assert.equal(holidaysOn(on("2027-12-25"), ["US"]).hanukkah, 0);
-  assert.equal(holidaysOn(on("2027-12-25"), ["US"]).christmas, 24);   // both at once
+  assert.equal(holidaysOn(on("2027-12-25")).hanukkah, 0);
+  assert.equal(holidaysOn(on("2027-12-25")).christmas, 24);   // both at once
 });
 
 test("a Hebrew day begins at sunset: the first candle is lit on the evening before 25 Kislev", async () => {
   const { holidaysOn, HOLIDAYS } = await load();
   assert.equal(HOLIDAYS.hanukkah.first(on("2026-12-04")), -1);       // noon on Friday 4 December
   assert.equal(holidaysOn(on("2026-12-04")).hanukkah, undefined);
-  assert.equal(holidaysOn(on("2026-12-04"), [], true).hanukkah, 0);  // that evening
-  assert.equal(holidaysOn(on("2026-12-05"), [], true).hanukkah, 1);
-  assert.equal(holidaysOn(on("2026-12-12"), [], true).hanukkah, undefined);   // the eighth day's evening ends it
-  assert.equal(holidaysOn(on("2026-11-30"), [], true).christmas, undefined);   // Christmas still begins at midnight
-  assert.equal(holidaysOn(on("2026-03-19"), ["TR"], true)["eid-al-fitr"], 0);   // and so do the Islamic ones at sunset
+  assert.equal(holidaysOn(on("2026-12-04"), true).hanukkah, 0);  // that evening
+  assert.equal(holidaysOn(on("2026-12-05"), true).hanukkah, 1);
+  assert.equal(holidaysOn(on("2026-12-12"), true).hanukkah, undefined);   // the eighth day's evening ends it
+  assert.equal(holidaysOn(on("2026-11-30"), true).christmas, undefined);   // Christmas still begins at midnight
 });
 
 test("Rosh Hashanah, Passover, Purim, Shavuot and Lag BaOmer, by their Hebrew dates", async () => {
@@ -51,19 +49,19 @@ test("Rosh Hashanah, Passover, Purim, Shavuot and Lag BaOmer, by their Hebrew da
 
 test("Independence Day keeps 5 Iyar, moved off Friday and Saturday to Thursday and off Monday to Tuesday", async () => {
   const { holidaysOn } = await load();
-  const kept = (iso, evening = false) => holidaysOn(on(iso), [], evening)["yom-haatzmaut"];
+  const kept = (iso, evening = false) => holidaysOn(on(iso), evening)["yom-haatzmaut"];
   assert.equal(kept("2026-04-22"), 0);   // 5 Iyar on a Wednesday: kept on it
   assert.equal(kept("2026-04-21", true), 0);
   for (const [iyar5, day] of [["2029-04-20", "2029-04-19"], ["2045-04-22", "2045-04-20"], ["2028-05-01", "2028-05-02"]]) {   // Friday, Saturday, Monday
     assert.equal(kept(day), 0, day);
     assert.equal(kept(iyar5), undefined, iyar5);
     const eve = on(day); eve.setDate(eve.getDate() - 1);
-    assert.equal(holidaysOn(eve, [], true)["yom-haatzmaut"], 0, `the evening before ${day}`);
+    assert.equal(holidaysOn(eve, true)["yom-haatzmaut"], 0, `the evening before ${day}`);
   }
   for (let y = 2026; y <= 2050; y++) {   // it never shares a day with another holiday
     for (let d = new Date(y, 3, 1); d.getMonth() < 5; d.setDate(d.getDate() + 1)) {
       for (const evening of [false, true]) {
-        const h = holidaysOn(d, ["US", "TR"], evening);
+        const h = holidaysOn(d, evening);
         if ("yom-haatzmaut" in h) assert.deepEqual(Object.keys(h), ["yom-haatzmaut"], `${d.toDateString()}${evening ? " evening" : ""}`);
       }
     }
@@ -81,19 +79,6 @@ test("Sukkot, Easter, Christmas and the new year", async () => {
   assert.equal(holidaysOn(on("2026-12-27")).christmas, undefined);
   assert.equal(holidaysOn(on("2026-12-31"))["new-year"], 0);
   assert.equal(holidaysOn(on("2027-01-01"))["new-year"], 1);
-});
-
-test("the visitor's own holidays show only for their country", async () => {
-  const { holidaysOn } = await load();
-  assert.equal(holidaysOn(on("2026-10-31")).halloween, undefined);
-  assert.equal(holidaysOn(on("2026-10-31"), ["US"]).halloween, 7);
-  assert.equal(holidaysOn(on("2026-11-08"), ["IN"]).diwali, 2);
-  assert.equal(holidaysOn(on("2026-11-08"), ["FR"]).diwali, undefined);
-  assert.equal(holidaysOn(on("2026-03-20"), ["TR"])["eid-al-fitr"], 0);
-  assert.equal(holidaysOn(on("2026-05-27"), ["ID"])["eid-al-adha"], 0);
-  assert.equal(holidaysOn(on("2026-02-17"), ["SG"])["lunar-new-year"], 0);
-  assert.equal(holidaysOn(on("2026-03-03"), ["SG"])["lunar-new-year"], 14);
-  assert.equal(holidaysOn(on("2026-02-17"), ["DE"])["lunar-new-year"], undefined);
 });
 
 test("seasons flip south of the equator, and the tropics have none", async () => {
@@ -124,7 +109,7 @@ test("?holiday= pins the holidays: none, a day each, and nothing the calendar do
   assert.deepEqual(fromQuery(" hanukkah:3 , christmas "), { hanukkah: 3, christmas: 0 });
   assert.deepEqual(fromQuery("hanukkah:-2"), { hanukkah: 0 });
   assert.deepEqual(fromQuery("hanukkah:abc"), { hanukkah: 0 });
-  assert.deepEqual(fromQuery("diwali:1,yule,toString,__proto__"), { diwali: 1 });
+  assert.deepEqual(fromQuery("sukkot:1,diwali,yule,toString,__proto__"), { sukkot: 1 });
 });
 
 test("the evening begins past sunset in the afternoon, the sun's top below -0.833 degrees", async () => {
@@ -136,24 +121,4 @@ test("the evening begins past sunset in the afternoon, the sun's top below -0.83
   assert.equal(isEvening(at(13), -0.8), false);
   assert.equal(isEvening(at(11), -10), false);       // before noon it is the morning, even in the dark
   assert.equal(isEvening(at(23), -40), true);
-});
-
-test("a timezone, or an old name for one, gives its country and where it is", async () => {
-  const { placeOf } = await load();
-  assert.deepEqual(placeOf("Europe/Berlin", table), { country: "DE", lat: 52.5, lon: 13.4 });
-  assert.equal(placeOf("Asia/Calcutta", table).country, "IN");
-  assert.equal(placeOf("Australia/Sydney", table).lat < 0, true);
-  assert.equal(placeOf("Etc/UTC", table), null);
-});
-
-test("WMO weather codes fall into the five skies", async () => {
-  const { weatherOf } = await load();
-  assert.deepEqual([0, 1, 2, 3, 45, 48, 51, 63, 66, 71, 75, 77, 80, 85, 95, 99].map(weatherOf),
-    ["clear", "clear", "cloudy", "cloudy", "fog", "fog", "rain", "rain", "rain", "snow", "snow", "snow", "rain", "snow", "rain", "rain"]);
-});
-
-test("the Diwali table still covers next year", async () => {
-  const { DIWALI } = await load();
-  const next = new Date().getFullYear() + 1;
-  assert.ok(DIWALI[next], `web3d/src/calendar.js: DIWALI has no date for ${next}; add the next years' Lakshmi Puja dates`);
 });

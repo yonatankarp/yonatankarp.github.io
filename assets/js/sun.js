@@ -1,6 +1,6 @@
 // The sun's elevation, shared by the time-of-day pick (time-pick.js, which layouts/partials/time-pick.html and
 // scripts/lib.js follow with this file, without its export) and the holidays' sunset (web3d/src/outside.js, which imports
-// it: past sunset a Hebrew or Islamic holiday's evening counts as its next day). Kept to vars and a plain function, as
+// it: past sunset a Hebrew holiday's evening counts as its next day). Kept to vars and a plain function, as
 // the pick's minifier needs; no other line may hold "export" and a space.
 
 // The sun at instant ms seen from lat, lon (the standard low-precision solar position, a few minutes off at most): its

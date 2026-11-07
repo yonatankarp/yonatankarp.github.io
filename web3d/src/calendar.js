@@ -1,46 +1,30 @@
 // The calendar behind the seasonal and holiday dressing (outside.js): the season at a latitude and the holidays on
 // a date, worked out in the browser, with no service to ask. Pure, so scripts/test/calendar.test.js runs it under Node.
-// The Jewish, Chinese and Islamic dates come from the browser's own calendars (Intl, with ICU's); Easter is a formula;
-// Diwali, whose date neither gives, is a table.
+// The Jewish dates come from the browser's own Hebrew calendar (Intl, with ICU's); Easter is a formula.
 
-// Whose holidays the building keeps besides the visitor's: his (Israel, and Germany, where he lives).
-export const HOME = ['IL', 'DE'];
-
-// Diwali's main day (Lakshmi Puja), the new moon of Kartika. A test fails once this runs out: add the next years.
-export const DIWALI = { 2026: '11-08', 2027: '10-29', 2028: '10-17', 2029: '11-05', 2030: '10-26', 2031: '11-13', 2032: '11-02' };
-
-const EID = ['AE', 'AF', 'AL', 'AZ', 'BD', 'BF', 'BH', 'BN', 'DJ', 'DZ', 'EG', 'GM', 'GN', 'ID', 'IQ', 'IR', 'JO', 'KG', 'KM', 'KW', 'KZ', 'LB', 'LY', 'MA', 'ML', 'MR', 'MV', 'MY', 'NE', 'NG', 'OM', 'PK', 'PS', 'QA', 'SA', 'SD', 'SN', 'SO', 'SY', 'TD', 'TJ', 'TM', 'TN', 'TR', 'UZ', 'XK', 'YE'];
-
-// Each holiday: where it is kept (HOME's are kept for everyone), and how many days of decorations from its first.
-// first(date) says which day of it the date is (0 for its first), or -1. A `sunset` one follows a calendar whose day
-// begins at sunset (the Hebrew and the Islamic): after sunset it is already the next day's (holidaysOn's `evening`).
+// The holidays, kept for every visitor: his (Israel, and Germany, where he lives) and the new year. first(date) says which
+// day of decorations the date is (0 for its first), or -1. A `sunset` one follows the Hebrew calendar, whose day begins
+// at sunset: after sunset it is already the next day's (holidaysOn's `evening`).
 // Left out on purpose: Yom Kippur, Yom HaShoah and Yom HaZikaron, solemn days that get no festive dressing.
 export const HOLIDAYS = {
-  'new-year': { where: 'all', first: (d) => (d.getMonth() === 11 && d.getDate() === 31 ? 0 : d.getMonth() === 0 && d.getDate() === 1 ? 1 : -1) },
-  'lunar-new-year': { where: ['CN', 'HK', 'KR', 'MO', 'MY', 'SG', 'TW', 'VN'], first: (d) => sinceDay(d, 'chinese', '1', 1, 15) },   // to the Lantern Festival
-  'eid-al-fitr': { where: EID, sunset: true, first: (d) => sinceDay(d, 'islamic-umalqura', '10', 1, 3) },
-  'eid-al-adha': { where: EID, sunset: true, first: (d) => sinceDay(d, 'islamic-umalqura', '12', 10, 4) },
-  purim: { where: HOME, sunset: true, first: (d) => Math.max(sinceDay(d, 'hebrew', 'Adar', 14, 1), sinceDay(d, 'hebrew', 'Adar II', 14, 1)) },   // Adar II in a leap year
-  passover: { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Nisan', 15, 7) },   // seven days, as kept in Israel
-  easter: { where: HOME, first: (d) => within(d, easter(d.getFullYear()), -7, 1) },   // Palm Sunday to Easter Monday, when Germany's egg trees are out
-  'yom-haatzmaut': { where: HOME, sunset: true, first: independenceDay },
-  'lag-baomer': { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Iyar', 18, 1) },   // its bonfires
-  shavuot: { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Sivan', 6, 1) },
-  'rosh-hashanah': { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Tishri', 1, 2) },
-  sukkot: { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Tishri', 15, 7) },
-  halloween: { where: ['CA', 'GB', 'IE', 'US'], first: (d) => (d.getMonth() === 9 && d.getDate() >= 24 ? d.getDate() - 24 : -1) },
-  diwali: { where: ['FJ', 'GY', 'IN', 'LK', 'MU', 'MY', 'NP', 'SG', 'SR', 'TT'], first: (d) => (DIWALI[d.getFullYear()] ? within(d, local(`${d.getFullYear()}-${DIWALI[d.getFullYear()]}`), -2, 2) : -1) },   // Dhanteras to Bhai Dooj
-  hanukkah: { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Kislev', 25, 8) },
-  christmas: { where: HOME, first: (d) => (d.getMonth() === 11 && d.getDate() <= 26 ? d.getDate() - 1 : -1) },   // the lights are up all of Advent
+  'new-year': { first: (d) => (d.getMonth() === 11 && d.getDate() === 31 ? 0 : d.getMonth() === 0 && d.getDate() === 1 ? 1 : -1) },
+  purim: { sunset: true, first: (d) => Math.max(sinceDay(d, 'hebrew', 'Adar', 14, 1), sinceDay(d, 'hebrew', 'Adar II', 14, 1)) },   // Adar II in a leap year
+  passover: { sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Nisan', 15, 7) },   // seven days, as kept in Israel
+  easter: { first: (d) => within(d, easter(d.getFullYear()), -7, 1) },   // Palm Sunday to Easter Monday, when Germany's egg trees are out
+  'yom-haatzmaut': { sunset: true, first: independenceDay },
+  'lag-baomer': { sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Iyar', 18, 1) },   // its bonfires
+  shavuot: { sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Sivan', 6, 1) },
+  'rosh-hashanah': { sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Tishri', 1, 2) },
+  sukkot: { sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Tishri', 15, 7) },
+  hanukkah: { sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Kislev', 25, 8) },
+  christmas: { first: (d) => (d.getMonth() === 11 && d.getDate() <= 26 ? d.getDate() - 1 : -1) },   // the lights are up all of Advent
 };
 
-// The holidays on a date, for a visitor from one of `countries` (none known: HOME's alone), with which day of each it is:
-// { hanukkah: 3 } is its fourth day, the fourth candle. `evening`: the sun has set where they are, so the sunset
+// The holidays on a date, with which day of each it is: { hanukkah: 3 } is its fourth day, the fourth candle. `evening`: the sun has set where they are, so the sunset
 // holidays go by the next day (the first candle is lit on the evening before 25 Kislev).
-export function holidaysOn(date, countries = [], evening = false) {
+export function holidaysOn(date, evening = false) {
   const out = {}, next = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
   for (const [name, h] of Object.entries(HOLIDAYS)) {
-    if (h.where !== 'all' && !h.where.some((c) => HOME.includes(c) || countries.includes(c))) continue;
     const day = h.first(evening && h.sunset ? next : date);
     if (day >= 0) out[name] = day;
   }
@@ -67,22 +51,7 @@ export function fromQuery(list) {
 // The season at a latitude (assets/js/season.js, which the page's head picks it by too).
 export { seasonOn } from '../../assets/js/season.js';
 
-// Where a timezone is, from data/timezones.json: its country and its main city's latitude and longitude, or null.
-export function placeOf(zone, table) {
-  const at = table.zones[zone] ?? table.zones[table.links[zone]];
-  return at ? { country: at[0], lat: at[1], lon: at[2] } : null;
-}
-
-// What the sky is doing, from Open-Meteo's WMO weather code: clear, cloudy, fog, rain or snow.
-export function weatherOf(code) {
-  if (code >= 95 || (code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return 'rain';
-  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
-  if (code === 45 || code === 48) return 'fog';
-  return code >= 2 ? 'cloudy' : 'clear';
-}
-
 const DAY = 86400000;
-const local = (iso) => { const [y, m, d] = iso.split('-').map(Number); return new Date(y, m - 1, d); };
 const midnight = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 const days = (a, b) => Math.round((midnight(a) - midnight(b)) / DAY);
 // Which day of [start + from, start + to] the date is, or -1.

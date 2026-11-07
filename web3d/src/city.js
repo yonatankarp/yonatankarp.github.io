@@ -73,8 +73,9 @@ if (city && root.classList.contains('at-city')) {
   };
   view(false);
   // Only a new width re-centres: iOS resizes as its toolbar collapses, and the visitor's pan stays, re-clamped (#301).
-  let wide = innerWidth;
-  addEventListener('resize', () => (innerWidth === wide ? place(at.x, at.y, at.s, false) : (wide = innerWidth, view(false))));
+  const layoutWidth = () => root.clientWidth;   // not innerWidth, which a pinch changes in WebKit
+  let wide = layoutWidth();
+  addEventListener('resize', () => (layoutWidth() === wide ? place(at.x, at.y, at.s, false) : (wide = layoutWidth(), view(false))));
   // In the capture phase, so a label's first click, which only zooms, never reaches its link or its GoatCounter count.
   city.addEventListener('click', (e) => {
     if (e.target.closest('[data-city-out]')) return pick(null);

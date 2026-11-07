@@ -13,7 +13,7 @@ export function floorKey(hash, floors = []) {
 }
 
 // A hash in the floors' form, known or not, or a legacy anchor: the tower's, which the pre-paint test in layouts/index.html
-// ($floorHash, kept in step by scripts/test/building-hash.test.js) enters too. The lift lands one it cannot place in the
-// lobby and puts the lobby's on the address (pixel.js, #63). Others, such as #toggle-goatcounter or the plain page's skip
-// link, are left alone.
+// ($floorHash, kept in step by scripts/test/building-hash.test.js) enters too. One the lift cannot place is never dropped
+// (pixel.js, #63): on load it opens the lobby, later it keeps the lift where it is, and the address then names that floor.
+// Others, such as #toggle-goatcounter or the plain page's skip link, are left alone.
 export const floorShaped = (hash) => /^#floor-/i.test(hash) || Object.hasOwn(LEGACY, hash.slice(1).toLowerCase());

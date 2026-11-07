@@ -16,15 +16,10 @@ function place() {
   return [52.5, 13.4];   // an unknown zone, or none: Berlin
 }
 
-// The phase at instant ms, from the sun's elevation at lat, lon (the standard low-precision solar position, a few
-// minutes off at most): day above +6 degrees, night at -8 or below, dawn or dusk between, by whether noon has passed.
+// The phase at instant ms, from the sun's elevation at lat, lon (sunAt, from assets/js/sun.js, which follows this
+// script): day above +6 degrees, night at -8 or below, dawn or dusk between, by whether noon has passed.
 function sunPhase(ms, lat, lon) {
-  var r = Math.PI / 180, n = ms / 864e5 - 10957.5,   // days since J2000.0
-    g = (357.528 + 0.9856003 * n) * r, l = (280.46 + 0.9856474 * n + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) * r,
-    e = (23.439 - 4e-7 * n) * r, dec = Math.asin(Math.sin(e) * Math.sin(l)),
-    ra = Math.atan2(Math.cos(e) * Math.sin(l), Math.cos(l)) / r,
-    h = (((280.46061837 + 360.98564736629 * n + lon - ra) % 360) + 540) % 360 - 180,   // hour angle, negative before noon
-    alt = Math.asin(Math.sin(lat * r) * Math.sin(dec) + Math.cos(lat * r) * Math.cos(dec) * Math.cos(h * r)) / r;
-  return alt > 6 ? 'day' : alt <= -8 ? 'night' : h < 0 ? 'dawn' : 'dusk';
+  var s = sunAt(ms, lat, lon);   // eslint-disable-line no-undef
+  return s[0] > 6 ? 'day' : s[0] <= -8 ? 'night' : s[1] < 0 ? 'dawn' : 'dusk';
 }
 

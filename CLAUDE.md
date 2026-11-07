@@ -81,7 +81,12 @@ there are) and its sky (the roof strip's top row) on every run.
 
 The seasonal, holiday and weather dressing is parked for a later pass: `web3d/src/outside.js` and `calendar.js` (tested in
 `scripts/test/calendar.test.js`) still work out the visitor's season, holidays and country from `data/timezones.json`, but
-nothing imports them.
+nothing imports them. Besides the visitor's own, his are kept for everyone (`HOME`): Christmas, the new year, Easter, and the
+Jewish holidays by their Hebrew date (Rosh Hashanah, Sukkot, Hanukkah, Purim, Passover, Independence Day with the law's
+moves, Lag BaOmer, Shavuot; not the solemn days). The Hebrew and Islamic ones (`sunset: true`) begin at sunset:
+`holidaysOn`'s `evening` flag reads the next day for them, which outside.js sets once the sun is below -0.833° at the
+visitor's city after noon, from `assets/js/sun.js`, the elevation the time-of-day pick uses too (`time-pick.html` and
+`scripts/lib.js` put it after `time-pick.js`, without its `export`). `?holiday=` pins them as before.
 
 The tower's art is 928x308 a room (painted at 2304x768, box-reduced and median-cut to 64 colours, no dither, like the
 city), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an edit of the lobby carried across, so the

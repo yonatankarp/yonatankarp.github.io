@@ -24,6 +24,7 @@ Every run also writes data/floor_accents.yaml from FLOORS (accents()) and checks
 import json
 import math
 import sys
+from collections import Counter
 from pathlib import Path
 from random import Random
 
@@ -142,9 +143,10 @@ class Layer:
                 if is_light(col) and (x // 2 * 7 + y // 2 * 3 + seed + f * 5) % every >= on:
                     self.put(x, y, tuple(v * 3 // 5 for v in col))
 
-    def brighten(self, x, y, k):
-        """Toward white by k (0..1): a glint passing over the painting."""
-        self.put(x, y, tuple(round(v + (255 - v) * k) for v in self.get(x, y)))
+    def brighten(self, x, y, k, palette=None):
+        """Toward white by k (0..1): a glint passing over the painting; with a palette, the nearest colour in it."""
+        col = tuple(round(v + (255 - v) * k) for v in self.get(x, y))
+        self.put(x, y, min(palette, key=lambda p: sum((a - b) ** 2 for a, b in zip(p, col, strict=True))) if palette else col)
 
 
 def lum(col):
@@ -187,7 +189,8 @@ def reception(room, f, phase):
                     room.brighten(x, y, 0.3)
 
 
-# Floor 1, Reichman: a tree is drawn in chalk on the board's clean panel, row by row from its root.
+# Floor 1, Reichman: a tree is drawn in chalk on the board's clean panel, row by row from its root, then wiped off it from
+# the top over the loop's last frames, so the room comes back to rest with no jump.
 TREE = ["....###.###....", "..##...#...##..", ".#...........#.", "#.............#", "#.............#",
         ".#...#...#...#.", "#.....#.#.....#", "#......#......#", ".##....#....##.", "...#########...",
         ".......#.......", ".......#.......", ".......#.......", "......###......", ".....#...#....."]
@@ -195,7 +198,7 @@ TREE = ["....###.###....", "..##...#...##..", ".#...........#.", "#.............
 
 def reichman(room, f, phase):
     if f:
-        sprite(room, 400, 105, TREE, (226, 214, 176), upto=min(len(TREE), f * 2), k=0.7)
+        sprite(room, 400, 105, TREE, (226, 214, 176), upto=min(len(TREE), f * 2, 4 * (FRAMES - f) - 1), k=0.7)
 
 
 # Floor 2, Inuitive: the scope's trace runs on, a calibration line sweeps the checkerboard, the robot's lamp blinks.
@@ -277,12 +280,13 @@ VAULT = (415, 160, 56)
 
 def billie_payments(room, f, phase):
     cx, cy, r = VAULT
+    own = [col for _, col in room.img.getcolors(4096)]                     # the glint in the room's own colours
     band = -r + 2 * r * f / (FRAMES - 1)                                   # a diagonal band crossing the door
     for y in range(cy - r, cy + r):
         for x in range(cx - r, cx + r):
             d = (x - cx + y - cy) / 1.4 - band
             if f and abs(d) < 5 and (x - cx) ** 2 + (y - cy) ** 2 < r * r and lum(room.get(x, y)) > 70:
-                room.brighten(x, y, 0.35 * (1 - abs(d) / 5))
+                room.brighten(x, y, 0.35 * (1 - abs(d) / 5), own)
 
 
 def capsule(out):
@@ -436,9 +440,57 @@ FLOORS = {  # key: (painting, accent ramp, animation, its hanging lamps' x in th
 }
 
 
-def frame_base(key, painting, accent):
+MASTS = [(280, 285), (346, 383)]   # the lightning rod and the crane's mast, where they leave the roof's painting at its top
+STAR_SHIFT = 97                     # how far along its row a star of the painting's top goes, into the sky over it
+
+
+def sky_band(painting, plate, night):
+    """The roof's open sky over its painting, the CEIL rows of the top slab, on over the right post: {(x, y): colour}, x
+    in the painting's pixels. Each column is the painting's own sky at its top (the mean of its top rows round it, so a
+    crane, cable or star counts for little) blended up into the plate pixel.js paints above the roof (phases.json's sky),
+    which is its top row, so it meets that plate and the painting with no edge: each pixel the nearest of the colours that
+    sky is mostly painted in, in flat bands as it is (the art standard: no dither). The masts go on up, mirrored (a
+    lattice reads the same either way). At night the stars of the painting's top rows are scattered over it, each moved
+    STAR_SHIFT along its row so none pairs with the one below: pixel.js tiles these rows above the roof at night. (By day
+    such specks are the cables' and the crane's glints.)"""
+    px, x0, x1 = painting.load(), HOUSING, painting.width
+    mast = {x for a, b in MASTS for x in range(a, b)}
+    sky = {}
+    for x in range(x0, x1 + LOBBY_X):
+        near = [px[xx, y] for xx in range(max(x0, x - 32), min(x1, x + 33)) if xx not in mast for y in range(4)]
+        sky[x] = tuple(sum(col[i] for col in near) / len(near) for i in range(3))
+    dist = lambda a, b: sum(abs(u - v) for u, v in zip(a, b, strict=True))  # noqa: E731
+    seen = Counter(px[x, y] for x in range(x0, x1) if x not in mast for y in range(CEIL))
+    own = sorted({col for col, n in seen.items() if n * 100 >= seen.total()} | {plate})   # 1% of that sky or more
+    nearest = {}
+    band = {}
+    for y in range(CEIL):
+        t = (y + 0.5) / CEIL
+        for x in range(x0, x1 + LOBBY_X):
+            want = tuple(round(p + (q - p) * t) for p, q in zip(plate, sky[x], strict=True))
+            if want not in nearest:
+                nearest[want] = min(own, key=lambda col: sum((a - b) ** 2 for a, b in zip(col, want, strict=True)))  # noqa: B023
+            band[x, y] = nearest[want] if y else plate
+            if x in mast and dist(m := px[x, CEIL - 1 - y], sky[x]) > 40:
+                band[x, y] = m
+    bright = lambda x, y: 0 <= y < painting.height and x0 <= x < x1 and lum(px[x, y]) > lum(sky[x]) + 24  # noqa: E731
+    for y in range(CEIL if night else 0):
+        for x in range(x0, x1):   # a star: a speck of a pixel or two, brighter than the sky, alone (not a cable's glints)
+            if x not in mast and bright(x, y) and sum(bright(x + dx, y + dy) for dx in range(-2, 3) for dy in range(-2, 3)) <= 2:
+                band[x0 + (x - x0 + STAR_SHIFT) % (x1 - x0), y] = px[x, y]
+    return band
+
+
+def plate(variant, path=ROOT / "data" / "phases.json"):
+    """The sky pixel.js paints above the roof at an hour, or an hour in winter: phases.json's."""
+    site = json.loads(path.read_text())[hour(variant)]
+    return ramp((site["winter"] if variant.startswith("winter") else site)["sky"])[0]
+
+
+def frame_base(key, painting, accent, variant="dusk"):
     """The static floor: slabs with the floor's colour band, the facade posts, the painting, the floor's number. The roof
-    is open sky right of its lift housing, up to the top and over the right post."""
+    is open sky right of its lift housing, up to the top and over the right post: over the painting, sky_band() into
+    the plate pixel.js paints above it at the variant's hour."""
     img = Image.new("RGB", (W, H), INK)
     cv = Layer(img)
     cv.rect(0, 0, W, CEIL, c("dark", 1))
@@ -449,10 +501,11 @@ def frame_base(key, painting, accent):
         cv.rect(x0, CEIL, x0 + LOBBY_X, H - SLAB, c("dark", 2))
     img.paste(painting, (LOBBY_X, CEIL))
     if key == "R":
+        band = sky_band(painting, plate(variant), hour(variant) == "night")
         for x in range(LOBBY_X + HOUSING, W):
             px = min(x - LOBBY_X, painting.width - 1)
-            for y in range(CEIL):                                          # the sky's top rows, mirrored up: a
-                cv.put(x, y, painting.getpixel((px, CEIL - 1 - y)))        # copied row would streak at every star
+            for y in range(CEIL):
+                cv.put(x, y, band[x - LOBBY_X, y])
             if x >= W - LOBBY_X:
                 for y in range(CEIL, H - SLAB):
                     cv.put(x, y, painting.getpixel((px, y - CEIL)))
@@ -522,7 +575,7 @@ def frames(key, variant):
     pick = PICKS / f"{name}-{variant}-px.png"
     phase = hour(variant)
     painting = Image.open(pick if pick.exists() else PICKS / f"{name}-px.png").convert("RGB")
-    base = frame_base(key, painting, accent)
+    base = frame_base(key, painting, accent, variant)
     out = []
     for f in range(FRAMES):
         img = base.copy()
@@ -615,8 +668,8 @@ def phases(path=ROOT / "data" / "phases.json"):
 
 
 def sky(out, path=ROOT / "data" / "phases.json"):
-    """Each hour's sky in phases.json is the colour pixel.js paints above the roof until its strip arrives: the roof
-    strip's own top row (pixel.js reads it at x 600 once it has)."""
+    """Each hour's sky in phases.json is the colour pixel.js paints above the roof: the roof strip's top row is drawn
+    into it (sky_band), and pixel.js reads it there, at x 600, once the strip has arrived."""
     site = json.loads(path.read_text())
     for variant, file, want in [x for h, p in site.items() for x in ((h, f"floor-R{'' if h == 'dusk' else '-' + h}", p["sky"]),
                                                                     (winter(h), f"floor-R-{winter(h)}", p["winter"]["sky"]))]:

@@ -1,7 +1,7 @@
 /* The city (layouts/index.html, city.js): the art at the window's height, zoomed into the picked district and panned
    sideways, and a warm panel over its bay. The labels' % positions come from city.json, so they stay on their districts at any size. Only with at-city:
    without it (no script, or an address that names a floor) the building is the page. */
-html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-scrim, .elevator, .building-stops) { display: none; }
+html:not(.at-city) :is(.city, .skip-link--city), html.at-city :is(.skip-link:not(.skip-link--city), #pixel-canvas, .building-scrim, .elevator, .building-stops) { display: none; }
 :is(.city, .workshop) {   /* the projects' Workshop Row (workshop.css) wears the city's colours */
   --city-ink: #1b1410;
   --city-panel: rgba(58, 38, 22, 0.92);

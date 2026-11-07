@@ -9,13 +9,13 @@
 {{ $name := .Params.seoTitle | default .Title }}
 {{ $description := .Description | default .Summary | plainify | default $homeDescription }}
 {{ if eq .Kind "term" }}
-  {{ $name = printf "Posts tagged %s" .Title }}
+  {{ $name = printf hugo.Data.ui.meta.tag_title .Title }}
   {{ $titles := slice }}{{ range first 3 .Pages }}{{ $titles = $titles | append .Title }}{{ end }}
-  {{ $description = printf "%s on %s's blog: %s." $name $siteName (delimit $titles ", ") }}
+  {{ $description = printf hugo.Data.ui.meta.tag_description $name $siteName (delimit $titles ", ") }}
 {{ else if eq .Kind "taxonomy" }}
-  {{ $name = printf "Blog %s" (lower .Title) }}
+  {{ $name = printf hugo.Data.ui.meta.tags_title (lower .Title) }}
   {{ $terms := slice }}{{ range first 8 .Data.Terms.ByCount }}{{ $terms = $terms | append .Page.Title }}{{ end }}
-  {{ $description = printf "Browse %s's blog by %s: %s." $siteName .Data.Singular (delimit $terms ", ") }}
+  {{ $description = printf hugo.Data.ui.meta.tags_description $siteName .Data.Singular (delimit $terms ", ") }}
 {{ end }}
 {{- /* Search results cut a title near 60 characters and a description near 160, so the site name goes when it does not fit. */}}
 {{ $title := printf "%s | %s" $name $siteTitle }}
@@ -28,9 +28,9 @@
 
 {{ $canonical := .Permalink }}
 
-{{ $imagePath := "/images/og-default.png" }}
-{{ $imageAlt := printf "Yonatan Karp-Rudin, Staff Software Engineer, %s, in front of the pixel-art building of his CV" hugo.Data.home.en.contact.location }}
-{{ with .Params.images }}{{ with .featured_image }}{{ $imagePath = . }}{{ $imageAlt = printf "Cover image of %s" $.Title }}{{ end }}{{ end }}
+{{ $imagePath := "/images/og-city.png" }}
+{{ $imageAlt := printf hugo.Data.art.share hugo.Data.home.en.contact.location }}
+{{ with .Params.images }}{{ with .featured_image }}{{ $imagePath = . }}{{ $imageAlt = $.Params.coverAlt | default (printf hugo.Data.art.cover $.Title) }}{{ end }}{{ end }}
 {{ $image := $imagePath | absURL }}
 {{ $imageSize := false }}
 {{ $imageFile := printf "static%s" $imagePath }}
@@ -44,14 +44,22 @@
      on* attributes: move them into assets/js, or, for one that must run before the first paint, put its resource in
      .Store "inlineScripts" and it is allowed by its hash (layouts/index.html does). Diagrams are drawn at build time (#250), and
      GoatCounter is allowed as its one file, the count.v5.js its tag below loads. */}}
-{{- /* Every other page's backdrop follows the hour too (custom.css, .px-skin): the same pick, before the first paint. And
-     the city's push-in (assets/js/push-in.js) is caught before it, on the district it went into. */}}
-{{ if not .IsHome }}{{ .Store.Set "inlineScripts" (slice (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256") (resources.Get "js/push-in.js" | minify | fingerprint "sha256")) }}{{ end }}
-{{- /* A standalone page's template may also put scripts it writes itself in the body in .Store "bodyScripts" before this
-     partial (layouts/projects/list.html does, to pick its painting's hour as the image arrives). */}}
-{{ $hashes := "" }}{{ range slice (.Store.Get "inlineScripts") (.Store.Get "bodyScripts") }}{{ range . }}{{ $hashes = printf "%s '%s'" $hashes .Data.Integrity }}{{ end }}{{ end }}
+{{- /* Every other page's backdrop follows the hour too (custom.css, .px-skin): the same pick, before the first paint. The
+     Library (/blog/), the Radio Mast and the Post Office hide the backdrop behind their room and read neither the hour nor
+     the season, so they skip it (check-generated-html.js reads the pick's zone table from /cv/). Every page but the
+     homepage catches the city's push-in (assets/js/push-in.js) before its first paint, on the district it went into. */}}
+{{ if not .IsHome }}
+  {{ $inline := slice }}
+  {{ if not (or (in (slice "radio" "post") .Layout) (and (eq .Kind "section") (eq .Section "blog"))) }}{{ $inline = $inline | append (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256") }}{{ end }}
+  {{ .Store.Set "inlineScripts" ($inline | append (resources.Get "js/push-in.js" | minify | fingerprint "sha256")) }}
+{{ end }}
+{{- /* A standalone page's template may also put scripts it writes itself in .Store "headScripts", run here after the
+     time pick and before the stylesheets, and in the body in .Store "bodyScripts", before this partial (layouts/projects/list.html
+     does both: it preloads its painting at the hour, then sets it as the image arrives). */}}
+{{ $hashes := "" }}{{ range slice (.Store.Get "inlineScripts") (.Store.Get "headScripts") (.Store.Get "bodyScripts") }}{{ range . }}{{ $hashes = printf "%s '%s'" $hashes .Data.Integrity }}{{ end }}{{ end }}
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'{{ $hashes }} https://gc.zgo.at/count.v5.js; style-src 'self' 'unsafe-inline'; img-src 'self' https://yonatankarp.goatcounter.com; connect-src 'self' https://yonatankarp.goatcounter.com; font-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'">
 {{ if not .IsHome }}{{ range .Store.Get "inlineScripts" }}<script>{{ .Content | safeJS }}</script>{{ end }}{{ end }}
+{{ range .Store.Get "headScripts" }}<script>{{ .Content | safeJS }}</script>{{ end }}
 {{- /* The transitions between pages (the wipe at the end of custom.css, the homepage's arrival at the end of pixel.css). The opt-in is inline, before any stylesheet: from
      a stylesheet, Chromium 156 sometimes missed it on a cold visit with fast CSS (20 of 40 on the dev server, 1 of 20 on
      the built files), and the page then hard-cuts. Inline it was 0 of 70 on those cold visits. */}}
@@ -85,13 +93,13 @@
 <meta name="twitter:image:alt" content="{{ $imageAlt }}">
 {{ if not $is404 }}<link rel="canonical" href="{{ $canonical }}">{{ end }}
 {{- /* A term page offers its own feed; every other page the blog's. */}}
-{{ with (cond (eq .Kind "term") . (.Site.GetPage "/blog")).OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ cond (eq $.Kind "term") $name "Blog" }} | {{ $siteName }}">{{ end }}
+{{ with (cond (eq .Kind "term") . (.Site.GetPage "/blog")).OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ cond (eq $.Kind "term") $name hugo.Data.ui.feed.title }} | {{ $siteName }}">{{ end }}
 <link rel="icon" type="image/png" href="{{ "images/favicon.png" | relURL }}">
 <link rel="apple-touch-icon" href="{{ "images/apple-touch-icon.png" | relURL }}">
 <link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
 {{ if not .IsHome }}{{/* the homepage (the building) brings its own styles */}}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}">
-<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">
+{{ if strings.Contains .Content `class="chroma"` }}<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">{{ end }}{{/* only where code is highlighted */}}
 {{ end }}
 {{- /* Self-hosted Google Fonts latin subsets (OFL, licences in static/fonts/), here because the homepage skips custom.css (#142).
      Outfit and JetBrains Mono are variable, one file for every weight; a face only downloads once a glyph needs it,
@@ -121,7 +129,7 @@
   {{ $place := split hugo.Data.home.en.contact.location ", " }}   {{- /* "City, Country" */}}
   {{ $sameAs := .Site.Params.seo.person.sameAs }}
   {{ with .Site.Params.social.twitter }}{{ $sameAs = $sameAs | append (printf "https://x.com/%s" .) }}{{ end }}
-  {{ $person := merge $author (dict "@context" "https://schema.org" "jobTitle" "Staff Software Engineer" "sameAs" $sameAs "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" (index $place 0) "addressCountry" (index $place 1))) }}
+  {{ $person := merge $author (dict "@context" "https://schema.org" "jobTitle" hugo.Data.ui.role "sameAs" $sameAs "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" (index $place 0) "addressCountry" (index $place 1))) }}
   {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $person = merge $person (dict "image" .Permalink) }}{{ end }}
   {{ with .Site.Params.seo.person.alternateName }}{{ $person = merge $person (dict "alternateName" .) }}{{ end }}
   {{ with $homeDescription }}{{ $person = merge $person (dict "description" .) }}{{ end }}

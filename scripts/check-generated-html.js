@@ -46,8 +46,8 @@ function checkProjectsPage(route, html) {
   const isLabel = (tag) => /\bcity-tag\b/.test(collectAttribute(tag, "class") ?? "");
   for (const [what, buttons] of [["label", picks.filter(isLabel)], ["chip", picks.filter((tag) => !isLabel(tag))]]) {
     const pressed = buttons.filter((tag) => collectAttribute(tag, "aria-pressed") === "true").map((tag) => collectAttribute(tag, "data-pick"));
-    if (buttons.length !== 4 || pressed.join() !== "app" || !buttons.every((tag) => collectAttribute(tag, "data-goatcounter-click") === `workshop-${collectAttribute(tag, "data-pick")}`)) {
-      failures.push(`${route}: expected four workshop ${what}s with workshop-<group> events, Apps pressed`);
+    if (buttons.length !== 4 || pressed.join() !== "app" || buttons.some((tag) => collectAttribute(tag, "data-goatcounter-click") !== null)) {
+      failures.push(`${route}: expected four workshop ${what}s, Apps pressed, and no data-goatcounter-click (workshop.js counts workshop-<group>)`);
     }
   }
 
@@ -264,7 +264,6 @@ function checkTopBar(route, html) {
     /<a\b[^>]*class=["']?building-name["']?[^>]*href=["']?#city["']?[\s>]/,
     /class=["']?building-links["']?[\s>]/,
     /<button\b[^>]*class=["']?building-pause["']?[^>]*data-building-pause[\s>]/,
-    /data-building-pause-label[\s>]/,
     /<nav\b[^>]*class=["']?building-social["']?[\s>]/,
   ];
 
@@ -272,6 +271,12 @@ function checkTopBar(route, html) {
     if (hook.test(bar) !== home) {
       failures.push(`${route}: top bar ${home ? "is missing" : "should not have"} the homepage hook ${hook}`);
     }
+  }
+
+  // The Pause, on the pages a script animates (scene-fx.js, pixel.js), and only there.
+  const animated = ["/", "/projects/", "/blog/", "/podcast/", "/contact/"].includes(route);
+  if (/data-building-pause-label[\s>]/.test(bar) !== animated) {
+    failures.push(`${route}: top bar ${animated ? "is missing" : "should not have"} the Pause`);
   }
 
   if (/site-header|menu-toggle/.test(html)) {
@@ -631,9 +636,9 @@ for (const filePath of htmlFiles) {
 }
 // The time pick's zone table, as layouts/partials/time-pick.html builds it, places every zone and link (scripts/lib.js).
 {
-  const built = fs.readFileSync(path.join(publicDir, "blog", "index.html"), "utf8").match(/<script>\(function\(\)\{var (?:\w+,)*\w+=(\{"".*?\}),/)?.[1];
+  const built = fs.readFileSync(path.join(publicDir, "cv", "index.html"), "utf8").match(/<script>\(function\(\)\{var (?:\w+,)*\w+=(\{"".*?\}),/)?.[1];
   const sorted = (table) => JSON.stringify(Object.entries(table).map(([dir, cities]) => [dir, cities.split(" ").sort()]).sort());
-  if (!built || sorted(JSON.parse(built)) !== sorted(zoneTable())) failures.push("/blog/: the time pick's zone table differs from data/timezones.json's zones and links");
+  if (!built || sorted(JSON.parse(built)) !== sorted(zoneTable())) failures.push("/cv/: the time pick's zone table differs from data/timezones.json's zones and links");
 }
 
 if (failures.length > 0) {

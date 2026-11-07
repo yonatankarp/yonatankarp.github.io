@@ -107,6 +107,37 @@ test("seasons flip south of the equator, and the tropics have none", async () =>
   assert.equal(seasonOn(on("2026-01-15"), 1.3), "summer");
 });
 
+test("seasons turn on the first of the month, and the tropics end at 23.5 degrees", async () => {
+  const { seasonOn } = await load();
+  assert.deepEqual([on("2026-11-30"), on("2026-12-01"), on("2027-02-28"), on("2027-03-01")].map((d) => seasonOn(d, 52.5)), ["autumn", "winter", "winter", "spring"]);
+  assert.deepEqual([on("2026-11-30"), on("2026-12-01"), on("2027-02-28"), on("2027-03-01")].map((d) => seasonOn(d, -33.9)), ["spring", "summer", "summer", "autumn"]);
+  assert.equal(seasonOn(on("2026-01-15"), 23.5), "winter");
+  assert.equal(seasonOn(on("2026-07-15"), -23.5), "winter");
+  assert.equal(seasonOn(on("2026-01-15"), 23.4), "summer");
+  assert.equal(seasonOn(on("2026-07-15"), -23.4), "summer");
+});
+
+test("?holiday= pins the holidays: none, a day each, and nothing the calendar does not keep", async () => {
+  const { fromQuery } = await load();
+  assert.deepEqual(fromQuery("none"), {});
+  assert.deepEqual(fromQuery("hanukkah:3,christmas"), { hanukkah: 3, christmas: 0 });
+  assert.deepEqual(fromQuery(" hanukkah:3 , christmas "), { hanukkah: 3, christmas: 0 });
+  assert.deepEqual(fromQuery("hanukkah:-2"), { hanukkah: 0 });
+  assert.deepEqual(fromQuery("hanukkah:abc"), { hanukkah: 0 });
+  assert.deepEqual(fromQuery("diwali:1,yule,toString,__proto__"), { diwali: 1 });
+});
+
+test("the evening begins past sunset in the afternoon, the sun's top below -0.833 degrees", async () => {
+  const { isEvening } = await load();
+  const at = (hour) => new Date(2026, 11, 4, hour);
+  assert.equal(isEvening(at(16), -0.9), true);
+  assert.equal(isEvening(at(12), -0.84), true);
+  assert.equal(isEvening(at(16), -0.833), false);   // the sun's top on the horizon: not yet
+  assert.equal(isEvening(at(13), -0.8), false);
+  assert.equal(isEvening(at(11), -10), false);       // before noon it is the morning, even in the dark
+  assert.equal(isEvening(at(23), -40), true);
+});
+
 test("a timezone, or an old name for one, gives its country and where it is", async () => {
   const { placeOf } = await load();
   assert.deepEqual(placeOf("Europe/Berlin", table), { country: "DE", lat: 52.5, lon: 13.4 });

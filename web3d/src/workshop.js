@@ -24,8 +24,20 @@ if (row) {
     });
     tags.forEach((t, i) => t.style.setProperty('--shift', `${shifts[i]}px`));
   };
-  panning(row, 'app', () => getComputedStyle(panel).position === 'absolute')(false);
+  // The list fades at the panel's foot while more of it is below (workshop.css).
+  const cue = () => panel.classList.toggle('more', panel.scrollTop + panel.clientHeight < panel.scrollHeight - 2);
+  const said = panel.querySelector('[data-said]');
+  panning(row, 'app', () => getComputedStyle(panel).position === 'absolute', (picked) => {
+    // Counted here, as GoatCounter binds data-goatcounter-click when it loads, perhaps before these buttons exist (#307).
+    window.goatcounter?.count?.({ path: `workshop-${picked.dataset.pick}`, title: picked.textContent.trim(), event: true });
+    said.textContent = panel.querySelector(`[data-district="${picked.dataset.pick}"]`).dataset.say;   // its line, not its list
+    requestAnimationFrame(cue);
+  })(false);
   fit();
+  cue();
+  document.fonts?.ready.then(cue);   // the pixel font changes the list's height
+  panel.addEventListener('scroll', cue, { passive: true });
+  addEventListener('resize', cue);
   scene.addEventListener('scroll', fit, { passive: true });
   addEventListener('resize', fit);
   const map = scene.querySelector('.city-map'), img = map.querySelector('img');

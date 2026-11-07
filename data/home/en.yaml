@@ -111,27 +111,66 @@ city:   # the homepage's city (layouts/index.html): its arrival panel, then a di
   hint: "Pick a district to walk in."
   alt: "A wide aerial view of a small coastal city: Yonatan's career tower in the centre, ringed by a library, workshops, a radio station and a post office, between a bay and solar farmland."
   enter: "Ride the career tower"
+  label: "City map"   # the map, for screen readers
+  chips: "Districts"   # the chips, for screen readers
+  out: "← Whole city"   # zooms back out of a district
+  pdf: "Download the CV (PDF)"   # beside the Post Office's link
   districts:   # %d in a title is its count, which the template computes; radio and post take their text from contact
     - key: "tower"
       name: "Career Tower"
       title: "%d roles and a degree, a floor each."
-      text: "Ride the lift from university to payments at scale. Each floor is a job, furnished with that company's world."
+      text: "Ride the lift from university to payments. Each floor is a job, furnished with that company's world."
       go: "Enter the tower"
     - key: "library"
       name: "The Library"
       title: "%d posts on the shelves."
-      text: "Kotlin, Spring Boot, system design, and the odd Advent of Code."
+      text: "Kotlin, Spring Boot and system design."
       go: "Browse the shelves"
     - key: "workshop"
       name: "Workshop Row"
       title: "%d projects on the benches."
-      text: "Libraries on Maven Central, apps, games and open-source contributions."
+      text: "Open-source libraries, apps, games and contributions."
       go: "Walk the workshops"
     - key: "radio"
       name: "Radio Mast"
-      title: "Now broadcasting."
+      title: "117 episodes on the shelf."   # the show is resting; the count is written here, as nothing on the site counts them
       go: "Tune in"
     - key: "post"
       name: "Post Office"
       title: "Write to me."
       go: "Send a letter"
+
+tower:   # the Career Tower's lift and floors (layouts/index.html); each role's own words are in content/experience/
+  floors: "Lift"   # the lift's buttons and its way out to the city, for screen readers
+  city: "City"   # the lift's way out, after an arrow, on every floor
+  city_label: "Back to the city"   # its name for screen readers and its tooltip
+  floor_label: "Floor %s, %s, %s"   # a role's lift button, which the lift also announces: its floor, company and title
+  degree_label: "Floor 1, %s"   # the degree's lift button; %s is the university
+  roof_label: "R, Roof, what's next"
+  lobby_label: "L, Lobby, recommendations and skills"
+  hint_fine: "Scroll, swipe or use the arrow keys to ride the lift"   # with a mouse or trackpad
+  hint_coarse: "Swipe to ride the lift"   # on a touch screen
+  back: "Back to the lift"   # the top of every open panel
+  roof: "Roof"
+  roof_link: "Get in touch at the Post Office →"
+  roof_more: "Read where I fit"   # the roof's Step inside
+  roof_contact: "Get in touch"   # the roof panel's last heading
+  roof_contact_link: "At the Post Office: email and the CV →"
+  case_study: "Case study"   # before a case study's label on a floor's card, and its heading in the panel
+  role_more: "Read what I did"   # a floor's Step inside, with no case study
+  case_more: "Read the case study"   # with one
+  cases_more: "Read the case studies"   # with two or more
+  did: "What I did"
+  context: "Context"
+  decision: "Decision"
+  result: "Result"
+  courses: "Courses and workshops"   # floor 1's list, on its card and in its panel
+  courses_more: "See all courses"
+  teaching: "Teaching"
+  certificate: "certificate"   # a course's link
+  lobby: "Lobby"
+  now: "Up to floor %s: now at %s ↑"   # the lobby's sign to the current role: its floor and company
+  lobby_more: "Read how I work"
+  recommendations: "Recommendations"
+  skills: "Skills"
+  stack: "Stack"

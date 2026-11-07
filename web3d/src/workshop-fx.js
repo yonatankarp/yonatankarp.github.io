@@ -1,9 +1,9 @@
 // Workshop Row's life (workshop.js): painted walkers on the pavement, two cats on the wall and the street, a welder's
-// sparks, code scrolling on the screens and moths round the street lamps, over the picture (scene-fx.js). Where they go is
+// sparks, code scrolling on the screens, moths round the street lamps and in winter falling snow, over the picture (scene-fx.js). Where they go is
 // workshop-fx.json and what hides them is workshop-depth.png, both written by web3d/pixel/gen_workshop.py; the walkers
 // and the cats are walkers.webp and cats.webp with their .json, written by web3d/pixel/gen_walkers.py.
 import { cats } from './cats.js';
-import { animate, people, rnd } from './scene-fx.js';
+import { animate, people, rnd, snowfall } from './scene-fx.js';
 
 export function workshopFx(canvas, img) {
   const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`;
@@ -16,6 +16,7 @@ export function workshopFx(canvas, img) {
 
 function setup(ctx, fx, { footAt, sprite }, sheet, catSheet) {
   const time = document.documentElement.dataset.time, night = time === 'night';
+  const snow = document.documentElement.dataset.season === 'winter' && snowfall(ctx, night);
 
   // Screens: short lines of code scrolling by, and a faint flicker.
   const drawScreens = (now) => {
@@ -100,5 +101,6 @@ function setup(ctx, fx, { footAt, sprite }, sheet, catSheet) {
     });
   };
 
-  return (now, dt) => { drawScreens(now); drawWeld(now, dt); drawMoths(now, dt); drawCats(dt, false); drawWalkers(now, dt); drawCats(dt, true); };
+  return Object.assign((now, dt) => { drawScreens(now); drawWeld(now, dt); drawMoths(now, dt); drawCats(dt, false); drawWalkers(now, dt); drawCats(dt, true); if (snow) snow(now, dt); },
+    { ready: Promise.all([sheet, catSheet]) });
 }

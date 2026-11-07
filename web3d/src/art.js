@@ -12,7 +12,7 @@ export const ORDER = art.order;              // the floors bottom to top, L to R
 export const ANIM = art.anim;                // each strip's moving box, x, y, w, h: its other frames start at BOXES
 export const { cab: CAB, boxes: BOXES } = art;   // in a strip, the lift's cab (the doorway's size, behind the doors), and those frames
 export const { door: DOOR, bayer: BAYER } = art;
-export const ENTRANCE = art.entrance;        // the lobby's glass entrance, the city's way in: floor-L-open[-PHASE].webp is its doorway open
+export const ENTRANCE = art.entrance;        // the lobby's glass entrance, the city's way in: floor-L-open[-winter][-PHASE].webp is its doorway open
 // Each room's hanging lamps, by strip x, the lift's own lamp first. The roof has none: it is outdoors, so it stays as
 // bright as its sky.
 export const LAMPS = art.lamps;
@@ -22,9 +22,12 @@ export const CATS = art.cats;                 // the lobby's cats, drawn live (c
 export const CAT_SHEET = catSheet;            // ... and cats-lobby.webp's frame size, feet and strides
 export const TIME = document.documentElement.dataset.time;   // picked once, in the page's head (#151): it never changes while the page is open
 const PHASE = PHASES[TIME];
-export const BAKED = PHASE?.baked;                              // the rooms with their own picture at this hour (the roof, the lobby's door); none at dusk
-export const HOUR = BAKED ? `-${TIME}` : '';                    // the file name's suffix
-export const SKY_AT_LOAD = PHASE?.sky ?? PHASES.dusk.sky;       // above the roof, until its strip gives its own top row
+// In winter (html[data-season], picked with the hour) the rooms that show outside have a picture of their own at every
+// hour, even dusk: only that season's strips are ever fetched, so winter's and the rest's are never decoded together.
+const SEASON = document.documentElement.dataset.season === 'winter' ? PHASE?.winter : null;
+export const BAKED = (SEASON ?? PHASE)?.baked;                  // the rooms with their own picture at this hour (the roof, the lobby's door); none at dusk
+export const HOUR = `${SEASON ? '-winter' : ''}${PHASE && TIME !== 'dusk' ? `-${TIME}` : ''}`;   // the file name's suffix for those
+export const SKY_AT_LOAD = (SEASON ?? PHASE)?.sky ?? PHASES.dusk.sky;   // above the roof, until its strip gives its own top row
 export const DARK = PHASE?.dark ?? PHASES.dusk.dark;            // what a room's colours fall to with its lights off; by day its windows still let some in
 export const SHADES = [16, 10, 5];                              // a lamp coming on: how many of 16 Bayer cells are still dark, step by step
 // The phone layout: the same query as every phone rule in pixel.css, so the canvas and the cards always agree (#46).
@@ -36,7 +39,7 @@ export const FOCUS = 600;   // on narrow screens, the art x kept mid-screen
 // number at which the floor fits (wide) or fills its share (phones), the strip's left x0, and ry, the top of the storey
 // in view. Phones keep the room's floor behind the elevator, above the card (pixel.css --card-top, CSS px); on a short
 // phone the room is drawn smaller, down to 2/3 CSS px an art pixel, still a whole number of device pixels (#127). focus:
-// the art x a phone keeps mid-screen. The city (city.js) lands its push-in on the lobby's lift by it too.
+// the art x a phone keeps mid-screen. The city (city.js) lands its push-in on the lobby's entrance by it too.
 export function lay(W, H, dpr, cardTop, focus = FOCUS) {
   const wide = !narrow.matches, w = Math.round(W * dpr), h = Math.round(H * dpr);
   let s = Math.max(1, Math.floor(dpr * (wide ? Math.min(W / FW, H / (FH * 1.15)) : H / (FH * 2.2))));

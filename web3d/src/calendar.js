@@ -1,4 +1,4 @@
-// The calendar behind the parked seasonal and holiday dressing (outside.js): the season at a latitude and the holidays on
+// The calendar behind the seasonal and holiday dressing (outside.js): the season at a latitude and the holidays on
 // a date, worked out in the browser, with no service to ask. Pure, so scripts/test/calendar.test.js runs it under Node.
 // The Jewish, Chinese and Islamic dates come from the browser's own calendars (Intl, with ICU's); Easter is a formula;
 // Diwali, whose date neither gives, is a table.
@@ -47,13 +47,25 @@ export function holidaysOn(date, countries = [], evening = false) {
   return out;
 }
 
-// The season at a latitude: meteorological, by whole months, flipped south of the equator. Within the tropics none of
-// them really shows, so it is summer there all year.
-export function seasonOn(date, lat) {
-  if (Math.abs(lat) < 23.5) return 'summer';
-  const m = (date.getMonth() + (lat < 0 ? 6 : 0)) % 12;
-  return ['winter', 'winter', 'spring', 'spring', 'spring', 'summer', 'summer', 'summer', 'autumn', 'autumn', 'autumn', 'winter'][m];
+// Whether the sunset holidays already go by the next day (holidaysOn's `evening`): past sunset where the visitor is (the
+// sun's top below the horizon, -0.833 degrees: `elevation`, from assets/js/sun.js) and still the same date. The afternoon
+// goes by the clock, not the sun's hour angle, since the holidays change at the date's midnight, which solar midnight is not.
+// shortcut: in the polar night it is true from noon, and in the midnight sun never; give those a fixed hour if it matters.
+export const isEvening = (date, elevation) => date.getHours() >= 12 && elevation < -0.833;
+
+// The holidays the address pins (?holiday=), for testing: none, or a list such as hanukkah:3,christmas, the number the day
+// of it from 0 (none, or one that is not a whole day or is below 0, is its first). A name the calendar does not keep is left out.
+export function fromQuery(list) {
+  const out = {};
+  for (const item of list.split(',')) {
+    const [name, day] = item.trim().split(':');
+    if (Object.hasOwn(HOLIDAYS, name)) out[name] = Math.max(0, Number(day) || 0);
+  }
+  return out;
 }
+
+// The season at a latitude (assets/js/season.js, which the page's head picks it by too).
+export { seasonOn } from '../../assets/js/season.js';
 
 // Where a timezone is, from data/timezones.json: its country and its main city's latitude and longitude, or null.
 export function placeOf(zone, table) {

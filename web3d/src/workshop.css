@@ -14,6 +14,15 @@ main:has(.workshop) { padding-bottom: 0; }
 /* A label slides by --shift (workshop.js) to stay whole on screen; its stick stays on its spot. */
 .workshop .city-tag { transform: translate(calc(-50% + var(--shift, 0px)), -100%); }
 .workshop .city-tag::after { left: calc(50% - var(--shift, 0px)); }
+/* The cue that the list runs on below the panel's foot: a fade, there only while it does (workshop.js's .more). The
+   panel's foot padding moves inside, so the fade can stick to its very bottom. */
+.workshop .city-panel { padding-bottom: 0; }
+.workshop .city-say { padding-bottom: 22px; }
+.workshop .city-panel::after {
+  content: ''; position: sticky; bottom: 0; display: block; height: 56px; margin: -56px -24px 0;
+  background: linear-gradient(transparent, var(--city-panel) 70%); pointer-events: none; opacity: 0; transition: opacity 0.2s;
+}
+.workshop .city-panel.more::after { opacity: 1; }
 .workshop-back { display: inline-block; margin: 0 0 14px; color: var(--text-soft); font-size: 14px; }
 
 /* A phone, a short screen, or no script: the painting on top and the panel under it, as the city stacks. Without a script

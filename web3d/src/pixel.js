@@ -8,6 +8,7 @@ import { capsuleAt } from './capsule.js';
 import { reception } from './reception.js';
 import { cats } from './cats.js';
 import { floorKey, floorShaped } from './hash.js';
+import { PAUSE_KEY, pausedStored, pauseLabel } from './scene-fx.js';   // the Pause, kept per viewer across reloads and pages
 import './city.js';
 import '../../assets/js/copy-email.js';
 import '../../assets/js/site-menu.js';
@@ -20,7 +21,6 @@ const GROUND = ['#33231a', '#1f1610'];                        // under the lobby
 const POOL = 16;                                                 // a lamp's light spreads in blocks this many art pixels wide
 const OVER = 4, SETTLE = 260;                                   // the cab sinks on past its stop, in art pixels, and comes back, in ms
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
-const PAUSE_KEY = 'building-paused';                            // per viewer, kept across reloads
 const LAMPS_AFTER = 180;                                        // arriving on a floor: the old page is still over the room until about now
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const STARS = [760, 180];                                       // the roof strip's x and width of open night sky, tiled above it
@@ -56,15 +56,15 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     const art = 'createImageBitmap' in window
       ? fetch(url).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.blob(); }).then((b) => createImageBitmap(b))
       : new Promise((ok, fail) => Object.assign(new Image(), { onload() { ok(this); }, onerror: fail, src: url }));
-    art.then((img) => {
+    return art.then((img) => {
       if (!started.has(key)) return release(img);   // let go while it was on its way
       if (key === 'R') SKY = colourAt(img, 600, 0);
       if (LAMPS[key]) { img.dark = () => { if (img.waited) img.since = performance.now(); loaded(); }; if (!held()) darkenSoon(img, urgent.has(key)); }
       img.since = through && key === keys[ride.from] ? -Infinity : performance.now();   // under the city's frame, no fade
-      strips.set(key, img); loaded(); shown(key);
+      strips.set(key, img); loaded(); inLobby(key);
     }, () => {   // drawn plain for now; the next ride that needs it asks again (#63)
       started.delete(key); failed.set(key, [tries + 1, performance.now()]);
-      strips.set(key, null); loaded(); shown(key);
+      strips.set(key, null); loaded(); inLobby(key);
     });
   };
   // Floor 7's payment: its painted capsule (capsule.webp) rides the room's pipe at the screen's frame rate, not in the strip's
@@ -195,7 +195,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
   if (way) {
     way.img = new Image();
     way.img.src = artUrl(`floor-L-open${BAKED?.includes('L') ? HOUR : ''}`);
-    way.img.decode().catch(() => { way.img = null; }).finally(() => shown('L'));
+    way.img.decode().catch(() => { way.img = null; }).finally(() => inLobby('L'));
   }
   const ajar = (now) => (way?.img && pan ? 1 - clamp01((now - pan[1] - SHUT_AFTER) / SHUT_MS) : 0);   // how open it is
   // The open entrance with lv of each 4x4 cell of the strip's Bayer grid kept, laid on that grid (way.x, way.y), made once
@@ -220,7 +220,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     if (t === 1) pan = null;
     return pan ? pan[0] + (FOCUS - pan[0]) * (1 - (1 - t) ** 3) : FOCUS;
   };
-  const shown = (key) => {
+  const inLobby = (key) => {
     if (!pan || pan[1] !== Infinity || key !== keys[ride.from] || --way.waits) return;
     pan[1] = performance.now();
     emit('building:shown');
@@ -229,7 +229,8 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
   const fromHash = keys.indexOf(hashKey());
   ride.from = ride.to = fromHash >= 0 ? fromHash : keys.indexOf('L');   // in from the city: the lobby
   lit.set(keys[ride.from], 1);   // a page opening on a floor opens with the lights on
-  around(keys[ride.from]).forEach(load);
+  // The floor on screen first, then the storeys round it: fetched together, it would arrive last on a slow link (#300).
+  Promise.resolve(load(keys[ride.from])).finally(() => around(keys[ride.from]).forEach(load));
   if (location.hash !== `#floor-${keys[ride.to]}`) {   // the city's #floor-E, a legacy or lowercased anchor, a floor there is not: show the floor's own
     history.replaceState(null, '', `#floor-${keys[ride.to]}`);
     if (fromHash >= 0) requestAnimationFrame(() => document.documentElement.classList.contains('building--guided') || stops[ride.to].scrollIntoView());
@@ -283,8 +284,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
   // The room loops only while it is allowed to move: the pause button (WCAG 2.2.2), reduced motion and the plain page
   // hold it on its rest frame. A frame that would draw the same picture is skipped, and once nothing is moving the loop
   // sleeps: until the next frame of the loop, or for good while held, until a ride, a resize or a load wakes it (#36).
-  let paused = false, raf = 0, timer = 0, drawn = '', epoch = 0;
-  try { paused = localStorage.getItem(PAUSE_KEY) === 'true'; } catch { /* blocked storage: it just is not remembered */ }
+  let paused = pausedStored(), raf = 0, timer = 0, drawn = '', drawnSprites = '', shown = [], epoch = 0;
   // Arrived from another page under its view transition, which reduced motion never has (layouts/index.html tells us; a
   // page restored by Back gets it too): the doors shut and the lamps off, until the old page has cleared the room.
   let waiting = '', waitTo = 0;
@@ -301,20 +301,14 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
   if (document.documentElement.classList.contains('px-arrive')) arrive();   // revealed before this module ran
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
   // Held has nothing to pause: the button hides, and shows again if that changes after load (#128).
-  const label = () => {
-    if (!pauseButton) return;
-    pauseButton.hidden = held();
-    pauseButton.dataset.paused = paused;
-    pauseButton.setAttribute('aria-label', paused ? 'Play the animation' : 'Pause the animation');
-    pauseButton.title = pauseButton.getAttribute('aria-label');
-    pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
-  };
+  const label = () => { if (pauseButton) pauseLabel(pauseButton, paused, held()); };
   label();
   pauseButton?.addEventListener('click', () => {
     paused = !paused;
     label(); wake();
     try { localStorage.setItem(PAUSE_KEY, paused); } catch { /* as above */ }
   });
+  addEventListener('pageshow', (e) => { if (e.persisted) { paused = pausedStored(); label(); wake(); } });   // Back, from a page that changed it
   addEventListener('resize', wake);
   for (const q of [reduceMotion, roomy]) q.addEventListener('change', () => { label(); wake(); });
 
@@ -365,8 +359,8 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
       lit.set(key, clamp01((lit.get(key) ?? 0) + (here ? dt : -dt) * (still || paused ? 99 : DOORS)));   // in step with the doors; paused, they just switch
     }
-    const sig = [f, pay.at, poses, catSig, camY, x0, Math.round(ajar(now) * 16), loads, now < fading && now, ...open.values(), ...lit.values()].join();
-    if (sig === drawn) {
+    const sig = [f, camY, s, x0, ry, still, Math.round(ajar(now) * 16), loads, now < fading && now, ...open.values(), ...lit.values()].join(), sprites = [pay.at, poses, catSig].join(';');
+    if (sig === drawn && sprites === drawnSprites) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
         cancelAnimationFrame(raf); raf = 0;
         if (!paused && !still) {
@@ -377,11 +371,22 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       }
       return;
     }
-    drawn = sig;
+    // Only the live sprites changed: the frame is drawn again just where they were and are now (#299).
+    const only = sig === drawn;
+    drawn = sig; drawnSprites = sprites;
     if (pay.at) payDraw(pay.at);
     if (poses && poses !== desk.poses) deskDraw(desk.poses = poses);
     kit.at = catAt;
     catsDraw();
+    const boxes = spriteBoxes(x0, ry, camY, s, poses), dirty = [...shown, ...boxes].filter(([bx, by, bw, bh]) => bx < w && by < h && bx + bw > 0 && by + bh > 0);
+    shown = boxes;
+    if (only && !dirty.length) return;   // past the screen's edge: nothing to see
+    if (only) {
+      ctx.save();
+      ctx.beginPath();
+      for (const [bx, by, bw, bh] of dirty) ctx.rect(bx, by, bw, bh);
+      ctx.clip();
+    }
 
     ctx.fillStyle = '#151923';
     ctx.fillRect(0, 0, w, h);
@@ -453,7 +458,17 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       if (key === CATS.floor && open.get(key) > 0) catsPaint(x0, y, s, 0, [DOOR.x0, DOOR.y0, DOOR.x1 - DOOR.x0, DOOR.y1 - DOOR.y0]);
       ctx.globalAlpha = 1;
     }
+    if (only) ctx.restore();
   }
+  // Where the capsule, the receptionist and the cats are drawn, in device pixels, with the floor in view's top at ry.
+  const spriteBoxes = (x0, ry, camY, s, poses) => {
+    const at = (key, x, y, bw, bh) => [x0 + x * s, Math.round(ry - (level(key) - camY) * s) + y * s, bw * s, bh * s];
+    return [
+      ...(pay.at ? [at(CAPSULE.floor, pay.x, pay.y, PAY, PAY)] : []),
+      ...(poses ? [at(R.floor, desk.x, desk.y, desk.c.canvas.width, desk.c.canvas.height)] : []),
+      ...kit.at.map(([j]) => { const p = kit.pets[j]; return at(CATS.floor, p.x, p.y, p.c.canvas.width, p.c.canvas.height); }),
+    ];
+  };
   wake();
   // e.g. the site menu's About; a pick the lift ignores (it is already going there), or a floor there is not, keeps the
   // lift's own hash

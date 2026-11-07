@@ -117,7 +117,6 @@ html:not(.building--guided) .building-hint { display: none; }
 .pixel .floor-card ul { margin: 0; font-size: 15px; line-height: 24px; color: var(--text); padding-left: 0; list-style: none; }
 .pixel .floor-card li { position: relative; padding-left: 20px; margin-bottom: 8px; }
 .pixel .floor-card li::before { content: ''; position: absolute; left: 0; top: 0.55em; width: 8px; height: 8px; background: var(--accent, var(--amber)); }
-.pixel .floor-skills { margin: 16px 0 0; padding-top: 14px; font-size: 15px; line-height: 24px; color: var(--text-soft); border-top: 4px solid var(--panel-hi); }
 .pixel .floor-badge {
   grid-row: span 2;
   display: grid; place-items: center;
@@ -286,8 +285,8 @@ html:is([data-time='day'], [data-time='dawn']) .pixel .building-scrim { backgrou
   .pixel .building-social { top: 21px; right: calc(clamp(16px, 3vw, 36px) + 108px); }
   .pixel .building-social a { height: 52px; }
 }
-/* Reduced motion has no pause: the icons close the gap it leaves. */
-@media (min-width: 761px) and (max-width: 919px) and (min-aspect-ratio: 1201/1000) { .pixel .building-top:has(.building-pause[hidden]) .building-social { right: calc(clamp(16px, 3vw, 36px) + 56px); } }
+/* Reduced motion has no pause, and the city keeps its pause in the links' row: the icons close the gap it leaves. */
+@media (min-width: 761px) and (max-width: 919px) and (min-aspect-ratio: 1201/1000) { :is(.pixel .building-top:has(.building-pause[hidden]), html:not(.building--guided) .pixel) .building-social { right: calc(clamp(16px, 3vw, 36px) + 56px); } }
 @media print { .pixel .building-social { display: none; } }
 /* Without JavaScript there is no lift to ride: the floors are a plain page, read top to bottom, its buttons a row of links. */
 html:not(.building--guided) .pixel .elevator-display { display: none; }
@@ -393,7 +392,6 @@ html.building--guided .pixel .building-stop:not(.is-here) .floor-portrait { disp
 /* An archived project (archived: true in its front matter), beside its kind in the Parking panel. */
 .pixel .archived-tag { display: inline-block; padding: 0 6px; font: 400 15px/20px var(--display); color: var(--text-soft); white-space: nowrap;
   background: var(--panel-hi); box-shadow: inset 0 0 0 2px var(--ink); }
-.pixel .panel-projects .panel-desc { display: block; color: var(--text-soft); font-size: 15px; line-height: 24px; }
 .pixel .panel-soft, .pixel .nowrap { white-space: nowrap; }   /* "· Jun 2024" keeps its dot; names keep their hyphens */
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
   html.building--guided .pixel .floor-panel { left: 8px; right: 8px; width: auto; top: 30svh; bottom: 8px; padding: 18px 14px 20px 28px; }
@@ -461,7 +459,10 @@ html:not(.building--guided, .at-city) .pixel .building-links nav:first-child { g
 html:not(.building--guided, .at-city) .pixel .building-download { grid-area: download; justify-self: end; }
 html:not(.building--guided, .at-city) .pixel .building-social { grid-area: social; justify-self: end; }
 @media (max-width: 579px) { html:not(.building--guided, .at-city) .pixel .building-top { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; } }
-@media (max-width: 359px) { html:not(.building--guided, .at-city) .pixel .building-name { padding: 0 12px; font-size: 24px; } }
+@media (max-width: 359px) {   /* the name plate on one line at 320, on the city too, beside the bar's two buttons */
+  .pixel .building-name { padding: 0 12px; font-size: 24px; }
+  html:not(.building--guided, .at-city) .pixel .building-top { column-gap: 4px; }
+}
 html:not(.building--guided, .at-city) .pixel .building-social { position: static; flex-wrap: wrap; }
 html:not(.building--guided) .pixel .building-stops { padding-top: 0; }
 html:not(.building--guided) .pixel .building-stop { min-height: 0; padding: 12px clamp(12px, 3vw, 36px); }
@@ -483,7 +484,7 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
   html.building--guided .pixel .floor-card h2 { margin-bottom: 8px; }
   html.building--guided .pixel .floor-case { margin-bottom: 2px; line-height: 20px; }
   html.building--guided .pixel .floor-lead { margin-bottom: 10px; font-size: 15px; line-height: 22px; }
-  html.building--guided .pixel .floor-card :is(ul, .floor-skills) { line-height: 22px; }
+  html.building--guided .pixel .floor-card ul { line-height: 22px; }
   html.building--guided .pixel .step-in-bar { margin-top: 8px; bottom: -6px; }
   html.building--guided .pixel .floor-top .floor-quotes li:last-child { margin-bottom: 4px; }   /* the 12px the bar's 8 collapsed into */
   html.building--guided .pixel .floor-card:not(:has(.step-in-bar))::after { bottom: -10px; }
@@ -491,7 +492,7 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
 /* Short desktops (1280x720): the card widens over the lift lobby and sets its text tighter, so none scrolls (#127). */
 @media (min-width: 1280px) and (min-aspect-ratio: 1201/1000) and (max-height: 800px) {
   .pixel .floor-card { width: min(440px, 34vw); }
-  .pixel .floor-card :is(.floor-lead, ul, .floor-skills) { line-height: 22px; }
+  .pixel .floor-card :is(.floor-lead, ul) { line-height: 22px; }
   .pixel .floor-card header { margin-bottom: 12px; }
   .pixel .floor-card h2 { margin-bottom: 8px; }
   .pixel .floor-quotes li { margin-bottom: 8px; }
@@ -565,6 +566,14 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
   ::view-transition-new(px-social) { animation: px-late 300ms step-end both; }
 }
 @keyframes px-late { from { opacity: 0; } to { opacity: 1; } }
+
+/* The lift's way out to the city (#302): first on its plate, a floor button's frame round a smaller label, the arrow
+   beside it, or over it where the buttons are 30px wide; on the plain page's row it keeps its size. */
+.pixel .building-floor-btn.building-city { width: auto; padding: 0 12px; margin-right: 4px; grid-auto-flow: column; gap: 6px; font-size: 20px; }
+@media (max-width: 760px), (max-aspect-ratio: 6/5), (min-width: 761px) and (max-width: 919px) and (min-aspect-ratio: 1201/1000) {
+  .pixel .building-floor-btn.building-city { padding: 0 6px; margin-right: 2px; grid-auto-flow: row; gap: 3px; align-content: center; font-size: 15px; }
+}
+html:not(.building--guided) .pixel .building-city { flex: none; }
 
 /* Forced colors (Windows High Contrast) drop every box-shadow, and the building draws its focus rings and button frames
    with them (#251). There focus is a system-colour outline, inside the box where the stepped clip-path would cut it

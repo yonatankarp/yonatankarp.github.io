@@ -1,6 +1,5 @@
 ---
 title: "Blog"
-date: 2026-04-07
 aliases:
   - /archive
   - /archive/2

@@ -40,23 +40,26 @@
      minifyOutput finds nothing left to change; scripts/check-generated-html.js checks the built bytes still match. The
      error listener replaces the module tag's onerror attribute, which the CSP would block: capture phase, as a script's
      error event does not bubble, and registered before the tag, so no failure comes too early for it. */}}
-{{- /* The city (at-city) wherever the address names no floor and a module can run; without one, the plain page. The old
-     garage's addresses go first, to the projects' own page: the tower has no garage now. */}}
+{{- /* The city (at-city) wherever the address names no floor and a module can run; without one, the plain page. A floor's
+     address is #floor-X or one of the old one-page anchors, LEGACY in web3d/src/hash.js, which floorShaped there and
+     scripts/test/building-hash.test.js keep in step with this. The old garage's addresses go first, to the projects' own
+     page, at the same query: the tower has no garage now. */}}
+{{ $floorHash := `/^#(floor-|(about|contact|experience|proof|testimonial)$)/i` }}
 {{ $guided := resources.FromString "js/home-guided.js" (printf `
-if (/^#(floor-p|client-and-work-section)$/i.test(location.hash)) location.replace('%s');
+if (/^#(floor-p|client-and-work-section)$/i.test(location.hash)) location.replace('%s' + location.search);
 addEventListener('error', function (e) { if (e.target.type === 'module') { document.documentElement.classList.remove('building--guided', 'at-city'); document.querySelector('[data-building-pause]').hidden = true; } }, true);
 addEventListener('pagereveal', function (e) { if (e.viewTransition) { document.documentElement.classList.add('px-arrive'); document.dispatchEvent(new Event('building:reveal')); } });
-var modular = 'noModule' in HTMLScriptElement.prototype, floor = /^#floor-/i.test(location.hash);
+var modular = 'noModule' in HTMLScriptElement.prototype, floor = %s.test(location.hash);
 if (modular && !floor) document.documentElement.classList.add('at-city');
 if (modular && floor && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
-` ("projects/" | relURL)) | minify | fingerprint "sha256" }}
-{{- /* The hour's art (#151): dawn, day, dusk or night, picked once here (partials/time-pick.html) and read by pixel.js,
-     never changed while the page is open. Before the stylesheet, which would hold this script back, so the city's art
+` ("projects/" | relURL) $floorHash) | minify | fingerprint "sha256" }}
+{{- /* The hour's art (#151): dawn, day, dusk or night, and in winter its snowy art (city-winter[-PHASE].webp), picked
+     once here (partials/time-pick.html) and read by pixel.js, never changed while the page is open. Before the stylesheet, which would hold this script back, so the city's art
      starts at once; a static preload tag would fetch the dusk city at every hour. A floor's address has no city. */}}
 {{ $time := resources.FromString "js/home-time.js" (printf `
 (function(){%s
-var time=document.documentElement.dataset.time,l=document.createElement('link');if(/^#floor-/i.test(location.hash))return;l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/city'+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
-` (partial "time-pick.html" .) $base $artVersion) | minify | fingerprint "sha256" }}
+var d=document.documentElement.dataset,time=d.time,l=document.createElement('link');if(%s.test(location.hash))return;l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/city'+(d.season==='winter'?'-winter':'')+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
+` (partial "time-pick.html" .) $floorHash $base $artVersion) | minify | fingerprint "sha256" }}
 {{- /* The lobby is where the lift starts, so its card is there at the first paint, unless the address names another floor;
      and the pause, wherever the tower moves. */}}
 {{ $lobby := resources.FromString "js/home-lobby.js" `/^(#floor-l)?$/i.test(location.hash) || document.currentScript.previousElementSibling.classList.remove('is-here');
@@ -65,9 +68,11 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 {{ $cityStart := resources.FromString "js/home-city.js" `(function () {
   var x, d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel'), m = s.firstElementChild;
   if (!d.classList.contains('at-city')) return;
+  var f = getComputedStyle(p).position === 'fixed', r = p.getBoundingClientRect().right, t = c.querySelector('.city-tag[data-pick=tower]'), l = c.querySelector('.city-tag[data-pick=library]');
+  i.src = i.dataset.base + (d.dataset.season === 'winter' ? '-winter' : '') + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
   i.loading = 'eager';
-  i.src = i.dataset.base + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
-  x = (getComputedStyle(p).position === 'fixed' ? (p.getBoundingClientRect().right + s.clientWidth) / 2 : s.clientWidth / 2) - c.querySelector('.city-tag[data-pick=tower]').offsetLeft;
+  x = (f ? (r + s.clientWidth) / 2 : s.clientWidth / 2) - t.offsetLeft;
+  x = Math.min(f ? Math.max(x, r + 8 + l.offsetWidth / 2 - l.offsetLeft) : x, s.clientWidth - 8 - t.offsetWidth / 2 - t.offsetLeft);
   m.style.transform = 'translate(' + Math.min(0, Math.max(s.clientWidth - m.offsetWidth, x)) + 'px, 0px) scale(1)';
 })();` | minify | fingerprint "sha256" }}
 {{ .Store.Set "inlineScripts" (slice $time $guided $lobby $cityStart) }}
@@ -88,9 +93,17 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   {{- /* Guided from the first paint, not when the module runs (#39): the query is guide.js's roomy, and only where
        a module can run; unguided again if the module fails to load. */}}
   <script>{{ $guided.Content | safeJS }}</script>
+  {{- /* Without a script the city is its panel at the top of the page, every district's words and link in a column, so
+       the name plate's, the lift's and the lobby's #city still lead somewhere (#301, #302). */}}
+  <noscript><style>
+    html:not(.at-city) .city { display: block; position: relative; z-index: 2; min-height: 0; }
+    .city-scene, .city-panel h1, .city-chips, .city-out { display: none; }
+    .city-panel { position: static; width: auto; max-width: 720px; max-height: none; margin: 16px clamp(12px, 3vw, 36px); }
+    .city-say [data-district] { display: block; margin: 0 0 28px; }
+  </style></noscript>
 </head>
 <body class="building pixel">
-  <a class="skip-link" href="#building-stops">Skip to the current floor</a>
+  <a class="skip-link" href="#building-stops">{{ hugo.Data.ui.skip.floor }}</a>
   <canvas id="pixel-canvas" data-base="{{ $base }}" data-version="{{ $artVersion }}" aria-hidden="true"></canvas>
   <div class="building-scrim" aria-hidden="true"></div>
 
@@ -102,10 +115,11 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   {{ $go := dict "tower" "#floor-L" "library" ("blog/" | relURL) "workshop" ("projects/" | relURL) "radio" ("podcast/" | relURL) "post" ("contact/" | relURL) }}
   {{ $counts := dict "tower" (len $experience) "library" (len $posts) "workshop" (len $projects) }}
   {{ $texts := dict "radio" $home.contact.podcast.text "post" $home.contact.title }}
-  <section class="city" id="city" aria-label="City map" data-city>
+  <section class="city" id="city" aria-label="{{ $city.label }}" data-city>
     <div class="city-scene">
       <div class="city-map" style="aspect-ratio:{{ index $cityArt.size 0 }} / {{ index $cityArt.size 1 }}" data-zoom="{{ $cityArt.zoom | jsonify }}" data-max-px="{{ $cityArt.maxPx }}">
-        {{- /* Lazy, so a floor's address, which hides the city, never fetches it; on the city the script after it picks the hour's. */}}
+        {{- /* Lazy, so a floor's address, which hides the city, never fetches it; on the city the script after it picks the
+             hour's, then makes it eager: the other way round, the dusk picture starts and is cancelled (#300). */}}
         <img src="{{ $base }}pixel/city.webp?v={{ $artVersion }}" alt="{{ $city.alt }}" width="{{ index $cityArt.size 0 }}" height="{{ index $cityArt.size 1 }}" loading="lazy" data-base="{{ $base }}pixel/city" data-version="{{ $artVersion }}">
         {{- /* The city's life, drawn by city-fx.js at the art's pixels from the data beside the picture. */}}
         <canvas class="city-fx" width="{{ index $cityArt.size 0 }}" height="{{ index $cityArt.size 1 }}" aria-hidden="true"></canvas>
@@ -118,8 +132,11 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
     <div class="city-panel">
       <h1 class="sr-only">{{ site.Title }}</h1>
       <p class="city-kicker" data-city-kicker>{{ $city.kicker }}</p>
+      {{- /* Two of the same: a phone shows this one, top right, where it is in reach after a pick; a wide screen the
+           last, under the district. Each in its place in the tab order (city.css). */}}
+      <button class="city-out city-out--top" type="button" data-city-out hidden>{{ $city.out }}</button>
       <p class="city-lede">{{ index $role 0 }}: {{ index $role 1 }}. {{ $city.hint }}</p>
-      <div class="city-chips" role="group" aria-label="Districts">{{ range $city.districts }}<button type="button" data-pick="{{ .key }}" aria-pressed="false">{{ .name }}</button>{{ end }}</div>
+      <div class="city-chips" role="group" aria-label="{{ $city.chips }}">{{ range $city.districts }}<button type="button" data-pick="{{ .key }}" aria-pressed="false">{{ .name }}</button>{{ end }}</div>
       <div class="city-say" aria-live="polite">
         <div data-district>
           <h2>{{ $home.hero.title }}</h2>
@@ -131,47 +148,49 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
           <h2>{{ with index $counts .key }}{{ printf $title . }}{{ else }}{{ $title }}{{ end }}</h2>
           <p>{{ .text | default (index $texts .key) }}</p>
           {{ if eq .key "post" }}<p class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</p>{{ end }}
-          <p><a class="city-go" href="{{ index $go .key }}" data-go="{{ .key }}" data-goatcounter-click="district-{{ .key }}">{{ .go }} →</a>{{ if eq .key "post" }} <a class="city-pdf" href="{{ $pdf }}"{{ if not hugo.IsServer }} download{{ end }} data-goatcounter-click="cv-download">Download the CV (PDF)</a>{{ end }}</p>
+          <p><a class="city-go" href="{{ index $go .key }}" data-go="{{ .key }}" data-goatcounter-click="district-{{ .key }}">{{ .go }} →</a>{{ if eq .key "post" }} <a class="city-pdf" href="{{ $pdf }}"{{ if not hugo.IsServer }} download{{ end }} data-goatcounter-click="cv-download">{{ $city.pdf }}</a>{{ end }}</p>
         </div>
         {{ end }}
       </div>
-      <button class="city-out" type="button" data-city-out hidden>← Whole city</button>
+      <button class="city-out" type="button" data-city-out hidden>{{ $city.out }}</button>
     </div>
   </section>
   <script>{{ $cityStart.Content | safeJS }}</script>
   <p class="sr-only" role="status" aria-live="polite" data-building-status data-copy-status></p>
 
-  <nav class="elevator" aria-label="Floors">
+  <nav class="elevator" aria-label="{{ $home.tower.floors }}">
+    {{- /* The way out on every floor, as the name plate goes: #city, which reloads onto the city (guide.js, #302). */}}
+    <a class="building-floor-btn building-city" href="#city" aria-label="{{ $home.tower.city_label }}" title="{{ $home.tower.city_label }}"><span aria-hidden="true">←</span> <span>{{ $home.tower.city }}</span></a>
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor></span></div>
-    <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-keyshortcuts="R" aria-label="R, Roof, what's next" title="R, Roof, what's next">R</a>
+    <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-keyshortcuts="R" aria-label="{{ $home.tower.roof_label }}" title="{{ $home.tower.roof_label }}">R</a>
     {{ range $experience }}
-    {{ $name := printf "Floor %s, %s, %s" .Params.floor .Params.company (replace .Title " - " ", ") }}
+    {{ $name := printf $home.tower.floor_label .Params.floor .Params.company (replace .Title " - " ", ") }}
     <a class="building-floor-btn" href="#floor-{{ .Params.floor }}" data-goto="{{ .Params.floor }}" aria-keyshortcuts="{{ .Params.floor }}" aria-label="{{ $name }}" title="{{ $name }}">{{ .Params.floor }}</a>
     {{ end }}
-    {{ with $degree }}<a class="building-floor-btn" href="#floor-1" data-goto="1" aria-keyshortcuts="1" aria-label="Floor 1, {{ .Params.university }}" title="Floor 1, {{ .Params.university }}">1</a>{{ end }}
-    <a class="building-floor-btn" href="#floor-L" data-goto="L" aria-keyshortcuts="L" aria-label="L, Lobby, recommendations and skills" title="L, Lobby, recommendations and skills">L</a>
+    {{ with $degree }}<a class="building-floor-btn" href="#floor-1" data-goto="1" aria-keyshortcuts="1" aria-label="{{ printf $home.tower.degree_label .Params.university }}" title="{{ printf $home.tower.degree_label .Params.university }}">1</a>{{ end }}
+    <a class="building-floor-btn" href="#floor-L" data-goto="L" aria-keyshortcuts="L" aria-label="{{ $home.tower.lobby_label }}" title="{{ $home.tower.lobby_label }}">L</a>
   </nav>
 
   <main class="building-stops" id="building-stops">
     <h1 class="sr-only">{{ site.Title }}</h1>
-    <p class="building-hint" style="opacity:0"><span class="hint-fine">Scroll, swipe or use the arrow keys to ride the lift</span><span class="hint-coarse">Swipe to ride the lift</span></p>
+    <p class="building-hint" style="opacity:0"><span class="hint-fine">{{ $home.tower.hint_fine }}</span><span class="hint-coarse">{{ $home.tower.hint_coarse }}</span></p>
 
     <section class="building-stop" id="floor-R" data-floor="R" aria-labelledby="fR">
       <article class="floor-card" style="--accent:{{ index $accent "R" }}">
-        <header><span class="floor-badge">R</span><span class="floor-company">Roof</span><span class="floor-when">{{ $home.contact.kicker }}</span></header>
+        <header><span class="floor-badge">R</span><span class="floor-company">{{ $home.tower.roof }}</span><span class="floor-when">{{ $home.contact.kicker }}</span></header>
         {{- /* The top of the tower is what comes next: the career only, as every other topic has its building in the city. Its
              way to get in touch is the Post Office's own page. */}}
         <h2 id="fR" tabindex="-1">{{ $home.contact.title }}</h2>
         <p class="floor-lead">{{ $home.contact.text }}</p>
         <ul>{{ range $home.contact.priorities }}<li>{{ . }}</li>{{ end }}</ul>
-        <p class="floor-end"><a href="{{ "contact/" | relURL }}" data-goatcounter-click="roof-post">Get in touch at the Post Office →</a></p>
-        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">Read where I fit</button></div>
+        <p class="floor-end"><a href="{{ "contact/" | relURL }}" data-goatcounter-click="roof-post">{{ $home.tower.roof_link }}</a></p>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-R" aria-expanded="false">{{ $home.tower.roof_more }}</button></div>
       </article>
       {{- /* Open, a panel is a dialog named by its title (guide.js). Shut, it is just the rest of the floor, whose section
            the card's h2 already names: no region, and its title no second heading of the same words (#191). The lobby's
            panel has its own title, so it keeps its h2. */}}
       <div class="floor-panel" id="panel-R" style="--accent:{{ index $accent "R" }}" tabindex="-1">
-        {{ partial "panel-head.html" (dict "floor" "R" "name" "Roof" "when" $home.contact.kicker "status" true) }}
+        {{ partial "panel-head.html" (dict "floor" "R" "name" $home.tower.roof "when" $home.contact.kicker "status" true) }}
         <p class="panel-title" id="ptR">{{ $home.contact.title }}</p>
         <p>{{ $home.contact.text }}</p>
         <dl class="panel-facts">{{ range $home.contact.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
@@ -179,8 +198,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         <ul>{{ range $home.fit.items }}<li>{{ . }}</li>{{ end }}</ul>
         <h3>{{ strings.TrimSuffix "." $home.outcomes.title }}</h3>
         <p>{{ $home.outcomes.text }}</p>
-        <h3>Get in touch</h3>
-        <p><a href="{{ "contact/" | relURL }}" data-goatcounter-click="roof-post">At the Post Office: email and the CV →</a></p>
+        <h3>{{ $home.tower.roof_contact }}</h3>
+        <p><a href="{{ "contact/" | relURL }}" data-goatcounter-click="roof-post">{{ $home.tower.roof_contact_link }}</a></p>
       </div>
     </section>
 
@@ -194,26 +213,26 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         <header><span class="floor-badge">{{ $floor }}</span><span class="floor-company">{{ .Params.company }}, {{ index (split .Params.location ",") 0 }}</span><span class="floor-when">{{ $when }}</span></header>
         <h2 id="f{{ $floor }}" tabindex="-1">{{ $title }}</h2>
         {{- /* Above the summary, so a reader riding past sees the floor has a case study, even on a phone (#34). */}}
-        {{ range $cases }}<p class="floor-case"><b>Case study · {{ .label }}</b> <span>{{ .title }}</span></p>{{ end }}
+        {{ range $cases }}<p class="floor-case"><b>{{ $home.tower.case_study }} · {{ .label }}</b> <span>{{ .title }}</span></p>{{ end }}
         <p class="floor-lead">{{ .Params.summary }}</p>
         <ul>{{ range first 3 .Params.highlights }}<li>{{ partial "nobreak.html" . }}</li>{{ end }}</ul>
-        {{ if $more }}<div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">{{ if not $cases }}Read what I did{{ else if eq (len $cases) 1 }}Read the case study{{ else }}Read the case studies{{ end }}</button></div>{{ end }}
+        {{ if $more }}<div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-{{ $floor }}" aria-expanded="false">{{ if not $cases }}{{ $home.tower.role_more }}{{ else if eq (len $cases) 1 }}{{ $home.tower.case_more }}{{ else }}{{ $home.tower.cases_more }}{{ end }}</button></div>{{ end }}
       </article>
       {{ if $more }}
       <div class="floor-panel" id="panel-{{ $floor }}" style="--accent:{{ index $accent $floor }}" tabindex="-1">
         {{ partial "panel-head.html" (dict "floor" $floor "name" (printf "%s, %s" .Params.company .Params.location) "when" $when) }}
         <p class="panel-title" id="pt{{ $floor }}">{{ $title }}</p>
         <p>{{ .Params.summary }}</p>
-        <h3>What I did</h3>
+        <h3>{{ $home.tower.did }}</h3>
         <ul>{{ range .Params.highlights }}<li>{{ partial "nobreak.html" . }}</li>{{ end }}</ul>
         {{ range $cases }}
-        <h3>Case study</h3>
+        <h3>{{ $home.tower.case_study }}</h3>
         <div class="panel-case">
           <p class="panel-k">{{ .label }}</p>
           <h4>{{ .title }}</h4>
-          <p class="panel-k">Context</p><p>{{ .context }}</p>
-          <p class="panel-k">Decision</p><p>{{ .decision }}</p>
-          <p class="panel-k">Result</p><p>{{ .result }}</p>
+          <p class="panel-k">{{ $home.tower.context }}</p><p>{{ .context }}</p>
+          <p class="panel-k">{{ $home.tower.decision }}</p><p>{{ .decision }}</p>
+          <p class="panel-k">{{ $home.tower.result }}</p><p>{{ .result }}</p>
         </div>
         {{ end }}
       </div>
@@ -228,32 +247,32 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
         <header><span class="floor-badge">1</span><span class="floor-company">{{ .Params.university }}</span><span class="floor-when">{{ $when }}</span></header>
         <h2 id="f1" tabindex="-1">{{ .Params.degree }}</h2>
         <p class="floor-lead">{{ $home.education.title }}</p>
-        <p class="panel-soft">Courses and workshops:</p>
+        <p class="panel-soft">{{ $home.tower.courses }}:</p>
         <ul>{{ range first 4 $courses }}<li>{{ .Title }} <span class="panel-soft">· {{ .Params.degree }}, {{ .Params.year }}</span></li>{{ end }}</ul>
-        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-1" aria-expanded="false">See all courses</button></div>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-1" aria-expanded="false">{{ $home.tower.courses_more }}</button></div>
       </article>
       <div class="floor-panel" id="panel-1" style="--accent:{{ index $accent "1" }}" tabindex="-1">
         {{ partial "panel-head.html" (dict "floor" "1" "name" .Params.university "when" $when) }}
         <p class="panel-title" id="pt1">{{ .Params.degree }}</p>
         <p>{{ $home.education.title }}</p>
         {{ with .Params.teaching }}
-        <h3>Teaching</h3>
+        <h3>{{ $home.tower.teaching }}</h3>
         <ul>{{ range . }}<li>{{ .title }} <span class="panel-soft">· {{ replace .when " - " " – " }}</span></li>{{ end }}</ul>
         {{ end }}
-        <h3>Courses and workshops</h3>
-        <ul>{{ range $courses }}<li>{{ .Title }} <span class="panel-soft">· {{ .Params.degree }}, {{ .Params.year }}</span>{{ with .Params.link }} · <a href="{{ . }}">certificate</a>{{ end }}</li>{{ end }}</ul>
+        <h3>{{ $home.tower.courses }}</h3>
+        <ul>{{ range $courses }}<li>{{ .Title }} <span class="panel-soft">· {{ .Params.degree }}, {{ .Params.year }}</span>{{ with .Params.link }} · <a href="{{ . }}">{{ $home.tower.certificate }}</a>{{ end }}</li>{{ end }}</ul>
       </div>
     </section>
     {{ end }}
 
     <section class="building-stop is-here" id="floor-L" data-floor="L" aria-labelledby="fL">
       <article class="floor-card" style="--accent:{{ index $accent "L" }}">
-        <header><span class="floor-badge">L</span><span class="floor-company">Lobby</span><span class="floor-when">{{ $home.about.kicker }}</span></header>
+        <header><span class="floor-badge">L</span><span class="floor-company">{{ $home.tower.lobby }}</span><span class="floor-when">{{ $home.about.kicker }}</span></header>
         {{- /* The way in from the city, so its signs: up to the role he holds now, and back out to the city. They follow the
              title in the page, after the quotes, which have no links, so the portrait still floats beside them. */}}
         <div class="floor-top">
           <div>
-            {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" loading="lazy" alt="Portrait of Yonatan Karp-Rudin">{{ end }}
+            {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $photo := .Fill "160x160 Center webp" }}<img class="floor-portrait" src="{{ $photo.RelPermalink }}" width="80" height="80" loading="lazy" alt="{{ hugo.Data.art.portrait }}">{{ end }}
             <h2 id="fL" tabindex="-1">{{ $home.testimonials.title }}</h2>
             <ul class="floor-quotes">
               {{ range $testimonials }}
@@ -262,29 +281,29 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
             </ul>
           </div>
           <div class="floor-signs">
-            {{ with $now }}<p class="floor-end"><a href="#floor-{{ .floor }}" data-goto="{{ .floor }}">Up to floor {{ .floor }}: now at {{ .company }} ↑</a></p>{{ end }}
-            <p class="floor-end"><a href="#city">← Back to the city</a></p>
+            {{ with $now }}<p class="floor-end"><a href="#floor-{{ .floor }}" data-goto="{{ .floor }}">{{ printf $home.tower.now .floor .company }}</a></p>{{ end }}
+            <p class="floor-end"><a href="#city">{{ hugo.Data.ui.back_to_city }}</a></p>
           </div>
         </div>
-        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">Read how I work</button></div>
+        <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">{{ $home.tower.lobby_more }}</button></div>
       </article>
       <div class="floor-panel" id="panel-L" style="--accent:{{ index $accent "L" }}" tabindex="-1">
-        {{ partial "panel-head.html" (dict "floor" "L" "name" "Lobby" "when" $home.about.kicker) }}
+        {{ partial "panel-head.html" (dict "floor" "L" "name" $home.tower.lobby "when" $home.about.kicker) }}
         <h2 class="panel-title" id="ptL">{{ $home.about.title }}</h2>
         {{ range $home.about.paragraphs }}<p>{{ . }}</p>{{ end }}
         <dl class="panel-facts">{{ range $home.about.facts }}<dt>{{ .label }}</dt><dd>{{ .text }}</dd>{{ end }}</dl>
-        <h3>Recommendations</h3>
+        <h3>{{ $home.tower.recommendations }}</h3>
         {{ range $testimonials }}
         {{ $t := . }}
         <figure class="panel-quote">
-          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "120x120 Center webp" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" loading="lazy" alt="Portrait of {{ $t.Params.name }}">{{ end }}{{ end }}
+          {{ with .Params.image }}{{ with resources.Get .src }}{{ $photo := .Fill "120x120 Center webp" }}<img src="{{ $photo.RelPermalink }}" width="60" height="60" loading="lazy" alt="{{ printf hugo.Data.art.testimonial $t.Params.name }}">{{ end }}{{ end }}
           <blockquote>{{ .Content }}<cite>{{ .Params.name }}, {{ .Params.position }}</cite>{{ with .Params.source }}<span class="panel-quote-source">{{ . }}, {{ $t.Date.Format "Jan 2006" }}</span>{{ end }}</blockquote>
         </figure>
         {{ end }}
         {{ with $skills }}
-        <h3>Skills</h3>
+        <h3>{{ $home.tower.skills }}</h3>
         <div class="panel-grid">{{ range .Params.practice_areas }}<div><b>{{ .name }}</b><span>{{ .summary }}</span><span class="panel-chips">{{ range .tools }}<i>{{ . }}</i>{{ end }}</span></div>{{ end }}</div>
-        <h3>Stack</h3>
+        <h3>{{ $home.tower.stack }}</h3>
         <p>{{ delimit .Params.working_set ", " }}</p>
         {{ end }}
       </div>

@@ -1,5 +1,5 @@
 ---
-date: 2023-06-01T00:00:00+01:00
+date: 2024-06-22T00:00:00+01:00   # the repository's first commit
 title: "xkcd-click-and-drag"
 weight: 70
 group: "library"

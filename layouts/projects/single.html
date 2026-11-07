@@ -1,16 +1,17 @@
 {{ define "main" }}
+{{ $ui := hugo.Data.ui }}
 {{ $title := partial "project-title.html" .Title }}
 <article class="px-sheet px-case">
   <header class="px-case__head">
     {{ with .Params.projectKind }}<p class="px-kicker">{{ . }}</p>{{ end }}
-    {{ if .Params.archived }}<p class="archived-tag">Archived</p>{{ end }}
+    {{ if .Params.archived }}<p class="archived-tag">{{ $ui.archived }}</p>{{ end }}
     <h1>{{ $title }}</h1>
     {{ with .Description }}<p class="px-case__lede">{{ . }}</p>{{ end }}
-    <ul class="px-case__meta" aria-label="Project years and technologies">
+    <ul class="px-case__meta" aria-label="{{ $ui.project.meta }}">
       <li class="px-chip px-chip--year">{{ .Params.years | default (.Date.Format "2006") }}</li>
       {{ range .Params.tech }}<li class="px-chip">{{ . }}</li>{{ end }}
     </ul>
-    {{ with .Params.link }}<a class="px-cta px-cta--out" href="{{ . }}" target="_blank" rel="noopener">Open project &#8599;<span class="sr-only">, opens in a new tab</span></a>{{ end }}
+    {{ with .Params.link }}<a class="px-cta px-cta--out" href="{{ . }}" target="_blank" rel="noopener">{{ $ui.project.open }} &#8599;<span class="sr-only">{{ $ui.new_tab }}</span></a>{{ end }}
   </header>
   <div class="article__content px-prose">
     {{ .Content }}

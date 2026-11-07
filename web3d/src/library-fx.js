@@ -50,7 +50,13 @@ function setup(ctx, fx, { dfill, sprite }, sheet) {
       if (c.x > kx1) Object.assign(c, { x: kx0 - c.w, y: rnd(ky0, ky1), w: rnd(14, 30) });
       for (let yy = -3; yy <= 3; yy++) {
         const half = Math.round(c.w / 2 * Math.sqrt(1 - (yy / 4) ** 2)), Y = Math.round(c.y + yy);
-        for (let xx = -half; xx <= half; xx++) { const X = Math.round(c.x + xx); if (sky[Y * W + X]) ctx.fillRect(X, Y, 1, 1); }
+        let run = 0, from = 0;   // a rect for each run of sky pixels in a row
+        for (let xx = -half; xx <= half + 1; xx++) {
+          const X = Math.round(c.x + xx), on = xx <= half && sky[Y * W + X];
+          if (on && run && X === from + run) { run++; continue; }
+          if (run) ctx.fillRect(from, Y, run, 1);
+          [from, run] = on ? [X, 1] : [0, 0];
+        }
       }
     }
   };
@@ -102,5 +108,5 @@ function setup(ctx, fx, { dfill, sprite }, sheet) {
     });
   };
 
-  return (now, dt) => { drawReaders(now, dt); drawFire(now, dt); drawClouds(dt); drawDust(now, dt); };
+  return Object.assign((now, dt) => { drawReaders(now, dt); drawFire(now, dt); drawClouds(dt); drawDust(now, dt); }, { ready: sheet });
 }

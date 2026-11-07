@@ -1,8 +1,9 @@
 // The Radio Mast's studio (/podcast/) and the Post Office's hall (/contact/), their own bundle: the header's room is
-// opened on its middle where a phone pans it, and comes alive over its picture (scene-fx.js). The studio's on-air lamp
-// breathes, its tape reels turn, its VU needles bounce and the mast's beacon blinks out of the window; the hall's clock
-// ticks the real seconds, its lamps' warmth breathes and dust drifts in the grille window's light. Where, from
-// ROOM-fx.json, written by web3d/pixel/gen_rooms.py, with the studio's reels from radio-reels.webp.
+// opened on its middle where a phone pans it, and comes alive over its picture (scene-fx.js). The studio's tape reels
+// turn, its VU needles bounce and the mast's beacon blinks out of the window (its on-air lamp no longer glows: the show
+// is off air, data/rooms.yaml); the hall's clock ticks the real seconds, its lamps' warmth breathes and dust drifts in
+// the grille window's light. Where, from ROOM-fx.json, written by web3d/pixel/gen_rooms.py, with the studio's reels from
+// radio-reels.webp.
 import { arrive } from './iris.js';
 import { animate, rnd } from './scene-fx.js';
 
@@ -11,7 +12,10 @@ const canvas = hero?.querySelector('.room-fx');
 const sheet = canvas?.dataset.sheet && Object.assign(new Image(), { src: canvas.dataset.sheet });   // the studio's reels
 if (hero) {
   // Where the room is wider than the screen, it opens at its data-open (0 the left edge, 1 the right).
-  const open = () => { hero.scrollLeft = (hero.scrollWidth - hero.clientWidth) * Number(hero.dataset.open); };
+  const open = () => { hero.scrollLeft = (hero.scrollWidth - hero.clientWidth) * Number(hero.dataset.open); stop(); };
+  // A tab stop (the markup's, for a page without this script) only while there is something to scroll (#305).
+  const stop = () => { hero.tabIndex = hero.scrollWidth > hero.clientWidth ? 0 : -1; };
+  addEventListener('resize', stop);
   const img = hero.querySelector('img');
   if (img.complete) open(); else img.addEventListener('load', open);
   animate(canvas, { data: canvas.dataset.fx }, canvas.dataset.room === 'radio' ? radio : post);
@@ -31,14 +35,14 @@ const ray = (ctx, cx, cy, a, from, to, size = 1) => {
 };
 
 function radio(ctx, fx) {
-  const [lx, ly] = fx.lamp, [bx, by] = fx.beacon;
+  const [bx, by] = fx.beacon;
   // The reels' sheet (gen_rooms.py reels()): a column each, the bare reel over its cutouts, which turn about the hub on
   // the slanted disc, in the art's own pixels.
   const row = Math.max(...fx.reels.map(([, , , ry]) => 2 * ry + 1));
   let left = 0;
   const reels = fx.reels.map(([x, y, rx, ry, dir]) => { const r = { x, y, rx, ry, dir, sx: left }; left += 2 * rx + 1; return r; });
   ctx.imageSmoothingEnabled = false;
-  return (now) => {
+  return Object.assign((now) => {
     for (const { x, y, rx, ry, dir, sx } of sheet?.complete && sheet.naturalWidth ? reels : []) {
       const w = 2 * rx + 1, h = 2 * ry + 1;
       ctx.drawImage(sheet, sx, 0, w, h, x - rx, y - ry, w, h);
@@ -47,17 +51,13 @@ function radio(ctx, fx) {
       ctx.drawImage(sheet, sx, row, w, h, -rx - 0.5, -ry - 0.5, w, h);
       ctx.restore();
     }
-    const p = 0.55 + 0.45 * Math.sin(now / 520);   // the on-air lamp, its glow spilling on the wall
-    for (const [r, c] of [[22, `rgba(255,70,50,${0.12 * p})`], [15, `rgba(255,90,60,${0.18 * p})`], [8, `rgba(255,150,120,${0.35 * p})`]]) {
-      ctx.fillStyle = c; disc(ctx, lx, ly, r);
-    }
     ctx.fillStyle = 'rgba(30,20,15,.9)';
     for (const [cx, cy] of fx.needles) ray(ctx, cx, cy, -2.4 + 1.6 * (0.35 + 0.45 * Math.abs(Math.sin(now / 130 + cx) * Math.sin(now / 410))), 0, 7);
     if ((now / 900 | 0) % 2) {
       ctx.fillStyle = 'rgba(255,80,60,.3)'; ctx.fillRect(bx - 2, by - 2, 6, 6);
       ctx.fillStyle = 'rgb(255,60,40)'; ctx.fillRect(bx, by, 2, 2);
     }
-  };
+  }, { ready: sheet && sheet.decode().catch(() => {}) });
 }
 
 function post(ctx, fx) {

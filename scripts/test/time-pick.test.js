@@ -46,3 +46,17 @@ test("An old zone name is found by its link; an unknown zone, or none, is Berlin
   assert.equal(at("Etc/GMT+5", "2026-11-06T06:30Z"), "dawn");
   assert.equal(at(undefined, "2026-11-06T06:30Z"), "dawn");
 });
+
+test("The season: by the month at the zone's latitude, flipped in the south, summer in the tropics; ?season= pins it", () => {
+  const season = (zone, iso, query) => runTimePick({ zone, ms: Date.parse(iso), query }).season;
+  assert.equal(season("Europe/Berlin", "2026-12-15T12:00Z"), "winter");
+  assert.equal(season("Europe/Berlin", "2026-04-15T12:00Z"), "spring");
+  assert.equal(season("Europe/Berlin", "2026-07-15T12:00Z"), "summer");
+  assert.equal(season("Europe/Berlin", "2026-10-15T12:00Z"), "autumn");
+  assert.equal(season("Australia/Sydney", "2026-12-15T12:00Z"), "summer");
+  assert.equal(season("Australia/Sydney", "2026-07-15T12:00Z"), "winter");
+  assert.equal(season("Asia/Singapore", "2026-01-15T12:00Z"), "summer");
+  assert.equal(season(undefined, "2026-01-15T12:00Z"), "winter");   // Berlin
+  assert.equal(season("Australia/Sydney", "2026-07-15T12:00Z", "?season=autumn"), "autumn");
+  assert.equal(season("Europe/Berlin", "2026-12-15T12:00Z", "?season=snow"), "winter");
+});

@@ -10,11 +10,16 @@ Run: uv run web3d/pixel/gen_city.py blockout [OUT]                  # the code b
      uv run web3d/pixel/gen_city.py door --pick SEED                # ... and one goes into the dusk pick
      uv run web3d/pixel/gen_city.py door --open PAINTING [--time PHASE]  # the hour's whole painting with its doors open:
                                                                     # its crop at DOOR goes to picks/city-open[-PHASE].png
+     uv run web3d/pixel/gen_city.py door --winter --time PHASE [--count N] [--start S]  # that crop under snow
+     uv run web3d/pixel/gen_city.py door --winter --time PHASE --pick SEED  # ... its doorway on the winter pick's crop
      uv run web3d/pixel/gen_city.py paint --time PHASE [...]        # ... or edits the dusk pick to another hour
-     uv run web3d/pixel/gen_city.py build [OUT]                     # OUT/city.webp, city-PHASE.webp for every other
-                                                                    # phase in data/phases.json, backdrop[-PHASE].webp
-                                                                    # (BACKDROP of each), door-open[-PHASE].webp,
-                                                                    # city.json, city-fx.json and city-depth.png
+     uv run web3d/pixel/gen_city.py paint --winter --time PHASE     # ... or edits an hour's pick to winter
+     uv run web3d/pixel/gen_city.py build [OUT]                     # OUT/city[-winter].webp, city[-winter]-PHASE.webp
+                                                                    # for every other phase in data/phases.json,
+                                                                    # backdrop[-winter][-PHASE].webp (BACKDROP of
+                                                                    # each), door-open[-winter][-PHASE].webp,
+                                                                    # city.json, city[-winter]-fx.json and
+                                                                    # city-depth.png
      uv run web3d/pixel/gen_city.py json [OUT]                      # only OUT/city.json
 
 The blockout fixes where every district sits; the model paints over it, and the picked painting (PICKS) is box-reduced
@@ -22,8 +27,10 @@ to ART_W wide on COLOURS colours, undithered. The other hours are the dusk pick 
 composition, so the labels' anchors (city.json, read by layouts/index.html) hold at every hour.
 The dusk pick is painting 700 with one more edit, the tower's entrance (door, seed DOOR_SEED), painted after it was
 picked; the other hours were then edited from the pick with its door.
-Paintings go to web3d/pixel/paintings/candidates/city[-PHASE]_SEED.png (not committed); the chosen one is copied to
-web3d/pixel/paintings/picks/city[-PHASE].png, the build's input, and its seed noted in PICKS.
+Winter is each hour's pick edited to snow (WINTER), the hour's light kept, at seed 700: other seeds moved the tower,
+the districts, the plaza or the lamps.
+Paintings go to web3d/pixel/paintings/candidates/city[-winter][-PHASE]_SEED.png (not committed); the chosen one is copied
+to web3d/pixel/paintings/picks/city[-winter][-PHASE].png, the build's input, and its seed noted in PICKS or WINTER_PICKS.
 
 The city's animations (web3d/src/city-fx.js) draw from city-fx.json: the lit windows and the bay found in the baked art,
 and the walks, lanes and lights below. Their depth map, picks/city-depth.png, is made by depth_map.py (it needs torch)
@@ -52,6 +59,7 @@ SIZE = [ART_W, round(ART_W * PH / PW)]
 # The seed of each hour's pick, for the record. Dusk is 700 plus the door edit (DOOR_SEED); the other hours were
 # remade from that pick, each at seed 700.
 PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}
+WINTER_PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}   # each hour's winter, an edit of that hour's pick
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks"   # picks/city[-PHASE].png: each hour's chosen candidate
 SPOTS = {"radio": (1090, 470), "library": (1180, 720), "tower": (1760, 580), "post": (2420, 470), "workshop": (2300, 730)}
 LOTS = {"radio": (970, 380, 1210, 490), "post": (2290, 360, 2560, 490), "library": (1010, 560, 1380, 740),
@@ -197,21 +205,42 @@ HOURS = {
 }
 
 
-def pick(phase):
-    path = PICKED / f"city{'' if phase == 'dusk' else '-' + phase}.png"
+# Winter: the hour's own pick under snow, its light kept (dusk's named, dawn's and day's kept), at night its windows and
+# lamps kept too; each followed by KEEP. These made WINTER_PICKS.
+SNOW = ("fresh white snow lying on every roof, on the parks, the plaza and the hills, snow banked along the roads and "
+        "pavements, the trees bare and dusted with snow")
+ANY = f"Edit this picture. Keep the time of day and the light exactly as they are and change only the season to deep winter: {SNOW}, a cold blue-grey sea. "
+WINTER = {"dusk": f"Edit this picture. Change only the season to deep winter: {SNOW}, a cold grey-blue sea, a cold clear dusk "
+                  "sky with soft golden light low on the horizon. ",
+          "dawn": ANY, "day": ANY,
+          "night": f"Edit this picture. Keep it night and change only the season to deep winter: {SNOW}, the snow lit warm "
+                   "under the street lamps and blue in the moonlight. Keep every lit window and lamp. "}
+
+
+def name(phase, winter=False):
+    """city, city-night, city-winter, city-winter-night: the season, then the hour, each left out at its default."""
+    return f"city{'-winter' if winter else ''}{'' if phase == 'dusk' else '-' + phase}"
+
+
+def pick(phase, winter=False):
+    path = PICKED / f"{name(phase, winter)}.png"
     if not path.exists():
-        sys.exit(f"no {path}: paint {phase} (gen_city.py paint --time {phase}), copy the chosen candidate there and note its seed in PICKS")
+        sys.exit(f"no {path}: paint it (gen_city.py paint --time {phase}{' --winter' if winter else ''}), copy the chosen candidate there and note its seed in {'WINTER_PICKS' if winter else 'PICKS'}")
     return path
 
 
-def paint(count, start, host, phase):
-    base = blockout().resize((PW, PH), Image.LANCZOS) if phase == "dusk" else Image.open(pick("dusk")).convert("RGB").crop((0, 0, PW, PH))
+def paint(count, start, host, phase, winter=False):
+    if winter:
+        base = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
+        prompt = WINTER[phase] + KEEP
+    else:
+        base = blockout().resize((PW, PH), Image.LANCZOS) if phase == "dusk" else Image.open(pick("dusk")).convert("RGB").crop((0, 0, PW, PH))
+        prompt = DUSK if phase == "dusk" else f"Edit this picture. Change only the time of day to {HOURS[phase]}. {KEEP}"
     buf = io.BytesIO()
     base.save(buf, "PNG")
-    prompt = DUSK if phase == "dusk" else f"Edit this picture. Change only the time of day to {HOURS[phase]}. {KEEP}"
     for k in range(count):
         seed = start + 17 * k
-        path = CANDIDATES / f"city{'' if phase == 'dusk' else '-' + phase}_{seed}.png"
+        path = CANDIDATES / f"{name(phase, winter)}_{seed}.png"
         if path.exists():
             print("kept", path.name)
             continue
@@ -278,19 +307,22 @@ def install_door(seed):
 # Going into the tower from the city (city.js), its entrance's doors open: the same hour's painting with them open, edited
 # from the pick at that hour, of which only the crop at DOOR is kept (picks/city-open[-PHASE].png, ample for DOOR_OPEN at
 # the box filter's 2.4:1). It is pasted back on the pick, baked on the pick's own colours and cut at DOOR_OPEN, in art px.
+# In winter, that crop edited to snow as winter is (WINTER, at its seed), of which only the doorway is kept (DOORWAY,
+# painting px: what the open edit changed), on the winter pick's crop: picks/city-open-winter[-PHASE].png.
 DOOR_OPEN = (710, 196, 756, 240)
+DOORWAY = (1725, 516, 1797, 568)
 
 
-def bake(phase):
+def bake(phase, winter=False):
     """The painting box-reduced to the art's size, on its own COLOURS colours: the pixel look, with no dither to shimmer.
     Paletted, so the open doors can be baked on the same colours."""
-    im = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
+    im = Image.open(pick(phase, winter)).convert("RGB").crop((0, 0, PW, PH))
     small = im.resize(SIZE, Image.BOX)
     return small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
 
 
-def open_crop(phase):
-    return PICKED / f"city-open{'' if phase == 'dusk' else '-' + phase}.png"
+def open_crop(phase, winter=False):
+    return PICKED / f"city-open{'-winter' if winter else ''}{'' if phase == 'dusk' else '-' + phase}.png"
 
 
 def cut_open(painting, phase):
@@ -299,13 +331,49 @@ def cut_open(painting, phase):
     print("wrote", open_crop(phase))
 
 
-def bake_open(phase, art):
-    """The tower's entrance at this hour with its doors open, on the hour's own colours (art, bake's), cut at DOOR_OPEN."""
-    if not open_crop(phase).exists():
-        sys.exit(f"no {open_crop(phase)}: cut it from the whole painting with the doors open (gen_city.py door --open PAINTING --time {phase})")
-    im = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
-    im.paste(Image.open(open_crop(phase)).convert("RGB"), DOOR[:2])
-    return im.resize(SIZE, Image.BOX).quantize(palette=art, dither=Image.Dither.NONE).convert("RGB").crop(DOOR_OPEN)
+def paint_open_winter(count, start, host, phase):
+    """The hour's open doors' crop edited to winter, as the hour's pick was (WINTER[phase]): city-open-winter[-PHASE]_SEED.png."""
+    buf = io.BytesIO()
+    Image.open(open_crop(phase)).convert("RGB").save(buf, "PNG")
+    for k in range(count):
+        seed = start + 17 * k
+        path = CANDIDATES / f"{open_crop(phase, True).stem}_{seed}.png"
+        if path.exists():
+            print("kept", path.name)
+            continue
+        res = call(host, "/sdapi/v1/img2img", {"prompt": WINTER[phase] + KEEP, "width": DOOR[2] - DOOR[0], "height": DOOR[3] - DOOR[1],
+                                               "seed": seed, "batch_size": 1, "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
+        Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).convert("RGB").save(path)
+        print("painted", path.name, flush=True)
+
+
+def keep_open_winter(phase, seed):
+    """The winter pick's crop at DOOR with only its doorway (DOORWAY, its edge softened a pixel) from the picked candidate."""
+    crop = Image.open(pick(phase, True)).convert("RGB").crop(DOOR)
+    mask = Image.new("L", crop.size)
+    ImageDraw.Draw(mask).rectangle([v - o for v, o in zip(DOORWAY, DOOR[:2] * 2, strict=True)], fill=255)
+    painted = Image.open(CANDIDATES / f"{open_crop(phase, True).stem}_{seed}.png").convert("RGB")
+    Image.composite(painted, crop, mask.filter(ImageFilter.GaussianBlur(1))).save(open_crop(phase, True))
+    print("wrote", open_crop(phase, True))
+
+
+def bake_open(phase, art, winter=False):
+    """The tower's entrance at this hour (and season) with its doors open, on its own colours (art, bake's), cut at DOOR_OPEN."""
+    if not open_crop(phase, winter).exists():
+        how = f"door --winter --time {phase}" if winter else f"door --open PAINTING --time {phase}"
+        sys.exit(f"no {open_crop(phase, winter)}: make it (gen_city.py {how})")
+    im = Image.open(pick(phase, winter)).convert("RGB").crop((0, 0, PW, PH))
+    im.paste(Image.open(open_crop(phase, winter)).convert("RGB"), DOOR[:2])
+    opened = im.resize(SIZE, Image.BOX).quantize(palette=art, dither=Image.Dither.NONE).convert("RGB").crop(DOOR_OPEN)
+    if not winter:
+        return opened
+    # In winter only the doorway changes: round it the shut art's own pixels, which the palette's nearest colours would
+    # not all keep. The doorway in art px, a pixel wider each side for the box filter.
+    x0, y0 = (math.floor(v * SIZE[i % 2] / (PW, PH)[i % 2]) - 1 for i, v in enumerate(DOORWAY[:2]))
+    x1, y1 = (math.ceil(v * SIZE[i % 2] / (PW, PH)[i % 2]) + 1 for i, v in enumerate(DOORWAY[2:]))
+    shut, box = art.convert("RGB").crop(DOOR_OPEN), (x0 - DOOR_OPEN[0], y0 - DOOR_OPEN[1], x1 - DOOR_OPEN[0], y1 - DOOR_OPEN[1])
+    shut.paste(opened.crop(box), box[:2])
+    return shut
 
 
 # Where the city's animations go, in art pixels (city-fx.js). Only open ground, so nothing that stands in front of a
@@ -346,10 +414,11 @@ def ground(night, day, dusk):
     return spread([(x, h - 1) for x in range(w) if (x, h - 1) not in sky], lambda q: q not in sky, night.size)
 
 
-def windows(night, day, dusk):
+def windows(night, day, dusk, among=None):
     """The lit windows of the night art: small spots of warm light (4-connected, at most 14 px, inside 5x5), so the
     library's lit facade and the lit roads stay out, and not in the sky, where they are stars. Each goes dark in its
-    wall's colour, the darkest pixel around it."""
+    wall's colour, the darkest pixel around it. `among`: only spots touching these pixels (winter's lamplight pools on
+    the snow look like windows; its windows are where the plain art's are)."""
     (w, h), px, land = night.size, night.load(), ground(night, day, dusk)
     lit = {(x, y) for y in range(h) for x in range(w)
            if (p := px[x, y])[0] > 140 and p[1] > 100 and p[2] < 100 and p[0] - p[2] > 55}
@@ -369,6 +438,8 @@ def windows(night, day, dusk):
                         todo.append(q)
             xs, ys = [c[0] for c in comp], [c[1] for c in comp]
             if len(comp) > 14 or max(xs) - min(xs) > 4 or max(ys) - min(ys) > 4 or comp[0] not in land:
+                continue
+            if among is not None and not any((cx + dx, cy + dy) in among for cx, cy in comp for dx in (-1, 0, 1) for dy in (-1, 0, 1)):
                 continue
             ring = {(cx + dx, cy + dy) for cx, cy in comp for dx in (-1, 0, 1) for dy in (-1, 0, 1)} - set(comp)
             wall = min((px[q] for q in sorted(ring) if 0 <= q[0] < w and 0 <= q[1] < h), key=sum)
@@ -390,10 +461,15 @@ def sea(night, dusk):
     return runs
 
 
-def write_fx(out, night, day, dusk):
-    (out / "city-fx.json").write_text(json.dumps({"windows": windows(night, day, dusk), "sea": sea(night, dusk), "walks": WALKS,
-                                                  "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}, separators=(",", ":")))
-    shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # depth_map.py's map, as it is
+def write_fx(out, night, day, dusk, plain=None):
+    """city-fx.json; or, given the plain art's (its fx and its dusk), city-winter-fx.json, its windows and bay found in
+    the winter art: windows only where the plain art has them, the bay where the plain dusk glows (winter's is grey)."""
+    lit = plain and {tuple(p) for w in plain[0]["windows"] for p in w["px"]}
+    fx = {"windows": windows(night, day, dusk, lit), "sea": sea(night, plain[1] if plain else dusk), "walks": WALKS,
+          "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}
+    (out / f"{name('dusk', bool(plain))}-fx.json").write_text(json.dumps(fx, separators=(",", ":")))
+    shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # depth_map.py's map, as it is, at every season
+    return fx
 
 
 # The doors going in pushes through (city.js): the tower's entrance and the Apps workshop's roller door, in art px (their
@@ -414,18 +490,22 @@ BACKDROP = (492, 0, 988, 347)
 
 def build(out):
     phases = json.loads((ROOT / "data" / "phases.json").read_text())
-    if set(phases) != set(PICKS):
-        sys.exit(f"PICKS has {sorted(PICKS)}, data/phases.json has {sorted(phases)}: give every phase a painting")
-    paletted = {phase: bake(phase) for phase in phases}
-    baked = {phase: im.convert("RGB") for phase, im in paletted.items()}
-    for phase, im in baked.items():
-        path = out / f"city{'' if phase == 'dusk' else '-' + phase}.webp"
-        im.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
-        im.crop(BACKDROP).save(out / f"backdrop{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
-        bake_open(phase, paletted[phase]).save(out / f"door-open{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
-        print("drew", path.name, "its backdrop and its open door, from seed", PICKS[phase])
+    for picks in (PICKS, WINTER_PICKS):
+        if set(phases) != set(picks):
+            sys.exit(f"PICKS and WINTER_PICKS must each have data/phases.json's {sorted(phases)}: give every phase a painting")
+    plain = None
+    for winter, picks in ((False, PICKS), (True, WINTER_PICKS)):
+        paletted = {phase: bake(phase, winter) for phase in phases}
+        baked = {phase: im.convert("RGB") for phase, im in paletted.items()}
+        for phase, im in baked.items():
+            path = out / f"{name(phase, winter)}.webp"
+            im.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
+            im.crop(BACKDROP).save(out / f"backdrop{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
+            bake_open(phase, paletted[phase], winter).save(out / f"door-open{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
+            print("drew", path.name, "its backdrop and its open door, from seed", picks[phase])
+        fx = write_fx(out, baked["night"], baked["day"], baked["dusk"], plain)
+        plain = (fx, baked["dusk"])
     write_json(out)
-    write_fx(out, baked["night"], baked["day"], baked["dusk"])
 
 
 if __name__ == "__main__":
@@ -438,14 +518,17 @@ if __name__ == "__main__":
     ap.add_argument("--time", choices=list(PICKS), default="dusk")
     ap.add_argument("--pick", type=int, help="door: put this candidate into the dusk pick")
     ap.add_argument("--open", type=Path, help="door: keep this whole painting's crop with the doors open, for --time")
+    ap.add_argument("--winter", action="store_true", help="paint: edit the hour's pick to winter; door: paint (or with --pick, keep) the hour's open doors in winter")
     a = ap.parse_args()
     if a.cmd == "blockout":
         blockout().save(Path(a.out) / "city-blockout.png")
         print("wrote", Path(a.out) / "city-blockout.png")
     elif a.cmd == "paint":
-        paint(a.count, a.start, a.host, a.time)
+        paint(a.count, a.start, a.host, a.time, a.winter)
     elif a.cmd == "door":
-        if a.open:
+        if a.winter:
+            keep_open_winter(a.time, a.pick) if a.pick is not None else paint_open_winter(a.count, a.start, a.host, a.time)
+        elif a.open:
             cut_open(a.open, a.time)
         elif a.pick is not None:
             install_door(a.pick)

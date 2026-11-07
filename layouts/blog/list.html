@@ -3,6 +3,7 @@
      the chips are links to the tag pages and the search box a form to /search/. */ -}}
 {{ define "main" }}
 {{ $posts := sort .RegularPages "Date" "desc" }}
+{{ $t := hugo.Data.rooms.library }}
 {{- /* A chip for every tag the listed posts carry: the curated ones first (data/library.yaml), under their labels, then
      the rest, most posts first (ties by name). */}}
 {{ $byTag := dict }}
@@ -29,11 +30,11 @@
 {{ $fxVersion = substr $fxVersion 0 12 }}
 <div class="blog-px library">
 <header class="library-hero">
-  <img src="{{ $img | relURL }}?v={{ substr (sha256 (os.ReadFile (printf "static/%s" $img))) 0 12 }}" alt="The Library: a lamplit reading room at dusk, tall bookcases either side of an arched window onto the city, a card catalogue under it and reading tables with green lamps." width="{{ $size.Width }}" height="{{ $size.Height }}" fetchpriority="high">
+  <img src="{{ $img | relURL }}?v={{ substr (sha256 (os.ReadFile (printf "static/%s" $img))) 0 12 }}" alt="{{ hugo.Data.art.library }}" width="{{ $size.Width }}" height="{{ $size.Height }}" fetchpriority="high">
   <canvas class="library-fx" width="{{ $size.Width }}" height="{{ $size.Height }}" aria-hidden="true" data-fx="{{ $fxData | relURL }}?v={{ $fxVersion }}" data-depth="{{ "building/pixel/library-depth.png" | relURL }}?v={{ $fxVersion }}" data-readers="{{ "building/pixel/readers" | relURL }}" data-version="{{ $fxVersion }}"></canvas>
   <div class="library-title">
-    <a class="library-back" href="{{ "" | relURL }}">← Back to the city</a>
-    <h1>The Library</h1>
+    <a class="library-back" href="{{ "" | relURL }}">{{ hugo.Data.ui.back_to_city }}</a>
+    <h1>{{ $t.title }}</h1>
     <p>{{ .Content | plainify }}</p>
   </div>
 </header>
@@ -41,19 +42,19 @@
   <div class="library-tools" data-library-tools>
     <div class="library-search">
       <form action="{{ "search/" | relURL }}" method="get" role="search">
-        <label class="sr-only" for="library-q">Search posts</label>
-        <input id="library-q" class="search-input" type="search" name="q" placeholder="Search {{ len $posts }} posts">
+        <label class="sr-only" for="library-q">{{ $t.search }}</label>
+        <input id="library-q" class="search-input" type="search" name="q" placeholder="{{ printf $t.placeholder (len $posts) }}">
       </form>
-      {{ with .OutputFormats.Get "rss" }}<a class="library-rss" href="{{ .RelPermalink }}" type="application/rss+xml">RSS</a>{{ end }}
+      {{ with .OutputFormats.Get "rss" }}<a class="library-rss" href="{{ .RelPermalink }}" type="application/rss+xml">{{ $t.rss }}</a>{{ end }}
     </div>
-    <div class="library-topics" role="group" aria-label="Topics">
-      <span class="library-topics__label" aria-hidden="true">Topics</span>
-      <a class="library-chip" href="{{ .RelPermalink }}" data-topic="" data-name="">All <span>{{ len $posts }}</span></a>
+    <div class="library-topics" role="group" aria-label="{{ $t.topics }}">
+      <span class="library-topics__label" aria-hidden="true">{{ $t.topics }}</span>
+      <a class="library-chip" href="{{ .RelPermalink }}" data-topic="" data-name="">{{ $t.all }} <span>{{ len $posts }}</span></a>
       {{ range $topics }}<a class="library-chip{{ if .track }} library-chip--track{{ end }}" href="{{ .term.RelPermalink }}" data-topic="{{ .term.Data.Term }}" data-name="{{ .name }}">{{ .name }} <span>{{ .count }}</span></a>
       {{ end }}
     </div>
   </div>
-  <p class="library-count" aria-live="polite" data-library-count>{{ len $posts }} posts, newest first</p>
+  <p class="library-count" aria-live="polite" data-library-count>{{ printf $t.count (len $posts) }}</p>
   <ol class="post-list library-list" data-library-list>
     {{ range $posts }}<li data-tags="{{ range .GetTerms "tags" }}{{ .Data.Term }} {{ end }}">{{ partial "blog-row.html" . }}</li>
     {{ end }}

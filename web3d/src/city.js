@@ -16,7 +16,7 @@ const root = document.documentElement;
 const city = document.querySelector('[data-city]');
 if (city && root.classList.contains('at-city')) {
   const scene = city.querySelector('.city-scene'), map = scene.querySelector('.city-map'), panel = city.querySelector('.city-panel');
-  const kicker = city.querySelector('[data-city-kicker]'), out = city.querySelector('[data-city-out]'), overview = kicker.textContent;
+  const kicker = city.querySelector('[data-city-kicker]'), out = city.querySelectorAll('[data-city-out]'), overview = kicker.textContent;
   const zoom = JSON.parse(map.dataset.zoom), maxPx = Number(map.dataset.maxPx), artH = scene.querySelector('.city-fx').height;
   const still = matchMedia('(prefers-reduced-motion: reduce)');
   const floats = () => getComputedStyle(panel).position === 'fixed';
@@ -32,17 +32,41 @@ if (city && root.classList.contains('at-city')) {
     map.style.setProperty('--glide', push ? '450ms' : smooth && !still.matches ? '1s' : '0s');
     map.style.setProperty('--inv', 1 / s);   // the labels keep their size on screen
     map.style.transform = `translate(${at.x}px, ${at.y}px) scale(${s})`;
+    fit();
   };
+  // Every label whole in the free view (#295), from where the map is going: one whose district is in it slides inside its
+  // edges by --shift, as on Workshop Row (workshop.js); one whose district is not, or that would sit under a floating
+  // panel, is away (city.css), still in the tab order, and focusing it brings it into view.
+  const tags = [...city.querySelectorAll('.city-tag')];
+  function fit() {
+    const p = panel.getBoundingClientRect(), r = scene.clientWidth - 8;
+    for (const t of tags) {
+      const x = at.x + t.offsetLeft * at.s, half = t.offsetWidth / 2, l = floats() && at.y + t.offsetTop * at.s > p.top ? p.right + 8 : 8;
+      t.style.setProperty('--shift', `${Math.min(Math.max(x - half, l), r - 2 * half) - (x - half)}px`);
+      t.classList.toggle('away', x < l || x > r);
+    }
+  }
+  const free = () => floats() ? (panel.getBoundingClientRect().right + scene.clientWidth) / 2 : scene.clientWidth / 2;
+  city.addEventListener('focusin', (e) => {
+    if (e.target.matches('.city-tag.away')) place(free() - e.target.offsetLeft * at.s, at.y, at.s, true);
+  });
   // The picked building's middle (city.json's zoom) at the middle of the free view: right of a floating panel and a little
   // high, or the scene's middle where the panel stacks under it. Its zoom stops where an art pixel would pass maxPx screen
-  // px, which a big screen reaches first, and never goes under 1. Unpicked, the whole city on the tower, as the page opens.
+  // px, which a big screen reaches first, and never goes under 1. Unpicked, the whole city on the tower, as the page opens,
+  // moved right until the Library's label clears a floating panel, as far as the tower's stays whole (and home-city.js).
   const view = (smooth) => {
-    const p = panel.getBoundingClientRect(), fx = floats() ? (p.right + scene.clientWidth) / 2 : scene.clientWidth / 2;
-    if (!current) return place(fx - city.querySelector('.city-tag[data-pick=tower]').offsetLeft, 0, 1, smooth);
+    const fx = free();
+    if (!current) {
+      const tower = city.querySelector('.city-tag[data-pick=tower]'), lib = city.querySelector('.city-tag[data-pick=library]');
+      const clear = floats() ? panel.getBoundingClientRect().right + 8 + lib.offsetWidth / 2 - lib.offsetLeft : -Infinity;
+      return place(Math.min(Math.max(fx - tower.offsetLeft, clear), scene.clientWidth - 8 - tower.offsetWidth / 2 - tower.offsetLeft), 0, 1, smooth);
+    }
     const [w, h] = size(), [x, y, z] = zoom[current], s = Math.max(1, Math.min(z, maxPx / (h / artH)));
     place(fx - x / 100 * w * s, scene.clientHeight * (floats() ? 0.46 : 0.5) - y / 100 * h * s, s, smooth);
   };
   const pick = (key) => {
+    // "Whole city" hides as it zooms out, so its focus goes to the chip that was picked (#301).
+    if (!key && [...out].some((o) => o.contains(document.activeElement))) city.querySelector(`.city-chips [data-pick="${current}"]`).focus();
     current = key;
     city.classList.toggle('zoomed', !!key);
     for (const b of city.querySelectorAll('[data-pick]')) {
@@ -51,7 +75,7 @@ if (city && root.classList.contains('at-city')) {
     }
     for (const d of city.querySelectorAll('[data-district]')) d.hidden = d.dataset.district !== (key ?? '');
     kicker.textContent = key ? city.querySelector(`.city-chips [data-pick="${key}"]`).textContent : overview;
-    out.hidden = !key;
+    for (const o of out) o.hidden = !key;
     if (key) ready(key);
     view(true);
   };
@@ -60,12 +84,12 @@ if (city && root.classList.contains('at-city')) {
   // A district's go link, or its picked label's second click, pushes on into it: the map zooms on, gathering speed, until
   // what it goes into fills the view, then hands its last frame to the next view, which opens it in an iris (iris.js).
   // The tower and Workshop Row have doors (city.json's doors): the city's ends where the next view's is, at its size, to
-  // 14 screen px a city art px; the tower's opens first (door-open[-PHASE].webp, gen_city.py). The others push into the
+  // 14 screen px a city art px; the tower's opens first (door-open[-winter][-PHASE].webp, gen_city.py). The others push into the
   // building's middle, which ends on the middle of their page's room header. A plain link under reduced motion, with
   // ?fx=off (the visual captures), where the tower is the plain page, or for a click that opens a tab.
   const fxOff = new URLSearchParams(location.search).get('fx') === 'off';
   const canvas = document.querySelector('#pixel-canvas'), img = scene.querySelector('img'), fx = scene.querySelector('.city-fx');
-  const artW = CITY.size[0], hour = root.dataset.time === 'dusk' ? '' : `-${root.dataset.time}`;
+  const artW = CITY.size[0], hour = `${root.dataset.season === 'winter' ? '-winter' : ''}${root.dataset.time === 'dusk' ? '' : `-${root.dataset.time}`}`;   // as the city's picture is picked
   const art = (name) => `${img.dataset.base.replace(/city$/, name)}.webp?v=${img.dataset.version}`;
   const [ox, oy, ow, oh] = CITY.doorOpen, door = new Image();
   Object.assign(door.style, { position: 'absolute', left: `${ox / artW * 100}%`, top: `${oy / artH * 100}%`, width: `${ow / artW * 100}%`,
@@ -166,7 +190,10 @@ if (city && root.classList.contains('at-city')) {
   });
 
   view(false);
-  addEventListener('resize', () => city.classList.contains('going') || view(false));
+  // Only a new width re-centres: iOS resizes as its toolbar collapses, and the visitor's pan stays, re-clamped (#301).
+  const layoutWidth = () => root.clientWidth;   // not innerWidth, which a pinch changes in WebKit
+  let wide = layoutWidth();
+  addEventListener('resize', () => city.classList.contains('going') || (layoutWidth() === wide ? place(at.x, at.y, at.s, false) : (wide = layoutWidth(), view(false))));
   // In the capture phase, so a label's first click, which only zooms, never reaches its link or its GoatCounter count.
   // Going in is only kept from its link's default, so its count goes on to the link.
   city.addEventListener('click', (e) => {
@@ -192,9 +219,9 @@ if (city && root.classList.contains('at-city')) {
     e.preventDefault();
     place(at.x - (side ? e.deltaX : e.deltaY) * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? scene.clientWidth : 1), at.y, at.s, false);
   }, { passive: false });
-  // A finger pans it sideways too; up and down stay the page's scroll (touch-action: pan-y).
+  // A finger pans it sideways too; up and down stay the page's scroll, and a pinch the browser's zoom (touch-action).
   let finger = null;
-  scene.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') finger = e.clientX; });
+  scene.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') finger = e.isPrimary ? e.clientX : null; });   // a second finger: a pinch
   scene.addEventListener('pointermove', (e) => {
     if (finger === null) return;
     place(at.x + e.clientX - finger, at.y, at.s, false);

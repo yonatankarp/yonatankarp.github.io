@@ -68,6 +68,9 @@ def blank(img, src, boxes):
 # Indoors, an hour's edit relit the whole room (sun across the wall, the bench recoloured): only what is seen outside is
 # taken from it, onto the dusk room. The reception's glass door with its frame, in painting pixels.
 VIEW = {"reception": (1970, 96, 2252, 724)}
+# And outdoors, winter's edit snowed on the roof's lift housing too, which is indoors: it is taken from the hour's own pick.
+# Its wall, in painting pixels (gen_floors.HOUSING, 265 art px).
+INDOORS = {"roof": (0, 0, 660, 768)}
 
 
 def unneedle(px):
@@ -126,6 +129,8 @@ def install(name):
     if room in VIEW and room != name:
         hour, src = src, Image.open(HERE / "candidates" / PICKS[room]).convert("RGB")
         src.paste(hour.crop(VIEW[room]), VIEW[room][:2])
+    if room in INDOORS and "-winter" in name:
+        src.paste(Image.open(HERE / "candidates" / PICKS[name.replace("-winter", "")]).convert("RGB").crop(INDOORS[room]), INDOORS[room][:2])
     if room in BLANK:
         src = blank(src, *BLANK[room])
     small = {"lobby": lambda: src.crop(LOBBY[1]).resize(LOBBY_PX, Image.BOX), "cab": lambda: src.resize(CAB_PX, Image.BOX)}.get(

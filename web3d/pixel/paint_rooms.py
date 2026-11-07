@@ -101,17 +101,25 @@ WINDOWS = {"reception": "glass entrance door"}
 # the roof the whole picture; in the lobby only what is seen through its glass door (install_picks.VIEW).
 SNOW = {"roof": "fresh white snow lying on the rooftop, along the top of the parapet, on the stacked steel beams and "
                 "planks, the scaffolding's boards and the crane's jib, and on the roofs of the distant city, a cold blue-grey sea",
-        "reception": "fresh white snow lying on the street, the pavement and the window ledges, the trees bare and dusted with snow"}
+        "reception": "fresh white snow lying on the road, the pavement and the window ledges and sills of the buildings across it"}
+# Asked only to keep "the time of day", the model painted winter as an overcast day: so each hour's sky and light is named.
+LIGHT = HOURS | {"dusk": "golden dusk: a purple-to-peach sunset sky with soft clouds, the low sun glowing on the sea at the "
+                         "horizon, warm golden light on everything"}
 WINTER = ("Edit this picture. Keep everything exactly as it is: every building, object, shape, material and where it "
-          "stands, the same painterly style and the same view. Keep the time of day and the light exactly as they are and "
-          "change only the season to deep winter: {}. No people, no text, no letters, no numbers, no logos.")
+          "stands, the same painterly style and the same view. Keep the time of day exactly as it is, {1}, with the same "
+          "sky and the same light, and change only the season to deep winter: {0}. Keep the lift housing on the left "
+          "exactly as it is, dry, with no snow: it is indoors. No people, no text, no letters, no numbers, no logos.")
 WINTER_NIGHT = ("Edit this picture. Keep everything exactly as it is: every building, object, shape, material and where it "
                 "stands, the same painterly style and the same view. Keep it night and change only the season to deep "
-                "winter: {}, the snow blue in the moonlight and warm under the lamps. Keep every lit window and lamp. "
+                "winter: {0}, the snow blue in the moonlight and warm under the lamps. Keep every lit window and lamp. Keep "
+                "the lift housing on the left exactly as it is, dry, with no snow: it is indoors. "
                 "No people, no text, no letters, no numbers, no logos.")
 WINTER_VIEW = ("Edit this picture. Keep the room exactly as it is: every object, shape and material, its own warm lamps and "
-               "their light, the same painterly style. Keep the time of day and the light outside as they are, and change "
-               "only what is seen outside through the {}, to deep winter: {}. No people, no text, no letters, no numbers, no logos.")
+               "their light, the same painterly style. Keep the {0} exactly as it is: its frame, handles and bars stay clean and "
+               "dry, as it is warm indoors, and no snow lies on this side of the glass. Outside, keep the same street, its "
+               "buildings, lamp post and shop fronts where they are, and the time of day exactly as it is, {2}, with the same "
+               "sky and light, and change only the season out there to deep winter: {1}. No people, no text, no letters, no "
+               "numbers, no logos.")
 
 # Floor 7's payment, which gen_floors.py keys off its magenta and pixel.js draws riding the room's copper pipe: painted from a
 # flat 10:3 capsule on magenta (capsule_pose), at the picked seed 3100.
@@ -379,8 +387,9 @@ def main():
     elif args.room == "winter":   # the same picture under snow: <src>-winter_<seed>.png
         init = Image.open(OUT / args.src).convert("RGB")
         kind, stem = args.src.split("_")[0], Path(args.src).stem
-        prompt = (WINTER_VIEW.format(WINDOWS[kind], SNOW[kind]) if kind in WINDOWS
-                  else (WINTER_NIGHT if "-night" in stem else WINTER).format(SNOW[kind]))
+        hour = next((h for h in HOURS if f"-{h}_" in args.src), "dusk")
+        prompt = (WINTER_VIEW.format(WINDOWS[kind], SNOW[kind], LIGHT[hour]) if kind in WINDOWS
+                  else (WINTER_NIGHT if hour == "night" else WINTER).format(SNOW[kind], LIGHT[hour]))
         jobs = [(OUT / f"{stem}-winter_{args.start + 17 * k}.png", prompt, init.size, args.start + 17 * k, init)
                 for k in range(args.count)]
     elif args.room == "cab":

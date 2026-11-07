@@ -138,7 +138,10 @@ HOURS = {
 SNOW = ("fresh white snow lying on the sawtooth roofs, the parapets, the window sills, the top of the low brick wall and "
         "the parked van, snow banked along the pavement and the kerb, the cobbled street white with trodden snow, the "
         "trees bare and dusted with snow")
-WINTER = {"day": f"Edit this picture. Keep the time of day and the light exactly as they are and change only the season to deep winter: {SNOW}. ",
+# Asked only to keep "the time of day", the rooms' model painted winter as an overcast day: so each hour's light is named.
+LIGHT = HOURS | {"dusk": "golden dusk: a purple and peach sunset sky, warm golden light, the street lamps and the workshops glowing"}
+WINTER = {"day": "Edit this picture. Keep the time of day exactly as it is, {}, with the same sky and the same light, and change "
+                 f"only the season to deep winter: {SNOW}. ",
           "night": f"Edit this picture. Keep it night and change only the season to deep winter: {SNOW}, the snow lit warm "
                    "under the street lamps and blue in the moonlight. Keep every lit window, lamp and workshop light. "}
 
@@ -164,7 +167,7 @@ def call(host, payload):
 def paint(count, start, host, phase, winter=False):
     if winter:
         base = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
-        prompt = WINTER["night" if phase == "night" else "day"] + KEEP
+        prompt = (WINTER["night"] if phase == "night" else WINTER["day"].format(LIGHT[phase])) + KEEP
     else:
         base = blockout().resize((PW, PH), Image.LANCZOS) if phase == "dusk" else Image.open(pick("dusk")).convert("RGB").crop((0, 0, PW, PH))
         prompt = DUSK if phase == "dusk" else f"Edit this picture. Change only the time of day to {HOURS[phase]}. {KEEP}"

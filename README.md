@@ -1,7 +1,9 @@
 # yonatankarp.github.io
 
 Yonatan Karp-Rudin's site and blog, https://yonatankarp.com: a [Hugo](https://gohugo.io/) site with custom layouts, English
-only. The homepage is a pixel-art building, one storey per chapter of the CV, ridden by lift. `CLAUDE.md` has the details
+only. The homepage is a pixel-art city whose districts lead to the site's pages: the Career Tower (the CV, one storey per
+role, ridden by lift), the Library (the blog), Workshop Row (the projects), the Radio Mast (the podcast) and the Post
+Office (contact). Its art follows the visitor's hour, season and holidays. `CLAUDE.md` has the details
 on the layouts, the pixel skin and the content rules. To change the site's words, see `CONTENT.md`: the pages' text
 lives in `content/` and `data/`, not in the templates.
 
@@ -18,8 +20,10 @@ Node 22 or later (`.nvmrc`) and Hugo 0.169.0, the release pinned in `.github/hug
 `.tools/hugo/hugo` when it exists (gitignored: put that release there) and otherwise `hugo` on the `PATH`, and warn when
 it is another version. `npm run lint` and the art pipeline also need [uv](https://docs.astral.sh/uv/).
 
-`npm run serve` and `npm run build` first run `npm run build:building`, which bundles the homepage's script and styles
-(`web3d/src/`) with Vite into `assets/building/` and draws the blog's Mermaid diagrams to SVG in `assets/diagrams/`
+`npm run serve` and `npm run build` first run `npm run build:building`, which bundles the scenes' scripts and styles
+(`web3d/src/`) with Vite into `assets/building/`, four bundles: the homepage's city and tower, Workshop Row
+(`--mode workshop`), the Library (`--mode library`) and the Radio Mast and Post Office (`--mode rooms`). It also draws
+the blog's Mermaid diagrams to SVG in `assets/diagrams/`
 (`scripts/render-diagrams.js`, in Playwright's Chromium). So both need Playwright's browser
 (`npx playwright install chromium`). A plain `hugo` fails until it has run, and again after a diagram changes.
 
@@ -43,7 +47,7 @@ link is broken.
 
 ## The pixel art
 
-The building's art is made by the Python scripts in `web3d/pixel/`, each a [PEP 723](https://peps.python.org/pep-0723/)
+The site's art is made by the Python scripts in `web3d/pixel/`, each a [PEP 723](https://peps.python.org/pep-0723/)
 script that `uv run` gives its own environment (Python 3.11 or later). The paintings come from a local model in
 [Draw Things](https://drawthings.ai/) through its HTTP API on port 7860 (Settings, API Server). Only the painting steps
 need it; everything after them is code and rebuilds from the committed files.
@@ -52,18 +56,24 @@ need it; everything after them is code and rebuilds from the committed files.
 uv run web3d/pixel/paint_rooms.py ROOM                     # paint candidates (Draw Things)
 uv run web3d/pixel/install_picks.py                        # bake the picked candidates into paintings/picks/
 uv run web3d/pixel/gen_floors.py static/building/pixel     # the tower's strips and floors.json, data/floor_accents.yaml
-uv run web3d/pixel/gen_city.py build static/building/pixel # the city, its hours and the other pages' backdrop
+uv run web3d/pixel/gen_city.py build static/building/pixel # the city, its hours and seasons, the other pages' backdrop
+uv run web3d/pixel/gen_library.py build static/building/pixel   # the Library's reading room
+uv run web3d/pixel/gen_rooms.py build static/building/pixel     # the Radio Mast and the Post Office
+uv run web3d/pixel/gen_workshop.py build static/building/pixel  # Workshop Row
+uv run web3d/pixel/gen_walkers.py bake static/building/pixel    # the walkers, readers and cats
+uv run web3d/pixel/gen_props.py bake static/building/pixel      # the holidays' props on the plaza
 uv run web3d/pixel/compare_art.py OUT                      # a fresh build in OUT against the committed art
 ```
 
 The phases are listed in `data/phases.json`; `gen_floors.py` checks its baked rooms and roof skies against the art, and
 `check:phases` checks the time pick and the CSS against it. The numbers the tower's script draws by (doors, lamps, each
 strip's moving box) are written into `floors.json`, so change them in the Python and rerun it. Blog covers are painted
-by `paint_covers.py` and pixelated by `pixelate.py`; `gen_icons.py` draws the favicon. The city's other scenes have
-their own `gen_*.py` (CLAUDE.md).
+by `paint_covers.py` and pixelated by `pixelate.py` (`paint_covers.py --install` rebakes them all); `gen_icons.py` draws
+the favicon. CLAUDE.md has each scene's steps.
 
-CI rebuilds all the art on each pull request and fails unless it matches the committed files pixel for pixel and the
-data files come out unchanged.
+CI rebuilds the art above, the blog covers' pixel bakes and the icons on each pull request, and fails unless they match
+the committed files pixel for pixel and the data files come out unchanged. The art inside posts is not rebuilt: its
+paintings are not committed, so its PNGs are the source.
 
 ## Visual QA
 
@@ -74,10 +84,12 @@ npm run visual:capture:live           # captures https://yonatankarp.com
 npm run visual:compare -- --baseline artifacts/<a>/manifest.json --candidate artifacts/<b>/manifest.json
 ```
 
-Captures go to `artifacts/visual-smoke/<YYYY-MM-DD>/` (gitignored), at 1440x1100 and 390x1200, for the homepage at
-dusk, dawn, day and night (`/?time=`), `/projects/`, the ff4k case study, `/blog/`, `/cv/`, a blog post, `/search/` and
-`/skills/`. Each capture also checks the page's landmarks, the top bar, mobile overflow and broken images, and on the
-homepage rides the lift and works the pause button. `visual:compare` matches captures by route and viewport and reports
+Captures go to `artifacts/visual-smoke/<YYYY-MM-DD>/` (gitignored), at 1440x1100 and 390x1200, each route at a pinned
+hour in autumn: the city at dusk and at night, the city on a winter night with Hanukkah and Christmas, the tower's lobby,
+the roof at dawn, day and night, `/projects/`, the ff4k case study, `/blog/`, `/podcast/`, `/contact/`, `/cv/`, a blog
+post, `/search/` and `/skills/`. Each capture also checks the page's landmarks, the top bar, mobile overflow and broken
+images; on the homepage it rides the lift and works the pause button, and on `/contact/` it checks the letter's ruled
+lines. `visual:compare` matches captures by route and viewport and reports
 changed pixels; add `--fail-on-drift` with budgets such as `--max-changed-percent 0.5` to make drift fail. CI uploads a
 pull request's captures and compares them with the last deploy's in the job summary, without failing, as the homepage
 animates.

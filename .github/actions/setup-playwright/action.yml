@@ -22,6 +22,8 @@ runs:
       env:
         CACHED: ${{ steps.playwright-cache.outputs.cache-hit }}
       run: |
+        # On a hit the browser's libraries are on the runner already, but not the fonts install-deps adds (unifont,
+        # wqy-zenhei, ipafont, ...): without them the diagrams, the CV PDF and the captures would fall back differently.
         if [[ "$CACHED" == "true" ]]; then
           npx playwright install-deps chromium
         else

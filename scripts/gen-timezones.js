@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
-// data/timezones.json, which web3d/src/outside.js reads to place a visitor without asking them: the browser tells it
-// their IANA timezone, and this table says which country that zone is in and roughly where (its main city), to one
-// decimal of a degree. That is enough for the hemisphere and its season, the country's holidays and one weather call.
+// data/timezones.json, which places a visitor without asking them: the browser tells the page their IANA timezone, and
+// this table says which country that zone is in and roughly where (its main city), to one decimal of a degree. The head's
+// time pick (layouts/partials/time-pick.html, and scripts/lib.js for the tests) builds its zone table from it, for the
+// sun's elevation and the season there. The country is read only by placeOf in web3d/src/calendar.js, which the city does
+// not call yet (web3d/src/outside.js says why).
 // Made from the tz database's zone.tab, and its links (tzdata.zi), as browsers may still report an old name such as
 // Asia/Calcutta. Run it again after a tzdata release that adds zones: node scripts/gen-timezones.js [zoneinfo dir]
 const fs = require("fs");

@@ -21,6 +21,7 @@ workshop:
     contribution: "Open-source contributions"
   project: "project"   # "1 project."
   projects: "projects"   # "3 projects."
+  say: "%s, %s."   # read out on a pick, in place of its whole list: "Apps, 3 projects."; %s is the workshop, then the count
   case_study: "Case study"   # a project with caseStudy: true
   view: "View"   # a project's link without params.button.btnText
 radio:

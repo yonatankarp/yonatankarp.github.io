@@ -22,6 +22,20 @@ export function panning(box, first, floats, onPick) {
     for (const d of box.querySelectorAll('[data-district]')) d.hidden = d.dataset.district !== current;
     pan(true);
   });
+  // An up or down wheel pans the street too, as on the city; a sideways one already scrolls it, and a pinch is the browser's.
+  scene.addEventListener('wheel', (e) => {
+    const px = wheelPan(e, floats(), scene.scrollWidth > scene.clientWidth, scene.clientWidth);
+    if (px === null) return;
+    e.preventDefault();
+    scene.scrollBy({ left: px, behavior: 'instant' });   // in step with the wheel, so no motion is added
+  }, { passive: false });
   addEventListener('resize', () => pan(false));
   return pan;
+}
+
+// How far a wheel turn pans the street, in px, or null where it is left alone: a pinch (ctrlKey), a mostly sideways turn
+// (the street's own scroll), or where the panel stacks under the street or the street fits the screen (the page's scroll).
+export function wheelPan(e, floats, wide, page) {
+  if (e.ctrlKey || !floats || !wide || Math.abs(e.deltaX) >= Math.abs(e.deltaY)) return null;
+  return e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? page : 1);
 }

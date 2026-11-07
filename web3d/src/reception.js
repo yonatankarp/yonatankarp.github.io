@@ -1,6 +1,6 @@
-// The lobby's receptionists (gen_floors.RECEPTION in floors.json): what each is doing, on their own random clock. Each
-// rests, then writes in the ledger or looks toward the lift or the door, or rests on, by their weights, and always rests
-// again after. Kept apart from their drawing (pixel.js), so a test can run it on a seed.
+// The lobby's receptionist (gen_floors.RECEPTION in floors.json): one of its people, picked at even odds, and what they are
+// doing, on a random clock. They rest, then write in the ledger or look toward the lift or the door, or rest on, by their
+// own weights, and always rest again after. Kept apart from their drawing (pixel.js), so a test can run it on a seed.
 export function reception({ people, weights, times }, random = Math.random) {
   const span = ([a, b]) => a + random() * (b - a);
   const pick = (w) => {
@@ -9,21 +9,20 @@ export function reception({ people, weights, times }, random = Math.random) {
     return 'idle';
   };
   let now = 0;
-  const all = people.map((name) => ({ name, pose: 'idle', until: span(times.start) }));
+  const name = people[Math.floor(random() * people.length)];
+  const person = { name, pose: 'idle', until: span(times.start) };
   return {
-    all,
+    person,
     clock: () => now,
     // On by dt ms of their clock, which only runs while the room may move.
     step(dt) {
       now += dt;
-      for (const p of all) {
-        while (now >= p.until) {
-          p.pose = p.pose === 'idle' ? pick(weights[p.name]) : 'idle';
-          p.until += span(times[p.pose]);
-        }
+      while (now >= person.until) {
+        person.pose = person.pose === 'idle' ? pick(weights[name]) : 'idle';
+        person.until += span(times[person.pose]);
       }
     },
-    // ms of their clock until one of them next changes
-    next: () => Math.min(...all.map((p) => p.until)) - now,
+    // ms of their clock until they next change
+    next: () => person.until - now,
   };
 }

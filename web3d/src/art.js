@@ -15,7 +15,7 @@ export const { door: DOOR, bayer: BAYER } = art;
 // bright as its sky.
 export const LAMPS = art.lamps;
 export const CAPSULE = art.capsule;           // floor 7's payment, drawn live (capsule.js): its path, size, timing and clip, in strip pixels
-export const RECEPTION = art.reception;       // the lobby's receptionists, drawn live (reception.js): their sheet, spots, desk, weights and times, in strip pixels
+export const RECEPTION = art.reception;       // the lobby's receptionist, drawn live (reception.js): the sheet, the spot, the desk, weights and times, in strip pixels
 export const TIME = document.documentElement.dataset.time;   // picked once, in the page's head (#151): it never changes while the page is open
 const PHASE = PHASES[TIME];
 export const BAKED = PHASE?.baked;                              // the rooms with their own picture at this hour (the roof, the lobby's door); none at dusk

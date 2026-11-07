@@ -84,7 +84,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     g.restore();
     pay.shades = {};
   };
-  // A live sprite's canvas (the capsule's, the receptionists') with the room's lights off, lv of 16 Bayer cells of it kept,
+  // A live sprite's canvas (the capsule's, the receptionist's) with the room's lights off, lv of 16 Bayer cells of it kept,
   // as shade() makes the strip's: the canvas sits on the strip's 4-pixel grid, so the dither lines up with the room's.
   const dimmed = (sp, lv) => (sp.shades[lv] ??= (() => {
     const { width: W, height: H } = sp.c.canvas;
@@ -96,18 +96,18 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     if (lv < 16) { c.globalCompositeOperation = 'destination-in'; c.fillStyle = c.createPattern(bayer(lv), 'repeat'); c.fillRect(0, 0, W, H); }
     return c.canvas;
   })());
-  // The lobby's receptionists: painted people (receptionists.webp, a row each, a column per pose) behind its desk, whose top
-  // edge their sprites are cut at. What each does is picked live (reception.js), on a clock that runs only while the room
-  // may move and is on screen. Both are laid in one small canvas on the strip's Bayer grid, remade when a pose changes, and
-  // drawn once, where the desk is (the runs a wide screen tiles are the room's edge columns), darkened with the room.
-  const R = RECEPTION, staff = reception(R), spots = Object.values(R.spots);
+  // The lobby's receptionist: one of the painted people (receptionists.webp, a row each, a column per pose), picked per visit,
+  // behind its desk, whose top edge their sprite is cut at. What they do is picked live (reception.js), on a clock that runs
+  // only while the room may move and is on screen. They are laid in one small canvas on the strip's Bayer grid, remade when
+  // the pose changes, and drawn once, where the desk is (the runs a wide screen tiles are the room's edge columns), darkened
+  // with the room.
+  const R = RECEPTION, staff = reception(R), row = R.people.indexOf(staff.person.name) * R.h;
   const desk = { img: null, poses: '', ran: 0, shades: {}, c: document.createElement('canvas').getContext('2d', { willReadFrequently: true }),
-    x: Math.floor((Math.min(...spots) - R.w / 2) / 4) * 4, y: Math.floor((R.deskY - R.desk) / 4) * 4 };
-  desk.c.canvas.width = Math.max(...spots) + R.w / 2 - desk.x; desk.c.canvas.height = R.deskY - R.desk + R.h - desk.y;
-  const deskDraw = (poses) => {
+    x: Math.floor((R.spot - R.w / 2) / 4) * 4, y: Math.floor((R.deskY - R.desk) / 4) * 4 };
+  desk.c.canvas.width = R.spot + R.w / 2 - desk.x; desk.c.canvas.height = R.deskY - R.desk + R.h - desk.y;
+  const deskDraw = (pose) => {
     desk.c.clearRect(0, 0, desk.c.canvas.width, desk.c.canvas.height);
-    poses.forEach((pose, j) => desk.c.drawImage(desk.img, R.poses.indexOf(pose) * R.w, j * R.h, R.w, R.h,
-      Math.round(R.spots[R.people[j]] - R.w / 2) - desk.x, R.deskY - R.desk - desk.y, R.w, R.h));
+    desk.c.drawImage(desk.img, R.poses.indexOf(pose) * R.w, row, R.w, R.h, Math.round(R.spot - R.w / 2) - desk.x, R.deskY - R.desk - desk.y, R.w, R.h);
     desk.shades = {};
   };
 
@@ -270,12 +270,12 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     // The capsule rides from the loop's start, while floor 7 is on screen and the room may move.
     const payY = Math.round(ry - (level(CAPSULE.floor) - camY) * s);
     pay.at = !paused && !still && pay.img?.naturalWidth && strips.get(CAPSULE.floor) && payY < h && payY + FH * s > 0 ? capsuleAt(CAPSULE, phase) : null;
-    // The receptionists' clock runs while the lobby is on screen and may move: paused, they hold their pose; held, they rest.
+    // The receptionist's clock runs while the lobby is on screen and may move: paused, they hold their pose; held, they rest.
     const deskTop = Math.round(ry - (level(R.floor) - camY) * s);
     const deskOn = desk.img?.naturalWidth && strips.get(R.floor) && deskTop < h && deskTop + FH * s > 0, deskMoves = deskOn && !paused && !still;
     if (deskMoves && desk.ran) staff.step(now - desk.ran);
     desk.ran = deskMoves ? now : 0;
-    const poses = deskOn ? staff.all.map((p) => (still ? 'idle' : p.pose)).join() : '';
+    const poses = deskOn ? (still ? 'idle' : staff.person.pose) : '';
     for (const key of ORDER) {
       if (key === waiting && (now < waitTo || !strips.has(key))) continue;
       const here = arrived === ride.to && keys[ride.to] === key;
@@ -288,14 +288,14 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
         cancelAnimationFrame(raf); raf = 0;
         if (!paused && !still) {
           const next = phase < loopMs ? 1000 / FPS - (phase % (1000 / FPS)) : pay.at ? CAPSULE.ride + CAPSULE.hold - phase : loopMs + REST_MS - phase;
-          timer = setTimeout(wake, deskMoves ? Math.min(next, staff.next()) : next);   // or when a receptionist next changes
+          timer = setTimeout(wake, deskMoves ? Math.min(next, staff.next()) : next);   // or when the receptionist next changes
         }
       }
       return;
     }
     drawn = sig;
     if (pay.at) payDraw(pay.at);
-    if (poses && poses !== desk.poses) deskDraw((desk.poses = poses).split(','));
+    if (poses && poses !== desk.poses) deskDraw(desk.poses = poses);
 
     ctx.fillStyle = '#151923';
     ctx.fillRect(0, 0, w, h);
@@ -324,7 +324,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       ctx.globalAlpha = clamp01((now - img.since) / FADE_IN_MS);
       // The strip: its rest frame, then a run of EDGE columns that carries on left of the painting and another right of
       // it, tiled outwards over the facade posts on a wide screen (gen_floors.runs), then its moving box's other frames; on
-      // floor 7, its capsule, and in the lobby, its receptionists, darkened as src is (lv of 16 Bayer cells dark, none for the lit room).
+      // floor 7, its capsule, and in the lobby, its receptionist, darkened as src is (lv of 16 Bayer cells dark, none for the lit room).
       const paint = (src, f, lv) => {
         ctx.drawImage(src, 0, 0, FW, FH, x0, y, FW * s, FH * s);
         if (wide) {

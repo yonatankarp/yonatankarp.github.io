@@ -27,8 +27,13 @@ The homepage (`layouts/index.html`) opens on the city: an aerial pixel-art panor
 that zooms into five districts, picked from a label or a chip in its panel: the Career Tower, the
 Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (`/podcast/`) and the Post Office (`/contact/`). The
 map moves by one transform (translate and scale, never scrolling), clamped so no edge of the art shows; a wheel, a
-trackpad or a finger pans it sideways at any zoom. The same chip again, or "Whole city", zooms back out. A label's first
-click zooms to its district; the picked label then shows "→" and its next click goes in. Its
+trackpad or a finger pans it sideways at any zoom. The same chip again, or "Whole city", zooms back out ("Whole city" hands
+focus to the chip that was picked). A label's first
+click zooms to its district; the picked label then shows "→" and its next click goes in. A label stays whole on screen,
+slid inside the edges by `--shift` as on Workshop Row; one whose district is out of view, or that would sit under the
+floating panel, fades but keeps its place in the tab order, and focusing it pans the map to it. The whole city opens on
+the tower, moved right until the Library's label clears the panel, as far as the tower's stays whole (the pre-paint
+`home-city.js` in `layouts/index.html` does the same). Its
 copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-PHASE].webp`, baked by
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one; the dusk pick carries one more edit, the tower's glass entrance doors, from `gen_city.py door`, and the hours were
@@ -155,7 +160,12 @@ baked by `web3d/pixel/gen_props.py` (`pose`, `paint`, `unflame`, `key`, `bake`) 
 painted flames erased (the cup tops in `hanukkiah.json`), tree 11 and `tree-plain`, tree 11 with its snow painted off,
 each box-reduced to ~30 and 34 art px on 32 colours with a hard edge. Nothing moves under reduced
 motion or with `?fx=off`, but the props still stand there, steady (`animate`'s `poster`);
-the loop stops while the tab is hidden, the city is off screen or the tower is entered.
+the loop stops while the tab is hidden, the city is off screen or the tower is entered. The top bar's Pause
+(`data-building-pause`, rendered by `pixel-bar.html` on those five pages only, which `check-generated-html.js` checks,
+and shown once the page's script animates it) holds the tower and all five scenes, and the Radio Mast's CSS on-air lamp
+and EQ; reduced motion hides it. It is kept as the tower always kept
+it, per viewer in `localStorage` (`building-paused`), now across pages too: `scene-fx.js` keeps it, `pixel.js` shares its
+label, and on the city it is the tower's once the tower is entered.
 
 Workshop Row (`/projects/`) and the Library's header (`/blog/`) move the same way, sharing `web3d/src/scene-fx.js` (the
 canvas loop, its pauses and the depth test) with the city. `workshop-fx.js`: walkers on the pavement, two cats on the left

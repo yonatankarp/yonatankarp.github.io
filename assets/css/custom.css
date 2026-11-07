@@ -259,6 +259,7 @@ h4 a,
 .radio-eq { display: flex; gap: 3px; align-items: flex-end; height: 34px; margin: 6px 0 18px; }
 .radio-eq i { width: 8px; background: var(--amber); box-shadow: 2px 2px 0 var(--ink); animation: radio-eq 1s infinite steps(4) alternate; }
 @keyframes radio-eq { from { height: 6px; } to { height: 34px; } }
+:root:has([data-building-pause][data-paused="true"]) :is(.radio-onair, .radio-eq) i { animation-play-state: paused; }   /* the top bar's Pause */
 /* The Post Office: a ruled letter and a sheet of stamps. Every line of the letter sits on a ruled line: 30px rows, the
    rule 1px at 22px into each (the gradient's last pixel, moved up 7px), the body's baselines at 21px. The kicker and the
    headline, in the pixel face, are nudged onto the same baselines; capture-screenshots.js measures them. */
@@ -597,6 +598,16 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
 .px-bar__tabs a { display: flex; align-items: center; min-height: 44px; padding: 0 12px; font-size: 15px; font-weight: 500; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); }
 .px-bar__name:hover, .px-bar__tabs a:hover { background: var(--panel-hi); }
 .px-bar__tabs a[aria-current] { background: var(--amber); color: var(--ink); }
+/* Pause (pixel-bar.html): a tab beside the links, shown and labelled by scene-fx.js, as the homepage's (pixel.css). */
+.px-pause {
+  grid-row: 2; grid-column: 2; justify-self: start; margin-left: -8px; display: flex; align-items: center; min-height: 44px; padding: 0 10px; border: 0; cursor: pointer;
+  clip-path: var(--stepped); font: inherit; color: var(--px-text); background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink);
+}
+.px-pause[hidden] { display: none; }
+.px-pause:hover { background: var(--panel-hi); }
+.px-pause svg { shape-rendering: crispEdges; }
+.px-pause span { margin-left: 8px; font-size: 15px; font-weight: 500; }
+.px-pause[data-paused="true"] .i-pause, .px-pause:not([data-paused="true"]) .i-play { display: none; }
 .px-bar__social a { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); }
 .px-bar__social a:hover { color: var(--amber); background: var(--panel-hi); }
 .px-bar__social svg { shape-rendering: crispEdges; }
@@ -610,7 +621,7 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
 .px-download:active { transform: translateY(4px); }
 .px-download svg { shape-rendering: crispEdges; }
 /* The stepped clip-path cuts outlines away, so focus is a ring drawn inside the box: cream, then ink. */
-.px-bar a:focus-visible, .px-menu:focus-visible, .cv-floor:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
+.px-bar a:focus-visible, .px-menu:focus-visible, .px-pause:focus-visible, .cv-floor:focus-visible { outline: none; box-shadow: inset 0 0 0 4px var(--px-text), inset 0 0 0 8px var(--ink); }
 
 /* The city round the Career Tower behind the sheet of every pixel page, dimmed (gen_city.py: backdrop.webp, a crop of it),
    at the visitor's hour like the homepage, and in winter under snow: html[data-time] and html[data-season] are set
@@ -693,6 +704,7 @@ html[data-season="winter"][data-time="night"] .px-skin { --scene: url(../buildin
 
 @media screen and (max-width: 579px) {   /* phones: the tabs take the row, the social row gets its own under them */
   .px-bar { grid-template-columns: auto 1fr; grid-template-areas: "name download" "links links" "social social"; }
+  .px-pause { grid-row: 4; grid-column: 1; margin-left: 0; }
 }
 
 /* Phones, and any window too short for the homepage's lift: one row, with the links in a popover under Menu, as on the
@@ -711,6 +723,7 @@ html[data-season="winter"][data-time="night"] .px-skin { --scene: url(../buildin
     .px-bar:has(:popover-open) { position: relative; z-index: 4; }
     .px-bar:has(:popover-open)::before { content: ''; position: fixed; inset: 0; z-index: -1; cursor: pointer; background: rgba(10, 11, 16, 0.6); }
     .px-bar__links:not(:popover-open) { display: none; }
+    .px-pause { margin-left: 0; }
     /* In the top layer, where absolute is against the page: it stays under the bar when the bar scrolls away. */
     .px-bar__links:popover-open {
       position: absolute; inset: 60px 8px auto auto; box-sizing: border-box; width: min(480px, calc(100vw - 16px)); max-height: calc(100svh - 68px); margin: 0; overflow: auto;

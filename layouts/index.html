@@ -65,9 +65,11 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 {{ $cityStart := resources.FromString "js/home-city.js" `(function () {
   var x, d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel'), m = s.firstElementChild;
   if (!d.classList.contains('at-city')) return;
+  var f = getComputedStyle(p).position === 'fixed', r = p.getBoundingClientRect().right, t = c.querySelector('.city-tag[data-pick=tower]'), l = c.querySelector('.city-tag[data-pick=library]');
   i.loading = 'eager';
   i.src = i.dataset.base + (d.dataset.season === 'winter' ? '-winter' : '') + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
-  x = (getComputedStyle(p).position === 'fixed' ? (p.getBoundingClientRect().right + s.clientWidth) / 2 : s.clientWidth / 2) - c.querySelector('.city-tag[data-pick=tower]').offsetLeft;
+  x = (f ? (r + s.clientWidth) / 2 : s.clientWidth / 2) - t.offsetLeft;
+  x = Math.min(f ? Math.max(x, r + 8 + l.offsetWidth / 2 - l.offsetLeft) : x, s.clientWidth - 8 - t.offsetWidth / 2 - t.offsetLeft);
   m.style.transform = 'translate(' + Math.min(0, Math.max(s.clientWidth - m.offsetWidth, x)) + 'px, 0px) scale(1)';
 })();` | minify | fingerprint "sha256" }}
 {{ .Store.Set "inlineScripts" (slice $time $guided $lobby $cityStart) }}

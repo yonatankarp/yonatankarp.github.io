@@ -7,6 +7,20 @@ export const rnd = (a, b) => a + Math.random() * (b - a);
 export const asset = (url) => fetch(url).then((r) => (r.ok ? r : null), () => null);
 const TOL = 5;   // out of 255: how much nearer than a mover's feet a pixel may be and still not hide it
 
+// The top bar's Pause (pixel-bar.html, WCAG 2.2.2) holds the scenes as it holds the tower (pixel.js), kept the same way:
+// per viewer, across reloads and pages, and read again when Back restores a page another one paused or played.
+// On the city it is the tower's once the tower is entered (live() goes false).
+export const PAUSE_KEY = 'building-paused';
+export const pausedStored = () => { try { return localStorage.getItem(PAUSE_KEY) === 'true'; } catch { return false; } };   // blocked storage: not remembered
+let paused = pausedStored();
+export function pauseLabel(button, on, hidden) {
+  button.hidden = hidden;
+  button.dataset.paused = on;
+  button.setAttribute('aria-label', on ? 'Play the animation' : 'Pause the animation');
+  button.title = button.getAttribute('aria-label');
+  button.querySelector('[data-building-pause-label]').textContent = on ? 'Play' : 'Pause';
+}
+
 // Animates `canvas` from the JSON at `data` and, given one, the depth map at `depth` (brighter = nearer).
 // setup(ctx, fx, test) returns draw(now, dt), called each frame on a cleared canvas; `test` is the depth test, if any.
 // Nothing moves under reduced motion, or with ?fx=off, which keeps the visual captures still; `live` can hold it too.
@@ -110,12 +124,13 @@ export function snowfall(ctx, night) {
   };
 }
 
-// Drawn only while it can be seen: the tab shown, the canvas on screen, motion welcome, and `live`.
+// Drawn only while it can be seen: the tab shown, the canvas on screen, motion welcome, not paused, and `live`. Paused, it
+// keeps the frame it was on.
 function loop(ctx, draw, live, still, poster) {
   const { canvas } = ctx, clear = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
   const hold = () => { clear(); poster?.(ctx); };   // motion turned off: what stands still, as a still page has it
   let raf = 0, last = 0, seen = true;
-  const going = () => !document.hidden && seen && !still.matches && live();
+  const going = () => !document.hidden && seen && !still.matches && !paused && live();
   const frame = (now) => {
     raf = 0;
     if (!going()) { if (still.matches) hold(); return; }
@@ -126,8 +141,18 @@ function loop(ctx, draw, live, still, poster) {
     raf = requestAnimationFrame(frame);
   };
   const wake = () => { if (!raf && going()) { last = performance.now(); raf = requestAnimationFrame(frame); } };
+  const pauseButton = document.querySelector('[data-building-pause]');
+  const label = () => { if (pauseButton && live()) pauseLabel(pauseButton, paused, still.matches); };   // reduced motion has nothing to pause
+  label();
+  pauseButton?.addEventListener('click', () => {
+    if (!live()) return;
+    paused = !paused;
+    label(); wake();
+    try { localStorage.setItem(PAUSE_KEY, paused); } catch { /* as above */ }
+  });
+  addEventListener('pageshow', (e) => { if (e.persisted) { paused = pausedStored(); label(); wake(); } });
   document.addEventListener('visibilitychange', wake);
-  still.addEventListener('change', () => { if (still.matches) hold(); else wake(); });
+  still.addEventListener('change', () => { label(); if (still.matches) hold(); else wake(); });
   new IntersectionObserver(([e]) => { seen = e.isIntersecting; wake(); }).observe(canvas);
   wake();
 }

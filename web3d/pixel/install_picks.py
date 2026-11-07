@@ -25,6 +25,7 @@ HERE = Path(__file__).resolve().parent / "paintings"
 LOBBY_PX, FLOOR_PX, CAB_PX, COLOURS = (264, 308), (928, 308), (96, 168), 64   # the cab: gen_floors.DOOR's size
 LIFT = (76, 100, 194, 284)   # the lift's frame and doors in the lobby's pixels, down to its sill
 SIGN = (117, 79, 152, 96)    # the floor display over them, which gen_floors lights with the floor's number
+PANEL, WALL = (196, 146, 218, 199), (219, 231)   # the lift's call panel with its shadow, and the bare wall right of it
 PICKS = {  # name: its candidate. The roof's and the reception's other hours are the dusk pick edited (paint_rooms retime),
            # and each hour's winter is that hour's pick edited (paint_rooms winter)
     "lobby": "lobby_1017.png",
@@ -175,6 +176,24 @@ def painting(name):
     return src
 
 
+def relit(lobby, room, box):
+    """The lobby's box lit as the room's wall is (each row scaled, channel by channel, by the room's bare wall, WALL's
+    columns, over the lobby's), and the mask of what to take from it: the panel and its shadow, two pixels round, its edge
+    softened a pixel before install() cuts it to the room's colours, so the room keeps its own wall about it (the
+    lobby's is lit nearer the lift)."""
+    x0, y0, x1, y1 = box
+    out, mask = lobby.crop(box), Image.new("L", (x1 - x0, y1 - y0))
+    px, m = out.load(), mask.load()
+    for y in range(y0, y1):
+        a, b = (sorted((im.getpixel((x, y)) for x in range(*WALL)), key=sum) for im in (lobby, room))
+        a, b = a[len(a) // 2], b[len(b) // 2]
+        for x in range(x1 - x0):
+            col = px[x, y - y0]
+            m[x, y - y0] = 255 * (sum(a) - sum(col) > 36)   # darker than the wall: the panel and its shadow
+            px[x, y - y0] = tuple(min(255, round(v * k / max(1, w))) for v, k, w in zip(col, b, a, strict=True))
+    return out, mask.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(1))
+
+
 def install(name):
     src, room = painting(name), name.split("-")[0]
     small = {"lobby": lambda: src.crop(LOBBY[1]).resize(LOBBY_PX, Image.BOX), "cab": lambda: src.resize(CAB_PX, Image.BOX)}.get(
@@ -184,6 +203,13 @@ def install(name):
         for box in (LIFT, SIGN):
             small.paste(lobby.crop(box), box[:2])
     px = small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
+    if room == "roof":   # its hours repainted the call panel (a display by day, a blank box at night): the lobby's, relit,
+        panel, mask = relit(lobby, small, PANEL)   # after the cut and on its colours, so the rest of the room keeps its own
+        small.paste(panel, PANEL[:2], mask)
+        cut = Image.new("P", (1, 1))
+        cut.putpalette([v for c in ([c for _, c in px.getcolors()] * 256)[:256] for v in c])
+        px.paste(small.crop(PANEL).quantize(palette=cut, dither=Image.Dither.NONE).convert("RGB"), PANEL[:2],
+                 mask.point(lambda v: 255 * (v > 0)))
     for key in {room, name, name.replace("-winter", "")} & TOUCHUPS.keys():   # winter keeps its hour's touch-ups
         px = TOUCHUPS[key](px)
     px.save(HERE / "picks" / f"{name}-px.png")

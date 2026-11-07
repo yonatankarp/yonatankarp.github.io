@@ -120,7 +120,8 @@ they slide apart), and its moving box's other frames. The numbers `web3d/src/` d
 box, lift doors, dither, each room's lamps, the floors' order, floor 7's capsule, the lobby's receptionists and cats) are written into `static/building/pixel/floors.json` by
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
 rerun it, never the copies. `pixel.js` is the lift and the floors, `art.js` what it reads; it keeps only the storeys
-round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most. One thing moves live, not in the
+round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most, and loads the stop's strip
+before the storeys round it. When only the live sprites below change, it redraws just their boxes. One thing moves live, not in the
 strip's 12 frames: floor 7's payment, a painted pneumatic-post capsule (`picks/capsule.png`, on magenta, from
 `paint_rooms.py capsule`; `gen_floors.py` keys it into `capsule.webp` at 4x). pixel.js turns and smooths it into the room's
 own art pixels every frame, along `CAPSULE` (its path, size, ride and clip, in floors.json; the path and easing are
@@ -162,7 +163,9 @@ baked by `web3d/pixel/gen_props.py` (`pose`, `paint`, `unflame`, `key`, `bake`) 
 painted flames erased (the cup tops in `hanukkiah.json`), tree 11 and `tree-plain`, tree 11 with its snow painted off,
 each box-reduced to ~30 and 34 art px on 32 colours with a hard edge. Nothing moves under reduced
 motion or with `?fx=off`, but the props still stand there, steady (`animate`'s `poster`);
-the loop stops while the tab is hidden, the city is off screen or the tower is entered. The top bar's Pause
+the loop stops while the tab is hidden, the city is off screen or the tower is entered, and draws on every k-th screen
+frame, as often as keeps its fastest mover (the snow, a car) to an art pixel a frame (a draw's `fps`, at most 60). A
+painted sprite is drawn from its frame, made once, cut by the depth map only where something nearer is in its box. The top bar's Pause
 (`data-building-pause`, rendered by `pixel-bar.html` on those five pages only, which `check-generated-html.js` checks,
 and shown once the page's script animates it) holds the tower and all five scenes, and the Radio Mast's CSS on-air lamp
 and EQ; reduced motion hides it. It is kept as the tower always kept

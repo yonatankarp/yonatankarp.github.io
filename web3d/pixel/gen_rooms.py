@@ -13,12 +13,14 @@ to ART_W wide on COLOURS colours, undithered. One painting each, at dusk: they a
 web3d/pixel/paintings/candidates/ROOM_SEED.png (not committed); the chosen one is copied to
 web3d/pixel/paintings/picks/ROOM.png, the build's input, and its seed noted in PICKS.
 
-The rooms' animations (web3d/src/rooms-fx.js) draw from ROOM-fx.json, FX below.
+The rooms' animations (web3d/src/rooms-fx.js) draw from ROOM-fx.json, FX below, and the studio's reels from
+radio-reels.webp (reels()).
 """
 import argparse
 import base64
 import io
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -50,9 +52,12 @@ PROMPTS = {
 FX = {
     "radio": {
         "lamp": [238, 70],                                       # the red on-air lamp, which breathes
-        "reels": [[90, 119, 19, 1], [148, 119, 19, 1], [914, 131, 21, -1], [972, 131, 21, -1]],   # x, y, radius, turn
-        "needles": [[489, 196], [579, 196]],                     # the VU meters' pivots
-        "beacon": [1256, 11],                                    # the mast's light, out of the window
+        # The tape decks' reels, left deck then right: the hub's x, y, the painted flange's half-width and half-height (a
+        # disc seen at a slant), its turn (1 clockwise), and how far out its plain painted hub goes, which need not turn: on
+        # the left deck the hub's ring of holes turns. Their cutouts turn about the hub over the bare metal (reels()).
+        "reels": [[97, 128, 25, 35, 1, 0], [150, 131, 20, 32, 1, 0], [912, 132, 24, 30, -1, 0.34], [976, 130, 27, 33, -1, 0.34]],
+        "needles": [[491, 196], [576, 196]],                     # the VU meters' pivots
+        "beacon": [1260, 11],                                    # the mast's light, out of the window
     },
     "post": {
         "clock": [523, 52],                                      # the wall clock's middle: its second hand
@@ -60,6 +65,54 @@ FX = {
         "dust": [470, 90, 580, 210],                             # x0, y0, x1, y1: the grille window's light
     },
 }
+
+
+REEL_DARK = 0.6    # a reel's cutouts and hub holes: darker than this much of its metal
+REEL_HOLES = 0.92  # how far out, of the flange's edge, the holes go: past it is the rim's seams
+
+
+def reels(art, spec):
+    """The reels' sheet, radio-reels.webp: a column per reel, its box round the hub (half-width and half-height either
+    side), the bare reel on top (its cutouts filled from the metal along their ring, so the lamps' light stays where it
+    falls) and its cutouts below, on clear, which rooms-fx.js turns about the hub."""
+    rgb = art.convert("RGB")
+    boxes = [(x - rx, y - ry, x + rx + 1, y + ry + 1) for x, y, rx, ry, *_ in spec]
+    sheet = Image.new("RGBA", (sum(b[2] - b[0] for b in boxes), 2 * max(b[3] - b[1] for b in boxes)))
+    left = 0
+    for (_, _, rx, ry, _, hub), box in zip(spec, boxes, strict=True):
+        src = rgb.crop(box)
+        w, h = src.size
+        px = src.load()
+        def ring(X, Y, rx=rx, ry=ry):   # 1 on the flange's edge
+            return math.hypot((X - rx) / rx, (Y - ry) / ry)
+        lum = {(X, Y): sum(px[X, Y]) / 3 for Y in range(h) for X in range(w)}
+        disc = sorted(v for p, v in lum.items() if ring(*p) < 1)
+        metal = disc[len(disc) // 2]   # the reel's middling brightness: its metal, as lit
+        dark = {p for p, v in lum.items() if v < REEL_DARK * metal}
+        # The holes are the dark the metal rings round; dark that reaches the box's edge is the deck, its shadows and the rim.
+        out, todo = set(), [(X, Y) for X, Y in dark if X in (0, w - 1) or Y in (0, h - 1)]
+        while todo:
+            p = todo.pop()
+            if p in out:
+                continue
+            out.add(p)
+            todo += [q for q in ((p[0] + 1, p[1]), (p[0] - 1, p[1]), (p[0], p[1] + 1), (p[0], p[1] - 1)) if q in dark]
+        holes = {p for p in dark - out if hub <= ring(*p) < REEL_HOLES}
+        holes |= {(X + dx, Y + dy) for X, Y in holes for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))}   # their soft edge
+        bare, cut = src.convert("RGBA"), Image.new("RGBA", (w, h))
+        for X, Y in holes:
+            cut.putpixel((X, Y), px[X, Y] + (255,))
+            n, t = ring(X, Y), math.atan2((Y - ry) / ry, (X - rx) / rx)
+            step = 1 / max(1, n * max(rx, ry))   # about a pixel along the ring
+            for k in range(1, 1000):   # the nearest metal along the same ring, either way round
+                at = [(round(rx + n * math.cos(t + s * k * step) * rx), round(ry + n * math.sin(t + s * k * step) * ry)) for s in (1, -1)]
+                if metal := [q for q in at if 0 <= q[0] < w and 0 <= q[1] < h and q not in holes]:
+                    bare.putpixel((X, Y), px[metal[0]] + (255,))
+                    break
+        sheet.paste(bare, (left, 0))
+        sheet.paste(cut, (left, sheet.height // 2))
+        left += w
+    return sheet
 
 
 def pick(room):
@@ -84,7 +137,10 @@ def paint(count, start, host):
 
 def build(out):
     for room, seed in PICKS.items():
-        library_bake(pick(room)).save(out / f"{room}.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+        art = library_bake(pick(room))
+        art.save(out / f"{room}.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+        if "reels" in FX[room]:
+            reels(art, FX[room]["reels"]).save(out / f"{room}-reels.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
         (out / f"{room}-fx.json").write_text(json.dumps(FX[room], separators=(",", ":")))
         print(f"drew {room}.webp from seed {seed} at {ART_W} wide")
 

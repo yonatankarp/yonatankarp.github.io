@@ -18,7 +18,8 @@ Run: uv run web3d/pixel/gen_city.py blockout [OUT]                  # the code b
                                                                     # for every other phase in data/phases.json,
                                                                     # backdrop[-winter][-PHASE].webp (BACKDROP of
                                                                     # each), door-open[-winter][-PHASE].webp,
-                                                                    # city.json, city[-winter]-fx.json and
+                                                                    # city.json, city[-winter]-fx.json,
+                                                                    # city[-winter]-windows.json and
                                                                     # city-depth.png
      uv run web3d/pixel/gen_city.py json [OUT]                      # only OUT/city.json
 
@@ -32,9 +33,9 @@ the districts, the plaza or the lamps.
 Paintings go to web3d/pixel/paintings/candidates/city[-winter][-PHASE]_SEED.png (not committed); the chosen one is copied
 to web3d/pixel/paintings/picks/city[-winter][-PHASE].png, the build's input, and its seed noted in PICKS or WINTER_PICKS.
 
-The city's animations (web3d/src/city-fx.js) draw from city-fx.json: the lit windows and the bay found in the baked art,
-and the walks, lanes and lights below. Their depth map, picks/city-depth.png, is made by depth_map.py (it needs torch)
-and copied here as it is, so this script never needs torch.
+The city's animations (web3d/src/city-fx.js) draw from city-fx.json: the bay found in the baked art, and the walks,
+lanes and lights below; and at night from city-windows.json, the lit windows found in it. Their depth map,
+picks/city-depth.png, is made by depth_map.py (it needs torch) and copied here as it is, so this script never needs torch.
 """
 import argparse
 import base64
@@ -43,6 +44,7 @@ import json
 import math
 import shutil
 import sys
+from collections import Counter
 from pathlib import Path
 from random import Random
 
@@ -415,14 +417,17 @@ def ground(night, day, dusk):
 
 
 def windows(night, day, dusk, among=None):
-    """The lit windows of the night art: small spots of warm light (4-connected, at most 14 px, inside 5x5), so the
-    library's lit facade and the lit roads stay out, and not in the sky, where they are stars. Each goes dark in its
-    wall's colour, the darkest pixel around it. `among`: only spots touching these pixels (winter's lamplight pools on
-    the snow look like windows; its windows are where the plain art's are)."""
+    """The lit windows of the night art, each a whole pane, so it goes dark as one. A pane is found from its warm rim
+    (small spots of saturated warm light, 4-connected, at most 14 px, inside 5x5, so the library's lit facade and the lit
+    roads stay out, and not in the sky, where they are stars), grown through the paler warm light inside it (`pane`), and
+    kept when the whole window (a room's panes, as one) is still small and fills at least half its box. Each goes dark in its wall's colour, the darkest pixel around it.
+    `among`: only spots touching these pixels (winter's lamplight pools on the snow look like windows; its windows are
+    where the plain art's are)."""
     (w, h), px, land = night.size, night.load(), ground(night, day, dusk)
     lit = {(x, y) for y in range(h) for x in range(w)
            if (p := px[x, y])[0] > 140 and p[1] > 100 and p[2] < 100 and p[0] - p[2] > 55}
-    found = []
+    pane = lambda q: (p := px[q])[0] > 130 and p[0] - p[2] > 40 and sum(p) > 300
+    found, taken = [], set()
     for y in range(h):
         for x in range(w):
             if (x, y) not in lit:
@@ -436,23 +441,52 @@ def windows(night, day, dusk, among=None):
                     if q in lit:
                         lit.discard(q)
                         todo.append(q)
-            xs, ys = [c[0] for c in comp], [c[1] for c in comp]
-            if len(comp) > 14 or max(xs) - min(xs) > 4 or max(ys) - min(ys) > 4 or comp[0] not in land:
+            if not small(comp) or comp[0] not in land or comp[0] in taken:
                 continue
             if among is not None and not any((cx + dx, cy + dy) in among for cx, cy in comp for dx in (-1, 0, 1) for dy in (-1, 0, 1)):
                 continue
-            ring = {(cx + dx, cy + dy) for cx, cy in comp for dx in (-1, 0, 1) for dy in (-1, 0, 1)} - set(comp)
-            wall = min((px[q] for q in sorted(ring) if 0 <= q[0] < w and 0 <= q[1] < h), key=sum)
-            found.append({"wall": list(wall), "px": sorted(comp)})
+            whole = spread(comp, pane, night.size)
+            taken |= whole
+            xs, ys = [c[0] for c in whole], [c[1] for c in whole]
+            if not small(whole, 48, 10, 8) or 2 * len(whole) < (max(xs) - min(xs) + 1) * (max(ys) - min(ys) + 1):
+                continue   # too big, or too ragged to be panes: lamplight on a pavement or a roof
+            ring = {(cx + dx, cy + dy) for cx, cy in whole for dx in (-1, 0, 1) for dy in (-1, 0, 1)} - whole
+            seen = Counter(px[q] for q in ring if 0 <= q[0] < w and 0 <= q[1] < h)
+            wall = min(seen, key=lambda c: (-seen[c], sum(c), c))   # the commonest colour round it, then the darkest
+            found.append({"wall": list(wall), "px": sorted(whole)})
     return found
 
 
-def sea(night, dusk):
-    """The bay, as runs [y, x0, x1] per row: dark blue water at night that glows at dusk, on the left of the art."""
+def small(spot, most=14, w=4, h=4):
+    """At most `most` px, inside (w + 1) x (h + 1): a rim's spot, or a whole window (a room's panes, as one)."""
+    xs, ys = [c[0] for c in spot], [c[1] for c in spot]
+    return len(spot) <= most and max(xs) - min(xs) <= w and max(ys) - min(ys) <= h
+
+
+# The open bay's water, in art px, from which bay() floods it.
+BAY_SEED = (40, 210)
+
+
+def bay(day):
+    """The bay's water: what the blue of the day art reaches from BAY_SEED, each row filled across, so the grey
+    reflections inside it count too. Its beach and the grass behind it part it from the far shore's buildings and the
+    open sea beyond them, which sea()'s test alone would let in."""
+    d = day.load()
+    blue = lambda q: (p := d[q])[2] > p[0] + 30
+    assert blue(BAY_SEED), f"BAY_SEED {BAY_SEED} is not water in the day art"
+    rows = {}
+    for x, y in spread([BAY_SEED], blue, day.size):
+        lo, hi = rows.get(y, (x, x))
+        rows[y] = (min(lo, x), max(hi, x))
+    return {(x, y) for y, (lo, hi) in rows.items() for x in range(lo, hi + 1)}
+
+
+def sea(night, dusk, water):
+    """The bay, as runs [y, x0, x1] per row: dark blue water at night that glows at dusk, within the bay's water."""
     n, d, runs = night.load(), dusk.load(), []
     for y in range(101, night.size[1]):
         for x in range(300):
-            if not ((p := n[x, y])[2] > p[0] + 10 and p[2] >= p[1] and sum(p) < 170 and sum(d[x, y]) > 330):
+            if (x, y) not in water or not ((p := n[x, y])[2] > p[0] + 10 and p[2] >= p[1] and sum(p) < 170 and sum(d[x, y]) > 330):
                 continue
             if runs and runs[-1][0] == y and runs[-1][2] == x - 1:
                 runs[-1][2] = x
@@ -462,14 +496,19 @@ def sea(night, dusk):
 
 
 def write_fx(out, night, day, dusk, plain=None):
-    """city-fx.json; or, given the plain art's (its fx and its dusk), city-winter-fx.json, its windows and bay found in
-    the winter art: windows only where the plain art has them, the bay where the plain dusk glows (winter's is grey)."""
-    lit = plain and {tuple(p) for w in plain[0]["windows"] for p in w["px"]}
-    fx = {"windows": windows(night, day, dusk, lit), "sea": sea(night, plain[1] if plain else dusk), "walks": WALKS,
-          "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}
-    (out / f"{name('dusk', bool(plain))}-fx.json").write_text(json.dumps(fx, separators=(",", ":")))
+    """city-fx.json and the night's windows, city-windows.json (city-fx.js fetches them only at night); or, given the
+    plain art's (its windows, its dusk and its bay), city-winter-fx.json and city-winter-windows.json, found in the winter
+    art: windows only where the plain art has them, the bay where the plain dusk glows (winter's is grey) in the plain
+    day's water. Returns what winter needs."""
+    lit = plain and {tuple(p) for w in plain[0] for p in w["px"]}
+    water = plain[2] if plain else bay(day)
+    found = windows(night, day, dusk, lit)
+    fx = {"sea": sea(night, plain[1] if plain else dusk, water), "walks": WALKS, "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}
+    stem = name("dusk", bool(plain))
+    (out / f"{stem}-fx.json").write_text(json.dumps(fx, separators=(",", ":")))
+    (out / f"{stem}-windows.json").write_text(json.dumps(found, separators=(",", ":")))
     shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # depth_map.py's map, as it is, at every season
-    return fx
+    return found, dusk, water
 
 
 # The doors going in pushes through (city.js): the tower's entrance and the Apps workshop's roller door, in art px (their
@@ -503,8 +542,7 @@ def build(out):
             im.crop(BACKDROP).save(out / f"backdrop{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
             bake_open(phase, paletted[phase], winter).save(out / f"door-open{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
             print("drew", path.name, "its backdrop and its open door, from seed", picks[phase])
-        fx = write_fx(out, baked["night"], baked["day"], baked["dusk"], plain)
-        plain = (fx, baked["dusk"])
+        plain = write_fx(out, baked["night"], baked["day"], baked["dusk"], plain)
     write_json(out)
 
 

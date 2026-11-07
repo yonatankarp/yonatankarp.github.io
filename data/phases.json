@@ -1,6 +1,6 @@
 {
-  "dawn": { "sky": "#e8e4f2", "baked": "LR", "dark": [0.42, 0.42, 0.52] },
-  "day": { "sky": "#087dbd", "baked": "LR", "dark": [0.5, 0.52, 0.58] },
-  "dusk": { "sky": "#9f819a", "baked": "", "dark": [0.34, 0.34, 0.44] },
-  "night": { "sky": "#0a1729", "baked": "LR", "dark": [0.34, 0.34, 0.44] }
+  "dawn": { "sky": "#e8e4f2", "baked": "LR", "dark": [0.42, 0.42, 0.52], "winter": { "sky": "#e8e4f2", "baked": "LR" } },
+  "day": { "sky": "#087dbd", "baked": "LR", "dark": [0.5, 0.52, 0.58], "winter": { "sky": "#087dbd", "baked": "LR" } },
+  "dusk": { "sky": "#9f819a", "baked": "", "dark": [0.34, 0.34, 0.44], "winter": { "sky": "#9f819a", "baked": "LR" } },
+  "night": { "sky": "#0a1729", "baked": "LR", "dark": [0.34, 0.34, 0.44], "winter": { "sky": "#0a1729", "baked": "LR" } }
 }

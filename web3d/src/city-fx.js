@@ -1,18 +1,28 @@
 // The city's life (city.js): walkers, cars, windows going dark, glints on the bay, the mast's and the crane's lights and
-// flocks of birds, over the picture (scene-fx.js). Where they go is city-fx.json and what hides them is city-depth.png,
-// both written by web3d/pixel/gen_city.py.
-import { animate, rnd } from './scene-fx.js';
+// flocks of birds, over the picture (scene-fx.js), and in winter falling snow. Where they go is city-fx.json (in winter
+// city-winter-fx.json, its windows and bay found in the winter art) and what hides them is city-depth.png, both written by
+// web3d/pixel/gen_city.py. The holidays' props on the plaza (props.js) stand among the walkers, and stay when nothing moves.
+import { OUTSIDE } from './outside.js';
+import { props } from './props.js';
+import { animate, rnd, snowfall } from './scene-fx.js';
 
 const root = document.documentElement;
 
 export function cityFx(canvas, img) {
-  const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`;
+  const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`, winter = root.dataset.season === 'winter';
+  const dir = new URL('.', new URL(img.dataset.base, location.href)).pathname;   // the art's folder: props.webp sits beside the city
+  const plaza = props((ext) => `${dir}props.${ext}?v=${img.dataset.version}`, { ...OUTSIDE, time: root.dataset.time });
+  const poster = (ctx) => plaza.then((items) => { ctx.clearRect(0, 0, canvas.width, canvas.height); for (const p of items) p.draw(ctx, null); });
   // Not once the tower is entered, which hides the city for good.
-  animate(canvas, { data: art('fx.json'), depth: art('depth.png'), live: () => root.classList.contains('at-city') }, (ctx, fx, { dfill, footAt }) => setup(ctx, fx, dfill, footAt));
+  animate(canvas, { data: art(winter ? 'winter-fx.json' : 'fx.json'), depth: art('depth.png'), live: () => root.classList.contains('at-city'), poster },
+    (ctx, fx, { dfill, footAt }) => setup(ctx, fx, dfill, footAt, plaza, winter));
 }
 
-function setup(ctx, fx, dfill, footAt) {
+function setup(ctx, fx, dfill, footAt, plaza, winter) {
   const W = ctx.canvas.width, time = root.dataset.time, night = time === 'night', lamps = night || time === 'dusk';
+  const snow = winter && snowfall(ctx, night);
+  let dressing = [];
+  plaza.then((items) => { dressing = items; });
 
   // Windows: at night each lit one switches off and on, slowly, in its own wall's colour.
   const now0 = performance.now();
@@ -46,7 +56,9 @@ function setup(ctx, fx, dfill, footAt) {
     const avenue = i % 5 === 1, seg = fx.walks[avenue ? 1 : 0];
     return { seg, t: Math.random(), v: rnd(0.006, 0.014) * (Math.random() < 0.5 ? 1 : -1) * (avenue ? 4 : 1), shirt, step };
   }).filter((_, i) => !night || i % 2);
+  // Drawn by their feet's row among the plaza's props, farther first, so nobody walks through one.
   const drawPeople = (now, dt) => {
+    const order = dressing.map((p) => [p.y, () => p.draw(ctx, now / 1000)]);
     for (const w of people) {
       let x, y;
       if (w.seg) {
@@ -60,10 +72,14 @@ function setup(ctx, fx, dfill, footAt) {
         x = Math.round(w.x); y = Math.round(w.y);
       }
       const stride = w.pause > now ? 0 : ((now / 220 + w.step) | 0) % 2, f = footAt(x, y);
-      ctx.fillStyle = night ? 'rgba(40,34,40,.95)' : '#5a3a28'; dfill(x + stride, y, 1, 1, f); dfill(x + 1 - stride, y, 1, 1, f);   // legs
-      ctx.fillStyle = night ? 'rgba(70,60,70,.95)' : w.shirt; dfill(x, y - 2, 2, 2, f);                                              // shirt
-      ctx.fillStyle = night ? 'rgba(120,100,90,.95)' : '#f0c8a0'; dfill(x, y - 3, 1, 1, f);                                         // head
+      order.push([y, () => {
+        ctx.fillStyle = night ? 'rgba(40,34,40,.95)' : '#5a3a28'; dfill(x + stride, y, 1, 1, f); dfill(x + 1 - stride, y, 1, 1, f);   // legs
+        ctx.fillStyle = night ? 'rgba(70,60,70,.95)' : w.shirt; dfill(x, y - 2, 2, 2, f);                                              // shirt
+        ctx.fillStyle = night ? 'rgba(120,100,90,.95)' : '#f0c8a0'; dfill(x, y - 3, 1, 1, f);                                         // head
+      }]);
     }
+    order.sort((a, b) => a[0] - b[0]);
+    for (const [, draw] of order) draw();
   };
 
   // Cars: the main street's lanes and the ring road's curve, fading in and out where the road leaves the open stretch.
@@ -121,5 +137,5 @@ function setup(ctx, fx, dfill, footAt) {
     flocks = flocks.filter((f) => f.x + f.tail < W + 20);   // gone once the last bird is past the edge
   };
 
-  return (now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); };
+  return (now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); };
 }

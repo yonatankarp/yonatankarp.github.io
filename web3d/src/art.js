@@ -21,9 +21,12 @@ export const CATS = art.cats;                 // the lobby's cats, drawn live (c
 export const CAT_SHEET = catSheet;            // ... and cats-lobby.webp's frame size, feet and strides
 export const TIME = document.documentElement.dataset.time;   // picked once, in the page's head (#151): it never changes while the page is open
 const PHASE = PHASES[TIME];
-export const BAKED = PHASE?.baked;                              // the rooms with their own picture at this hour (the roof, the lobby's door); none at dusk
-export const HOUR = BAKED ? `-${TIME}` : '';                    // the file name's suffix
-export const SKY_AT_LOAD = PHASE?.sky ?? PHASES.dusk.sky;       // above the roof, until its strip gives its own top row
+// In winter (html[data-season], picked with the hour) the rooms that show outside have a picture of their own at every
+// hour, even dusk: only that season's strips are ever fetched, so winter's and the rest's are never decoded together.
+const SEASON = document.documentElement.dataset.season === 'winter' ? PHASE?.winter : null;
+export const BAKED = (SEASON ?? PHASE)?.baked;                  // the rooms with their own picture at this hour (the roof, the lobby's door); none at dusk
+export const HOUR = `${SEASON ? '-winter' : ''}${PHASE && TIME !== 'dusk' ? `-${TIME}` : ''}`;   // the file name's suffix for those
+export const SKY_AT_LOAD = (SEASON ?? PHASE)?.sky ?? PHASES.dusk.sky;   // above the roof, until its strip gives its own top row
 export const DARK = PHASE?.dark ?? PHASES.dusk.dark;            // what a room's colours fall to with its lights off; by day its windows still let some in
 export const SHADES = [16, 10, 5];                              // a lamp coming on: how many of 16 Bayer cells are still dark, step by step
 // The phone layout: the same query as every phone rule in pixel.css, so the canvas and the cards always agree (#46).

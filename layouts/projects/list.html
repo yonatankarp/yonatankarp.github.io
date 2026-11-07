@@ -15,15 +15,15 @@
 {{ if not (and $css $js) }}{{ errorf "The projects' Workshop Row needs its bundle in assets/building/: run `npm run build:building` first." }}{{ end }}
 {{ $css = $css | fingerprint }}
 {{ $js = $js | fingerprint }}
-{{- /* The painting at the visitor's hour (head.html's time pick), set before it loads; lazy only so that it waits for
-     this, as a page without a script loads it at once, at dusk. */}}
+{{- /* The painting at the visitor's hour and, in winter, under snow (head.html's time pick), set before it loads; lazy
+     only so that it waits for this, as a page without a script loads it at once, at dusk. */}}
 {{ $hour := resources.FromString "js/workshop-time.js" `(function () {
-  var i = document.currentScript.previousElementSibling, t = document.documentElement.dataset.time;
+  var i = document.currentScript.previousElementSibling, d = document.documentElement.dataset, t = d.time;
   i.loading = 'eager';
-  i.src = i.dataset.base + (t === 'dusk' ? '' : '-' + t) + '.webp?v=' + i.dataset.version;
+  i.src = i.dataset.base + (d.season === 'winter' ? '-winter' : '') + (t === 'dusk' ? '' : '-' + t) + '.webp?v=' + i.dataset.version;
 })();` | minify | fingerprint "sha256" }}
 {{ .Store.Set "bodyScripts" (slice $hour) }}
-{{ $version := "" }}{{ range $k, $_ := hugo.Data.phases }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/workshop%s.webp" (cond (eq $k "dusk") "" (printf "-%s" $k)))) | sha256 }}{{ end }}
+{{ $version := "" }}{{ range $season := slice "" "-winter" }}{{ range $k, $_ := hugo.Data.phases }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/workshop%s%s.webp" $season (cond (eq $k "dusk") "" (printf "-%s" $k)))) | sha256 }}{{ end }}{{ end }}
 {{ range slice "workshop-fx.json" "workshop-depth.png" "walkers.json" "walkers.webp" "cats.json" "cats.webp" }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/%s" .)) | sha256 }}{{ end }}{{/* the animations' data, walkers and cats too */}}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">

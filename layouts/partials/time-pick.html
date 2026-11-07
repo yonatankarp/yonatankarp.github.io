@@ -1,6 +1,7 @@
 {{- /* The visitor's time of day for the art (#151), as statements that set html[data-time] to dawn, day, dusk or night
      from the sun's elevation where their time zone is (assets/js/time-pick.js, and sun.js). ?time=dawn|day|dusk|night overrides it;
-     anything else means the sun. Shared by the homepage's pre-paint script (layouts/index.html), which also preloads
+     anything else means the sun. And html[data-season], spring, summer, autumn or winter, from the date and that place's
+     latitude (season.js); ?season= overrides it the same way. Shared by the homepage's pre-paint script (layouts/index.html), which also preloads
      that hour's city, and every other page's (head.html), whose backdrop custom.css picks by it. Returns plain JS: the
      caller minifies it and allows it in the CSP by its hash.
      ZONES, its zone table, is data/timezones.json with the links resolved, to whole degrees and grouped by the zone's
@@ -14,6 +15,6 @@
   {{- $z.Set $p.Dir (trim (printf "%s %s%d,%d" ($z.Get $p.Dir | default "") $p.File (int (math.Round (index $at 1))) (int (math.Round (index $at 2)))) " ") }}
 {{- end }}
 {{- $z.Delete "at" }}
-{{- /* Then sunAt, from assets/js/sun.js: a module, for web3d/src/outside.js, so its export goes. Last, so the script
-     still opens on the zone table, which check-generated-html.js reads. */}}
-{{ return printf "%s%s" (replace (resources.Get "js/time-pick.js").Content "ZONES" (jsonify $z.Values) 1) (replace (resources.Get "js/sun.js").Content "export " "" 1) }}
+{{- /* Then sunAt and seasonOn, from assets/js/sun.js and season.js: modules, for web3d/src/, so their exports go. Last,
+     so the script still opens on the zone table, which check-generated-html.js reads. */}}
+{{ return printf "%s%s%s" (replace (resources.Get "js/time-pick.js").Content "ZONES" (jsonify $z.Values) 1) (replace (resources.Get "js/sun.js").Content "export " "" 1) (replace (resources.Get "js/season.js").Content "export " "" 1) }}

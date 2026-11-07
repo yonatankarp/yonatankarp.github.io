@@ -5,9 +5,10 @@
 // checks against its PHASES. What cannot read JSON is checked against it here:
 // - assets/js/time-pick.js, through layouts/partials/time-pick.html, picks each phase from the sun over a day, and
 //   takes exactly these names from ?time=;
-// - assets/css/custom.css puts each phase's backdrop (a crop of the city, gen_city.py) behind the other pages;
+// - assets/css/custom.css puts each phase's backdrop (a crop of the city, gen_city.py) behind the other pages, and in
+//   winter (html[data-season]) its snowy one;
 // - and the art those name is in static/building/pixel/: the tower's baked rooms (gen_floors.py), the homepage's city and
-//   the projects' Workshop Row at each hour (gen_city.py, gen_workshop.py).
+//   the projects' Workshop Row at each hour (gen_city.py, gen_workshop.py), each in winter too.
 const fs = require("fs");
 const path = require("path");
 const { rootDir, fail, runTimePick } = require("./lib");
@@ -30,32 +31,49 @@ for (const other of ["noon", "Dusk", ""]) {
   if (run(noon, `?time=${other}`) !== run(noon)) problems.push(`time-pick.js takes ?time=${other}`);
 }
 
-// custom.css: dusk is the plain backdrop, each other phase its own.
-const customCss = read("assets/css/custom.css");
-const backdrops = new Map([...customCss.matchAll(/(?:html\[data-time="(\w+)"\] )?\.px-skin \{ --scene: url\(\.\.\/building\/pixel\/(backdrop(?:-\w+)?\.webp)\); \}/g)]
-  .map((match) => [match[1] ?? "dusk", match[2]]));
-for (const name of names) {
-  const want = name === "dusk" ? "backdrop.webp" : `backdrop-${name}.webp`;
-  if (backdrops.get(name) !== want) problems.push(`custom.css gives ${name} the backdrop ${backdrops.get(name) ?? "none"}, expected ${want}`);
-}
-for (const name of backdrops.keys()) {
-  if (!names.includes(name)) problems.push(`custom.css has a backdrop for ${name}, which phases.json does not have`);
+// The season: picked with the phase, and taken from ?season= by these names only. Only winter has art of its own.
+const SEASONS = ["spring", "summer", "autumn", "winter"];
+const season = (ms, query = "") => runTimePick({ zone: "Europe/Berlin", ms, query }).season;
+const year = new Set(Array.from({ length: 12 }, (_, m) => season(Date.UTC(2026, m, 15, 12))));
+if ([...year].sort().join() !== [...SEASONS].sort().join()) problems.push(`time-pick.js picks ${[...year].join(", ")} over a year in Berlin, expected ${SEASONS.join(", ")}`);
+for (const name of SEASONS) {
+  if (season(noon, `?season=${name}`) !== name) problems.push(`time-pick.js ignores ?season=${name}`);
 }
 
-// The art: dusk is the plain files; every other phase has its backdrop and its baked rooms.
-for (const name of names) {
-  const suffix = name === "dusk" ? "" : `-${name}`;
-  if (name === "dusk" && phases[name].baked) problems.push("phases.json bakes rooms for dusk, whose art is the plain files");
-  for (const file of [`backdrop${suffix}.webp`, ...[...phases[name].baked].map((key) => `floor-${key}${suffix}.webp`)]) {
-    const how = file.startsWith("backdrop") ? "gen_city.py build" : "gen_floors.py";
-    if (!fs.existsSync(path.join(rootDir, art(file)))) problems.push(`${name} needs ${art(file)} (uv run web3d/pixel/${how} static/building/pixel)`);
+// custom.css: dusk is the plain backdrop, each other phase its own, and in winter each phase its snowy one.
+const customCss = read("assets/css/custom.css");
+const backdrops = new Map([...customCss.matchAll(/(?:html(\[data-season="winter"\])?\[data-time="(\w+)"\] )?\.px-skin \{ --scene: url\(\.\.\/building\/pixel\/(backdrop(?:-\w+)*\.webp)\); \}/g)]
+  .map((match) => [`${match[1] ? "winter " : ""}${match[2] ?? "dusk"}`, match[3]]));
+const suffixOf = (name, winter) => `${winter ? "-winter" : ""}${name === "dusk" ? "" : `-${name}`}`;
+for (const winter of [false, true]) {
+  for (const name of names) {
+    const key = `${winter ? "winter " : ""}${name}`, want = `backdrop${suffixOf(name, winter)}.webp`;
+    if (backdrops.get(key) !== want) problems.push(`custom.css gives ${key} the backdrop ${backdrops.get(key) ?? "none"}, expected ${want}`);
   }
-  for (const scene of ["city", "workshop"]) {
-    if (!fs.existsSync(path.join(rootDir, art(`${scene}${suffix}.webp`)))) problems.push(`${name} needs ${art(`${scene}${suffix}.webp`)} (a pick in web3d/pixel/gen_${scene}.py's PICKS, then uv run web3d/pixel/gen_${scene}.py build)`);
+}
+for (const key of backdrops.keys()) {
+  if (!names.includes(key.replace("winter ", ""))) problems.push(`custom.css has a backdrop for ${key}, which phases.json does not have`);
+}
+
+// The art: dusk is the plain files; every other phase has its backdrop and its baked rooms; and in winter every phase,
+// dusk too, its own backdrop, rooms (phases.json's "winter" "baked"), city and Workshop Row.
+for (const winter of [false, true]) {
+  for (const name of names) {
+    const suffix = suffixOf(name, winter), label = `${winter ? "winter at " : ""}${name}`, baked = winter ? phases[name].winter?.baked ?? "" : phases[name].baked;
+    if (!winter && name === "dusk" && baked) problems.push("phases.json bakes rooms for dusk, whose art is the plain files");
+    if (winter && !phases[name].winter) problems.push(`phases.json gives ${name} no "winter" (its sky and baked rooms)`);
+    for (const file of [`backdrop${suffix}.webp`, ...[...baked].map((key) => `floor-${key}${suffix}.webp`)]) {
+      const how = file.startsWith("backdrop") ? "gen_city.py build" : "gen_floors.py";
+      if (!fs.existsSync(path.join(rootDir, art(file)))) problems.push(`${label} needs ${art(file)} (uv run web3d/pixel/${how} static/building/pixel)`);
+    }
+    for (const scene of ["city", "workshop"]) {
+      const file = `${scene}${suffix}.webp`;
+      if (!fs.existsSync(path.join(rootDir, art(file)))) problems.push(`${label} needs ${art(file)} (a pick in web3d/pixel/gen_${scene}.py's ${winter ? "WINTER_PICKS" : "PICKS"}, then uv run web3d/pixel/gen_${scene}.py build)`);
+    }
   }
 }
 
 if (problems.length) {
   fail("The phases disagree with data/phases.json:", problems);
 }
-console.log(`Phases agree with data/phases.json: ${names.join(", ")}.`);
+console.log(`Phases agree with data/phases.json: ${names.join(", ")}, and in winter.`);

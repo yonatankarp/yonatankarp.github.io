@@ -25,7 +25,8 @@ HERE = Path(__file__).resolve().parent / "paintings"
 LOBBY_PX, FLOOR_PX, CAB_PX, COLOURS = (264, 308), (928, 308), (96, 168), 64   # the cab: gen_floors.DOOR's size
 LIFT = (76, 100, 194, 284)   # the lift's frame and doors in the lobby's pixels, down to its sill
 SIGN = (117, 79, 152, 96)    # the floor display over them, which gen_floors lights with the floor's number
-PICKS = {  # name: its candidate. The roof's and the reception's other hours are the dusk pick edited (paint_rooms retime)
+PICKS = {  # name: its candidate. The roof's and the reception's other hours are the dusk pick edited (paint_rooms retime),
+           # and each hour's winter is that hour's pick edited (paint_rooms winter)
     "lobby": "lobby_1017.png",
     "cab": "cab_1000.png",   # the lift's cab, behind its doors as they open (gen_floors)
     "reichman": "reichman_1168-wall.png",
@@ -43,6 +44,14 @@ PICKS = {  # name: its candidate. The roof's and the reception's other hours are
     "roof-dawn": "roof_1100-dawn_1000.png",
     "roof-day": "roof_1100-day_1000.png",
     "roof-night": "roof_1100-night_1017.png",
+    "reception-winter": "reception_1117-winter_700.png",
+    "reception-winter-dawn": "reception_1117-dawn_1000-winter_700.png",
+    "reception-winter-day": "reception_1117-day_1000-winter_700.png",
+    "reception-winter-night": "reception_1117-night_1000-winter_700.png",
+    "roof-winter": "roof_1100-winter_700.png",
+    "roof-winter-dawn": "roof_1100-dawn_1000-winter_700.png",
+    "roof-winter-day": "roof_1100-day_1000-winter_700.png",
+    "roof-winter-night": "roof_1100-night_1017-winter_700.png",
 }
 # Lettering the model painted though asked not to, in painting pixels, taken from a picture of the same room that has
 # none: the reception's three recommendations, from its dawn, which the model painted blank.

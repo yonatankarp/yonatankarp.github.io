@@ -51,9 +51,9 @@ The projects' index (`layouts/projects/list.html`) is the city's Workshop Row: a
 project `group` (apps, libraries, games, contributions, in that order), that pans sideways by scrolling
 (`web3d/src/pan.js`) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
 are a bundle of their own, `assets/building/workshop.*` (`vite build --mode workshop`). Each workshop lists its projects
-by `weight`; without a script every workshop's list shows. Its art follows the clock like the city:
-`workshop[-PHASE].webp`, baked by `web3d/pixel/gen_workshop.py` from `paintings/picks/workshop[-PHASE].png` (dusk painted,
-the other hours edited from it), with `workshop.json`, the labels' anchors. The page is standalone (no baseof) so the
+by `weight`; without a script every workshop's list shows. Its art follows the clock and the season like the city:
+`workshop[-winter][-PHASE].webp`, baked by `web3d/pixel/gen_workshop.py` from `paintings/picks/workshop[-winter][-PHASE].png`
+(dusk painted, the other hours edited from it, and each hour's winter from that hour), with `workshop.json`, the labels' anchors. The page is standalone (no baseof) so the
 inline script that swaps in the hour's painting is in `.Store "bodyScripts"`, which `head.html` allows by its hash. The homepage's script and styles live in
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
 `npm run build:building` has run. That script also draws every Mermaid fence in `content/` to SVG with the `mermaid`
@@ -80,9 +80,20 @@ that show outside have a painting at each other hour, an edit of the dusk pick t
 `npm run check`) fails until those agree with `phases.json`, and `gen_floors.py` checks its baked rooms (the paintings
 there are) and its sky (the roof strip's top row) on every run.
 
-The seasonal, holiday and weather dressing is parked for a later pass: `web3d/src/outside.js` and `calendar.js` (tested in
-`scripts/test/calendar.test.js`) still work out the visitor's season, holidays and country from `data/timezones.json`, but
-nothing imports them. Besides the visitor's own, his are kept for everyone (`HOME`): Christmas, the new year, Easter, and the
+The same script picks the visitor's season, `html[data-season]`, from the date and their zone's latitude (`seasonOn`,
+`assets/js/season.js`, which `time-pick.html` and `scripts/lib.js` append after `sun.js`, and `calendar.js` re-exports;
+summer within the tropics). `?season=spring|summer|autumn|winter` overrides it. Only winter has art of its own, at every
+hour: the city, Workshop Row, the roof and the lobby's view, each the hour's pick edited to snow (`--winter` in `gen_city.py`
+and `gen_workshop.py`, `paint_rooms.py winter`, seed 700, which keeps the layout), and the backdrop, its crop. The files
+put the season before the hour: `city-winter[-PHASE].webp`, `floor-R-winter[-PHASE].webp`, `backdrop-winter[-PHASE].webp`;
+each phase's `winter` in `phases.json` has its sky and baked rooms (`LR`, dusk too), and `art.js` fetches only the
+season's strips. The city's windows and bay are found again in the winter art (`city-winter-fx.json`); its depth map is
+shared. `check:phases` fails until every phase has its winter art.
+
+`web3d/src/outside.js` works out the holidays from `calendar.js` (tested in `scripts/test/calendar.test.js`), with the
+season and the visitor's place (`html[data-place]`, for sunset) from the head's pick; the city imports it for the props
+below. It does not look up the visitor's country (the zone table would weigh 7 KB in the city's bundle), so only his
+holidays and everyone's come up, and the weather (`weatherOf`) is still unused. Besides the visitor's own, his are kept for everyone (`HOME`): Christmas, the new year, Easter, and the
 Jewish holidays by their Hebrew date (Rosh Hashanah, Sukkot, Hanukkah, Purim, Passover, Independence Day with the law's
 moves, Lag BaOmer, Shavuot; not the solemn days). The Hebrew and Islamic ones (`sunset: true`) begin at sunset:
 `holidaysOn`'s `evening` flag reads the next day for them, which outside.js sets once the sun is below -0.833° at the
@@ -128,9 +139,19 @@ mast's beacon and the crane's lights, and flocks of birds. Movers hide behind wh
 (brighter = nearer). `gen_city.py build` writes `city-fx.json` (the windows and the bay found in the baked art, and the
 walks, plazas, lanes and lights in its `WALKS`, `PLAZAS`, `LANES` and `LIGHTS`) and copies `city-depth.png` from
 `web3d/pixel/paintings/picks/`, which `uv run web3d/pixel/depth_map.py city` makes from the dusk pick (it needs torch, so
-it is not part of the build: rerun it, and commit its output, when the dusk pick changes). Nothing moves under reduced
-motion or with `?fx=off`, which the visual captures use; the loop stops while the tab is hidden, the city is off screen
-or the tower is entered.
+it is not part of the build: rerun it, and commit its output, when the dusk pick changes). In winter snow falls over the whole art (`snowfall` in `scene-fx.js`: 520 flakes, 1 px and some 2 px, 7-23 px a second
+with a drift, bluish and dimmer at night), on Workshop Row too; not on the roof, whose canvas redraws only when it moves.
+On the plaza either side of the tower stand the holidays' props (`web3d/src/props.js`, tested in
+`scripts/test/props.test.js`): a hanukkiah through Hanukkah, foot at art (694, 233), lit on day N with the shamash and N+1
+candles from the right, and a Christmas tree from 1 to 26 December, foot at (800, 236), snowy in winter and plain in any
+other season (a southern Christmas), its 34 bulbs twinkling and its star glowing. Candles and lights burn at dusk and
+night only, the props are darkened with the hour (`TINT`), and walkers and props are drawn by their feet's row, so
+nobody walks through one. `?holiday=hanukkah:3,christmas` (or `none`) pins them. They are `props.webp` and `props.json`,
+baked by `web3d/pixel/gen_props.py` (`pose`, `paint`, `unflame`, `key`, `bake`) from `picks/props/`: hanukkiah 11 with its
+painted flames erased (the cup tops in `hanukkiah.json`), tree 11 and `tree-plain`, tree 11 with its snow painted off,
+each box-reduced to ~30 and 34 art px on 32 colours with a hard edge. Nothing moves under reduced
+motion or with `?fx=off`, which the visual captures use, but the props still stand there, steady (`animate`'s `poster`);
+the loop stops while the tab is hidden, the city is off screen or the tower is entered.
 
 Workshop Row (`/projects/`) and the Library's header (`/blog/`) move the same way, sharing `web3d/src/scene-fx.js` (the
 canvas loop, its pauses and the depth test) with the city. `workshop-fx.js`: walkers on the pavement, two cats on the left

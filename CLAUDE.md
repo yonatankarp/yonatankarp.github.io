@@ -29,7 +29,7 @@ Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (`/podcast/`) an
 map moves by one transform (translate and scale, never scrolling), clamped so no edge of the art shows; a wheel, a
 trackpad or a finger pans it sideways at any zoom, and a pinch is the browser's zoom. A resize keeps the pan, re-clamped, and
 re-centres only on a new width. The same chip again, or "Whole city", zooms back out ("Whole city" hands
-focus to the chip that was picked). A label's first
+focus to the chip that was picked; on a phone it sits at the panel's top right, beside the kicker, so it shows without a scroll). A label's first
 click zooms to its district; the picked label then shows "→" and its next click goes in. A label stays whole on screen,
 slid inside the edges by `--shift` as on Workshop Row; one whose district is out of view, or that would sit under the
 floating panel, fades but keeps its place in the tab order, and focusing it pans the map to it. The whole city opens on
@@ -64,7 +64,8 @@ are a bundle of their own, `assets/building/workshop.*` (`vite build --mode work
 by `weight`; without a script every workshop's list shows. Its art follows the clock and the season like the city:
 `workshop[-winter][-PHASE].webp`, baked by `web3d/pixel/gen_workshop.py` from `paintings/picks/workshop[-winter][-PHASE].png`
 (dusk painted, the other hours edited from it, and each hour's winter from that hour), with `workshop.json`, the labels' anchors. The page is standalone (no baseof) so the
-inline script that swaps in the hour's painting is in `.Store "bodyScripts"`, which `head.html` allows by its hash. The homepage's script and styles live in
+inline script that preloads the hour's painting is in `.Store "headScripts"` (run in the head after the time pick, before the
+stylesheets) and the one that swaps it in is in `.Store "bodyScripts"`, both allowed by their hash in `head.html`. The homepage's script and styles live in
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
 `npm run build:building` has run. That script also draws every Mermaid fence in `content/` to SVG with the `mermaid`
 package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitignored `assets/diagrams/<sha256>.svg`), which
@@ -83,8 +84,8 @@ that show outside have a painting at each other hour, an edit of the dusk pick t
 (`paint_rooms.py retime`): the roof whole, the lobby only through its glass door. `gen_floors.py` bakes them into
 `floor-{L,R}-NAME.webp`. The other pages' backdrop is a crop of the city at the hour (`backdrop[-NAME].webp`, written by
 `gen_city.py build`), behind the sheet: the pick is `layouts/partials/time-pick.html`, shared by the homepage and
-`head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop. The Radio Mast and the Post Office
-hide the backdrop and skip the pick, so they have no `html[data-time]`, `data-season` or `data-place`: code there that
+`head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop. The Library (`/blog/`), the Radio Mast and the
+Post Office hide the backdrop and skip the pick, so they have no `html[data-time]`, `data-season` or `data-place`: code there that
 needs them adds the pick back in `head.html`.
 `data/phases.json` lists the phases (the sky above the roof, the baked rooms, how far a dark room falls), and
 `web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the backdrop rules in
@@ -173,8 +174,8 @@ frame, as often as keeps its fastest mover (the snow, a car) to an art pixel a f
 painted sprite is drawn from its frame, made once, cut by the depth map only where something nearer is in its box. The top bar's Pause
 (`data-building-pause`, rendered by `pixel-bar.html` on those five pages only, which `check-generated-html.js` checks,
 and shown once the page's script animates it) holds the tower and all five scenes (a scene loaded paused shows one still
-frame, its props and people standing there), and the Radio Mast's CSS on-air lamp
-and EQ; reduced motion hides it. It is kept as the tower always kept
+frame, its props and people standing there), and the Radio Mast's CSS EQ (its on-air lamp is unlit and still while
+the show is off air); reduced motion hides it. It is kept as the tower always kept
 it, per viewer in `localStorage` (`building-paused`), now across pages too: `scene-fx.js` keeps it, `pixel.js` shares its
 label, and on the city it is the tower's once the tower is entered.
 
@@ -206,8 +207,8 @@ the walkers' frames and four browse poses (`browse` paints them; picks `NAME_bro
 contact shadow. Only the reading lamps, the tables, the armchairs and the globe in front hide them: `gen_library.py`
 pushes everything else in `depth_map.py library`'s map back to 0 down to the shadows' rows (`backdrop`), as the model reads
 books and the wall's seams as nearer than the floor, so `library-fx.js` tests them from depth 0.
-`rooms-fx.js`, its own bundle (`--mode rooms`): the Radio Mast's on-air lamp, tape reels, VU needles and the mast's
-beacon, and the Post Office's clock (the visitor's real seconds), lamps and dust, from `radio-fx.json` and `post-fx.json`
+`rooms-fx.js`, its own bundle (`--mode rooms`): the Radio Mast's tape reels, VU needles and the mast's beacon (not its
+on-air lamp's glow while the show is off air), and the Post Office's clock (the visitor's real seconds), lamps and dust, from `radio-fx.json` and `post-fx.json`
 (`FX` in `gen_rooms.py`). The tape reels turn their painted cutouts: `gen_rooms.py` (`reels()`) bakes `radio-reels.webp`,
 each reel's bare metal over its cutouts, which rooms-fx.js turns about the hub on the slanted disc (a reel is its hub, its
 flange's half-width and half-height, its turn and its plain hub's reach, in `FX`).
@@ -263,6 +264,8 @@ images:
 coverFocus: 54
 ---
 ```
+Optional `coverAlt: "…"` says what the cover shows, for its share card's `og:image:alt` and `twitter:image:alt`; without
+it they read "Cover image of <title>" (`cover` in `data/art.yaml`). The cover on the post itself stays decorative (`alt=""`).
 Optional `discuss: {linkedin: <url>, x: <url>}` points the post's "Discuss this post" line at the thread where it was
 shared; without it the line links to the LinkedIn and X profiles.
 

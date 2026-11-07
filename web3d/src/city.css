@@ -1,7 +1,7 @@
 /* The city (layouts/index.html, city.js): the art at the window's height, zoomed into the picked district and panned
    sideways, and a warm panel over its bay. The labels' % positions come from city.json, so they stay on their districts at any size. Only with at-city:
    without it (no script, or an address that names a floor) the building is the page. */
-html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-scrim, .exterior-windows, .elevator, .building-stops) { display: none; }
+html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-scrim, .elevator, .building-stops) { display: none; }
 :is(.city, .workshop) {   /* the projects' Workshop Row (workshop.css) wears the city's colours */
   --city-ink: #1b1410;
   --city-panel: rgba(58, 38, 22, 0.92);
@@ -75,5 +75,6 @@ html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-
   .city-scene { position: relative; height: 62vh; height: 62svh; }
   .city-panel { position: relative; left: auto; bottom: auto; width: auto; max-height: none; margin: -2px 0 0; border-width: 2px 0 0; box-shadow: none; }
   .city-say h2 { font-size: 30px; }
+  .city-out { position: absolute; top: 12px; right: 24px; margin: 0; }   /* beside the kicker, above the fold after a pick (#301) */
   html.at-city .pixel .building-top { position: absolute; }
 }

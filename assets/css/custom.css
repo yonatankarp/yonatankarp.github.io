@@ -263,12 +263,11 @@ h4 a,
 }
 .radio-cover svg { width: 108px; height: 108px; }
 .radio-onair { position: absolute; left: 10px; top: 10px; display: flex; gap: 7px; align-items: center; font: 15px/1 var(--pixel-font); letter-spacing: 0.08em; text-transform: uppercase; color: #ffb3a6; }
-.radio-onair i { width: 10px; height: 10px; background: #ff3b2a; animation: radio-pulse 1.4s infinite; }
-@keyframes radio-pulse { from { box-shadow: 0 0 0 0 #ff3b2a99; } to { box-shadow: 0 0 0 10px #ff3b2a00; } }
+.radio-onair i { width: 10px; height: 10px; background: #5a1a12; box-shadow: inset 0 0 0 1px #2a0c08; }   /* unlit: the show is off air (data/rooms.yaml) */
 .radio-eq { display: flex; gap: 3px; align-items: flex-end; height: 34px; margin: 6px 0 18px; filter: drop-shadow(2px 2px 0 var(--ink)); }   /* a bar's shadow would scale with it */
 .radio-eq i { width: 8px; height: 34px; background: var(--amber); transform-origin: 50% 100%; animation: radio-eq 1s infinite steps(4) alternate; }
 @keyframes radio-eq { from { transform: scaleY(calc(6 / 34)); } to { transform: none; } }   /* a transform, not height: no layout each step */
-:root:has([data-building-pause][data-paused="true"]) :is(.radio-onair, .radio-eq) i { animation-play-state: paused; }   /* the top bar's Pause */
+:root:has([data-building-pause][data-paused="true"]) .radio-eq i { animation-play-state: paused; }   /* the top bar's Pause */
 /* The Post Office: a ruled letter and a sheet of stamps. Every line of the letter sits on a ruled line: 30px rows, the
    rule 1px at 22px into each (the gradient's last pixel, moved up 7px), the body's baselines at 21px. The kicker and the
    headline, in the pixel face, are nudged onto the same baselines; capture-screenshots.js measures them. */
@@ -315,7 +314,7 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
 .post-stamp--parcel span span { color: #3a2c1e; }
 .post-stamp .post-go { margin-left: auto; font: 28px/1 var(--pixel-font); }
 @media (prefers-reduced-motion: reduce) {
-  .radio-onair i, .radio-eq i { animation: none; }
+  .radio-eq i { animation: none; }
   .radio-eq i { height: 18px; }
   .post-stamp { transition: none; }
 }

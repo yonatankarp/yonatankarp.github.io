@@ -675,6 +675,10 @@ async function main() {
           reducedMotion: "reduce",   // the tower, its receptionist and cats, and every scene hold still (#298)
         });
         await page.addInitScript(() => {
+          // Seeded, so every capture picks the same receptionist and starts the cats in the same places (reception.js, cats.js)
+          let seed = 1;
+          Math.random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
           const observer = new MutationObserver(() => {
             document.querySelectorAll("img[loading='lazy']").forEach((image) => {
               image.loading = "eager";
@@ -728,6 +732,7 @@ async function main() {
 
         // After the capture, motion as a visitor has it: held, the building has no Pause to show, and the rides are instant.
         await page.emulateMedia({ reducedMotion: "no-preference" });
+        await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve())));   // its change event, which shows the Pause
 
         if (route.pauseLabel) {
           await assertPauseLabel(page, route, viewport);

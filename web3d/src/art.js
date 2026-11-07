@@ -12,6 +12,7 @@ export const ORDER = art.order;              // the floors bottom to top, L to R
 export const ANIM = art.anim;                // each strip's moving box, x, y, w, h: its other frames start at BOXES
 export const { cab: CAB, boxes: BOXES } = art;   // in a strip, the lift's cab (the doorway's size, behind the doors), and those frames
 export const { door: DOOR, bayer: BAYER } = art;
+export const ENTRANCE = art.entrance;        // the lobby's glass entrance, the city's way in: floor-L-open[-PHASE].webp is its doorway open
 // Each room's hanging lamps, by strip x, the lift's own lamp first. The roof has none: it is outdoors, so it stays as
 // bright as its sky.
 export const LAMPS = art.lamps;

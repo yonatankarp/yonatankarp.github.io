@@ -3,7 +3,7 @@
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 // The art's numbers come from art.js. The city (city.js) leads in at the lobby.
 import { guide, roomy } from './guide.js';
-import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, FOCUS, lay, clamp01, colourAt, shade, darken, bayer } from './art.js';
+import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, ENTRANCE, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, FOCUS, lay, clamp01, colourAt, shade, darken, bayer } from './art.js';
 import { capsuleAt } from './capsule.js';
 import { reception } from './reception.js';
 import { cats } from './cats.js';
@@ -184,11 +184,36 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
   // v: the speed carried over from a ride retargeted mid-way (floors per unit of u), so the cab never stops dead.
   // land, settle: it reaches its stop still moving, by that much, and spends the ride's last settle ms sinking past it and back.
   const ride = { from: 0, to: 0, start: 0, dur: 0, v: 0, land: 0, settle: 0, sink: 0 };
-  // In through the city's door (city.js): it waits, its frame over the lobby, until the lobby's picture is here
-  // (building:shown), and a phone's lobby, which keeps FOCUS mid-screen, starts on its lift instead, where the push-in
-  // landed, and pans to FOCUS as the view settles.
-  let pan = through ? [DOOR.mid, Infinity] : null;
-  const PAN_MS = 700;
+  // In through the city's door (city.js): it waits, its frame over the lobby, until the lobby's picture and its glass
+  // entrance standing open (floor-L-open[-PHASE].webp) are here (building:shown). The push-in landed on that entrance:
+  // it stands open as the view settles, then dissolves into the shut doors of the strip, whole art pixels at a time in
+  // the 4x4 Bayer order the iris opens in (entrance()). A phone's lobby, which keeps FOCUS mid-screen, starts on the
+  // entrance instead and pans to FOCUS as the view settles.
+  let pan = through ? [ENTRANCE.mid, Infinity] : null;
+  const PAN_MS = 700, SHUT_AFTER = 250, SHUT_MS = 400;
+  const way = through ? { img: null, waits: 2 } : null;   // the open entrance; waits: for it and for the lobby
+  if (way) {
+    way.img = new Image();
+    way.img.src = artUrl(`floor-L-open${BAKED?.includes('L') ? HOUR : ''}`);
+    way.img.decode().catch(() => { way.img = null; }).finally(() => shown('L'));
+  }
+  const ajar = (now) => (way?.img && pan ? 1 - clamp01((now - pan[1] - SHUT_AFTER) / SHUT_MS) : 0);   // how open it is
+  // The open entrance with lv of each 4x4 cell of the strip's Bayer grid kept, laid on that grid (way.x, way.y), made once
+  // a step; none once it has gone.
+  const entrance = (open) => {
+    const lv = Math.round(open * 16);
+    if (!lv) return null;
+    if (!way.steps) {
+      way.x = ENTRANCE.x0 - ENTRANCE.x0 % 4; way.y = ENTRANCE.y0 - ENTRANCE.y0 % 4; way.steps = {};
+    }
+    return (way.steps[lv] ??= (() => {
+      const c = document.createElement('canvas').getContext('2d');
+      c.canvas.width = ENTRANCE.x1 - way.x; c.canvas.height = ENTRANCE.y1 - way.y;
+      c.drawImage(way.img, ENTRANCE.x0 - way.x, ENTRANCE.y0 - way.y);
+      if (lv < 16) { c.globalCompositeOperation = 'destination-in'; c.fillStyle = c.createPattern(bayer(lv), 'repeat'); c.fillRect(0, 0, c.canvas.width, c.canvas.height); }
+      return c.canvas;
+    })());
+  };
   const focusAt = (now) => {
     if (!pan) return FOCUS;
     const t = clamp01((now - pan[1]) / PAN_MS);
@@ -196,7 +221,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     return pan ? pan[0] + (FOCUS - pan[0]) * (1 - (1 - t) ** 3) : FOCUS;
   };
   const shown = (key) => {
-    if (!pan || pan[1] !== Infinity || key !== keys[ride.from]) return;
+    if (!pan || pan[1] !== Infinity || key !== keys[ride.from] || --way.waits) return;
     pan[1] = performance.now();
     emit('building:shown');
     wake();
@@ -340,7 +365,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
       lit.set(key, clamp01((lit.get(key) ?? 0) + (here ? dt : -dt) * (still || paused ? 99 : DOORS)));   // in step with the doors; paused, they just switch
     }
-    const sig = [f, pay.at, poses, catSig, camY, x0, loads, now < fading && now, ...open.values(), ...lit.values()].join();
+    const sig = [f, pay.at, poses, catSig, camY, x0, Math.round(ajar(now) * 16), loads, now < fading && now, ...open.values(), ...lit.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
         cancelAnimationFrame(raf); raf = 0;
@@ -399,6 +424,8 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
           const { width: dw, height: dh } = desk.c.canvas;
           ctx.drawImage(lv ? dimmed(desk, lv) : desk.c.canvas, x0 + desk.x * s, y + desk.y * s, dw * s, dh * s);
         }
+        const ent = key === 'L' && !lv && entrance(ajar(now));
+        if (ent) ctx.drawImage(ent, x0 + way.x * s, y + way.y * s, ent.width * s, ent.height * s);
         if (key === CATS.floor) catsPaint(x0, y, s, lv, CATS.clip);
       };
       paint(img, f);

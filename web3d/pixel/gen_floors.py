@@ -15,7 +15,8 @@ same box in all FRAMES - 1 other frames), side by side. The rooms
 with another picture at another hour (data/phases.json "baked") also write floor-<key>-<phase>.webp. floors.json is what
 web3d/src/ draws by: the frame, the runs, each strip's moving box, the lift doors (pixel.js slides them), the lamps, and
 floor 7's capsule (capsule.webp), the lobby's receptionists (receptionists.webp) and its cats (cats-lobby.webp, from
-gen_walkers.py), which pixel.js draws live.
+gen_walkers.py), which pixel.js draws live, and the lobby's glass entrance standing open at each hour
+(floor-L-open[-PHASE].webp), the way in from the city.
 
 Every run also writes data/floor_accents.yaml from FLOORS (accents()) and checks data/phases.json (check_phases()).
 """
@@ -26,6 +27,9 @@ from pathlib import Path
 from random import Random
 
 from PIL import Image, ImageChops, ImageFilter
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from paint_rooms import ENTRANCE_KEEP, FLOOR_SIZE  # noqa: E402
 
 W, H = 960, 360
 CEIL, SLAB = 28, 24           # the slab above the room (rows 0..CEIL), and below it (H - SLAB..H)
@@ -517,6 +521,30 @@ def frames(key, phase):
     return out
 
 
+# The lobby's glass entrance standing open, which pixel.js lays over the lobby when the city's push-in comes through it,
+# then slides the shut doors' two leaves in over it, as it slides the lift's apart: the doorway, in strip pixels.
+ENTRANCE = dict(x0=818, x1=914, mid=866, y0=114, y1=322)
+
+
+def entrance(out, hours):
+    """floor-L-open[-PHASE].webp: each hour's open doorway, cut at ENTRANCE. Its painting is kept only as a crop
+    (picks/reception-open[-PHASE].png, at paint_rooms.ENTRANCE_KEEP), box-reduced exactly as install_picks reduces the
+    whole painting (the same box filter at the same offset), and put on the colours of that hour's lobby."""
+    sx, sy = FLOOR_SIZE[0] / (W - 2 * LOBBY_X), FLOOR_SIZE[1] / (H - CEIL - SLAB)
+    x0, x1, y0, y1 = (ENTRANCE[k] - d for k, d in (("x0", LOBBY_X), ("x1", LOBBY_X), ("y0", CEIL), ("y1", CEIL)))
+    kx, ky = ENTRANCE_KEEP[:2]
+    for hour in ["dusk", *hours]:
+        tag = "" if hour == "dusk" else f"-{hour}"
+        crop = Image.open(PICKS / f"reception-open{tag}.png").convert("RGB")
+        small = crop.resize((x1 - x0, y1 - y0), Image.BOX, box=(x0 * sx - kx, y0 * sy - ky, x1 * sx - kx, y1 * sy - ky))
+        pick = PICKS / f"reception{tag}-px.png"
+        colours = [c for _, c in Image.open(pick if pick.exists() else PICKS / "reception-px.png").convert("RGB").getcolors(4096)]
+        palette = Image.new("P", (1, 1))
+        palette.putpalette([v for c in (colours * 256)[:256] for v in c])
+        save_lossless(small.quantize(palette=palette, dither=Image.Dither.NONE).convert("RGB"), out / f"floor-L-open{tag}.webp")
+    print("drew the lobby's open entrance", *hours)
+
+
 def build(key, out, hours):
     """floor-<key>.webp, and floor-<key>-<hour>.webp for each hour given: rest frame, runs, the moving box's other frames.
     Every hour's strip has the same box: where any of them moves. Returns it, (x, y, w, h) in strip pixels."""
@@ -597,10 +625,12 @@ if __name__ == "__main__":
     anim = {}
     for key in sys.argv[2:] or FLOORS:
         anim[key] = build(key, out, [hour for hour, keys in baked.items() if key in keys])
+        if key == "L":
+            entrance(out, [hour for hour, keys in baked.items() if key in keys])
     if not sys.argv[2:]:
         sky(out)
         lamps = {key: [DOOR["mid"], *(x + LOBBY_X for x in v[3])] for key, v in FLOORS.items() if v[3]}
         art = {"frame": [W, H], "frames": FRAMES, "edge": EDGE, "room": [LOBBY_X, W - LOBBY_X], "door": DOOR, "cab": CAB, "boxes": BOXES,
-               "bayer": BAYER, "lamps": lamps, "order": list(FLOORS), "anim": anim, "capsule": {"floor": "7", **capsule(out)},
+               "entrance": ENTRANCE, "bayer": BAYER, "lamps": lamps, "order": list(FLOORS), "anim": anim, "capsule": {"floor": "7", **capsule(out)},
                "reception": {"floor": "L", **receptionists(out)}, "cats": {"floor": "L", **lobby_cats()}}
         (out / "floors.json").write_text(json.dumps(art))

@@ -3,7 +3,7 @@
 // district (the tower, the library, the workshops, the radio mast, the post office) on its second click. Any #floor-X address enters the
 // building, which pixel.js mounts on city:enter; back at the bare address the page loads afresh on the city (guide.js).
 // Going in, the map pushes on through the district's door into the next view (iris.js).
-import { DOOR, BAKED, HOUR, lay } from './art.js';
+import { ENTRANCE, BAKED, HOUR, lay } from './art.js';
 import { cityFx } from './city-fx.js';
 import { roomy } from './guide.js';
 import { floorShaped } from './hash.js';
@@ -80,17 +80,17 @@ if (city && root.classList.contains('at-city')) {
     if (key === 'tower') {
       door.src = art(`door-open${hour}`);
       img.after(door);   // under the city's life, so a walker in front stays in front
-      fetch(art(`floor-L${BAKED?.includes('L') ? HOUR : ''}`)).then((r) => r.blob()).catch(() => {});
+      for (const name of ['floor-L', 'floor-L-open']) fetch(art(`${name}${BAKED?.includes('L') ? HOUR : ''}`)).then((r) => r.blob()).catch(() => {});
     } else document.head.append(Object.assign(document.createElement('link'), { rel: 'prefetch', href: city.querySelector(`[data-go="${key}"]`).href }));
   }
   for (const type of ['pointerover', 'focusin']) city.addEventListener(type, (e) => { const k = e.target.closest?.('[data-go]')?.dataset.go; if (k) ready(k); }, { passive: true });
   // Where the next view puts what the push-in goes into, on this screen: its middle x, y and, for a door, its width w.
   const next = {
-    // The lobby's lift, where pixel.js lays the lobby out (art.js), a phone's starting on it.
+    // The lobby's glass entrance, where pixel.js lays the lobby out (art.js), a phone's starting on it.
     tower() {
-      const dpr = devicePixelRatio || 1, cardTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--card-top')) || 0;
-      const { s, x0, ry } = lay(innerWidth, innerHeight, dpr, cardTop, DOOR.mid);
-      return { x: (x0 + (DOOR.x0 + DOOR.x1) / 2 * s) / dpr, y: (ry + (DOOR.y0 + DOOR.y1) / 2 * s) / dpr, w: (DOOR.x1 - DOOR.x0) * s / dpr };
+      const E = ENTRANCE, dpr = devicePixelRatio || 1, cardTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--card-top')) || 0;
+      const { s, x0, ry } = lay(innerWidth, innerHeight, dpr, cardTop, E.mid);
+      return { x: (x0 + (E.x0 + E.x1) / 2 * s) / dpr, y: (ry + (E.y0 + E.y1) / 2 * s) / dpr, w: (E.x1 - E.x0) * s / dpr };
     },
     // Workshop Row's Apps door, where /projects/ pans it as it loads (pan.js): its label mid-way across the free view. The
     // street is laid out as the city is, the same height at the top of its page, its panel the city's.

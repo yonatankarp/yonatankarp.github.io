@@ -59,6 +59,8 @@ web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/capsule.png
 # the lobby's receptionists, on magenta (paint_rooms.py receptionists; gen_floors.py bakes them)
 !web3d/pixel/paintings/picks/reception/
+# the lobby's glass entrance standing open at each hour, its doorway's crop (paint_rooms.py entrance; gen_floors.py bakes it)
+!web3d/pixel/paintings/picks/reception-open*.png
 __pycache__/
 
 # Machine-specific Claude Code launch config and agent worktrees

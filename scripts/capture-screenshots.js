@@ -732,9 +732,10 @@ async function main() {
 
         // After the capture, motion as a visitor has it: held, the building has no Pause to show, and the rides are instant.
         await page.emulateMedia({ reducedMotion: "no-preference" });
-        await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve())));   // its change event, which shows the Pause
 
         if (route.pauseLabel) {
+          // pixel.js shows the Pause on the media query's change event, which comes when it comes
+          await page.waitForFunction(() => !document.querySelector(".building-pause")?.hidden, null, { timeout: 5000 }).catch(() => {});
           await assertPauseLabel(page, route, viewport);
         }
 

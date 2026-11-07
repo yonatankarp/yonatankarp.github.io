@@ -56,8 +56,8 @@ FX = {
         # disc seen at a slant), its turn (1 clockwise), and how far out its plain painted hub goes, which need not turn: on
         # the left deck the hub's ring of holes turns. Their cutouts turn about the hub over the bare metal (reels()).
         "reels": [[97, 128, 25, 35, 1, 0], [150, 131, 20, 32, 1, 0], [912, 132, 24, 30, -1, 0.34], [976, 130, 27, 33, -1, 0.34]],
-        "needles": [[489, 196], [579, 196]],                     # the VU meters' pivots
-        "beacon": [1256, 11],                                    # the mast's light, out of the window
+        "needles": [[491, 196], [576, 196]],                     # the VU meters' pivots
+        "beacon": [1260, 11],                                    # the mast's light, out of the window
     },
     "post": {
         "clock": [523, 52],                                      # the wall clock's middle: its second hand

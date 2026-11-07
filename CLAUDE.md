@@ -161,8 +161,9 @@ painted flames erased (the cup tops in `hanukkiah.json`), tree 11 and `tree-plai
 each box-reduced to ~30 and 34 art px on 32 colours with a hard edge. Nothing moves under reduced
 motion or with `?fx=off`, but the props still stand there, steady (`animate`'s `poster`);
 the loop stops while the tab is hidden, the city is off screen or the tower is entered. The top bar's Pause
-(`data-building-pause`, in `pixel-bar.html` on every page, hidden until a script animates the page) holds the tower and
-all five scenes, and the Radio Mast's CSS on-air lamp and EQ; reduced motion hides it. It is kept as the tower always kept
+(`data-building-pause`, rendered by `pixel-bar.html` on those five pages only, which `check-generated-html.js` checks,
+and shown once the page's script animates it) holds the tower and all five scenes, and the Radio Mast's CSS on-air lamp
+and EQ; reduced motion hides it. It is kept as the tower always kept
 it, per viewer in `localStorage` (`building-paused`), now across pages too: `scene-fx.js` keeps it, `pixel.js` shares its
 label, and on the city it is the tower's once the tower is entered.
 

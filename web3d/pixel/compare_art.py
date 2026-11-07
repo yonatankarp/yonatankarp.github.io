@@ -18,7 +18,17 @@ from pathlib import Path
 from PIL import Image, ImageChops
 
 
+def differ(a, b):
+    """Where two RGBA pictures differ in any channel, or None. getbbox() alone looks only at alpha for an RGBA image,
+    so it would pass any change of colour in opaque art."""
+    return ImageChops.difference(a, b).getbbox(alpha_only=False)
+
+
 def main(new, old):
+    a = Image.new("RGBA", (3, 3), (10, 20, 30, 255))
+    b = a.copy()
+    b.putpixel((1, 1), (11, 20, 30, 255))
+    assert differ(a, b) == (1, 1, 2, 2) and differ(a, a) is None, "the compare misses a one-pixel change of colour"
     problems, count = [], 0
     for path in sorted([*old.glob("*.webp"), *old.glob("*.png")]):
         fresh = new / path.name
@@ -29,8 +39,9 @@ def main(new, old):
             a, b = committed.convert("RGBA"), rebuilt.convert("RGBA")
             if a.size != b.size:
                 problems.append(f"{path.name}: {b.size} rebuilt, {a.size} committed")
-            elif box := ImageChops.difference(a, b).getbbox():
-                problems.append(f"{path.name}: pixels differ in {box}")
+            elif box := differ(a, b):
+                pixels = sum(map(any, ImageChops.difference(a, b).get_flattened_data()))
+                problems.append(f"{path.name}: {pixels} pixels differ in {box}")
         count += 1
     jsons = sorted(path.name for path in old.glob("*.json"))
     for name in jsons:

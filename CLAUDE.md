@@ -90,7 +90,7 @@ lift into each, and `gen_floors.py` draws the slabs, the floor number and what m
 paints over what is there: lights, screens, a glint). A strip is its rest frame, two runs pixel.js tiles past it on a
 wide screen, the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
 they slide apart), and its moving box's other frames. The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
-box, lift doors, dither, each room's lamps, the floors' order, floor 7's capsule, the lobby's receptionists) are written into `static/building/pixel/floors.json` by
+box, lift doors, dither, each room's lamps, the floors' order, floor 7's capsule, the lobby's receptionists and cats) are written into `static/building/pixel/floors.json` by
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
 rerun it, never the copies. `pixel.js` is the lift and the floors, `art.js` what it reads; it keeps only the storeys
 round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most. One thing moves live, not in the
@@ -105,7 +105,15 @@ odds, and only that one is drawn, at the one spot both share (right of the ledge
 write in the ledger or look toward the lift or the door, resting in between, by their own weights and times on a random
 clock (`web3d/src/reception.js`, which picks the person too, tested on a seed in `scripts/test/reception.test.js`); the
 spot, the desk's row, the weights and the times are `RECEPTION` in floors.json. pixel.js draws them once, where the desk
-is, darkened with the room; paused they hold their pose, held (reduced motion, the plain page) they only rest.
+is, darkened with the room; paused they hold their pose, held (reduced motion, the plain page) they only rest. Yonatan's
+two cats live in the lobby too, the same `web3d/src/cats.js` as on Workshop Row: their perches are the bench's seat and the
+counter's top (right of the ledger and bell, in front of the receptionist), their street the floor in front of the desk,
+off either end of the room and back; one starts on the bench, the other on the floor. They are `cats-lobby.webp` and
+`cats-lobby.json` (`gen_walkers.py bake`, at `CAT_LOBBY` art px, from the same picks), and their perches, floor, edges,
+starts, still poses and scale `k` against the Row's (which scales their speed, room and leaps) are `LOBBY_CATS` in
+`gen_floors.py`, written into floors.json as `cats`. pixel.js draws them after the receptionist, the farther first, each
+in a small canvas on the Bayer grid, darkened with the room and clipped to it (never into the runs), and again over the
+open lift's doors; paused they hold their pose, held one loafs on the bench and one sits on the counter.
 
 The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
 laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the
@@ -133,7 +141,7 @@ x1) their feet keep its depth, so they pass behind the parked van. Yonatan's two
 `scripts/test/cats.test.js`) walk, sit and loaf on the wall's top (`wall`), turning back when they meet, and now and
 then leap down to the pavement (`street`), trot off either end and back, and leap up again; they are `cats.webp` and
 `cats.json`, which `gen_walkers.py bake` makes from `picks/cats/NAME_POSE.png` (`cats` paints them: a walk, sit, loaf,
-crouch and leap, `CAT` art px tall walking). The kerb lamp at x 245, painted dark at every hour, is lit by
+crouch and leap, `CAT` art px tall walking; the lobby's are `cats-lobby.webp`, above). The kerb lamp at x 245, painted dark at every hour, is lit by
 `gen_workshop.py` (`relight`) at every hour but day. The
 lamp posts in `workshop-depth.png` are stood up by `gen_workshop.py` (`upright`): the model fades their thin poles into the
 wall as they rise, and a whole post must hide a walker passing behind it.

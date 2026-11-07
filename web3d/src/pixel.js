@@ -3,9 +3,10 @@
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 // The art's numbers come from art.js. The city (city.js) leads in at the lobby.
 import { guide, roomy } from './guide.js';
-import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, DARK, narrow, clamp01, colourAt, shade, darken, bayer } from './art.js';
+import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, narrow, clamp01, colourAt, shade, darken, bayer } from './art.js';
 import { capsuleAt } from './capsule.js';
 import { reception } from './reception.js';
+import { cats } from './cats.js';
 import { floorKey, floorShaped } from './hash.js';
 import './city.js';
 import '../../assets/js/copy-email.js';
@@ -50,6 +51,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     started.add(key);
     if (key === CAPSULE.floor) pay.img ??= Object.assign(new Image(), { onload: wake, src: artUrl('capsule') });
     if (key === RECEPTION.floor) desk.img ??= Object.assign(new Image(), { onload: wake, src: artUrl('receptionists') });
+    if (key === CATS.floor) kit.img ??= Object.assign(new Image(), { onload: wake, src: artUrl('cats-lobby') });
     const url = artUrl(`floor-${key}${BAKED?.includes(key) ? HOUR : ''}`);
     // Decoded off the main thread, as a bitmap: an <img> is decoded by the first drawImage, the whole strip there and then (#184).
     const art = 'createImageBitmap' in window
@@ -109,6 +111,48 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     desk.c.clearRect(0, 0, desk.c.canvas.width, desk.c.canvas.height);
     desk.c.drawImage(desk.img, R.poses.indexOf(pose) * R.w, row, R.w, R.h, Math.round(R.spot - R.w / 2) - desk.x, R.deskY - R.desk - desk.y, R.w, R.h);
     desk.shades = {};
+  };
+  // Yonatan's two cats in the lobby (cats-lobby.webp, a row each, a column per pose): on the bench, on the counter in front of
+  // the receptionist, and on the floor, off either end of the room and back (cats.js), on a clock that runs only while the
+  // room may move and is on screen; held, one loafs on the bench and one sits on the counter. Each is laid in a small canvas
+  // of its own on the strip's Bayer grid, remade when its frame or its place on that grid changes, and drawn after the
+  // receptionist, the farther first, darkened with the room and clipped to it, so they never walk into the runs.
+  const CS = CAT_SHEET, herd = cats(CATS, CS.people);
+  const kit = { img: null, ran: 0, at: [], pets: CS.people.map(() => {
+    const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    c.canvas.width = Math.ceil((CS.w + 3) / 4) * 4; c.canvas.height = Math.ceil((CS.h + 3) / 4) * 4;
+    return { c, shades: {}, drawn: '', x: 0, y: 0 };
+  }) };
+  // Where each cat is drawn, the farther first: [row, frame, left, top, flipped], in strip pixels.
+  const catsAt = (held) => (held ? CATS.still.map(([pose, x, y, dir], j) => ({ j, pose, x, y, dir, dist: 0 })) : herd.all.map((c, j) => ({ ...c, j })).filter((c) => c.on !== 'away'))
+    .sort((a, b) => a.y - b.y).map(({ j, pose, x, y, dir, dist }) => {
+      const k = pose === 'walk' ? Math.floor(dist / CS.stride[j] * 8) % 8 : CS.poses.indexOf(pose);
+      return [j, k, Math.round(x - CS.w / 2), Math.round(y) - CS.foot[j][k], dir < 0];
+    });
+  const catsDraw = () => {
+    for (const [j, k, left, top, flip] of kit.at) {
+      const pet = kit.pets[j], { c } = pet;
+      pet.x = Math.floor(left / 4) * 4; pet.y = Math.floor(top / 4) * 4;
+      const drawn = [k, flip, left - pet.x, top - pet.y].join();
+      if (drawn === pet.drawn) continue;
+      pet.drawn = drawn; pet.shades = {};
+      c.clearRect(0, 0, c.canvas.width, c.canvas.height);
+      c.save();
+      c.translate(left - pet.x + (flip ? CS.w : 0), top - pet.y);
+      if (flip) c.scale(-1, 1);
+      c.drawImage(kit.img, k * CS.w, j * CS.h, CS.w, CS.h, 0, 0, CS.w, CS.h);
+      c.restore();
+    }
+  };
+  // The cats on the strip at x0, y, clipped to [cx, cy, cw, ch] in strip pixels, lv of 16 Bayer cells dark (none: lit).
+  const catsPaint = (x0, y, s, lv, [cx, cy, cw, ch]) => {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x0 + cx * s, y + cy * s, cw * s, ch * s); ctx.clip();
+    for (const [j] of kit.at) {
+      const pet = kit.pets[j], { width: pw, height: ph } = pet.c.canvas;
+      ctx.drawImage(lv ? dimmed(pet, lv) : pet.c.canvas, x0 + pet.x * s, y + pet.y * s, pw * s, ph * s);
+    }
+    ctx.restore();
   };
 
   // Decoded strips are big (a phone holds a few hundred MB at most): only the storeys round the lift's stop are kept,
@@ -276,19 +320,26 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     if (deskMoves && desk.ran) staff.step(now - desk.ran);
     desk.ran = deskMoves ? now : 0;
     const poses = deskOn ? (still ? 'idle' : staff.person.pose) : '';
+    // The cats' clock, likewise, in steps of 50 ms at most, so a long sleep or a hidden tab never walks one off its perch.
+    const catTop = Math.round(ry - (level(CATS.floor) - camY) * s);
+    const catsOn = kit.img?.naturalWidth && strips.get(CATS.floor) && catTop < h && catTop + FH * s > 0, catsMove = catsOn && !paused && !still;
+    if (catsMove && kit.ran) for (let t = Math.min(60000, now - kit.ran); t > 0; t -= 50) herd.step(Math.min(50, t));
+    kit.ran = catsMove ? now : 0;
+    const catAt = catsOn ? catsAt(still) : [], catSig = catAt.join(';');
     for (const key of ORDER) {
       if (key === waiting && (now < waitTo || !strips.has(key))) continue;
       const here = arrived === ride.to && keys[ride.to] === key;
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
       lit.set(key, clamp01((lit.get(key) ?? 0) + (here ? dt : -dt) * (still || paused ? 99 : DOORS)));   // in step with the doors; paused, they just switch
     }
-    const sig = [f, pay.at, poses, camY, loads, now < fading && now, ...open.values(), ...lit.values()].join();
+    const sig = [f, pay.at, poses, catSig, camY, loads, now < fading && now, ...open.values(), ...lit.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
         cancelAnimationFrame(raf); raf = 0;
         if (!paused && !still) {
           const next = phase < loopMs ? 1000 / FPS - (phase % (1000 / FPS)) : pay.at ? CAPSULE.ride + CAPSULE.hold - phase : loopMs + REST_MS - phase;
-          timer = setTimeout(wake, deskMoves ? Math.min(next, staff.next()) : next);   // or when the receptionist next changes
+          // or when the receptionist next changes, or a cat next moves
+          timer = setTimeout(wake, Math.min(next, deskMoves ? staff.next() : Infinity, catsMove ? herd.next() : Infinity));
         }
       }
       return;
@@ -296,6 +347,8 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     drawn = sig;
     if (pay.at) payDraw(pay.at);
     if (poses && poses !== desk.poses) deskDraw(desk.poses = poses);
+    kit.at = catAt;
+    catsDraw();
 
     ctx.fillStyle = '#151923';
     ctx.fillRect(0, 0, w, h);
@@ -324,7 +377,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       ctx.globalAlpha = clamp01((now - img.since) / FADE_IN_MS);
       // The strip: its rest frame, then a run of EDGE columns that carries on left of the painting and another right of
       // it, tiled outwards over the facade posts on a wide screen (gen_floors.runs), then its moving box's other frames; on
-      // floor 7, its capsule, and in the lobby, its receptionist, darkened as src is (lv of 16 Bayer cells dark, none for the lit room).
+      // floor 7, its capsule, and in the lobby, its receptionist and cats, darkened as src is (lv of 16 Bayer cells dark, none for the lit room).
       const paint = (src, f, lv) => {
         ctx.drawImage(src, 0, 0, FW, FH, x0, y, FW * s, FH * s);
         if (wide) {
@@ -338,6 +391,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
           const { width: dw, height: dh } = desk.c.canvas;
           ctx.drawImage(lv ? dimmed(desk, lv) : desk.c.canvas, x0 + desk.x * s, y + desk.y * s, dw * s, dh * s);
         }
+        if (key === CATS.floor) catsPaint(x0, y, s, lv, CATS.clip);
       };
       paint(img, f);
       // Lights off in transit; on arrival each lamp's pool spreads from its shade, the lift's first, in blocks of whole-pixel
@@ -360,6 +414,8 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
         }
       }
       drawDoors(ctx, img, x0, y, s, open.get(key));
+      // A cat on the floor passes in front of the open lift, whose cab and doors are drawn lit
+      if (key === CATS.floor && open.get(key) > 0) catsPaint(x0, y, s, 0, [DOOR.x0, DOOR.y0, DOOR.x1 - DOOR.x0, DOOR.y1 - DOOR.y0]);
       ctx.globalAlpha = 1;
     }
   }

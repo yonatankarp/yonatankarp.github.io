@@ -51,7 +51,7 @@ PICKS = {  # name: its candidate. The roof's and the reception's other hours are
     "roof-winter": "roof_1100-winter_717.png",
     "roof-winter-dawn": "roof_1100-dawn_1000-winter_700.png",
     "roof-winter-day": "roof_1100-day_1000-winter_700.png",
-    "roof-winter-night": "roof_1100-night_1017-winter_700.png",
+    "roof-winter-night": "roof_1100-night_1017-winter_700.png",   # painted before WINTER_NIGHT asked to keep the housing dry
 }
 # Lettering the model painted though asked not to, in painting pixels, taken from a picture of the same room that has
 # none: the reception's three recommendations, from its dawn, which the model painted blank.

@@ -45,8 +45,10 @@ building, entered at its lobby: any `#floor-X` address, or an old one-page ancho
 `$floorHash` in `layouts/index.html` must match: `scripts/test/building-hash.test.js`), opens it directly, and pixel.js mounts it only then; back
 at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city. It is the career
 only: every other topic has its building in the city. The old street's `#floor-E` lands in the lobby (`web3d/src/hash.js`),
-and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/`, query kept (the pre-paint script in `layouts/index.html`). Without a script the lobby's
-"Back to the city" gives way to a sign with the other four districts' links.
+and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/`, query kept (the pre-paint script in `layouts/index.html`). The lift's plate starts with
+"← City" on every floor, a link to `#city` like the name plate and the lobby's sign. Without a script the city is its
+panel at the top of the page, every district's words and link in a column (the `<noscript>` style in `layouts/index.html`),
+so those links still land on it.
 
 The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library.webp`, baked
 by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk), then every listed

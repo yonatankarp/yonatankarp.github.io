@@ -142,6 +142,8 @@ city:   # the homepage's city (layouts/index.html): its arrival panel, then a di
 
 tower:   # the Career Tower's lift and floors (layouts/index.html); each role's own words are in content/experience/
   floors: "Floors"   # the lift's buttons, for screen readers
+  city: "City"   # the lift's way out, after an arrow, on every floor
+  city_label: "Back to the city"   # its name for screen readers and its tooltip
   floor_label: "Floor %s, %s, %s"   # a role's lift button, which the lift also announces: its floor, company and title
   degree_label: "Floor 1, %s"   # the degree's lift button; %s is the university
   roof_label: "R, Roof, what's next"

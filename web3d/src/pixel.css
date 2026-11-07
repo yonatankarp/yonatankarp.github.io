@@ -566,6 +566,14 @@ html:not(.building--guided) .pixel .panel-head, html:not(.building--guided) .pix
 }
 @keyframes px-late { from { opacity: 0; } to { opacity: 1; } }
 
+/* The lift's way out to the city (#302): first on its plate, a floor button's frame round a smaller label, the arrow
+   beside it, or over it where the buttons are 30px wide; on the plain page's row it keeps its size. */
+.pixel .building-floor-btn.building-city { width: auto; padding: 0 12px; margin-right: 4px; grid-auto-flow: column; gap: 6px; font-size: 20px; }
+@media (max-width: 760px), (max-aspect-ratio: 6/5), (min-width: 761px) and (max-width: 919px) and (min-aspect-ratio: 1201/1000) {
+  .pixel .building-floor-btn.building-city { padding: 0 6px; margin-right: 2px; grid-auto-flow: row; gap: 3px; align-content: center; font-size: 15px; }
+}
+html:not(.building--guided) .pixel .building-city { flex: none; }
+
 /* Forced colors (Windows High Contrast) drop every box-shadow, and the building draws its focus rings and button frames
    with them (#251). There focus is a system-colour outline, inside the box where the stepped clip-path would cut it
    away, and the buttons and plates get a 1px edge. !important, as each control's own focus rule sets outline: none.

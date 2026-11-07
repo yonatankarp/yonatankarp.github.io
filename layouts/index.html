@@ -93,8 +93,14 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   {{- /* Guided from the first paint, not when the module runs (#39): the query is guide.js's roomy, and only where
        a module can run; unguided again if the module fails to load. */}}
   <script>{{ $guided.Content | safeJS }}</script>
-  {{- /* Without a script there is no city to go back to: the lobby signs its districts instead (#301). */}}
-  <noscript><style>[data-city-sign] { display: none; }</style></noscript>
+  {{- /* Without a script the city is its panel at the top of the page, every district's words and link in a column, so
+       the name plate's, the lift's and the lobby's #city still lead somewhere (#301, #302). */}}
+  <noscript><style>
+    html:not(.at-city) .city { display: block; position: relative; z-index: 2; min-height: 0; }
+    .city-scene, .city-panel h1, .city-chips, .city-out { display: none; }
+    .city-panel { position: static; width: auto; max-width: 720px; max-height: none; margin: 16px clamp(12px, 3vw, 36px); }
+    .city-say [data-district] { display: block; margin: 0 0 28px; }
+  </style></noscript>
 </head>
 <body class="building pixel">
   <a class="skip-link" href="#building-stops">{{ hugo.Data.ui.skip.floor }}</a>
@@ -150,6 +156,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   <p class="sr-only" role="status" aria-live="polite" data-building-status data-copy-status></p>
 
   <nav class="elevator" aria-label="{{ $home.tower.floors }}">
+    {{- /* The way out on every floor, as the name plate goes: #city, which reloads onto the city (guide.js, #302). */}}
+    <a class="building-floor-btn building-city" href="#city" aria-label="{{ $home.tower.city_label }}" title="{{ $home.tower.city_label }}"><span aria-hidden="true">←</span> <span>{{ $home.tower.city }}</span></a>
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor></span></div>
     <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-keyshortcuts="R" aria-label="{{ $home.tower.roof_label }}" title="{{ $home.tower.roof_label }}">R</a>
     {{ range $experience }}
@@ -271,8 +279,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
           </div>
           <div class="floor-signs">
             {{ with $now }}<p class="floor-end"><a href="#floor-{{ .floor }}" data-goto="{{ .floor }}">{{ printf $home.tower.now .floor .company }}</a></p>{{ end }}
-            <p class="floor-end" data-city-sign><a href="#city">{{ hugo.Data.ui.back_to_city }}</a></p>
-            <noscript><p class="floor-end">{{ range $i, $d := where $city.districts "key" "ne" "tower" }}{{ if $i }} · {{ end }}<a href="{{ index $go .key }}">{{ .name }}</a>{{ end }}</p></noscript>
+            <p class="floor-end"><a href="#city">{{ hugo.Data.ui.back_to_city }}</a></p>
           </div>
         </div>
         <div class="step-in-bar"><button class="step-in" type="button" aria-controls="panel-L" aria-expanded="false">{{ $home.tower.lobby_more }}</button></div>

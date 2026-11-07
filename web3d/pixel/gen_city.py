@@ -200,10 +200,14 @@ HOURS = {
 }
 
 
-# Winter: the hour's own pick under snow, its light kept; at night its windows and lamps kept too.
+# Winter: the hour's own pick under snow, its light kept (dusk's named, dawn's and day's kept), at night its windows and
+# lamps kept too; each followed by KEEP. These made WINTER_PICKS.
 SNOW = ("fresh white snow lying on every roof, on the parks, the plaza and the hills, snow banked along the roads and "
         "pavements, the trees bare and dusted with snow")
-WINTER = {"day": f"Edit this picture. Keep the time of day and the light exactly as they are and change only the season to deep winter: {SNOW}, a cold blue-grey sea. ",
+ANY = f"Edit this picture. Keep the time of day and the light exactly as they are and change only the season to deep winter: {SNOW}, a cold blue-grey sea. "
+WINTER = {"dusk": f"Edit this picture. Change only the season to deep winter: {SNOW}, a cold grey-blue sea, a cold clear dusk "
+                  "sky with soft golden light low on the horizon. ",
+          "dawn": ANY, "day": ANY,
           "night": f"Edit this picture. Keep it night and change only the season to deep winter: {SNOW}, the snow lit warm "
                    "under the street lamps and blue in the moonlight. Keep every lit window and lamp. "}
 
@@ -223,7 +227,7 @@ def pick(phase, winter=False):
 def paint(count, start, host, phase, winter=False):
     if winter:
         base = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
-        prompt = WINTER["night" if phase == "night" else "day"] + KEEP
+        prompt = WINTER[phase] + KEEP
     else:
         base = blockout().resize((PW, PH), Image.LANCZOS) if phase == "dusk" else Image.open(pick("dusk")).convert("RGB").crop((0, 0, PW, PH))
         prompt = DUSK if phase == "dusk" else f"Edit this picture. Change only the time of day to {HOURS[phase]}. {KEEP}"
@@ -340,10 +344,11 @@ def ground(night, day, dusk):
     return spread([(x, h - 1) for x in range(w) if (x, h - 1) not in sky], lambda q: q not in sky, night.size)
 
 
-def windows(night, day, dusk):
+def windows(night, day, dusk, among=None):
     """The lit windows of the night art: small spots of warm light (4-connected, at most 14 px, inside 5x5), so the
     library's lit facade and the lit roads stay out, and not in the sky, where they are stars. Each goes dark in its
-    wall's colour, the darkest pixel around it."""
+    wall's colour, the darkest pixel around it. `among`: only spots touching these pixels (winter's lamplight pools on
+    the snow look like windows; its windows are where the plain art's are)."""
     (w, h), px, land = night.size, night.load(), ground(night, day, dusk)
     lit = {(x, y) for y in range(h) for x in range(w)
            if (p := px[x, y])[0] > 140 and p[1] > 100 and p[2] < 100 and p[0] - p[2] > 55}
@@ -363,6 +368,8 @@ def windows(night, day, dusk):
                         todo.append(q)
             xs, ys = [c[0] for c in comp], [c[1] for c in comp]
             if len(comp) > 14 or max(xs) - min(xs) > 4 or max(ys) - min(ys) > 4 or comp[0] not in land:
+                continue
+            if among is not None and not any((cx + dx, cy + dy) in among for cx, cy in comp for dx in (-1, 0, 1) for dy in (-1, 0, 1)):
                 continue
             ring = {(cx + dx, cy + dy) for cx, cy in comp for dx in (-1, 0, 1) for dy in (-1, 0, 1)} - set(comp)
             wall = min((px[q] for q in sorted(ring) if 0 <= q[0] < w and 0 <= q[1] < h), key=sum)
@@ -384,10 +391,14 @@ def sea(night, dusk):
     return runs
 
 
-def write_fx(out, night, day, dusk, winter=False):
-    """city-fx.json, or in winter city-winter-fx.json: its windows and bay found in the winter art, the rest the same."""
-    (out / f"{name('dusk', winter)}-fx.json").write_text(json.dumps({"windows": windows(night, day, dusk), "sea": sea(night, dusk), "walks": WALKS,
-                                                                       "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}, separators=(",", ":")))
+def write_fx(out, night, day, dusk, plain=None):
+    """city-fx.json; or, given the plain art's (its fx and its dusk), city-winter-fx.json, its windows and bay found in
+    the winter art: windows only where the plain art has them, the bay where the plain dusk glows (winter's is grey)."""
+    lit = plain and {tuple(p) for w in plain[0]["windows"] for p in w["px"]}
+    fx = {"windows": windows(night, day, dusk, lit), "sea": sea(night, plain[1] if plain else dusk), "walks": WALKS,
+          "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}
+    (out / f"{name('dusk', bool(plain))}-fx.json").write_text(json.dumps(fx, separators=(",", ":")))
+    return fx
     shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # depth_map.py's map, as it is, at every season
 
 
@@ -405,6 +416,7 @@ def build(out):
     for picks in (PICKS, WINTER_PICKS):
         if set(phases) != set(picks):
             sys.exit(f"PICKS and WINTER_PICKS must each have data/phases.json's {sorted(phases)}: give every phase a painting")
+    plain = None
     for winter, picks in ((False, PICKS), (True, WINTER_PICKS)):
         baked = {phase: bake(phase, winter) for phase in phases}
         for phase, im in baked.items():
@@ -412,7 +424,8 @@ def build(out):
             im.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
             im.crop(BACKDROP).save(out / f"backdrop{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
             print("drew", path.name, "and its backdrop, from seed", picks[phase])
-        write_fx(out, baked["night"], baked["day"], baked["dusk"], winter)
+        fx = write_fx(out, baked["night"], baked["day"], baked["dusk"], plain)
+        plain = (fx, baked["dusk"])
     write_json(out)
 
 

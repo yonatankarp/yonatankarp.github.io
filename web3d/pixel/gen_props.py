@@ -29,7 +29,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
+from paint_rooms import OUT as CANDIDATES, call, magenta  # noqa: E402
 
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks" / "props"
 W, H, MAG = 512, 512, (255, 0, 255)
@@ -120,7 +120,7 @@ def key(name, file):
     """Magenta (and the model's pinkish fringe of it) to clear, shrunk a pixel so no fringe is left: picks/props/NAME.png."""
     a = np.asarray(Image.open(CANDIDATES / file).convert("RGB")).astype(int)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    bg = ((g < 0.55 * np.minimum(r, b)) | ((r > 200) & (b > 150) & (g < 0.6 * r))) & (r > 60) & (b > 60)
+    bg = magenta(a, (r > 200) & (b > 150) & (g < 0.6 * r))
     alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(3))
     im = Image.fromarray(a.astype(np.uint8), "RGB")
     im.putalpha(alpha)

@@ -219,15 +219,16 @@ WINTER = {"dusk": f"Edit this picture. Change only the season to deep winter: {S
                    "under the street lamps and blue in the moonlight. Keep every lit window and lamp. "}
 
 
-def name(phase, winter=False):
-    """city, city-night, city-winter, city-winter-night: the season, then the hour, each left out at its default."""
-    return f"city{'-winter' if winter else ''}{'' if phase == 'dusk' else '-' + phase}"
+def name(phase, winter=False, stem="city"):
+    """city, city-night, city-winter, city-winter-night: the season, then the hour, each left out at its default. Workshop
+    Row's (stem "workshop", painted by gen_workshop.py) are named the same way."""
+    return f"{stem}{'-winter' if winter else ''}{'' if phase == 'dusk' else '-' + phase}"
 
 
-def pick(phase, winter=False):
-    path = PICKED / f"{name(phase, winter)}.png"
+def pick(phase, winter=False, stem="city"):
+    path = PICKED / f"{name(phase, winter, stem)}.png"
     if not path.exists():
-        sys.exit(f"no {path}: paint it (gen_city.py paint --time {phase}{' --winter' if winter else ''}), copy the chosen candidate there and note its seed in {'WINTER_PICKS' if winter else 'PICKS'}")
+        sys.exit(f"no {path}: paint it (gen_{stem}.py paint --time {phase}{' --winter' if winter else ''}), copy the chosen candidate there and note its seed in {'WINTER_PICKS' if winter else 'PICKS'}")
     return path
 
 

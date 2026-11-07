@@ -70,3 +70,12 @@ test("Every phase has a tint, the props painted in dusk's light", async () => {
   for (const time of Object.keys(phases)) assert.equal(dressing(art, at(time, {})).tint.length, 3, `no tint for ${time}`);
   assert.deepEqual(dressing(art, at("dusk", {})).tint, [1, 1, 1]);
 });
+
+test("Missing art leaves the plaza bare, and art that is there but broken is a page error (#311)", async (t) => {
+  const { props } = await load();
+  const url = (ext) => `props.${ext}`, on = at("night", { hanukkah: 2 });
+  t.mock.method(globalThis, "fetch", async () => new Response("", { status: 404 }));
+  assert.deepEqual(await props(url, on), []);
+  t.mock.method(globalThis, "fetch", async (u) => (u === "props.json" ? new Response("{not json") : new Response("", { status: 404 })));
+  await assert.rejects(props(url, on), SyntaxError);
+});

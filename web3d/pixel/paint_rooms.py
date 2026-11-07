@@ -363,10 +363,18 @@ def floor_base(size=FLOOR_SIZE):
     return base
 
 
-def call(host, path, payload):
+def call(host, path, payload, timeout=4 * 3600):   # a shared queue can hold a job long
     req = urllib.request.Request(host + path, data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=4 * 3600) as r:   # a shared queue can hold a job long
+    with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.loads(r.read())
+
+
+def magenta(a, also=False):
+    """Where a painting on magenta (an int RGB array) shows its backdrop, a magenta gradient: green far under red and
+    blue, both bright. `also` adds a subject's own fringe (lamp-lit pinks and corals), under the same brightness test."""
+    import numpy as np   # here only: gen_city, gen_library and gen_workshop import this module without numpy
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    return ((g < 0.55 * np.minimum(r, b)) | also) & (r > 60) & (b > 60)
 
 
 def band(size, x1, y1, feather=40):

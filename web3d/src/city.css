@@ -8,7 +8,7 @@ html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-
   --city-edge: #9a7148;
   --city-amber: #f2a93b;
   min-height: 100vh;   /* the page's box, though the scene and the panel are fixed */
-  --bar-clear: 152px;   /* the highest a label's foot may sit: under the top bar's second row */
+  --bar-clear: 166px;   /* the highest a label's foot may sit: a label's height under the top bar's second row */
 }
 .city-scene { position: fixed; inset: 0; overflow: auto hidden; scrollbar-width: none; background: #2a1d14; }
 .city-scene::-webkit-scrollbar { display: none; }
@@ -19,10 +19,14 @@ html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-
    pick sets it, and a finger's sideways drag is the script's. Its labels scale back by --inv to keep their size. */
 .city .city-scene { overflow: clip; touch-action: pan-y; }   /* clip: not even focus may scroll it under the transform */
 .city .city-map { transform-origin: 0 0; transition: transform var(--glide, 0s) cubic-bezier(0.65, 0, 0.35, 1); }
+/* A label slides by --shift (city.js), in screen px, to stay whole in the free view; its stick stays on its spot. Away, it
+   fades but keeps its place in the tab order: focus brings it into view. */
 .city .city-tag {
-  transform: translate(-50%, -100%) scale(var(--inv, 1)); transform-origin: 50% 100%;
+  transform: translate(calc(-50% + var(--shift, 0px) * var(--inv, 1)), -100%) scale(var(--inv, 1)); transform-origin: 50% 100%;
   transition: transform var(--glide, 0s) cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s, visibility 0s;
 }
+.city .city-tag::after { left: calc(50% - var(--shift, 0px)); }
+.city .city-tag.away:not(:focus) { opacity: 0; pointer-events: none; }
 .city.zoomed .city-tag:not(.on) { opacity: 0; visibility: hidden; transition: transform var(--glide, 0s), opacity 0.4s, visibility 0s 0.4s; }
 .city-tag-in { display: none; }   /* the picked label's arrow: its next click goes in */
 .city-tag.on .city-tag-in { display: inline; }

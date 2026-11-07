@@ -25,13 +25,35 @@ if (city && root.classList.contains('at-city')) {
     map.style.setProperty('--glide', smooth && !still.matches ? '1s' : '0s');
     map.style.setProperty('--inv', 1 / s);   // the labels keep their size on screen
     map.style.transform = `translate(${at.x}px, ${at.y}px) scale(${s})`;
+    fit();
   };
+  // Every label whole in the free view (#295), from where the map is going: one whose district is in it slides inside its
+  // edges by --shift, as on Workshop Row (workshop.js); one whose district is not, or that would sit under a floating
+  // panel, is away (city.css), still in the tab order, and focusing it brings it into view.
+  const tags = [...city.querySelectorAll('.city-tag')];
+  function fit() {
+    const p = panel.getBoundingClientRect(), r = scene.clientWidth - 8;
+    for (const t of tags) {
+      const x = at.x + t.offsetLeft * at.s, half = t.offsetWidth / 2, l = floats() && at.y + t.offsetTop * at.s > p.top ? p.right + 8 : 8;
+      t.style.setProperty('--shift', `${Math.min(Math.max(x - half, l), r - 2 * half) - (x - half)}px`);
+      t.classList.toggle('away', x < l || x > r);
+    }
+  }
+  const free = () => floats() ? (panel.getBoundingClientRect().right + scene.clientWidth) / 2 : scene.clientWidth / 2;
+  city.addEventListener('focusin', (e) => {
+    if (e.target.matches('.city-tag.away')) place(free() - e.target.offsetLeft * at.s, at.y, at.s, true);
+  });
   // The picked building's middle (city.json's zoom) at the middle of the free view: right of a floating panel and a little
   // high, or the scene's middle where the panel stacks under it. Its zoom stops where an art pixel would pass maxPx screen
-  // px, which a big screen reaches first, and never goes under 1. Unpicked, the whole city on the tower, as the page opens.
+  // px, which a big screen reaches first, and never goes under 1. Unpicked, the whole city on the tower, as the page opens,
+  // moved right until the Library's label clears a floating panel, as far as the tower's stays whole (and home-city.js).
   const view = (smooth) => {
-    const p = panel.getBoundingClientRect(), fx = floats() ? (p.right + scene.clientWidth) / 2 : scene.clientWidth / 2;
-    if (!current) return place(fx - city.querySelector('.city-tag[data-pick=tower]').offsetLeft, 0, 1, smooth);
+    const fx = free();
+    if (!current) {
+      const tower = city.querySelector('.city-tag[data-pick=tower]'), lib = city.querySelector('.city-tag[data-pick=library]');
+      const clear = floats() ? panel.getBoundingClientRect().right + 8 + lib.offsetWidth / 2 - lib.offsetLeft : -Infinity;
+      return place(Math.min(Math.max(fx - tower.offsetLeft, clear), scene.clientWidth - 8 - tower.offsetWidth / 2 - tower.offsetLeft), 0, 1, smooth);
+    }
     const [w, h] = size(), [x, y, z] = zoom[current], s = Math.max(1, Math.min(z, maxPx / (h / artH)));
     place(fx - x / 100 * w * s, scene.clientHeight * (floats() ? 0.46 : 0.5) - y / 100 * h * s, s, smooth);
   };
@@ -51,7 +73,11 @@ if (city && root.classList.contains('at-city')) {
   addEventListener('resize', () => view(false));
   // In the capture phase, so a label's first click, which only zooms, never reaches its link or its GoatCounter count.
   city.addEventListener('click', (e) => {
-    if (e.target.closest('[data-city-out]')) return pick(null);
+    if (e.target.closest('[data-city-out]')) {   // it hides, so focus goes to the chip that was picked (#301)
+      const was = current;
+      pick(null);
+      return city.querySelector(`.city-chips [data-pick="${was}"]`).focus();
+    }
     const b = e.target.closest('[data-pick]');
     if (!b || (b.matches('a') && b.dataset.pick === current)) return;   // the picked label's second click goes in
     e.preventDefault();

@@ -8,6 +8,7 @@ import { capsuleAt } from './capsule.js';
 import { reception } from './reception.js';
 import { cats } from './cats.js';
 import { floorKey, floorShaped } from './hash.js';
+import { PAUSE_KEY, pauseLabel } from './scene-fx.js';   // the Pause, kept per viewer across reloads and pages
 import './city.js';
 import '../../assets/js/copy-email.js';
 import '../../assets/js/site-menu.js';
@@ -21,7 +22,6 @@ const POOL = 16;                                                 // a lamp's lig
 const OVER = 4, SETTLE = 260;                                   // the cab sinks on past its stop, in art pixels, and comes back, in ms
 const FOCUS = 600;                                              // on narrow screens, the art x kept mid-screen
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
-const PAUSE_KEY = 'building-paused';                            // per viewer, kept across reloads
 const LAMPS_AFTER = 180;                                        // arriving on a floor: the old page is still over the room until about now
 const DOORS = 3.3;                                              // the lift doors' speed, in full travels per second
 const STARS = [760, 180];                                       // the roof strip's x and width of open night sky, tiled above it
@@ -259,14 +259,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
   if (document.documentElement.classList.contains('px-arrive')) arrive();   // revealed before this module ran
   function wake() { clearTimeout(timer); raf ||= requestAnimationFrame(frame); }
   // Held has nothing to pause: the button hides, and shows again if that changes after load (#128).
-  const label = () => {
-    if (!pauseButton) return;
-    pauseButton.hidden = held();
-    pauseButton.dataset.paused = paused;
-    pauseButton.setAttribute('aria-label', paused ? 'Play the animation' : 'Pause the animation');
-    pauseButton.title = pauseButton.getAttribute('aria-label');
-    pauseButton.querySelector('[data-building-pause-label]').textContent = paused ? 'Play' : 'Pause';
-  };
+  const label = () => { if (pauseButton) pauseLabel(pauseButton, paused, held()); };
   label();
   pauseButton?.addEventListener('click', () => {
     paused = !paused;

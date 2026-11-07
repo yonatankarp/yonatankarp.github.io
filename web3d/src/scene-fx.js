@@ -2,6 +2,9 @@
 // art's own pixels laid over the picture, so they stay crisp pixel art; their data, written by the pipeline
 // (web3d/pixel/); a depth test that hides movers behind what stands nearer; and a loop that runs only while it is seen.
 export const rnd = (a, b) => a + Math.random() * (b - a);
+// A scene's file, or null when it is not there (a 404, offline): the scene goes without it. Only the fetch is forgiven:
+// a file that is there but cannot be read, and the scene's own setup, fail as page errors (#297).
+export const asset = (url) => fetch(url).then((r) => (r.ok ? r : null), () => null);
 const TOL = 5;   // out of 255: how much nearer than a mover's feet a pixel may be and still not hide it
 
 // Animates `canvas` from the JSON at `data` and, given one, the depth map at `depth` (brighter = nearer).
@@ -13,13 +16,14 @@ export function animate(canvas, { data, depth, live = () => true, poster }, setu
   const still = matchMedia('(prefers-reduced-motion: reduce)');
   if (still.matches || new URLSearchParams(location.search).get('fx') === 'off') { poster?.(canvas.getContext('2d')); return; }
   Promise.all([
-    fetch(data).then((r) => r.json()),
+    asset(data).then((r) => r && r.json()),
     // Raw values, untouched by colour management: they are depths, not colours.
-    depth && fetch(depth).then((r) => r.blob()).then((b) => createImageBitmap(b, { colorSpaceConversion: 'none' })),
+    depth && asset(depth).then((r) => r && r.blob()).then((b) => b && createImageBitmap(b, { colorSpaceConversion: 'none' })),
   ]).then(([fx, bitmap]) => {
     const ctx = canvas.getContext('2d');
+    if (!fx || (depth && !bitmap)) { poster?.(ctx); return; }   // without its data the picture is just still
     loop(ctx, setup(ctx, fx, bitmap && depthTest(ctx, bitmap)), live, still, poster);
-  }).catch(() => {});   // without its data the picture is just still
+  });
 }
 
 function depthTest(ctx, bitmap) {
@@ -60,9 +64,10 @@ function depthTest(ctx, bitmap) {
 // without it: the scene goes without them.
 export function people(url, night) {
   return Promise.all([
-    fetch(url('json')).then((r) => r.json()),
-    fetch(url('webp')).then((r) => r.blob()).then((b) => createImageBitmap(b, { colorSpaceConversion: 'none' })),
+    asset(url('json')).then((r) => r && r.json()),
+    asset(url('webp')).then((r) => r && r.blob()).then((b) => b && createImageBitmap(b, { colorSpaceConversion: 'none' })),
   ]).then(([m, bitmap]) => {
+    if (!m || !bitmap) return null;
     const pad = new OffscreenCanvas(bitmap.width, bitmap.height).getContext('2d');
     pad.drawImage(bitmap, 0, 0);
     const d = pad.getImageData(0, 0, bitmap.width, bitmap.height).data, dim = (v, k) => Math.round(v * 0.45 + [14, 16, 34][k] * 0.55);   // under rgba(14,16,34,.55)
@@ -80,7 +85,7 @@ export function people(url, night) {
       return { cells: [...byColour].map(([fill, px]) => ({ fill, px })), foot: m.foot[j][k] };
     }));
     return { ...m, frames };
-  }).catch(() => null);
+  });
 }
 
 // Snow falling over the whole art in winter, in front of everything: about 520 flakes, 1 px and some 2 px, drifting

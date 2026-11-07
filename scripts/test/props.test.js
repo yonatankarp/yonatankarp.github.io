@@ -29,3 +29,44 @@ test("The baked hanukkiah has nine candle tops, left to right, the shamash's the
   assert.deepEqual(flames.map(([x]) => x), [...flames.map(([x]) => x)].sort((a, b) => a - b));
   assert.equal(Math.min(...flames.map(([, y]) => y)), flames[4][1]);
 });
+
+const phases = require("../../data/phases.json");
+const at = (time, holidays, season = "winter") => ({ holidays, time, season });
+
+test("No holiday, no props: nothing goes up and no candle burns", async () => {
+  const { dressing } = await load();
+  assert.deepEqual(dressing(art, at("night", {})), { hanukkiah: false, candles: [], tree: null, lit: true, night: true, tint: [0.6, 0.63, 0.78] });
+});
+
+test("Hanukkah puts up the hanukkiah, Christmas the tree, and both at once", async () => {
+  const { dressing } = await load();
+  const up = (holidays) => { const d = dressing(art, at("day", holidays)); return [d.hanukkiah, d.tree]; };
+  assert.deepEqual(up({ hanukkah: 2 }), [true, null]);
+  assert.deepEqual(up({ christmas: 5 }), [false, "tree"]);
+  assert.deepEqual(up({ hanukkah: 2, christmas: 5 }), [true, "tree"]);
+});
+
+test("The tree is snowy in winter only: a southern Christmas, in summer, gets the plain one", async () => {
+  const { dressing } = await load();
+  assert.equal(dressing(art, at("dusk", { christmas: 0 }, "winter")).tree, "tree");
+  for (const season of ["spring", "summer", "autumn"]) assert.equal(dressing(art, at("dusk", { christmas: 0 }, season)).tree, "tree-plain");
+});
+
+test("The candles and the lights burn at dusk and night only, the day's candles from the baked tops", async () => {
+  const { dressing, candles } = await load();
+  for (const time of ["dawn", "day"]) {
+    assert.equal(dressing(art, at(time, { hanukkah: 3 })).lit, false);
+    assert.deepEqual(dressing(art, at(time, { hanukkah: 3 })).candles, []);
+  }
+  for (const time of ["dusk", "night"]) {
+    assert.equal(dressing(art, at(time, { hanukkah: 3 })).lit, true);
+    assert.deepEqual(dressing(art, at(time, { hanukkah: 3 })).candles, candles(art.hanukkiah.flames, 3));
+  }
+  assert.equal(dressing(art, at("dusk", {})).night, false);
+});
+
+test("Every phase has a tint, the props painted in dusk's light", async () => {
+  const { dressing } = await load();
+  for (const time of Object.keys(phases)) assert.equal(dressing(art, at(time, {})).tint.length, 3, `no tint for ${time}`);
+  assert.deepEqual(dressing(art, at("dusk", {})).tint, [1, 1, 1]);
+});

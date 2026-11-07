@@ -10,6 +10,9 @@
 // every goatcounter.com request is answered by a stub, and Chromium cannot resolve the host anyway.
 // count.js itself still loads from gc.zgo.at, as on the live site.
 //
+// Any of the site's own requests answered with 400 or more fails the page too, so a scene or a holiday prop whose file
+// is missing does not ship as a still picture (#297). The one allowed is the missing route's page itself, the 404.
+//
 // The same pass runs axe-core on each page as it loads, before anything is clicked, and fails on any
 // serious or critical violation (#193).
 //
@@ -46,6 +49,12 @@ let AxeBuilder;
 function isRedirect(route) {
   const file = path.join(publicDir, route.split(/[?#]/)[0], "index.html");
   return fs.existsSync(file) && /<meta\b[^>]*http-equiv=["']?refresh/i.test(fs.readFileSync(file, "utf8"));
+}
+
+// A response of the site's own that fails the page: same origin, 400 or more, and not the missing route's own 404.
+function isFailedResponse(url, status, baseUrl) {
+  const { origin, pathname } = new URL(url);
+  return status >= 400 && origin === new URL(baseUrl).origin && pathname !== missingRoute;
 }
 
 // A redirect page may send its reader to a page of the site, or a removed post to its copy on dev.to; nothing else
@@ -241,6 +250,11 @@ async function check(context, baseUrl, route) {
     }
   });
   page.on("pageerror", (error) => result.errors.push(String(error.message || error)));
+  page.on("response", (response) => {
+    if (isFailedResponse(response.url(), response.status(), baseUrl)) {
+      result.errors.push(`${response.status()} ${response.url().slice(baseUrl.length)}`);
+    }
+  });
   await page.route(/goatcounter\.com/, (request) => {
     result.goatcounter += 1;
     request.fulfill({ status: 200, contentType: "image/gif", body: pixel });
@@ -363,4 +377,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { isAllowedRedirect };
+module.exports = { isAllowedRedirect, isFailedResponse };

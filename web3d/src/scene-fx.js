@@ -8,11 +8,12 @@ export const asset = (url) => fetch(url).then((r) => (r.ok ? r : null), () => nu
 const TOL = 5;   // out of 255: how much nearer than a mover's feet a pixel may be and still not hide it
 
 // The top bar's Pause (pixel-bar.html, WCAG 2.2.2) holds the scenes as it holds the tower (pixel.js), kept the same way:
-// per viewer, across reloads and pages. On the city it is the tower's once the tower is entered (live() goes false).
+// per viewer, across reloads and pages, and read again when Back restores a page another one paused or played.
+// On the city it is the tower's once the tower is entered (live() goes false).
 export const PAUSE_KEY = 'building-paused';
+export const pausedStored = () => { try { return localStorage.getItem(PAUSE_KEY) === 'true'; } catch { return false; } };   // blocked storage: not remembered
 const pauseButton = document.querySelector('[data-building-pause]');
-let paused = false;
-try { paused = localStorage.getItem(PAUSE_KEY) === 'true'; } catch { /* blocked storage: it just is not remembered */ }
+let paused = pausedStored();
 export function pauseLabel(button, on, hidden) {
   button.hidden = hidden;
   button.dataset.paused = on;
@@ -149,6 +150,7 @@ function loop(ctx, draw, live, still, poster) {
     label(); wake();
     try { localStorage.setItem(PAUSE_KEY, paused); } catch { /* as above */ }
   });
+  addEventListener('pageshow', (e) => { if (e.persisted) { paused = pausedStored(); label(); wake(); } });
   document.addEventListener('visibilitychange', wake);
   still.addEventListener('change', () => { label(); if (still.matches) hold(); else wake(); });
   new IntersectionObserver(([e]) => { seen = e.isIntersecting; wake(); }).observe(canvas);

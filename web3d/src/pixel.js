@@ -8,7 +8,7 @@ import { capsuleAt } from './capsule.js';
 import { reception } from './reception.js';
 import { cats } from './cats.js';
 import { floorKey, floorShaped } from './hash.js';
-import { PAUSE_KEY, pauseLabel } from './scene-fx.js';   // the Pause, kept per viewer across reloads and pages
+import { PAUSE_KEY, pausedStored, pauseLabel } from './scene-fx.js';   // the Pause, kept per viewer across reloads and pages
 import './city.js';
 import '../../assets/js/copy-email.js';
 import '../../assets/js/site-menu.js';
@@ -241,8 +241,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
   // The room loops only while it is allowed to move: the pause button (WCAG 2.2.2), reduced motion and the plain page
   // hold it on its rest frame. A frame that would draw the same picture is skipped, and once nothing is moving the loop
   // sleeps: until the next frame of the loop, or for good while held, until a ride, a resize or a load wakes it (#36).
-  let paused = false, raf = 0, timer = 0, drawn = '', epoch = 0;
-  try { paused = localStorage.getItem(PAUSE_KEY) === 'true'; } catch { /* blocked storage: it just is not remembered */ }
+  let paused = pausedStored(), raf = 0, timer = 0, drawn = '', epoch = 0;
   // Arrived from another page under its view transition, which reduced motion never has (layouts/index.html tells us; a
   // page restored by Back gets it too): the doors shut and the lamps off, until the old page has cleared the room.
   let waiting = '', waitTo = 0;
@@ -266,6 +265,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     label(); wake();
     try { localStorage.setItem(PAUSE_KEY, paused); } catch { /* as above */ }
   });
+  addEventListener('pageshow', (e) => { if (e.persisted) { paused = pausedStored(); label(); wake(); } });   // Back, from a page that changed it
   addEventListener('resize', wake);
   for (const q of [reduceMotion, roomy]) q.addEventListener('change', () => { label(); wake(); });
 

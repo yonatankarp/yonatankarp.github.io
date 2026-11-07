@@ -58,6 +58,8 @@ if (city && root.classList.contains('at-city')) {
     place(fx - x / 100 * w * s, scene.clientHeight * (floats() ? 0.46 : 0.5) - y / 100 * h * s, s, smooth);
   };
   const pick = (key) => {
+    // "Whole city" hides as it zooms out, so its focus goes to the chip that was picked (#301).
+    if (!key && out.contains(document.activeElement)) city.querySelector(`.city-chips [data-pick="${current}"]`).focus();
     current = key;
     city.classList.toggle('zoomed', !!key);
     for (const b of city.querySelectorAll('[data-pick]')) {
@@ -73,11 +75,7 @@ if (city && root.classList.contains('at-city')) {
   addEventListener('resize', () => view(false));
   // In the capture phase, so a label's first click, which only zooms, never reaches its link or its GoatCounter count.
   city.addEventListener('click', (e) => {
-    if (e.target.closest('[data-city-out]')) {   // it hides, so focus goes to the chip that was picked (#301)
-      const was = current;
-      pick(null);
-      return city.querySelector(`.city-chips [data-pick="${was}"]`).focus();
-    }
+    if (e.target.closest('[data-city-out]')) return pick(null);
     const b = e.target.closest('[data-pick]');
     if (!b || (b.matches('a') && b.dataset.pick === current)) return;   // the picked label's second click goes in
     e.preventDefault();

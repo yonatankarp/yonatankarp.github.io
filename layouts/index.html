@@ -64,8 +64,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 {{- /* The city's picture at the hour, and its first view on the tower before the first paint, as city.js places it. */}}
 {{ $cityStart := resources.FromString "js/home-city.js" `(function () {
   var x, d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel'), m = s.firstElementChild;
-  var f = getComputedStyle(p).position === 'fixed', r = p.getBoundingClientRect().right, t = c.querySelector('.city-tag[data-pick=tower]'), l = c.querySelector('.city-tag[data-pick=library]');
   if (!d.classList.contains('at-city')) return;
+  var f = getComputedStyle(p).position === 'fixed', r = p.getBoundingClientRect().right, t = c.querySelector('.city-tag[data-pick=tower]'), l = c.querySelector('.city-tag[data-pick=library]');
   i.loading = 'eager';
   i.src = i.dataset.base + (d.dataset.season === 'winter' ? '-winter' : '') + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
   x = (f ? (r + s.clientWidth) / 2 : s.clientWidth / 2) - t.offsetLeft;

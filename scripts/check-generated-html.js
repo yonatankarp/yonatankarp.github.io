@@ -264,7 +264,6 @@ function checkTopBar(route, html) {
     /<a\b[^>]*class=["']?building-name["']?[^>]*href=["']?#city["']?[\s>]/,
     /class=["']?building-links["']?[\s>]/,
     /<button\b[^>]*class=["']?building-pause["']?[^>]*data-building-pause[\s>]/,
-    /data-building-pause-label[\s>]/,
     /<nav\b[^>]*class=["']?building-social["']?[\s>]/,
   ];
 
@@ -272,6 +271,12 @@ function checkTopBar(route, html) {
     if (hook.test(bar) !== home) {
       failures.push(`${route}: top bar ${home ? "is missing" : "should not have"} the homepage hook ${hook}`);
     }
+  }
+
+  // The Pause, on the pages a script animates (scene-fx.js, pixel.js), and only there.
+  const animated = ["/", "/projects/", "/blog/", "/podcast/", "/contact/"].includes(route);
+  if (/data-building-pause-label[\s>]/.test(bar) !== animated) {
+    failures.push(`${route}: top bar ${animated ? "is missing" : "should not have"} the Pause`);
   }
 
   if (/site-header|menu-toggle/.test(html)) {

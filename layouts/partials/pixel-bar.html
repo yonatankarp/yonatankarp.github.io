@@ -1,9 +1,11 @@
 {{- /* The one top bar of every page, the homepage included: name plate, the tabs, Download CV, then the social row
      under it. Takes the page. On the homepage it wears the building's classes (web3d/src/pixel.css places it over
      the canvas) and the name goes back to the city; elsewhere it is .px-bar (custom.css) and the current tab is
-     marked. The pause joins the tabs wherever the page animates. The tags pages belong to the Blog tab. On phones the links, pause and
-     social row are a native popover under Menu; on wider screens each stylesheet undoes the popover's UA styles. */ -}}
+     marked. The tags pages belong to the Blog tab. The pause joins the tabs on the pages that animate: the city, Workshop
+     Row, the Library and the two rooms. On phones the links, pause and social row are a native popover under Menu; on
+     wider screens each stylesheet undoes the popover's UA styles. */ -}}
 {{ $home := .IsHome }}
+{{ $animated := or $home (in (slice "radio" "post") .Layout) (and .IsSection (in (slice "projects" "blog") .Section)) }}{{/* scene-fx.js */}}
 {{ $here := .RelPermalink }}
 <header class="{{ cond $home "building-top" "px-bar" }}">
   {{ if $home }}
@@ -24,10 +26,12 @@
       {{ end }}
     </nav>
     {{- /* Shown by the script that animates the page: the tower's (pixel.js) or a scene's (scene-fx.js). */}}
+    {{ if $animated }}
     <button class="{{ cond $home "building-pause" "px-pause" }}" type="button" data-building-pause hidden>
       <svg width="14" height="14" viewBox="0 0 7 7" aria-hidden="true"><path class="i-pause" fill="currentColor" d="M1 1h2v5H1zM4 1h2v5H4z"/><path class="i-play" fill="currentColor" d="M2 0h1v7H2zM3 1h1v5H3zM4 2h1v3H4zM5 3h1v1H5z"/></svg>
       <span data-building-pause-label>Pause</span>
     </button>
+    {{ end }}
     <nav class="{{ cond $home "building-social" "px-bar__social" }}" aria-label="Find me elsewhere">
       {{ range hugo.Data.home.en.contact.social }}<a href="{{ .url }}" aria-label="{{ .label }}" title="{{ .label }}" data-goatcounter-click="social-{{ .icon }}">{{ partial "pixel-icon.html" .icon }}</a>{{ end }}
     </nav>

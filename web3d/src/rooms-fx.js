@@ -10,7 +10,10 @@ const canvas = hero?.querySelector('.room-fx');
 const sheet = canvas?.dataset.sheet && Object.assign(new Image(), { src: canvas.dataset.sheet });   // the studio's reels
 if (hero) {
   // Where the room is wider than the screen, it opens at its data-open (0 the left edge, 1 the right).
-  const open = () => { hero.scrollLeft = (hero.scrollWidth - hero.clientWidth) * Number(hero.dataset.open); };
+  const open = () => { hero.scrollLeft = (hero.scrollWidth - hero.clientWidth) * Number(hero.dataset.open); stop(); };
+  // A tab stop (the markup's, for a page without this script) only while there is something to scroll (#305).
+  const stop = () => { hero.tabIndex = hero.scrollWidth > hero.clientWidth ? 0 : -1; };
+  addEventListener('resize', stop);
   const img = hero.querySelector('img');
   if (img.complete) open(); else img.addEventListener('load', open);
   animate(canvas, { data: canvas.dataset.fx }, canvas.dataset.room === 'radio' ? radio : post);

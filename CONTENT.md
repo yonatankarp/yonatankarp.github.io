@@ -3,8 +3,9 @@
 The words the pages show live in `content/` and `data/`, not in the templates (`layouts/`), so you can change the
 text without touching the design. This page says where each piece is, and which few words the scripts still write.
 
-You can edit any of these files in GitHub's web editor (open the file, press the pencil, commit to `main`). The deploy
-builds and publishes the change a few minutes later. A YAML file needs its indentation and quotes kept as they are;
+You can edit any of these files in GitHub's web editor: open the file, press the pencil, then "Commit changes…" and
+"Create a new branch … and start a pull request" (`main` takes changes only through a pull request). Merge the pull
+request once its two checks pass; the deploy builds and publishes the change a few minutes later. A YAML file needs its indentation and quotes kept as they are;
 the build fails, and nothing is published, when one is broken.
 
 ## How the data files work

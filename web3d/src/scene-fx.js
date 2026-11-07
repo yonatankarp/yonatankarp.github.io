@@ -109,14 +109,18 @@ export function mirror(px, w) {
 }
 const baked = (px, w, h) => { const c = new OffscreenCanvas(w, h); c.getContext('2d').putImageData(new ImageData(px, w, h), 0, 0); return c; };
 
+// A baked sheet: its .json and its .webp as a bitmap (url(ext) names each), each null when it is not there (asset());
+// `options` go to createImageBitmap. A file that is there but cannot be read rejects, a page error (#311).
+export const loadSheet = (url, options) => Promise.all([
+  asset(url('json')).then((r) => r && r.json()),
+  asset(url('webp')).then((r) => r && r.blob()).then((b) => b && createImageBitmap(b, options)),
+]);
+
 // A sheet of painted people or cats (gen_walkers.py), a row per person and a column per frame, split once into each frame's
 // pixels grouped by colour and as RGBA, as they are or dimmed for the night, with the row of its sole. url(ext) is the sheet's .json or .webp. Resolves to null
 // without it: the scene goes without them.
 export function people(url, night) {
-  return Promise.all([
-    asset(url('json')).then((r) => r && r.json()),
-    asset(url('webp')).then((r) => r && r.blob()).then((b) => b && createImageBitmap(b, { colorSpaceConversion: 'none' })),
-  ]).then(([m, bitmap]) => {
+  return loadSheet(url, { colorSpaceConversion: 'none' }).then(([m, bitmap]) => {
     if (!m || !bitmap) return null;
     const pad = new OffscreenCanvas(bitmap.width, bitmap.height).getContext('2d');
     pad.drawImage(bitmap, 0, 0);

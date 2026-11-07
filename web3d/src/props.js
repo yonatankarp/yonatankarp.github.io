@@ -2,7 +2,7 @@
 // Advent, from the visitor's calendar (outside.js). Painted and baked by web3d/pixel/gen_props.py into props.webp, with
 // props.json: where each stands, its candle tops, bulbs and star. The candles and the tree's lights burn at dusk and
 // night only, drawn here: flickering and twinkling in the loop, steady in a still frame (draw's t null).
-import { asset } from './scene-fx.js';
+import { loadSheet } from './scene-fx.js';
 
 // Each prop multiplied by the hour's light, as the tower's rooms darken with it: they were painted in dusk's.
 const TINT = { dawn: [0.86, 0.86, 0.96], day: [1, 1, 1], dusk: [1, 1, 1], night: [0.6, 0.63, 0.78] };
@@ -34,10 +34,7 @@ export function dressing(P, { holidays, time, season }) {
 // city draws them among its walkers, nearer over farther. Empty without its art.
 export function props(url, options) {
   if (!('hanukkah' in options.holidays) && !('christmas' in options.holidays)) return Promise.resolve([]);
-  return Promise.all([
-    asset(url('json')).then((r) => r && r.json()),
-    asset(url('webp')).then((r) => r && r.blob()).then((b) => b && createImageBitmap(b)),
-  ]).then(([P, sheet]) => {
+  return loadSheet(url).then(([P, sheet]) => {
     if (!P || !sheet) return [];
     const { hanukkiah, candles: on, tree, lit, night, tint } = dressing(P, options), out = [];
     const sprite = ({ sx, w, h }) => {   // its part of the sheet, in the hour's light, its alpha kept

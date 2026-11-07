@@ -3,7 +3,7 @@
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 // The art's numbers come from art.js. The city (city.js) leads in at the lobby.
 import { guide, roomy } from './guide.js';
-import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, narrow, clamp01, colourAt, shade, darken, bayer } from './art.js';
+import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, FOCUS, lay, clamp01, colourAt, shade, darken, bayer } from './art.js';
 import { capsuleAt } from './capsule.js';
 import { reception } from './reception.js';
 import { cats } from './cats.js';
@@ -19,7 +19,6 @@ let SKY = SKY_AT_LOAD;                                         // above the roof
 const GROUND = ['#33231a', '#1f1610'];                        // under the lobby: the earth's top line, then soil
 const POOL = 16;                                                 // a lamp's light spreads in blocks this many art pixels wide
 const OVER = 4, SETTLE = 260;                                   // the cab sinks on past its stop, in art pixels, and comes back, in ms
-const FOCUS = 600;                                              // on narrow screens, the art x kept mid-screen
 const FADE_IN_MS = 300;                                         // a picture that arrives late fades in over its stand-in
 const PAUSE_KEY = 'building-paused';                            // per viewer, kept across reloads
 const LAMPS_AFTER = 180;                                        // arriving on a floor: the old page is still over the room until about now
@@ -32,7 +31,7 @@ const hashKey = () => floorKey(location.hash, ORDER);   // a floor that exists a
 const PAY = 36;                                                 // floor 7's capsule's canvas, in art pixels: it turned any way, on the 4-pixel Bayer grid
 const TRIES = 3, RETRY_MS = 2000;                                // a strip that failed to load is asked for again, this often and no sooner
 
-export function mountPixel({ canvas, stops, base = '/building/', version = '', pauseButton }) {
+export function mountPixel({ canvas, stops, base = '/building/', version = '', pauseButton, through = false }) {
   const ctx = canvas.getContext('2d');
   const keys = stops.map((s) => s.dataset.floor);
   const strips = new Map();         // key -> ImageBitmap or Image (or null while loading / missing)
@@ -61,10 +60,11 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       if (!started.has(key)) return release(img);   // let go while it was on its way
       if (key === 'R') SKY = colourAt(img, 600, 0);
       if (LAMPS[key]) { img.dark = () => { if (img.waited) img.since = performance.now(); loaded(); }; if (!held()) darkenSoon(img, urgent.has(key)); }
-      img.since = performance.now(); strips.set(key, img); loaded();
+      img.since = through && key === keys[ride.from] ? -Infinity : performance.now();   // under the city's frame, no fade
+      strips.set(key, img); loaded(); shown(key);
     }, () => {   // drawn plain for now; the next ride that needs it asks again (#63)
       started.delete(key); failed.set(key, [tries + 1, performance.now()]);
-      strips.set(key, null); loaded();
+      strips.set(key, null); loaded(); shown(key);
     });
   };
   // Floor 7's payment: its painted capsule (capsule.webp) rides the room's pipe at the screen's frame rate, not in the strip's
@@ -184,6 +184,23 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
   // v: the speed carried over from a ride retargeted mid-way (floors per unit of u), so the cab never stops dead.
   // land, settle: it reaches its stop still moving, by that much, and spends the ride's last settle ms sinking past it and back.
   const ride = { from: 0, to: 0, start: 0, dur: 0, v: 0, land: 0, settle: 0, sink: 0 };
+  // In through the city's door (city.js): it waits, its frame over the lobby, until the lobby's picture is here
+  // (building:shown), and a phone's lobby, which keeps FOCUS mid-screen, starts on its lift instead, where the push-in
+  // landed, and pans to FOCUS as the view settles.
+  let pan = through ? [DOOR.mid, Infinity] : null;
+  const PAN_MS = 700;
+  const focusAt = (now) => {
+    if (!pan) return FOCUS;
+    const t = clamp01((now - pan[1]) / PAN_MS);
+    if (t === 1) pan = null;
+    return pan ? pan[0] + (FOCUS - pan[0]) * (1 - (1 - t) ** 3) : FOCUS;
+  };
+  const shown = (key) => {
+    if (!pan || pan[1] !== Infinity || key !== keys[ride.from]) return;
+    pan[1] = performance.now();
+    emit('building:shown');
+    wake();
+  };
   const fromHash = keys.indexOf(hashKey());
   ride.from = ride.to = fromHash >= 0 ? fromHash : keys.indexOf('L');   // in from the city: the lobby
   lit.set(keys[ride.from], 1);   // a page opening on a floor opens with the lights on
@@ -283,25 +300,16 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
     last = now;
     // Drawn in device pixels, so every art pixel is the same whole number of them; laid out in CSS pixels.
     const dpr = devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
-    const w = Math.round(W * dpr), h = Math.round(H * dpr);
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w; canvas.height = h; drawn = '';
+    if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) {
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); drawn = '';
       cardTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--card-top')) || 0;   // CSS px; 0 where it is unset
     }
+    const { wide, w, h, s, x0, ry } = lay(W, H, dpr, cardTop, focusAt(now));   // ry: the top of the floor in view
     ctx.imageSmoothingEnabled = false;
-    const wide = !narrow.matches, still = held(), loopMs = (FRAMES * 1000) / FPS;
+    const still = held(), loopMs = (FRAMES * 1000) / FPS;
 
     const u = rideU(now);
     const p = Math.min(keys.length - 1, Math.max(0, pos(u)));
-    // Device pixels an art pixel: the largest whole number at which the floor fits (wide) or fills its share (phones).
-    let s = Math.max(1, Math.floor(dpr * (wide ? Math.min(W / FW, H / (FH * 1.15)) : H / (FH * 2.2))));
-    // Phones: the room's floor sits behind the elevator, above the card (pixel.css --card-top). On a short phone
-    // the room is drawn smaller, down to 2/3 CSS px an art pixel, still a whole number of device pixels (#127).
-    const floorAt = cardTop - 28;
-    if (!wide && cardTop) s = Math.min(s, Math.max(Math.ceil(dpr * 2 / 3), Math.floor(dpr * floorAt / FH)));
-    const x0 = wide ? Math.round((w - FW * s) / 2) : Math.min(0, Math.max(w - FW * s, Math.round(w / 2 - FOCUS * s)));
-    const cy = wide ? h / 2 : cardTop ? floorAt * dpr - FH * s / 2 : h * 0.3;   // phones keep the room above the card
-    const ry = Math.round(cy - FH * s / 2);                    // the top of the floor in view
     const camY = Math.round((lerpAt(p, level) + sunk(u)) * s) / s;   // whole device pixels: art pixels stay one size, and a slow move is not a series of art-pixel jumps
     const near = Math.round(p);
     if (near !== passing) { passing = near; emit('building:floor', { index: near, key: keys[near] }); }
@@ -332,7 +340,7 @@ export function mountPixel({ canvas, stops, base = '/building/', version = '', p
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
       lit.set(key, clamp01((lit.get(key) ?? 0) + (here ? dt : -dt) * (still || paused ? 99 : DOORS)));   // in step with the doors; paused, they just switch
     }
-    const sig = [f, pay.at, poses, catSig, camY, loads, now < fading && now, ...open.values(), ...lit.values()].join();
+    const sig = [f, pay.at, poses, catSig, camY, x0, loads, now < fading && now, ...open.values(), ...lit.values()].join();
     if (sig === drawn) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
         cancelAnimationFrame(raf); raf = 0;
@@ -484,9 +492,9 @@ function darkenSome(deadline) {
 }
 
 const canvas = document.querySelector('#pixel-canvas');
-const mount = () => {
+const mount = (e) => {
   const stops = [...document.querySelectorAll('section[data-floor]')];
-  const api = mountPixel({ canvas, stops, base: canvas.dataset.base || '/building/', version: canvas.dataset.version, pauseButton: document.querySelector('[data-building-pause]') });
+  const api = mountPixel({ canvas, stops, base: canvas.dataset.base || '/building/', version: canvas.dataset.version, pauseButton: document.querySelector('[data-building-pause]'), through: e?.detail?.through });
   guide(api);
   if (import.meta.env?.DEV) window.__building = api;
 };

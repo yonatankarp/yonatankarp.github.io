@@ -7,7 +7,7 @@
 //   takes exactly these names from ?time=;
 // - assets/css/custom.css puts each phase's backdrop (a crop of the city, gen_city.py) behind the other pages;
 // - and the art those name is in static/building/pixel/: the tower's baked rooms (gen_floors.py), the homepage's city and
-//   the projects' Workshop Row at each hour (gen_city.py, gen_workshop.py).
+//   the projects' Workshop Row at each hour, and the tower's open doors (gen_city.py, gen_workshop.py).
 const fs = require("fs");
 const path = require("path");
 const { rootDir, fail, runTimePick } = require("./lib");
@@ -50,6 +50,7 @@ for (const name of names) {
     const how = file.startsWith("backdrop") ? "gen_city.py build" : "gen_floors.py";
     if (!fs.existsSync(path.join(rootDir, art(file)))) problems.push(`${name} needs ${art(file)} (uv run web3d/pixel/${how} static/building/pixel)`);
   }
+  if (!fs.existsSync(path.join(rootDir, art(`door-open${suffix}.webp`)))) problems.push(`${name} needs ${art(`door-open${suffix}.webp`)} (the tower's open doors at that hour, web3d/pixel/paintings/picks/city-open${suffix}.png, then uv run web3d/pixel/gen_city.py build)`);
   for (const scene of ["city", "workshop"]) {
     if (!fs.existsSync(path.join(rootDir, art(`${scene}${suffix}.webp`)))) problems.push(`${name} needs ${art(`${scene}${suffix}.webp`)} (a pick in web3d/pixel/gen_${scene}.py's PICKS, then uv run web3d/pixel/gen_${scene}.py build)`);
   }

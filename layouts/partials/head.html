@@ -44,8 +44,9 @@
      on* attributes: move them into assets/js, or, for one that must run before the first paint, put its resource in
      .Store "inlineScripts" and it is allowed by its hash (layouts/index.html does). Diagrams are drawn at build time (#250), and
      GoatCounter is allowed as its one file, the count.v5.js its tag below loads. */}}
-{{- /* Every other page's backdrop follows the hour too (custom.css, .px-skin): the same pick, before the first paint. */}}
-{{ if not .IsHome }}{{ .Store.Set "inlineScripts" (slice (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256")) }}{{ end }}
+{{- /* Every other page's backdrop follows the hour too (custom.css, .px-skin): the same pick, before the first paint. And
+     the city's push-in (assets/js/push-in.js) is caught before it, on the district it went into. */}}
+{{ if not .IsHome }}{{ .Store.Set "inlineScripts" (slice (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256") (resources.Get "js/push-in.js" | minify | fingerprint "sha256")) }}{{ end }}
 {{- /* A standalone page's template may also put scripts it writes itself in the body in .Store "bodyScripts" before this
      partial (layouts/projects/list.html does, to pick its painting's hour as the image arrives). */}}
 {{ $hashes := "" }}{{ range slice (.Store.Get "inlineScripts") (.Store.Get "bodyScripts") }}{{ range . }}{{ $hashes = printf "%s '%s'" $hashes .Data.Integrity }}{{ end }}{{ end }}

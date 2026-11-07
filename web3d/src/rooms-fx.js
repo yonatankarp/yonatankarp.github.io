@@ -3,6 +3,7 @@
 // breathes, its tape reels turn, its VU needles bounce and the mast's beacon blinks out of the window; the hall's clock
 // ticks the real seconds, its lamps' warmth breathes and dust drifts in the grille window's light. Where, from
 // ROOM-fx.json, written by web3d/pixel/gen_rooms.py, with the studio's reels from radio-reels.webp.
+import { arrive } from './iris.js';
 import { animate, rnd } from './scene-fx.js';
 
 const hero = document.querySelector('.room-hero');
@@ -14,6 +15,12 @@ if (hero) {
   const img = hero.querySelector('img');
   if (img.complete) open(); else img.addEventListener('load', open);
   animate(canvas, { data: canvas.dataset.fx }, canvas.dataset.room === 'radio' ? radio : post);
+  // In from the city's push-in: its frame opens from the header's middle, the room settling about it.
+  arrive(img, () => {
+    open();
+    const r = hero.getBoundingClientRect(), map = img.parentElement;
+    return { at: [r.left + hero.clientWidth / 2, r.top + r.height / 2], settle: [[map, hero.scrollLeft + hero.clientWidth / 2, map.offsetHeight / 2]] };
+  });
 }
 
 const disc = (ctx, cx, cy, r) => {

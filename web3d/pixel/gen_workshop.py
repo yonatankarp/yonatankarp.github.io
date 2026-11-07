@@ -225,8 +225,13 @@ def write_fx(out):
     upright(Image.open(PICKED / "workshop-depth.png").convert("L")).save(out / "workshop-depth.png")   # depth_map.py's map, posts stood up
 
 
+# The Apps workshop's roller door, where the city's push-in comes through (city.js, iris.js), in art px: its middle x, y
+# and width, which the city's door lands on, and the box its shutter rolls up in.
+DOOR, SHUTTER = [374, 218, 125], [318, 180, 437, 265]
+
+
 def write_json(out):
-    (out / "workshop.json").write_text(json.dumps({"size": SIZE, "labels": anchors()}))
+    (out / "workshop.json").write_text(json.dumps({"size": SIZE, "labels": anchors(), "door": DOOR, "shutter": SHUTTER}))
 
 
 def build(out):

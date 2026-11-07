@@ -28,7 +28,15 @@ In this article, I share a specific use case of the service and how we improved 
 
 Let's start by briefly looking at the system's original design. The system included a database that serves as the source of the data, a poller service that checks for changes in the source database every five seconds, and in case a change is found, it aggregates the data and stores it in a different database. Lastly, a Reader service is responsible for reading the aggregated data from the database and serving it to our clients.
 
-![Original design: a Poller reads the Source Data and writes Aggregated Data, which a Reader serves to the user](/images/blog/our-errors-original-design.jpg)
+```mermaid {title="Original design" desc="The user calls the Reader, which serves the Aggregated Data. The Poller checks the Source Data for changes every five seconds and writes what it aggregates to the Aggregated Data."}
+flowchart LR
+    User[User] --> Reader(Reader)
+    Reader ~~~ Aggregated
+    Aggregated ~~~ Poller
+    Aggregated[(Aggregated Data)] --> Reader
+    Poller(Poller) --> Aggregated
+    Poller --> Source[(Source Data)]
+```
 
 As you might already imagine, integration via a database is almost always a bad idea. It can lead to data inconsistency, lack of real-time updates, difficulty in making changes in the database schema, and more. But as we just said, temporary solution - right? Our system specifically suffered mainly from data inconsistency. The main root cause for the issues was that the entities in the database might not yet be finalized by the time they were polled. In such a case, the poller would ignore the data and would never return to fix it later.
 
@@ -38,7 +46,16 @@ As you might already imagine, integration via a database is almost always a bad 
 
 Eventually, the data-owning team began publishing events indicating that the data was finalized and ready for use. We amended our poller service, so it would start to listen to those events and store the IDs of the entities that are ready to be picked in a table that it would later poll. This ensures no data is missed. With the new change, our system now looks as follows:
 
-![The Poller now also listens to an Event Producer's data-is-finalised events](/images/blog/our-errors-finalised-events.jpg)
+```mermaid {title="Data finalised events" desc="The original design, plus an Event Producer that tells the Poller, on a dashed line, that data is finalised, so the Poller knows which entities are ready to be picked."}
+flowchart LR
+    User[User] --> Reader(Reader)
+    Reader ~~~ Aggregated
+    Aggregated ~~~ Poller
+    Aggregated[(Aggregated Data)] --> Reader
+    Poller(Poller) --> Aggregated
+    Poller --> Source[(Source Data)]
+    Producer(Event Producer) -. Data is finalised .-> Poller
+```
 
 You might ask: "***Why didn't you change the implementation to rely completely on the events?***". Well... First, the events lacked the required information. The only reason the data exists in the database, to begin with, is because of domain mixing. The mix in domains has been so deep that multiple teams worked very hard for a very long time to split those domains.
 
@@ -58,7 +75,18 @@ To solve this problem, we first introduced a new service responsible for managin
 
 Our system now looked like this:
 
-![The Poller calls a Day Open/Close Management service over REST for every entity](/images/blog/our-errors-day-management.jpg)
+```mermaid {title="Day management" desc="The previous design, plus a Day Open/Close Management service with its own Database, which the Poller calls over REST for every entity to assign it the current day."}
+flowchart LR
+    User[User] --> Reader(Reader)
+    Reader ~~~ Aggregated
+    Aggregated ~~~ Poller
+    Aggregated[(Aggregated Data)] --> Reader
+    Poller(Poller) --> Aggregated
+    Poller -- REST --> Day("Day Open/Close Management")
+    Day --> Database[(Database)]
+    Poller --> Source[(Source Data)]
+    Producer(Event Producer) -. Data is finalised .-> Poller
+```
 
 As you can imagine, using REST calls between the poller and the new service created a strong coupling. Every time we had to maintain the database of the day management service, our poller service received an internal error response from the REST call and did not assign an ID to the entity. We could resolve this situation by using asynchronous communication between the services. In such a case, the Day management service would notify all consumers whenever a new day is opened/closed and let them do as they wish with the information. Such a solution would allow scalability of the system, resiliency, and avoid coupling between the services (or as my favorite phrase says, building a distributed monolith).
 
@@ -76,7 +104,19 @@ If you're unfamiliar with the [materialized view](https://www.postgresql.org/doc
 
 That means that from that point on, our poller started to refresh the materialized view every day. That was supposed to be a temporary solution until we find a more suitable database for our needs (where did I hear this before?)
 
-![The Poller also refreshes a materialized view in the aggregated database every morning](/images/blog/our-errors-materialized-view.jpg)
+```mermaid {title="Materialised view" desc="The previous design, plus a second line from the Poller to the Aggregated Data, where it refreshes the materialised view every morning."}
+flowchart LR
+    User[User] --> Reader(Reader)
+    Reader ~~~ Aggregated
+    Aggregated ~~~ Poller
+    Aggregated[(Aggregated Data)] --> Reader
+    Poller(Poller) --> Aggregated
+    Poller -- Refresh Materialised View --> Aggregated
+    Poller -- REST --> Day("Day Open/Close Management")
+    Day --> Database[(Database)]
+    Poller --> Source[(Source Data)]
+    Producer(Event Producer) -. Data is finalised .-> Poller
+```
 
 At this point, I would like to stop and point out a few flaws in the above design with the requirements we had:
 

@@ -184,7 +184,7 @@ def install(name):
         for box in (LIFT, SIGN):
             small.paste(lobby.crop(box), box[:2])
     px = small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
-    for key in {room, name} & TOUCHUPS.keys():
+    for key in {room, name, name.replace("-winter", "")} & TOUCHUPS.keys():   # winter keeps its hour's touch-ups
         px = TOUCHUPS[key](px)
     px.save(HERE / "picks" / f"{name}-px.png")
     print("installed", name, src.size, "->", px.size, "colours:", len(px.getcolors(4096)))

@@ -208,6 +208,9 @@ flange's half-width and half-height, its turn and its plain hub's reach, in `FX`
 - `content/projects/` — projects listed on `/projects/` (Workshop Row)
 - `content/blog/` — blog posts
 - `content/testimonial/` — recommendation quotes with photos
+- `data/` — every other word on the site: `home/en.yaml` (the homepage, city, tower and contact), `cv.yaml`, `rooms.yaml`
+  (the district pages), `ui.yaml` (the top bar, footer, buttons, labels, search, 404, a post's page, page titles),
+  `art.yaml` (alt texts), `llms.yaml` and `library.yaml`. `CONTENT.md` maps each piece of text to its file and key
 - Experience, education and testimonial entries have no pages of their own: the `[[cascade]]` in `hugo.toml` renders
   them with `layouts/_default/redirect.html`, a noindex redirect to their homepage floor
 - `content/skills/_index.md` — skills page
@@ -216,7 +219,8 @@ flange's half-width and half-height, its turn and its plain hub's reach, in `FX`
   Office (`/contact/`, `post.html`). Each opens on its room, painted across the head at its own 1440:347 shape
   (`partials/room-hero.html`; a phone pans it): `radio.webp` and `post.webp`, baked by `web3d/pixel/gen_rooms.py` from
   `web3d/pixel/paintings/picks/{radio,post}.png` (one painting each, at dusk), with `ROOM-fx.json` for their animations
-  (`web3d/src/rooms-fx.js`, its own bundle, `--mode rooms`). Their copy is `contact` in `data/home/en.yaml`. The Post
+  (`web3d/src/rooms-fx.js`, its own bundle, `--mode rooms`). Their copy is `contact` in `data/home/en.yaml` and their labels
+  `radio` and `post` in `data/rooms.yaml`. The Post
   Office's letter is ruled: every line sits 21px into a 30px row, and the visual captures fail when one does not
 
 ## Languages
@@ -228,6 +232,9 @@ The site is English-only. Do not create `.he.md` variants, translation keys, lan
 - Prefer editing the custom templates in `layouts/` directly instead of introducing third-party theme assumptions
 - Keep the design system centralized in `assets/css/custom.css`
 - Use `assets/js/site.js` for the small amount of client-side behavior
+- No words in a template, outside `{{ }}` or in a `printf` format: they go in `data/` (`CONTENT.md`), so Yonatan can
+  change the text without the design. `npm run check:template-copy` (in `check:static`) fails on words outside `{{ }}`
+  in `layouts/`; it allows arrows, `·`, punctuation, entities and one-character floor badges
 
 ## Adding Content
 

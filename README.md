@@ -2,7 +2,8 @@
 
 Yonatan Karp-Rudin's site and blog, https://yonatankarp.com: a [Hugo](https://gohugo.io/) site with custom layouts, English
 only. The homepage is a pixel-art building, one storey per chapter of the CV, ridden by lift. `CLAUDE.md` has the details
-on the layouts, the pixel skin and the content rules.
+on the layouts, the pixel skin and the content rules. To change the site's words, see `CONTENT.md`: the pages' text
+lives in `content/` and `data/`, not in the templates.
 
 ## Quick start
 

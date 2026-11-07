@@ -27,7 +27,8 @@ The homepage (`layouts/index.html`) opens on the city: an aerial pixel-art panor
 that zooms into five districts, picked from a label or a chip in its panel: the Career Tower, the
 Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (`/podcast/`) and the Post Office (`/contact/`). The
 map moves by one transform (translate and scale, never scrolling), clamped so no edge of the art shows; a wheel, a
-trackpad or a finger pans it sideways at any zoom. The same chip again, or "Whole city", zooms back out ("Whole city" hands
+trackpad or a finger pans it sideways at any zoom, and a pinch is the browser's zoom. A resize keeps the pan, re-clamped, and
+re-centres only on a new width. The same chip again, or "Whole city", zooms back out ("Whole city" hands
 focus to the chip that was picked). A label's first
 click zooms to its district; the picked label then shows "→" and its next click goes in. A label stays whole on screen,
 slid inside the edges by `--shift` as on Workshop Row; one whose district is out of view, or that would sit under the
@@ -40,10 +41,12 @@ one; the dusk pick carries one more edit, the tower's glass entrance doors, from
 edited from it with the door), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
 middle in % of the art, and how far to zoom: `ZOOM`), capped where an art pixel would pass `MAX_PX` (4) screen px,
 so a big screen zooms less than a phone, and never under 1. The Career Tower is the pixel-art career
-building, entered at its lobby: any `#floor-X` address opens it directly, and pixel.js mounts it only then; back
+building, entered at its lobby: any `#floor-X` address, or an old one-page anchor (`LEGACY` in `web3d/src/hash.js`, which the pre-paint
+`$floorHash` in `layouts/index.html` must match: `scripts/test/building-hash.test.js`), opens it directly, and pixel.js mounts it only then; back
 at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city. It is the career
 only: every other topic has its building in the city. The old street's `#floor-E` lands in the lobby (`web3d/src/hash.js`),
-and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/` (the pre-paint script in `layouts/index.html`).
+and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/`, query kept (the pre-paint script in `layouts/index.html`). Without a script the lobby's
+"Back to the city" gives way to a sign with the other four districts' links.
 
 The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library.webp`, baked
 by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk), then every listed

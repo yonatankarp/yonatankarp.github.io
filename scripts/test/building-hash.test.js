@@ -28,7 +28,21 @@ test("floorShaped picks out the floor addresses a stale link may still carry", a
   const { floorShaped } = await load();
   assert.ok(floorShaped("#floor-9"));
   assert.ok(floorShaped("#FLOOR-42"));
+  assert.ok(floorShaped("#About"), "an old one-page anchor enters the tower too (#301)");
+  assert.ok(!floorShaped("#city"));
+  assert.ok(!floorShaped("#aboutx"));
   assert.ok(!floorShaped("#toggle-goatcounter"));
   assert.ok(!floorShaped("#building-stops"));
   assert.ok(!floorShaped(""));
+});
+
+test("the homepage's pre-paint test enters the tower for the hashes floorShaped does (#301)", async () => {
+  const { floorShaped, LEGACY } = await load();
+  const src = require("fs").readFileSync(require("path").join(__dirname, "../../layouts/index.html"), "utf8");
+  const [, body, flags] = src.match(/\$floorHash := `\/(.+)\/(\w*)`/);
+  const prePaint = new RegExp(body, flags);
+  const hashes = ["", "#", "#city", "#building-stops", "#toggle-goatcounter", "#floor-5", "#FLOOR-l", "#floor-", "#aboutx", "#xabout"];
+  for (const hash of [...hashes, ...Object.keys(LEGACY).flatMap((k) => [`#${k}`, `#${k.toUpperCase()}`])]) {
+    assert.equal(prePaint.test(hash), floorShaped(hash), hash);
+  }
 });

@@ -40,23 +40,26 @@
      minifyOutput finds nothing left to change; scripts/check-generated-html.js checks the built bytes still match. The
      error listener replaces the module tag's onerror attribute, which the CSP would block: capture phase, as a script's
      error event does not bubble, and registered before the tag, so no failure comes too early for it. */}}
-{{- /* The city (at-city) wherever the address names no floor and a module can run; without one, the plain page. The old
-     garage's addresses go first, to the projects' own page: the tower has no garage now. */}}
+{{- /* The city (at-city) wherever the address names no floor and a module can run; without one, the plain page. A floor's
+     address is #floor-X or one of the old one-page anchors, LEGACY in web3d/src/hash.js, which floorShaped there and
+     scripts/test/building-hash.test.js keep in step with this. The old garage's addresses go first, to the projects' own
+     page, at the same query: the tower has no garage now. */}}
+{{ $floorHash := `/^#(floor-|(about|contact|experience|proof|testimonial)$)/i` }}
 {{ $guided := resources.FromString "js/home-guided.js" (printf `
-if (/^#(floor-p|client-and-work-section)$/i.test(location.hash)) location.replace('%s');
+if (/^#(floor-p|client-and-work-section)$/i.test(location.hash)) location.replace('%s' + location.search);
 addEventListener('error', function (e) { if (e.target.type === 'module') { document.documentElement.classList.remove('building--guided', 'at-city'); document.querySelector('[data-building-pause]').hidden = true; } }, true);
 addEventListener('pagereveal', function (e) { if (e.viewTransition) { document.documentElement.classList.add('px-arrive'); document.dispatchEvent(new Event('building:reveal')); } });
-var modular = 'noModule' in HTMLScriptElement.prototype, floor = /^#floor-/i.test(location.hash);
+var modular = 'noModule' in HTMLScriptElement.prototype, floor = %s.test(location.hash);
 if (modular && !floor) document.documentElement.classList.add('at-city');
 if (modular && floor && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
-` ("projects/" | relURL)) | minify | fingerprint "sha256" }}
+` ("projects/" | relURL) $floorHash) | minify | fingerprint "sha256" }}
 {{- /* The hour's art (#151): dawn, day, dusk or night, and in winter its snowy art (city-winter[-PHASE].webp), picked
      once here (partials/time-pick.html) and read by pixel.js, never changed while the page is open. Before the stylesheet, which would hold this script back, so the city's art
      starts at once; a static preload tag would fetch the dusk city at every hour. A floor's address has no city. */}}
 {{ $time := resources.FromString "js/home-time.js" (printf `
 (function(){%s
-var d=document.documentElement.dataset,time=d.time,l=document.createElement('link');if(/^#floor-/i.test(location.hash))return;l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/city'+(d.season==='winter'?'-winter':'')+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
-` (partial "time-pick.html" .) $base $artVersion) | minify | fingerprint "sha256" }}
+var d=document.documentElement.dataset,time=d.time,l=document.createElement('link');if(%s.test(location.hash))return;l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/city'+(d.season==='winter'?'-winter':'')+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
+` (partial "time-pick.html" .) $floorHash $base $artVersion) | minify | fingerprint "sha256" }}
 {{- /* The lobby is where the lift starts, so its card is there at the first paint, unless the address names another floor;
      and the pause, wherever the tower moves. */}}
 {{ $lobby := resources.FromString "js/home-lobby.js" `/^(#floor-l)?$/i.test(location.hash) || document.currentScript.previousElementSibling.classList.remove('is-here');
@@ -66,8 +69,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   var x, d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel'), m = s.firstElementChild;
   if (!d.classList.contains('at-city')) return;
   var f = getComputedStyle(p).position === 'fixed', r = p.getBoundingClientRect().right, t = c.querySelector('.city-tag[data-pick=tower]'), l = c.querySelector('.city-tag[data-pick=library]');
-  i.loading = 'eager';
   i.src = i.dataset.base + (d.dataset.season === 'winter' ? '-winter' : '') + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
+  i.loading = 'eager';
   x = (f ? (r + s.clientWidth) / 2 : s.clientWidth / 2) - t.offsetLeft;
   x = Math.min(f ? Math.max(x, r + 8 + l.offsetWidth / 2 - l.offsetLeft) : x, s.clientWidth - 8 - t.offsetWidth / 2 - t.offsetLeft);
   m.style.transform = 'translate(' + Math.min(0, Math.max(s.clientWidth - m.offsetWidth, x)) + 'px, 0px) scale(1)';
@@ -90,6 +93,14 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   {{- /* Guided from the first paint, not when the module runs (#39): the query is guide.js's roomy, and only where
        a module can run; unguided again if the module fails to load. */}}
   <script>{{ $guided.Content | safeJS }}</script>
+  {{- /* Without a script the city is its panel at the top of the page, every district's words and link in a column, so
+       the name plate's, the lift's and the lobby's #city still lead somewhere (#301, #302). */}}
+  <noscript><style>
+    html:not(.at-city) .city { display: block; position: relative; z-index: 2; min-height: 0; }
+    .city-scene, .city-panel h1, .city-chips, .city-out { display: none; }
+    .city-panel { position: static; width: auto; max-width: 720px; max-height: none; margin: 16px clamp(12px, 3vw, 36px); }
+    .city-say [data-district] { display: block; margin: 0 0 28px; }
+  </style></noscript>
 </head>
 <body class="building pixel">
   <a class="skip-link" href="#building-stops">{{ hugo.Data.ui.skip.floor }}</a>
@@ -107,7 +118,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   <section class="city" id="city" aria-label="{{ $city.label }}" data-city>
     <div class="city-scene">
       <div class="city-map" style="aspect-ratio:{{ index $cityArt.size 0 }} / {{ index $cityArt.size 1 }}" data-zoom="{{ $cityArt.zoom | jsonify }}" data-max-px="{{ $cityArt.maxPx }}">
-        {{- /* Lazy, so a floor's address, which hides the city, never fetches it; on the city the script after it picks the hour's. */}}
+        {{- /* Lazy, so a floor's address, which hides the city, never fetches it; on the city the script after it picks the
+             hour's, then makes it eager: the other way round, the dusk picture starts and is cancelled (#300). */}}
         <img src="{{ $base }}pixel/city.webp?v={{ $artVersion }}" alt="{{ $city.alt }}" width="{{ index $cityArt.size 0 }}" height="{{ index $cityArt.size 1 }}" loading="lazy" data-base="{{ $base }}pixel/city" data-version="{{ $artVersion }}">
         {{- /* The city's life, drawn by city-fx.js at the art's pixels from the data beside the picture. */}}
         <canvas class="city-fx" width="{{ index $cityArt.size 0 }}" height="{{ index $cityArt.size 1 }}" aria-hidden="true"></canvas>
@@ -144,6 +156,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   <p class="sr-only" role="status" aria-live="polite" data-building-status data-copy-status></p>
 
   <nav class="elevator" aria-label="{{ $home.tower.floors }}">
+    {{- /* The way out on every floor, as the name plate goes: #city, which reloads onto the city (guide.js, #302). */}}
+    <a class="building-floor-btn building-city" href="#city" aria-label="{{ $home.tower.city_label }}" title="{{ $home.tower.city_label }}"><span aria-hidden="true">←</span> <span>{{ $home.tower.city }}</span></a>
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor></span></div>
     <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-keyshortcuts="R" aria-label="{{ $home.tower.roof_label }}" title="{{ $home.tower.roof_label }}">R</a>
     {{ range $experience }}

@@ -72,7 +72,10 @@ if (city && root.classList.contains('at-city')) {
     view(true);
   };
   view(false);
-  addEventListener('resize', () => view(false));
+  // Only a new width re-centres: iOS resizes as its toolbar collapses, and the visitor's pan stays, re-clamped (#301).
+  const layoutWidth = () => root.clientWidth;   // not innerWidth, which a pinch changes in WebKit
+  let wide = layoutWidth();
+  addEventListener('resize', () => (layoutWidth() === wide ? place(at.x, at.y, at.s, false) : (wide = layoutWidth(), view(false))));
   // In the capture phase, so a label's first click, which only zooms, never reaches its link or its GoatCounter count.
   city.addEventListener('click', (e) => {
     if (e.target.closest('[data-city-out]')) return pick(null);
@@ -91,9 +94,9 @@ if (city && root.classList.contains('at-city')) {
     e.preventDefault();
     place(at.x - (side ? e.deltaX : e.deltaY) * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? scene.clientWidth : 1), at.y, at.s, false);
   }, { passive: false });
-  // A finger pans it sideways too; up and down stay the page's scroll (touch-action: pan-y).
+  // A finger pans it sideways too; up and down stay the page's scroll, and a pinch the browser's zoom (touch-action).
   let finger = null;
-  scene.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') finger = e.clientX; });
+  scene.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse') finger = e.isPrimary ? e.clientX : null; });   // a second finger: a pinch
   scene.addEventListener('pointermove', (e) => {
     if (finger === null) return;
     place(at.x + e.clientX - finger, at.y, at.s, false);

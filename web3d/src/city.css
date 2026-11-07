@@ -17,7 +17,7 @@ html:not(.at-city) .city, html.at-city :is(.skip-link, #pixel-canvas, .building-
 .city-fx { position: absolute; inset: 0; pointer-events: none; }   /* over the picture, cropped as it is (city-fx.js) */
 /* The homepage's map moves and scales in one transform (city.js), not by scrolling: it glides over --glide, 0s until a
    pick sets it, and a finger's sideways drag is the script's. Its labels scale back by --inv to keep their size. */
-.city .city-scene { overflow: clip; touch-action: pan-y; }   /* clip: not even focus may scroll it under the transform */
+.city .city-scene { overflow: clip; touch-action: pan-y pinch-zoom; }   /* clip: not even focus may scroll it under the transform */
 .city .city-map { transform-origin: 0 0; transition: transform var(--glide, 0s) cubic-bezier(0.65, 0, 0.35, 1); }
 /* A label slides by --shift (city.js), in screen px, to stay whole in the free view; its stick stays on its spot. Away, it
    fades but keeps its place in the tab order: focus brings it into view. */

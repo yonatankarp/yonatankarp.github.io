@@ -35,7 +35,7 @@ copy:   # the Copy chip beside an email address
 not_found:   # the 404 page
   title: "That page is not here"
   lede: "Maybe the link is old, maybe the article moved, or maybe the address was typed wrong."
-  placeholder: "Search articles, projects and pages"
+  placeholder: "Search the whole site"   # short enough to show whole at 320px
   home: "Back to the homepage"
   blog: "To the blog"
   recent: "Recent posts"
@@ -59,7 +59,7 @@ search:   # /search/; its title and placeholder are content/search.md's
   skills: "Skills. %s %s. %s."   # what search finds for /skills/: its areas, its working set, the rest
 
 skills:   # /skills/; its title and lead line are content/skills/_index.md's
-  kicker: "Lobby · Skills"
+  kicker: "What I work with"
   areas: "Where I am strongest"
   working_set: "Current working set"
   working_set_text: "The tools and systems I use most in my current work."

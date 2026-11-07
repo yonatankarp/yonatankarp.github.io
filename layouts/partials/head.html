@@ -44,8 +44,10 @@
      on* attributes: move them into assets/js, or, for one that must run before the first paint, put its resource in
      .Store "inlineScripts" and it is allowed by its hash (layouts/index.html does). Diagrams are drawn at build time (#250), and
      GoatCounter is allowed as its one file, the count.v5.js its tag below loads. */}}
-{{- /* Every other page's backdrop follows the hour too (custom.css, .px-skin): the same pick, before the first paint. */}}
-{{ if not .IsHome }}{{ .Store.Set "inlineScripts" (slice (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256")) }}{{ end }}
+{{- /* Every other page's backdrop follows the hour too (custom.css, .px-skin): the same pick, before the first paint. The
+     Radio Mast and the Post Office hide the backdrop behind their room and read neither the hour nor the season, so they
+     skip it. The Library does too, but check-generated-html.js reads the pick's zone table from /blog/. */}}
+{{ if not (or .IsHome (in (slice "radio" "post") .Layout)) }}{{ .Store.Set "inlineScripts" (slice (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256")) }}{{ end }}
 {{- /* A standalone page's template may also put scripts it writes itself in the body in .Store "bodyScripts" before this
      partial (layouts/projects/list.html does, to pick its painting's hour as the image arrives). */}}
 {{ $hashes := "" }}{{ range slice (.Store.Get "inlineScripts") (.Store.Get "bodyScripts") }}{{ range . }}{{ $hashes = printf "%s '%s'" $hashes .Data.Integrity }}{{ end }}{{ end }}
@@ -90,7 +92,7 @@
 <link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
 {{ if not .IsHome }}{{/* the homepage (the building) brings its own styles */}}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}">
-<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">
+{{ if strings.Contains .Content `class="chroma"` }}<link rel="stylesheet" href="{{ $chroma.RelPermalink }}">{{ end }}{{/* only where code is highlighted */}}
 {{ end }}
 {{- /* Self-hosted Google Fonts latin subsets (OFL, licences in static/fonts/), here because the homepage skips custom.css (#142).
      Outfit and JetBrains Mono are variable, one file for every weight; a face only downloads once a glyph needs it,

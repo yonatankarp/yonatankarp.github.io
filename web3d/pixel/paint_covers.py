@@ -12,9 +12,9 @@ Art inside a post: the same two steps, with a name from INLINE and --install-inl
 Every post's idea shown through nature, in one family: same style, same palette, a different habitat and hour. Candidates go
 to web3d/pixel/paintings/candidates/cover-<slug>_<seed>.png (gitignored). They are not kept in git: the model does not
 redraw a seed bit for bit, so static/images/blog/covers/<slug>.jpg is the source from here on. A cover's .jpg is its
-painting, after its touch-up below if it has one, and its PNG is pixelate.py's bake of the .jpg at SIZE, the command
+painting, after its touch-up below if it has one, and its lossless WebP is pixelate.py's bake of the .jpg at SIZE, the command
 layouts/partials/blog-art.html names: --install writes the .jpg only from a candidate on disk, touching it up then, and
-rebakes every PNG from its .jpg, so a touch-up is never drawn twice. Art inside a post is baked from its candidate at
+rebakes every WebP from its .jpg, so a touch-up is never drawn twice. Art inside a post is baked from its candidate at
 INLINE_SIZE, after its touch-up, and kept as it is once the candidate is gone. Both kinds of touch-up work on the painting, in the old 192x108 cover's units.
 
 SIZE is 5x the old 192x108: a post's head shows the cover across the screen, so the finest the 1024x576 paintings allow
@@ -135,7 +135,7 @@ EDITS = {
      " no letters."),
 }
 
-# Art inside a post, in its cover's habitat. name: (the picked seed, what it shows, the prompt); shown from static/images/blog/pixel/<name>.png.
+# Art inside a post, in its cover's habitat. name: (the picked seed, what it shows, the prompt); shown from static/images/blog/pixel/<name>.webp.
 INLINE = {
     "hashmap-same-cell": (11, "equals() and hashCode(): equal objects land in the same bucket.",
      "A warm late-summer evening, amber and rose light through oak leaves. Close view of a wild beehive comb, a "
@@ -261,7 +261,7 @@ def install():
         candidate, jpg = CANDIDATES / f"cover-{slug}_{seed}.png", COVERS_DIR / f"{slug}.jpg"
         if candidate.exists():                                                 # touched up once, into the .jpg, the source after
             TOUCH_UPS.get(slug, lambda i: i)(Image.open(candidate).convert("RGB")).save(jpg, quality=90)
-        P.G.save_lossless(P.bake(Image.open(jpg), SIZE), COVERS_DIR / "pixel" / f"{slug}.png")   # from the .jpg, as the hint does
+        P.G.save_lossless(P.bake(Image.open(jpg), SIZE), COVERS_DIR / "pixel" / f"{slug}.webp")   # from the .jpg, as the hint does
 
 
 def fill(a, mask, passes=400):
@@ -307,11 +307,11 @@ def install_inline():
     INLINE_DIR.mkdir(exist_ok=True)
     for name, (seed, _, _) in INLINE.items():
         candidate = CANDIDATES / f"inline-{name}_{seed}.png"
-        if not candidate.exists():                                             # its PNG is the source once the candidate is gone
+        if not candidate.exists():                                             # its WebP is the source once the candidate is gone
             print("kept, no candidate:", name)
             continue
         painting = Image.open(candidate).convert("RGB")
-        P.G.save_lossless(P.bake(INLINE_TOUCH_UPS.get(name, lambda i: i)(painting), INLINE_SIZE), INLINE_DIR / f"{name}.png")
+        P.G.save_lossless(P.bake(INLINE_TOUCH_UPS.get(name, lambda i: i)(painting), INLINE_SIZE), INLINE_DIR / f"{name}.webp")
 
 
 def main():

@@ -98,13 +98,14 @@ strip's 12 frames: floor 7's payment, a painted pneumatic-post capsule (`picks/c
 `paint_rooms.py capsule`; `gen_floors.py` keys it into `capsule.webp` at 4x). pixel.js turns and smooths it into the room's
 own art pixels every frame, along `CAPSULE` (its path, size, ride and clip, in floors.json; the path and easing are
 `web3d/src/capsule.js`), from the start of each loop, darkened with the room, and not while paused or held. The lobby's
-two receptionists are drawn live too: painted upper bodies behind its desk (`picks/reception/NAME_POSE.png`, on magenta,
-from `paint_rooms.py receptionists`; `gen_floors.py` keys, cuts at the desk and bakes them into `receptionists.webp`, a
-row each and a column per pose, a 17 px head on 32 colours). Each rests, and now and then writes in the ledger or looks
-toward the lift or the door, resting in between, by their own weights and times on their own random clock
-(`web3d/src/reception.js`, tested in `scripts/test/reception.test.js`); their spots, the desk's row, the weights and the
-times are `RECEPTION` in floors.json. pixel.js draws them once, where the desk is, darkened with the room; paused they
-hold their pose, held (reduced motion, the plain page) they only rest.
+receptionist is drawn live too: one of two painted upper bodies behind its desk (`picks/reception/NAME_POSE.png`, on
+magenta, from `paint_rooms.py receptionists`; `gen_floors.py` keys, cuts at the desk and bakes both into
+`receptionists.webp`, a row each and a column per pose, a 17 px head on 32 colours). Each visit picks one of them at even
+odds, and only that one is drawn, at the one spot both share (right of the ledger and bell). They rest, and now and then
+write in the ledger or look toward the lift or the door, resting in between, by their own weights and times on a random
+clock (`web3d/src/reception.js`, which picks the person too, tested on a seed in `scripts/test/reception.test.js`); the
+spot, the desk's row, the weights and the times are `RECEPTION` in floors.json. pixel.js draws them once, where the desk
+is, darkened with the room; paused they hold their pose, held (reduced motion, the plain page) they only rest.
 
 The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
 laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the

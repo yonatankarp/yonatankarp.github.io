@@ -294,13 +294,14 @@ def capsule(out):
                       "clip": [[x + LOBBY_X, y + CEIL, w, h] for x, y, w, h in CAPSULE["clip"]], "size": [w, h]}
 
 
-# The lobby's two receptionists behind its desk, whose top edge (DESK_Y) hides them below the hands. Painted people
-# (picks/reception/NAME_POSE.png: paint_rooms.py receptionists), baked into receptionists.webp, a row per person and a column
-# per pose, which pixel.js draws live (web3d/src/reception.js picks the poses). Each rests most of the time, and now and then
-# writes in the ledger or looks toward the lift (left) or the door (right), on their own clock, resting in between. x is
-# the middle of each, in the painting's pixels; the times are ms, from-to.
+# The lobby's receptionist behind its desk, whose top edge (DESK_Y) hides them below the hands: one of two painted people
+# (picks/reception/NAME_POSE.png: paint_rooms.py receptionists), picked per visit, baked into receptionists.webp, a row per
+# person and a column per pose, which pixel.js draws live (web3d/src/reception.js picks the person and the poses). They rest
+# most of the time, and now and then write in the ledger or look toward the lift (left) or the door (right), by their own
+# weights, resting in between. spot is their middle, right of the ledger and bell, in the painting's pixels; the times are
+# ms, from-to.
 RECEPTION = dict(
-    spots={"ana": 420, "ben": 497},
+    spot=458,
     weights={"ana": {"idle": 5, "write": 3, "left": 1.2, "right": 1.2}, "ben": {"idle": 5, "write": 1.2, "left": 1.5, "right": 1.5}},
     times={"start": [1000, 4000], "idle": [2500, 7000], "write": [3000, 6500], "left": [1500, 3200], "right": [1500, 3200]},
 )
@@ -370,7 +371,7 @@ def receptionists(out):
             sheet.paste(f, (k * fw, j * fh))
     save_lossless(sheet, out / "receptionists.webp")
     return RECEPTION | {"people": list(RECEPTIONISTS), "poses": DESK_POSES, "w": fw, "h": fh, "desk": round(DESK_TOP * s),
-                        "deskY": DESK_Y + CEIL, "spots": {n: x + LOBBY_X for n, x in RECEPTION["spots"].items()}}
+                        "deskY": DESK_Y + CEIL, "spot": RECEPTION["spot"] + LOBBY_X}
 
 
 # Roof: the flag's folds run along it, the crane's warning light blinks, and at night the far city's windows twinkle.

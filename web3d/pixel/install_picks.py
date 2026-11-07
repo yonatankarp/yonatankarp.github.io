@@ -16,7 +16,7 @@ import math
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from paint_rooms import LOBBY  # noqa: E402
@@ -68,9 +68,44 @@ def blank(img, src, boxes):
 # Indoors, an hour's edit relit the whole room (sun across the wall, the bench recoloured): only what is seen outside is
 # taken from it, onto the dusk room. The reception's glass door with its frame, in painting pixels.
 VIEW = {"reception": (1970, 96, 2252, 724)}
-# And outdoors, winter's edit snowed on the roof's lift housing too, which is indoors: it is taken from the hour's own pick.
-# Its wall, in painting pixels (gen_floors.HOUSING, 265 art px).
-INDOORS = {"roof": (0, 0, 660, 768)}
+# Winter's edits snowed on what is indoors too (the roof's lift housing, the lobby door's frame, bars and handles), and
+# would not keep the lobby's view: a winter pick is the hour's own picture with only what may be snowy taken from its
+# edit. The roof: all but the housing (gen_floors.HOUSING, 265 art px); the lobby: its door's glass panes, but its push
+# bars and handles. In painting pixels.
+SNOWED = {"roof": [(660, 0, 2304, 768)],
+          "reception": [(1993, 106, 2057, 208), (2078, 96, 2232, 178), (2000, 231, 2057, 661), (2090, 221, 2130, 666),
+                        (2155, 204, 2230, 693)]}
+DRY = {"reception": [(1970, 464, 2252, 488), (2045, 436, 2122, 501)]}
+
+
+def snowed(room, hour):
+    """The mask of what a winter pick takes from its edit over the hour's picture: SNOWED, but in DRY the brass (the
+    bars and handles, as the hour has them), its edge softened a pixel."""
+    mask = Image.new("L", hour.size)
+    d = ImageDraw.Draw(mask)
+    for box in SNOWED[room]:
+        d.rectangle(box, fill=255)
+    m, px = mask.load(), hour.load()
+    for x0, y0, x1, y1 in DRY.get(room, []):
+        for y in range(y0, y1):
+            for x in range(x0, x1):
+                r, g, b = px[x, y]
+                if r > 50 and r - b > 20 and g >= b - 5:
+                    m[x, y] = 0
+    return mask.filter(ImageFilter.GaussianBlur(1))
+
+
+def unsnow(edit, room):
+    """The edit with its DRY boxes refilled, each column a blend from the row just above the box to the row just below:
+    the snow it laid on the bars and handles gone, the view behind them carried on."""
+    px = edit.load()
+    for x0, y0, x1, y1 in DRY.get(room, []):
+        for x in range(x0, x1):
+            top, bottom = px[x, y0 - 1], px[x, y1]
+            for y in range(y0, y1):
+                t = (y - y0 + 1) / (y1 - y0 + 1)
+                px[x, y] = tuple(round(a + (b - a) * t) for a, b in zip(top, bottom, strict=True))
+    return edit
 
 
 def unneedle(px):
@@ -123,16 +158,25 @@ def unletter(*boxes):
 TOUCHUPS = {"billie_risk": unneedle, "reception": plaques, "roof-day": unletter((136, 278, 164, 286))}   # a room, or one hour of it
 
 
-def install(name):
+def painting(name):
+    """What a pick is baked from: its candidate; an hour of a room, its view pasted on the dusk room; winter, the hour's
+    own picture with what may be snowy (snowed()) from its edit."""
     src = Image.open(HERE / "candidates" / PICKS[name]).convert("RGB")
     room = name.split("-")[0]
+    if "-winter" in name:
+        hour = painting(name.replace("-winter", ""))
+        hour.paste(unsnow(src, room), (0, 0), snowed(room, hour))
+        return hour
     if room in VIEW and room != name:
         hour, src = src, Image.open(HERE / "candidates" / PICKS[room]).convert("RGB")
         src.paste(hour.crop(VIEW[room]), VIEW[room][:2])
-    if room in INDOORS and "-winter" in name:
-        src.paste(Image.open(HERE / "candidates" / PICKS[name.replace("-winter", "")]).convert("RGB").crop(INDOORS[room]), INDOORS[room][:2])
     if room in BLANK:
         src = blank(src, *BLANK[room])
+    return src
+
+
+def install(name):
+    src, room = painting(name), name.split("-")[0]
     small = {"lobby": lambda: src.crop(LOBBY[1]).resize(LOBBY_PX, Image.BOX), "cab": lambda: src.resize(CAB_PX, Image.BOX)}.get(
         name, lambda: src.resize(FLOOR_PX, Image.BOX))()
     if name not in ("lobby", "cab"):   # before the colours are cut, so the lift has its share of the floor's budget

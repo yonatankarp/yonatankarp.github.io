@@ -8,16 +8,14 @@ between encoder runs while every pixel is the same, so a byte compare would fail
 Run: uv run web3d/pixel/compare_art.py NEW [OLD]   # OLD defaults to static/building/pixel
 
 Fails when a picture in OLD (WebP, or the city's depth map, a PNG) is missing from NEW or differs in size or in any pixel,
-or when one of the JSON files the pipeline writes differs.
+or when one of its JSON files is missing from NEW or differs. OLD can be any folder of baked art (CI compares the blog
+covers' and the icons' this way too); one with no JSON compares only its pictures.
 """
 import json
 import sys
 from pathlib import Path
 
 from PIL import Image, ImageChops
-
-JSONS = ("floors.json", "city.json", "city-fx.json", "city-winter-fx.json", "props.json", "workshop.json", "workshop-fx.json", "library-fx.json", "radio-fx.json", "post-fx.json",
-         "walkers.json", "readers.json", "cats.json", "cats-lobby.json")
 
 
 def main(new, old):
@@ -34,12 +32,15 @@ def main(new, old):
             elif box := ImageChops.difference(a, b).getbbox():
                 problems.append(f"{path.name}: pixels differ in {box}")
         count += 1
-    for name in JSONS:
-        if json.loads((new / name).read_text()) != json.loads((old / name).read_text()):
+    jsons = sorted(path.name for path in old.glob("*.json"))
+    for name in jsons:
+        if not (new / name).exists():
+            problems.append(f"{name}: not rebuilt")
+        elif json.loads((new / name).read_text()) != json.loads((old / name).read_text()):
             problems.append(f"{name}: differs")
     if problems:
         sys.exit("The art does not rebuild as committed:\n" + "\n".join(f"- {p}" for p in problems))
-    print(f"The art rebuilds pixel for pixel: {count} pictures and {', '.join(JSONS)}.")
+    print(f"The art rebuilds pixel for pixel: {count} pictures and {', '.join(jsons) or 'no JSON'}.")
 
 
 if __name__ == "__main__":

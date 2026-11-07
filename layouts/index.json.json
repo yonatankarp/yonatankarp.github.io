@@ -11,7 +11,7 @@
   {{- $title := .Title -}}
   {{- $href := .RelPermalink -}}
   {{- $summary := .Description | default (.Summary | plainify) -}}
-  {{- $content := .Plain -}}
+  {{- $content := .Content | replaceRE `(?s)<pre class="mermaid".*?</pre>` "" | plainify -}}   {{- /* not .Plain: a drawn diagram's SVG text, run together */ -}}
   {{- $tags := .Params.tags | default slice -}}
   {{- if .IsHome -}}
     {{- $summary = site.Params.description -}}

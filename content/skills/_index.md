@@ -18,7 +18,7 @@ practice_areas:
     tools: ["OpenTelemetry", "New Relic", "Kafka DLTs"]
   - name: "Technical writing"
     summary: "Writing about backend design, debugging, and implementation tradeoffs."
-    tools: ["Kotlin", "MkDocs"]
+    tools: ["MkDocs"]
 working_set:
   - "Kotlin"
   - "Java"

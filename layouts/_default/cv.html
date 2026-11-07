@@ -62,7 +62,7 @@
         <div class="cv-role-item__body">
           <div class="cv-role-item__top">
             <h3>{{ .Title }}</h3>
-            <span>{{ .Params.duration }}</span>
+            <span>{{ replace .Params.duration " - " " – " }}</span>
           </div>
           <p class="cv-sub">{{ .Params.company }}, {{ .Params.location }}</p>
           {{ with .Params.summary }}<p>{{ . }}</p>{{ else }}<p>{{ .Content | plainify }}</p>{{ end }}
@@ -91,7 +91,7 @@
         <article class="cv-edu__item" style="--accent:{{ with .Params.floor }}{{ index $accent . }}{{ else }}{{ index $accent "P" }}{{ end }}">
           <div class="cv-role-item__top">
             <h3>{{ .Params.university }}</h3>
-            <span>{{ .Params.year }}</span>
+            <span>{{ replace .Params.year "-" "–" }}</span>
           </div>
           <p class="cv-sub">{{ .Params.degree }}{{ with .Params.link }} · <a href="{{ . | absURL }}">{{ $cv.credential }}</a>{{ end }}</p>
           {{ with .Params.teaching }}<ul class="cv-teaching">{{ range . }}<li>{{ .title }} <span>{{ replace .when " - " " – " }}</span></li>{{ end }}</ul>{{ end }}

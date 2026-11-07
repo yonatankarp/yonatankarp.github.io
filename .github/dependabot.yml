@@ -1,10 +1,10 @@
 version: 2
 updates:
   - package-ecosystem: "github-actions"
-    # "/" only reaches .github/workflows, not the local composite action.
+    # "/" only reaches .github/workflows, not the local composite actions.
     directories:
       - "/"
-      - "/.github/actions/build-site"
+      - "/.github/actions/*"
     schedule:
       interval: "weekly"
     # github-actions does not support the semver-*-days keys.

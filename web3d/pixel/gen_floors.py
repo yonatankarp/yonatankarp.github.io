@@ -53,7 +53,7 @@ def save_lossless(im, path):
         pal = [c for _, c in colours]
         index = {c: i for i, c in enumerate(pal)}
         p = Image.new("P", ref.size)
-        p.putdata([index[c] for c in ref.getdata()])
+        p.putdata([index[c] for c in ref.get_flattened_data()])
         p.putpalette([v for c in pal for v in c], rawmode=ref.mode)
         p.save(path, optimize=True)
     else:
@@ -285,7 +285,7 @@ def capsule(out):
     """capsule.webp: the picked painting with its magenta keyed out (as gen_walkers keys the cats), cropped to the capsule and
     scaled to CAPSULE_SCALE times its size in art pixels. Returns CAPSULE in strip pixels, for floors.json."""
     im = Image.open(PICKS / "capsule.png").convert("RGB")
-    bg = [0 if g < 0.55 * min(r, b) and r > 60 and b > 60 else 255 for r, g, b in im.getdata()]
+    bg = [0 if g < 0.55 * min(r, b) and r > 60 and b > 60 else 255 for r, g, b in im.get_flattened_data()]
     alpha = Image.new("L", im.size)
     alpha.putdata(bg)
     alpha = alpha.filter(ImageFilter.MinFilter(5))                        # eats the pink fringe

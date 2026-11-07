@@ -303,8 +303,8 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 - Dashboard: `https://yonatankarp.goatcounter.com`
 - Localhost and private IPs are automatically excluded
 - To exclude your own visits from a browser, visit `https://yonatankarp.com#toggle-goatcounter` (sets a localStorage flag, built into the script)
-- Events (dashboard, Events): `cv-download` (the top bar's Download CV, the city's Post Office and the Post Office's CV parcel), `social-<icon>` (its social icons, and the Post Office's stamps:
-  `social-linkedin`, `social-github`, `social-x`, `social-podcast`), `email` (a mailto on the homepage, the CV, the Post Office or the footer),
+- Events (dashboard, Events): `cv-download` (the top bar's Download CV, the city's Post Office and the Post Office's CV parcel), `social-<icon>` (its social icons and the footer's: `social-linkedin`, `social-github`,
+  `social-x`, `social-podcast`; the Post Office's stamps send the first three, its podcast stamp leads to `/podcast/`), `email` (a mailto on the homepage, the CV, the Post Office or the footer),
   `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `roof-post` (the roof's Get in touch, to `/contact/`), `podcast-radio` (the Radio Mast's Listen button),
   `district-<key>` (the city panel's go link, and a map label's second click, which leads in; its first only zooms: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
   `district-post`) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `workshop-<group>` (a workshop picked on Workshop Row, by its

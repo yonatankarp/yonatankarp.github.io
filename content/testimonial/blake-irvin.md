@@ -5,11 +5,11 @@ title: "Blake Irvin"
 name: "Blake Irvin"
 position: "Leading Observability Engineering at SumUp"
 source: "LinkedIn recommendation"   # the line under the cite, with the date
-pullQuote: "I'd love to work with Yonatan again."   # an exact excerpt, shown in the building's lobby
+pullQuote: "I’d love to work with Yonatan again."   # an exact excerpt, shown in the building's lobby
 params:
     image:
         src: "images/testimonials/blake-irvin.jpg"
         scale: 0.5
 ---
 
-I'd love to work with Yonatan again. He's incredibly smart, cares deeply about quality but balances this with delivery speed, and (maybe most importantly) a great human to be teammates with.
+I’d love to work with Yonatan again. He’s incredibly smart, cares deeply about quality but balances this with delivery speed, and (maybe most importantly) a great human to be teammates with.

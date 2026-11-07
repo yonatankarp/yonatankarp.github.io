@@ -1,5 +1,5 @@
 ---
-date: 2025-12-01T00:00:00+01:00
+date: 2026-01-07T00:00:00+01:00   # the repository's creation
 title: "ff4k"
 weight: 10
 description: "A Kotlin Multiplatform feature flag library, started after my ff4j Jakarta migration work, with typed properties and a coroutine-first API."

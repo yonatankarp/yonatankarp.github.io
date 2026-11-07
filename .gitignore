@@ -40,11 +40,11 @@ web3d/pixel/paintings/candidates/*
 !web3d/pixel/paintings/candidates/roof_1100-night_1017.png
 # winter: each hour's pick under snow (paint_rooms.py winter), and the holidays' props' paintings (gen_props.py: the
 # snowy tree is tree-plain's input, the hanukkiah's the one unflame erases the flames from)
-!web3d/pixel/paintings/candidates/reception_1117-winter_700.png
+!web3d/pixel/paintings/candidates/reception_1117-winter_717.png
 !web3d/pixel/paintings/candidates/reception_1117-dawn_1000-winter_700.png
 !web3d/pixel/paintings/candidates/reception_1117-day_1000-winter_700.png
-!web3d/pixel/paintings/candidates/reception_1117-night_1000-winter_700.png
-!web3d/pixel/paintings/candidates/roof_1100-winter_700.png
+!web3d/pixel/paintings/candidates/reception_1117-night_1000-winter_717.png
+!web3d/pixel/paintings/candidates/roof_1100-winter_717.png
 !web3d/pixel/paintings/candidates/roof_1100-dawn_1000-winter_700.png
 !web3d/pixel/paintings/candidates/roof_1100-day_1000-winter_700.png
 !web3d/pixel/paintings/candidates/roof_1100-night_1017-winter_700.png

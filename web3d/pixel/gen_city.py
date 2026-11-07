@@ -398,8 +398,8 @@ def write_fx(out, night, day, dusk, plain=None):
     fx = {"windows": windows(night, day, dusk, lit), "sea": sea(night, plain[1] if plain else dusk), "walks": WALKS,
           "plazas": PLAZAS, "lanes": LANES, "lights": LIGHTS}
     (out / f"{name('dusk', bool(plain))}-fx.json").write_text(json.dumps(fx, separators=(",", ":")))
-    return fx
     shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # depth_map.py's map, as it is, at every season
+    return fx
 
 
 def write_json(out):

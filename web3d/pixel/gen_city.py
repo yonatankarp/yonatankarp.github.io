@@ -6,6 +6,8 @@
 
 Run: uv run web3d/pixel/gen_city.py blockout [OUT]                  # the code blockout, for a look
      uv run web3d/pixel/gen_city.py paint [--count N] [--start S]   # Draw Things repaints the blockout at dusk (port 7860)
+     uv run web3d/pixel/gen_city.py door [--count N] [--start S]    # Draw Things paints the tower's entrance doors
+     uv run web3d/pixel/gen_city.py door --pick SEED                # ... and one goes into the dusk pick
      uv run web3d/pixel/gen_city.py paint --time PHASE [...]        # ... or edits the dusk pick to another hour
      uv run web3d/pixel/gen_city.py build [OUT]                     # OUT/city.webp, city-PHASE.webp for every other
                                                                     # phase in data/phases.json, backdrop[-PHASE].webp
@@ -16,6 +18,8 @@ Run: uv run web3d/pixel/gen_city.py blockout [OUT]                  # the code b
 The blockout fixes where every district sits; the model paints over it, and the picked painting (PICKS) is box-reduced
 to ART_W wide on COLOURS colours, undithered. The other hours are the dusk pick edited by the model, which keeps the
 composition, so the labels' anchors (city.json, read by layouts/index.html) hold at every hour.
+The dusk pick is painting 700 with one more edit, the tower's entrance (door, seed DOOR_SEED), painted after it was
+picked; the other hours were then edited from the pick with its door.
 Paintings go to web3d/pixel/paintings/candidates/city[-PHASE]_SEED.png (not committed); the chosen one is copied to
 web3d/pixel/paintings/picks/city[-PHASE].png, the build's input, and its seed noted in PICKS.
 
@@ -33,7 +37,7 @@ import sys
 from pathlib import Path
 from random import Random
 
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
@@ -43,7 +47,9 @@ PW, H = 3456, 864                # the blockout: 4:1, so every district can be p
 PH = H // 64 * 64                # the painting's rows: Draw Things paints whole 64s, and pick 700's last 32 rows are black
 ART_W, COLOURS = 1440, 64
 SIZE = [ART_W, round(ART_W * PH / PW)]
-PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}   # the seed of each hour's pick, for the record
+# The seed of each hour's pick, for the record. Dusk is 700 plus the door edit (DOOR_SEED); the other hours were
+# remade from that pick, each at seed 700.
+PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks"   # picks/city[-PHASE].png: each hour's chosen candidate
 SPOTS = {"radio": (1090, 470), "library": (1180, 720), "tower": (1760, 580), "post": (2420, 470), "workshop": (2300, 730)}
 LOTS = {"radio": (970, 380, 1210, 490), "post": (2290, 360, 2560, 490), "library": (1010, 560, 1380, 740),
@@ -213,6 +219,60 @@ def paint(count, start, host, phase):
         print("painted", path.name, flush=True)
 
 
+# The Career Tower's entrance: a glass double door in a bronze frame, painted into the dusk painting after it was picked.
+# The model repaints a crop round the tower's foot with the doors blocked out, and the chosen seed goes back in under a
+# tight mask on the ground floor, so the tower's copper frame stays the painting's own.
+DOOR = (1503, 286, 2015, 798)              # painting px: the 512 px crop, the tower's foot (art 733, 226) in its middle
+DOOR_MASK, DOOR_FEATHER = (219, 228, 297, 282), 2   # crop px: the ground floor the edit keeps, and its soft edge
+DOOR_SEED = 28
+DOOR_PROMPT = (
+    "Edit this picture. In the lowest storey of the tall glass tower, where the dark bronze rectangle is, paint the "
+    "tower's main entrance: a pair of tall glass double doors in a dark bronze frame, set flush into the tower's glass "
+    "ground floor, closed, warm lobby light glowing through their glass, in the same rich painterly city-builder video "
+    "game style and the same warm golden dusk light. Do not add a porch, a canopy or any new building, and do not change "
+    "the small houses in front. Keep everything else in the picture exactly the same: the tower, its windows, the plaza, "
+    "the houses, the light and the shadows. No people, no text, no letters, no signs.")
+
+
+def before_door():
+    """The dusk painting without its door: paint's candidate of PICKS["dusk"], the pick as it was before the edit."""
+    path = CANDIDATES / f"city_{PICKS['dusk']}.png"
+    if not path.exists():
+        sys.exit(f"no {path}: paint it (gen_city.py paint --start {PICKS['dusk']} --count 1)")
+    return Image.open(path).convert("RGB").crop((0, 0, PW, PH))
+
+
+def paint_door(count, start, host):
+    crop = before_door().crop(DOOR)
+    d, a = ImageDraw.Draw(crop), lambda x, y: (round(x * PW / ART_W) - DOOR[0], round(y * PW / ART_W) - DOOR[1])
+    d.rectangle([*a(727, 216), *a(739, 229)], fill=(58, 36, 22))   # the doors' blockout (art 727-739 x 216-229), so the
+    d.rectangle([*a(728, 217), *a(738, 229)], fill=(150, 105, 55))  # model paints them there and nowhere else
+    d.line([*a(733, 217), *a(733, 229)], fill=(58, 36, 22), width=3)
+    buf = io.BytesIO()
+    crop.save(buf, "PNG")
+    for k in range(count):
+        seed = start + 17 * k
+        path = CANDIDATES / f"city-door_{seed}.png"
+        if path.exists():
+            print("kept", path.name)
+            continue
+        res = call(host, "/sdapi/v1/img2img", {"prompt": DOOR_PROMPT, "width": crop.width, "height": crop.height, "seed": seed,
+                                               "batch_size": 1, "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
+        Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).convert("RGB").save(path)
+        print("painted", path.name, flush=True)
+
+
+def install_door(seed):
+    """The dusk pick: the painting with the chosen door candidate composited in under the ground floor's soft mask."""
+    city = before_door()
+    mask = Image.new("L", (DOOR[2] - DOOR[0], DOOR[3] - DOOR[1]))
+    ImageDraw.Draw(mask).rectangle(DOOR_MASK, fill=255)
+    door = Image.open(CANDIDATES / f"city-door_{seed}.png").convert("RGB")
+    city.paste(Image.composite(door, city.crop(DOOR), mask.filter(ImageFilter.GaussianBlur(DOOR_FEATHER / 2))), DOOR[:2])
+    city.save(PICKED / "city.png")
+    print("wrote", PICKED / "city.png", "with door", seed, "(note it in DOOR_SEED, then repaint the other hours)")
+
+
 def bake(phase):
     """The painting box-reduced to the art's size, on its own COLOURS colours: the pixel look, with no dither to shimmer."""
     im = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
@@ -333,18 +393,21 @@ def build(out):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["blockout", "paint", "build", "json"])
+    ap.add_argument("cmd", choices=["blockout", "paint", "door", "build", "json"])
     ap.add_argument("out", nargs="?", default="static/building/pixel")
     ap.add_argument("--count", type=int, default=2)
     ap.add_argument("--start", type=int, default=700)
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     ap.add_argument("--time", choices=list(PICKS), default="dusk")
+    ap.add_argument("--pick", type=int, help="door: put this candidate into the dusk pick")
     a = ap.parse_args()
     if a.cmd == "blockout":
         blockout().save(Path(a.out) / "city-blockout.png")
         print("wrote", Path(a.out) / "city-blockout.png")
     elif a.cmd == "paint":
         paint(a.count, a.start, a.host, a.time)
+    elif a.cmd == "door":
+        install_door(a.pick) if a.pick is not None else paint_door(a.count, a.start, a.host)
     elif a.cmd == "json":
         write_json(Path(a.out))
     else:

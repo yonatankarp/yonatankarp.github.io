@@ -1,35 +1,37 @@
 // The city's life (city.js): walkers, cars, windows going dark, glints on the bay, the mast's and the crane's lights and
 // flocks of birds, over the picture (scene-fx.js), and in winter falling snow. Where they go is city-fx.json (in winter
-// city-winter-fx.json, its windows and bay found in the winter art) and what hides them is city-depth.png, both written by
-// web3d/pixel/gen_city.py. The holidays' props on the plaza (props.js) stand among the walkers, and stay when nothing moves.
+// city-winter-fx.json, its bay found in the winter art), the night's windows are city[-winter]-windows.json, fetched only
+// at night, and what hides them is city-depth.png, all written by web3d/pixel/gen_city.py. The holidays' props on the plaza (props.js) stand among the walkers, and stay when nothing moves.
 import { OUTSIDE } from './outside.js';
 import { props } from './props.js';
-import { animate, rnd, snowfall } from './scene-fx.js';
+import { animate, asset, rnd, snowfall } from './scene-fx.js';
 
 const root = document.documentElement;
 
 export function cityFx(canvas, img) {
   const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`, winter = root.dataset.season === 'winter';
+  const season = winter ? 'winter-' : '';
   const dir = new URL('.', new URL(img.dataset.base, location.href)).pathname;   // the art's folder: props.webp sits beside the city
   const plaza = props((ext) => `${dir}props.${ext}?v=${img.dataset.version}`, { ...OUTSIDE, time: root.dataset.time });
   const poster = (ctx) => plaza.then((items) => { ctx.clearRect(0, 0, canvas.width, canvas.height); for (const p of items) p.draw(ctx, null); });
   // Not once the tower is entered, which hides the city for good.
-  animate(canvas, { data: art(winter ? 'winter-fx.json' : 'fx.json'), depth: art('depth.png'), live: () => root.classList.contains('at-city'), poster },
-    (ctx, fx, { dfill, footAt }) => setup(ctx, fx, dfill, footAt, plaza, winter));
+  animate(canvas, { data: art(`${season}fx.json`), depth: art('depth.png'), live: () => root.classList.contains('at-city'), poster },
+    (ctx, fx, { dfill, footAt }) => setup(ctx, fx, dfill, footAt, plaza, art(`${season}windows.json`), winter));
 }
 
-function setup(ctx, fx, dfill, footAt, plaza, winter) {
+function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
   const W = ctx.canvas.width, time = root.dataset.time, night = time === 'night', lamps = night || time === 'dusk';
   const snow = winter && snowfall(ctx, night);
   let dressing = [];
   plaza.then((items) => { dressing = items; });
 
-  // Windows: at night each lit one switches off and on, slowly, in its own wall's colour. They are drawn first, on a layer
-  // made again only when one switches.
-  const now0 = performance.now();
-  const windows = night ? fx.windows.map((w) => ({ px: w.px, wall: `rgb(${w.wall})`, off: Math.random() < 0.15, next: now0 + rnd(1500, 30000) })) : [];
+  // Windows: at night each lit one switches off and on, slowly, in its own wall's colour, its whole pane at once. They are
+  // drawn first, on a layer made again only when one switches.
+  // Fetched only at night: a missing file leaves every window lit; a broken one fails as a page error (#297).
+  const now0 = performance.now(), lit = night ? asset(windowsUrl).then((r) => (r ? r.json() : [])) : Promise.resolve([]);
+  let windows = [], stale = true;
+  lit.then((list) => { windows = list.map((w) => ({ px: w.px, wall: `rgb(${w.wall})`, off: Math.random() < 0.15, next: now0 + rnd(1500, 30000) })); stale = true; });
   const layer = night && new OffscreenCanvas(W, ctx.canvas.height).getContext('2d');
-  let stale = true;
   const drawWindows = (now) => {
     if (!layer) return;
     for (const c of windows) if (now > c.next) { c.off = !c.off; c.next = now + (c.off ? rnd(5000, 25000) : rnd(10000, 50000)); stale = true; }
@@ -147,5 +149,5 @@ function setup(ctx, fx, dfill, footAt, plaza, winter) {
   // The fastest mover, in art pixels a second, sets how often a frame is drawn (scene-fx.js): the snow, a bird (up to 15),
   // a car or a walker.
   const fps = Math.max(snow ? snow.fps : 0, 15, ...cars.map((c) => c.v * c.lane.total), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * Math.hypot(w.seg[2] - w.seg[0], w.seg[3] - w.seg[1])));
-  return Object.assign((now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); }, { fps, ready: plaza });
+  return Object.assign((now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); }, { fps, ready: Promise.all([plaza, lit]) });
 }

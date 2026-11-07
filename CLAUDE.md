@@ -67,7 +67,9 @@ only: every other topic has its building in the city. The old street's `#floor-E
 and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/`, query kept (the pre-paint script in `layouts/index.html`). The lift's plate starts with
 "← City" on every floor, a link to `#city` like the name plate and the lobby's sign. Without a script the city is its
 panel at the top of the page, every district's words and link in a column (the `<noscript>` style in `layouts/index.html`),
-so those links still land on it.
+so those links still land on it. At the city the city's section is the page's main landmark (`role="main"`, set by
+`city.js`: without a script the tower's `<main>` is the page) and the skip link is "Skip to the city" (`#city`); in the
+tower it is "Skip to the current floor" (`#building-stops`), and `city.css` shows the one that fits.
 
 The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library.webp`, baked
 by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk), then every listed
@@ -91,7 +93,9 @@ package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitigno
 `render-codeblock-mermaid.html` inlines, so posts ship no Mermaid JS; `assets/js/diagram-zoom.js` adds the Zoom in. The
 hook fails the build when a diagram changed since it was drawn: rerun `node scripts/render-diagrams.js` (also during
 `npm run serve`). The art is in `static/building/pixel/`, made by the Python pipeline in
-`web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Each experience entry's `floor`
+`web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Its data that is bundled into the JS
+(`floors.json`, `cats-lobby.json`) or read while building (`city.json`, `workshop.json`) is kept out of `public/` by the
+`static` mount's `files` in `hugo.toml`: a new such file goes there too. Each experience entry's `floor`
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
 
 The building's art follows the real sun where the visitor is: their time zone's main city (`data/timezones.json`, Berlin
@@ -123,8 +127,8 @@ picture with only `SNOWED` taken from its edit (`install_picks.py`): the roof bu
 glass but its brass. The files
 put the season before the hour: `city-winter[-PHASE].webp`, `floor-R-winter[-PHASE].webp`, `backdrop-winter[-PHASE].webp`;
 each phase's `winter` in `phases.json` has its sky and baked rooms (`LR`, dusk too), and `art.js` fetches only the
-season's strips. The city's windows and bay are found again in the winter art (`city-winter-fx.json`); its depth map is
-shared. `check:phases` fails until every phase has its winter art.
+season's strips. The city's windows and bay are found again in the winter art (`city-winter-fx.json`,
+`city-winter-windows.json`); its depth map is shared. `check:phases` fails until every phase has its winter art.
 
 `web3d/src/outside.js` works out the holidays from `calendar.js` (tested in `scripts/test/calendar.test.js`), with the
 season and the visitor's place (`html[data-place]`, for sunset) from the head's pick; the city imports it for the props
@@ -180,8 +184,10 @@ The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a ca
 laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the
 main street and the ring road (headlights at dusk and night), windows going dark at night, glints on the bay, the radio
 mast's beacon and the crane's lights, and flocks of birds. Movers hide behind what is nearer in `city-depth.png`
-(brighter = nearer). `gen_city.py build` writes `city-fx.json` (the windows and the bay found in the baked art, and the
-walks, plazas, lanes and lights in its `WALKS`, `PLAZAS`, `LANES` and `LIGHTS`) and copies `city-depth.png` from
+(brighter = nearer). `gen_city.py build` writes `city-fx.json` (the bay found in the baked art, only the water the day
+art's blue reaches from `BAY_SEED`, so no glint lands on the far shore; and the walks, plazas, lanes and lights in its
+`WALKS`, `PLAZAS`, `LANES` and `LIGHTS`), `city-windows.json` (the lit windows, each a whole window grown from its warm
+rim, so it goes dark as one; fetched only at night) and copies `city-depth.png` from
 `web3d/pixel/paintings/picks/`, which `uv run web3d/pixel/depth_map.py city` makes from the dusk pick (it needs torch, so
 it is not part of the build: rerun it, and commit its output, when the dusk pick changes). In winter snow falls over the whole art (`snowfall` in `scene-fx.js`: 520 flakes, 1 px and some 2 px, 7-23 px a second
 with a drift, bluish and dimmer at night), on Workshop Row too; not on the roof, whose canvas redraws only when it moves.

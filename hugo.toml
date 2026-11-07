@@ -9,6 +9,12 @@ title = "Yonatan Karp-Rudin"
 [[module.mounts]]
   source = "static/images/blog"
   target = "assets/images/blog"
+# The art's data that is bundled into the JS (floors.json, cats-lobby.json) or read while building (city.json,
+# workshop.json) stays out of public/: nothing fetches it (#300). Mounting static drops its default too.
+[[module.mounts]]
+  source = "static"
+  target = "static"
+  files = ["! building/pixel/floors.json", "! building/pixel/cats-lobby.json", "! building/pixel/city.json", "! building/pixel/workshop.json"]
 
 [outputs]
   page = ["HTML"]

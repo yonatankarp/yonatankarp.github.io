@@ -12,27 +12,36 @@ export const DIWALI = { 2026: '11-08', 2027: '10-29', 2028: '10-17', 2029: '11-0
 const EID = ['AE', 'AF', 'AL', 'AZ', 'BD', 'BF', 'BH', 'BN', 'DJ', 'DZ', 'EG', 'GM', 'GN', 'ID', 'IQ', 'IR', 'JO', 'KG', 'KM', 'KW', 'KZ', 'LB', 'LY', 'MA', 'ML', 'MR', 'MV', 'MY', 'NE', 'NG', 'OM', 'PK', 'PS', 'QA', 'SA', 'SD', 'SN', 'SO', 'SY', 'TD', 'TJ', 'TM', 'TN', 'TR', 'UZ', 'XK', 'YE'];
 
 // Each holiday: where it is kept (HOME's are kept for everyone), and how many days of decorations from its first.
-// first(date) says which day of it the date is (0 for its first), or -1.
+// first(date) says which day of it the date is (0 for its first), or -1. A `sunset` one follows a calendar whose day
+// begins at sunset (the Hebrew and the Islamic): after sunset it is already the next day's (holidaysOn's `evening`).
+// Left out on purpose: Yom Kippur, Yom HaShoah and Yom HaZikaron, solemn days that get no festive dressing.
 export const HOLIDAYS = {
   'new-year': { where: 'all', first: (d) => (d.getMonth() === 11 && d.getDate() === 31 ? 0 : d.getMonth() === 0 && d.getDate() === 1 ? 1 : -1) },
   'lunar-new-year': { where: ['CN', 'HK', 'KR', 'MO', 'MY', 'SG', 'TW', 'VN'], first: (d) => sinceDay(d, 'chinese', '1', 1, 15) },   // to the Lantern Festival
-  'eid-al-fitr': { where: EID, first: (d) => sinceDay(d, 'islamic-umalqura', '10', 1, 3) },
-  'eid-al-adha': { where: EID, first: (d) => sinceDay(d, 'islamic-umalqura', '12', 10, 4) },
+  'eid-al-fitr': { where: EID, sunset: true, first: (d) => sinceDay(d, 'islamic-umalqura', '10', 1, 3) },
+  'eid-al-adha': { where: EID, sunset: true, first: (d) => sinceDay(d, 'islamic-umalqura', '12', 10, 4) },
+  purim: { where: HOME, sunset: true, first: (d) => Math.max(sinceDay(d, 'hebrew', 'Adar', 14, 1), sinceDay(d, 'hebrew', 'Adar II', 14, 1)) },   // Adar II in a leap year
+  passover: { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Nisan', 15, 7) },   // seven days, as kept in Israel
   easter: { where: HOME, first: (d) => within(d, easter(d.getFullYear()), -7, 1) },   // Palm Sunday to Easter Monday, when Germany's egg trees are out
-  sukkot: { where: HOME, first: (d) => sinceDay(d, 'hebrew', 'Tishri', 15, 7) },
+  'yom-haatzmaut': { where: HOME, sunset: true, first: independenceDay },
+  'lag-baomer': { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Iyar', 18, 1) },   // its bonfires
+  shavuot: { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Sivan', 6, 1) },
+  'rosh-hashanah': { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Tishri', 1, 2) },
+  sukkot: { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Tishri', 15, 7) },
   halloween: { where: ['CA', 'GB', 'IE', 'US'], first: (d) => (d.getMonth() === 9 && d.getDate() >= 24 ? d.getDate() - 24 : -1) },
   diwali: { where: ['FJ', 'GY', 'IN', 'LK', 'MU', 'MY', 'NP', 'SG', 'SR', 'TT'], first: (d) => (DIWALI[d.getFullYear()] ? within(d, local(`${d.getFullYear()}-${DIWALI[d.getFullYear()]}`), -2, 2) : -1) },   // Dhanteras to Bhai Dooj
-  hanukkah: { where: HOME, first: (d) => sinceDay(d, 'hebrew', 'Kislev', 25, 8) },
+  hanukkah: { where: HOME, sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Kislev', 25, 8) },
   christmas: { where: HOME, first: (d) => (d.getMonth() === 11 && d.getDate() <= 26 ? d.getDate() - 1 : -1) },   // the lights are up all of Advent
 };
 
 // The holidays on a date, for a visitor from one of `countries` (none known: HOME's alone), with which day of each it is:
-// { hanukkah: 3 } is its fourth day, the fourth candle.
-export function holidaysOn(date, countries = []) {
-  const out = {};
+// { hanukkah: 3 } is its fourth day, the fourth candle. `evening`: the sun has set where they are, so the sunset
+// holidays go by the next day (the first candle is lit on the evening before 25 Kislev).
+export function holidaysOn(date, countries = [], evening = false) {
+  const out = {}, next = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
   for (const [name, h] of Object.entries(HOLIDAYS)) {
     if (h.where !== 'all' && !h.where.some((c) => HOME.includes(c) || countries.includes(c))) continue;
-    const day = h.first(date);
+    const day = h.first(evening && h.sunset ? next : date);
     if (day >= 0) out[name] = day;
   }
   return out;
@@ -84,6 +93,13 @@ function sinceDay(d, calendar, month, day, length) {
     if (c.month === month && c.day === day) return n;
   }
   return -1;
+}
+
+// Israel's Independence Day, 5 Iyar, which falls only on a Monday, Wednesday, Friday or Saturday, as the law moves it:
+// a Friday's or a Saturday's back to the Thursday before, a Monday's on to the Tuesday. 0 on the day it is kept, or -1.
+const IYAR_5 = { 3: [0], 4: [1, 2], 2: [-1] };   // the day kept, by weekday: how many days from it 5 Iyar is
+function independenceDay(d) {
+  return (IYAR_5[d.getDay()] ?? []).some((k) => sinceDay(new Date(d.getFullYear(), d.getMonth(), d.getDate() + k), 'hebrew', 'Iyar', 5, 1) === 0) ? 0 : -1;
 }
 
 // Western Easter Sunday (the anonymous Gregorian computus).

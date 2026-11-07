@@ -101,10 +101,12 @@ function zoneTable() {
 
 // The time-of-day pick (assets/js/time-pick.js) run as a page runs it, for a visitor in zone (undefined: none) at instant
 // ms with query ?time=: the phase it sets, and its sunPhase(ms, lat, lon). script is the whole inline script, by default
-// that file with zoneTable() written in; a built page's own works too (its sunPhase is then inside its wrapper).
+// that file with zoneTable() written in, then assets/js/sun.js without its export, as layouts/partials/time-pick.html
+// puts them; a built page's own works too (its sunPhase is then inside its wrapper).
 let defaultPick;
 function runTimePick({ zone, ms, query = "", script }) {
-  script ??= defaultPick ??= fs.readFileSync(path.join(rootDir, "assets", "js", "time-pick.js"), "utf8").replace("ZONES", JSON.stringify(zoneTable()));
+  const js = (name) => fs.readFileSync(path.join(rootDir, "assets", "js", name), "utf8");
+  script ??= defaultPick ??= js("time-pick.js").replace("ZONES", JSON.stringify(zoneTable())) + js("sun.js").replace("export ", "");
   const documentElement = { dataset: {} };
   const context = vm.createContext({
     URLSearchParams,

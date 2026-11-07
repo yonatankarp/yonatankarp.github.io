@@ -35,7 +35,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
+from paint_rooms import OUT as CANDIDATES, call, magenta  # noqa: E402
 
 PAINTED = CANDIDATES / "walkers"
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks" / "walkers"
@@ -338,8 +338,7 @@ def cat_keyed(pick, black=False):
     if not path.exists():
         sys.exit(f"no {path}: paint it (gen_walkers.py cats) and copy the chosen frame there")
     a = np.asarray(Image.open(path).convert("RGB").resize((CW, CH))).astype(int)
-    r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    bg = (g < 0.55 * np.minimum(r, b)) & (r > 60) & (b > 60)
+    bg = magenta(a)
     if black:
         lum = (a * [.3, .59, .11]).sum(-1, keepdims=True)
         a = np.clip((lum + (a - lum) * .35) * .7, 0, 255).astype(int)
@@ -389,8 +388,7 @@ def frame(pick, person):
     if not path.exists():
         sys.exit(f"no {path}: paint it (gen_walkers.py paint or browse) and copy the chosen frame there")
     a = np.asarray(Image.open(path).convert("RGB").resize((W, H))).astype(int)
-    r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    bg = (g < 0.55 * np.minimum(r, b)) & (r > 60) & (b > 60)   # the painted backdrop is a magenta gradient: green far under red and blue
+    bg = magenta(a)
     alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(7))
     im = Image.fromarray(a.astype(np.uint8), "RGB")
     im.putalpha(alpha)

@@ -31,7 +31,7 @@ from random import Random
 from PIL import Image, ImageChops, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import ENTRANCE_KEEP, FLOOR_SIZE  # noqa: E402
+from paint_rooms import ENTRANCE_KEEP, FLOOR_SIZE, magenta  # noqa: E402
 
 W, H = 960, 360
 CEIL, SLAB = 28, 24           # the slab above the room (rows 0..CEIL), and below it (H - SLAB..H)
@@ -292,11 +292,11 @@ def billie_payments(room, f, phase):
 def capsule(out):
     """capsule.webp: the picked painting with its magenta keyed out (as gen_walkers keys the cats), cropped to the capsule and
     scaled to CAPSULE_SCALE times its size in art pixels. Returns CAPSULE in strip pixels, for floors.json."""
+    import numpy as np  # here, not at the top: gen_icons and pixelate import this module with pillow alone
+
     im = Image.open(PICKS / "capsule.png").convert("RGB")
-    bg = [0 if g < 0.55 * min(r, b) and r > 60 and b > 60 else 255 for r, g, b in im.get_flattened_data()]
-    alpha = Image.new("L", im.size)
-    alpha.putdata(bg)
-    alpha = alpha.filter(ImageFilter.MinFilter(5))                        # eats the pink fringe
+    bg = magenta(np.asarray(im).astype(int))
+    alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5))   # eats the pink fringe
     im.putalpha(alpha)
     w, h = CAPSULE["size"]
     save_lossless(im.crop(alpha.getbbox()).resize((w * CAPSULE_SCALE, h * CAPSULE_SCALE), Image.LANCZOS), out / "capsule.webp")
@@ -362,8 +362,7 @@ def receptionists(out):
         for kind in DESK_POSES:
             a = np.asarray(Image.open(PICKS / "reception" / f"{name}_{kind}.png").convert("RGB").resize((W0, H0))).astype(int)
             r, g, b = a[..., 0], a[..., 1], a[..., 2]
-            bg = ((g < 0.55 * np.minimum(r, b)) | ((np.minimum(r, b) - g > 45) & (abs(r - b) < 90))
-                  | ((r > 200) & (g < 0.6 * r) & (b > g + 15))) & (r > 60) & (b > 60)   # magenta, and its lamp-lit pinks and corals
+            bg = magenta(a, ((np.minimum(r, b) - g > 45) & (abs(r - b) < 90)) | ((r > 200) & (g < 0.6 * r) & (b > g + 15)))   # and its lamp-lit pinks and corals
             bg[DESK_TOP + 4:] = True   # below the desk's top: the room's own desk stands in front
             bg[:40] = True             # the model hangs a lamp over every head: cut above the hair
             alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5))

@@ -30,15 +30,15 @@ import io
 import json
 import math
 import sys
-import urllib.request
 from itertools import pairwise
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import gen_city  # noqa: E402
 from gen_city import ART_W, COLOURS, PH, PW, ROOT, SIZE, H  # noqa: E402
-from paint_rooms import OUT as CANDIDATES  # noqa: E402
+from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
 
 PICKS = {"dusk": 1000, "dawn": 1000, "day": 1000, "night": 1000}   # the seed of each hour's pick, for the record
 WINTER_PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}   # ... and of each hour's winter
@@ -147,21 +147,11 @@ WINTER = {"day": "Edit this picture. Keep the time of day exactly as it is, {}, 
 
 
 def name(phase, winter=False):
-    return f"workshop{'-winter' if winter else ''}{'' if phase == 'dusk' else '-' + phase}"
+    return gen_city.name(phase, winter, "workshop")
 
 
 def pick(phase, winter=False):
-    path = PICKED / f"{name(phase, winter)}.png"
-    if not path.exists():
-        sys.exit(f"no {path}: paint it (gen_workshop.py paint --time {phase}{' --winter' if winter else ''}), copy the chosen candidate there and note its seed in {'WINTER_PICKS' if winter else 'PICKS'}")
-    return path
-
-
-def call(host, payload):
-    """One img2img job. Draw Things paints one job at a time, so a queue of other jobs can hold this one for long."""
-    req = urllib.request.Request(host + "/sdapi/v1/img2img", data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=4 * 3600) as r:
-        return json.loads(r.read())
+    return gen_city.pick(phase, winter, "workshop")
 
 
 def paint(count, start, host, phase, winter=False):
@@ -180,7 +170,7 @@ def paint(count, start, host, phase, winter=False):
         if path.exists():
             print("kept", path.name)
             continue
-        res = call(host, {"prompt": prompt, "width": PW, "height": PH, "seed": seed, "batch_size": 1, "strength": 1.0,
+        res = call(host, "/sdapi/v1/img2img", {"prompt": prompt, "width": PW, "height": PH, "seed": seed, "batch_size": 1, "strength": 1.0,
                           "init_images": [base64.b64encode(buf.getvalue()).decode()]})
         Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).save(path)
         print("painted", path.name, flush=True)

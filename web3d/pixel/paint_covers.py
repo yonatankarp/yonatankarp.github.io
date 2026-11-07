@@ -23,9 +23,7 @@ fills the article's 758px column at 1:1 (custom.css).
 """
 import argparse
 import base64
-import json
 import sys
-import urllib.request
 from pathlib import Path
 
 import numpy as np
@@ -33,6 +31,7 @@ from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pixelate as P  # noqa: E402
+from paint_rooms import call  # noqa: E402
 
 CANDIDATES = Path(__file__).resolve().parent / "paintings" / "candidates"
 COVERS_DIR = Path(__file__).resolve().parents[2] / "static" / "images" / "blog" / "covers"
@@ -345,11 +344,9 @@ def main():
         if path.exists():
             print("kept", path.name)
             continue
-        req = urllib.request.Request(args.host + ("/sdapi/v1/img2img" if job else "/sdapi/v1/txt2img"), data=json.dumps(
-            {"prompt": prompt, "width": 1024, "height": 576, "seed": seed, "batch_size": 1, **job}).encode(),
-            headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=900) as r:
-            path.write_bytes(base64.b64decode(json.loads(r.read())["images"][0].split(",")[-1]))
+        res = call(args.host, "/sdapi/v1/img2img" if job else "/sdapi/v1/txt2img",
+                   {"prompt": prompt, "width": 1024, "height": 576, "seed": seed, "batch_size": 1, **job}, timeout=900)
+        path.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
         print("painted", path.name, flush=True)
 
 

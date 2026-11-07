@@ -12,7 +12,6 @@ const TOL = 5;   // out of 255: how much nearer than a mover's feet a pixel may 
 // On the city it is the tower's once the tower is entered (live() goes false).
 export const PAUSE_KEY = 'building-paused';
 export const pausedStored = () => { try { return localStorage.getItem(PAUSE_KEY) === 'true'; } catch { return false; } };   // blocked storage: not remembered
-const pauseButton = document.querySelector('[data-building-pause]');
 let paused = pausedStored();
 export function pauseLabel(button, on, hidden) {
   button.hidden = hidden;
@@ -142,6 +141,7 @@ function loop(ctx, draw, live, still, poster) {
     raf = requestAnimationFrame(frame);
   };
   const wake = () => { if (!raf && going()) { last = performance.now(); raf = requestAnimationFrame(frame); } };
+  const pauseButton = document.querySelector('[data-building-pause]');
   const label = () => { if (pauseButton && live()) pauseLabel(pauseButton, paused, still.matches); };   // reduced motion has nothing to pause
   label();
   pauseButton?.addEventListener('click', () => {

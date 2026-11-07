@@ -76,7 +76,8 @@ hook fails the build when a diagram changed since it was drawn: rerun `node scri
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
 
 The building's art follows the real sun where the visitor is: their time zone's main city (`data/timezones.json`, Berlin
-when unknown) gives the sun's elevation now, day above +6°, night at -8° or below, and dawn or dusk between, before or
+when unknown; each zone's latitude and longitude from the tz database, written by `node scripts/gen-timezones.js`, rerun
+after a tzdata release that adds zones) gives the sun's elevation now, day above +6°, night at -8° or below, and dawn or dusk between, before or
 after noon. It is picked once at load by the inline script in `layouts/index.html` (`html[data-time]`), from
 `assets/js/time-pick.js` (tested in `scripts/test/time-pick.test.js`). `/?time=dawn|day|dusk|night` overrides it for
 testing; anything else means the sun. Never pick by the hour: read `html[data-time]`. Dusk is the plain files. The rooms
@@ -108,10 +109,9 @@ shared. `check:phases` fails until every phase has its winter art.
 
 `web3d/src/outside.js` works out the holidays from `calendar.js` (tested in `scripts/test/calendar.test.js`), with the
 season and the visitor's place (`html[data-place]`, for sunset) from the head's pick; the city imports it for the props
-below. It does not look up the visitor's country (the zone table would weigh 7 KB in the city's bundle), so only his
-holidays and everyone's come up, and the weather (`weatherOf`) is still unused. Besides the visitor's own, his are kept for everyone (`HOME`): Christmas, the new year, Easter, and the
+below. Every visitor gets the same holidays, his: Christmas, the new year, Easter, and the
 Jewish holidays by their Hebrew date (Rosh Hashanah, Sukkot, Hanukkah, Purim, Passover, Independence Day with the law's
-moves, Lag BaOmer, Shavuot; not the solemn days). The Hebrew and Islamic ones (`sunset: true`) begin at sunset:
+moves, Lag BaOmer, Shavuot; not the solemn days). The Hebrew ones (`sunset: true`) begin at sunset:
 `holidaysOn`'s `evening` flag reads the next day for them, which outside.js sets once the sun is below -0.833° at the
 visitor's city after noon (`isEvening` in calendar.js), from `assets/js/sun.js`, the elevation the time-of-day pick uses too (`time-pick.html` and
 `scripts/lib.js` put it after `time-pick.js`, without its `export`). `?holiday=` pins them (`fromQuery` in calendar.js).

@@ -32,7 +32,7 @@ const hashKey = () => floorKey(location.hash, ORDER);   // a floor that exists a
 const PAY = 36;                                                 // floor 7's capsule's canvas, in art pixels: it turned any way, on the 4-pixel Bayer grid
 const TRIES = 3, RETRY_MS = 2000;                                // a strip that failed to load is asked for again, this often and no sooner
 
-export function mountPixel({ canvas, stops, base = '/building/', version = '', pauseButton }) {
+function mountPixel({ canvas, stops, base = '/building/', version = '', pauseButton }) {
   const ctx = canvas.getContext('2d');
   const keys = stops.map((s) => s.dataset.floor);
   const strips = new Map();         // key -> ImageBitmap or Image (or null while loading / missing)

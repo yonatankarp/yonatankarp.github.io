@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
 // data/timezones.json, which places a visitor without asking them: the browser tells the page their IANA timezone, and
-// this table says which country that zone is in and roughly where (its main city), to one decimal of a degree. The head's
-// time pick (layouts/partials/time-pick.html, and scripts/lib.js for the tests) builds its zone table from it, for the
-// sun's elevation and the season there. The country is read only by placeOf in web3d/src/calendar.js, which the city does
-// not call yet (web3d/src/outside.js says why).
+// this table says roughly where that zone is (its main city's latitude and longitude), to one decimal of a degree. The
+// head's time pick (layouts/partials/time-pick.html, and scripts/lib.js for the tests) builds its zone table from it, for
+// the sun's elevation and the season there.
 // Made from the tz database's zone.tab, and its links (tzdata.zi), as browsers may still report an old name such as
 // Asia/Calcutta. Run it again after a tzdata release that adds zones: node scripts/gen-timezones.js [zoneinfo dir]
 const fs = require("fs");
@@ -23,9 +22,9 @@ function degrees(text, width) {
 const zones = {};
 for (const line of read("zone.tab").split("\n")) {
   if (!line || line.startsWith("#")) continue;
-  const [country, coords, zone] = line.split("\t");
+  const [, coords, zone] = line.split("\t");
   const [, lat, lon] = coords.match(/^([+-]\d+)([+-]\d+)$/);
-  zones[zone] = [country, degrees(lat, 2), degrees(lon, 3)];
+  zones[zone] = [degrees(lat, 2), degrees(lon, 3)];
 }
 const links = {};
 for (const line of read("tzdata.zi").split("\n")) {

@@ -92,7 +92,7 @@ function zoneTable() {
   const round = (x) => Math.sign(x) * Math.round(Math.abs(x)) || 0;
   const { zones, links } = require("../data/timezones.json");
   const table = {};
-  for (const [name, [, lat, lon]] of Object.entries({ ...zones, ...Object.fromEntries(Object.entries(links).filter(([link]) => link !== "Asia/Tel_Aviv").map(([link, to]) => [link, zones[to]])) })) {
+  for (const [name, [lat, lon]] of Object.entries({ ...zones, ...Object.fromEntries(Object.entries(links).filter(([link]) => link !== "Asia/Tel_Aviv").map(([link, to]) => [link, zones[to]])) })) {
     const i = name.lastIndexOf("/") + 1, dir = name.slice(0, i);
     table[dir] = `${table[dir] ? `${table[dir]} ` : ""}${name.slice(i)}${round(lat)},${round(lon)}`;
   }
@@ -100,13 +100,12 @@ function zoneTable() {
 }
 
 // The time-of-day pick (assets/js/time-pick.js) run as a page runs it, for a visitor in zone (undefined: none) at instant
-// ms with query (?time=, ?season=): the phase and the season it sets, and its sunPhase(ms, lat, lon). script is the whole inline script, by default
-// that file with zoneTable() written in, then assets/js/sun.js and season.js without their exports, as layouts/partials/time-pick.html
-// puts them; a built page's own works too (its sunPhase is then inside its wrapper).
+// ms with query (?time=, ?season=): the phase and the season it sets, and its sunPhase(ms, lat, lon). It runs that file with
+// zoneTable() written in, then assets/js/sun.js and season.js without their exports, as layouts/partials/time-pick.html puts them.
 let defaultPick;
-function runTimePick({ zone, ms, query = "", script }) {
+function runTimePick({ zone, ms, query = "" }) {
   const js = (name) => fs.readFileSync(path.join(rootDir, "assets", "js", name), "utf8");
-  script ??= defaultPick ??= js("time-pick.js").replace("ZONES", JSON.stringify(zoneTable())) + js("sun.js").replace("export ", "") + js("season.js").replace("export ", "");
+  const script = defaultPick ??= js("time-pick.js").replace("ZONES", JSON.stringify(zoneTable())) + js("sun.js").replace("export ", "") + js("season.js").replace("export ", "");
   const documentElement = { dataset: {} };
   const context = vm.createContext({
     URLSearchParams,

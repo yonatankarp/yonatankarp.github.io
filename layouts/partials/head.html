@@ -28,8 +28,8 @@
 
 {{ $canonical := .Permalink }}
 
-{{ $imagePath := "/images/og-default.png" }}
-{{ $imageAlt := printf "Yonatan Karp-Rudin, Staff Software Engineer, %s, in front of the pixel-art building of his CV" hugo.Data.home.en.contact.location }}
+{{ $imagePath := "/images/og-city.png" }}
+{{ $imageAlt := printf "Yonatan Karp-Rudin, Staff Software Engineer, %s, beside the Career Tower in the pixel-art city of his site" hugo.Data.home.en.contact.location }}
 {{ with .Params.images }}{{ with .featured_image }}{{ $imagePath = . }}{{ $imageAlt = printf "Cover image of %s" $.Title }}{{ end }}{{ end }}
 {{ $image := $imagePath | absURL }}
 {{ $imageSize := false }}

@@ -24,14 +24,21 @@ function setup(ctx, fx, dfill, footAt, plaza, winter) {
   let dressing = [];
   plaza.then((items) => { dressing = items; });
 
-  // Windows: at night each lit one switches off and on, slowly, in its own wall's colour.
+  // Windows: at night each lit one switches off and on, slowly, in its own wall's colour. They are drawn first, on a layer
+  // made again only when one switches.
   const now0 = performance.now();
   const windows = night ? fx.windows.map((w) => ({ px: w.px, wall: `rgb(${w.wall})`, off: Math.random() < 0.15, next: now0 + rnd(1500, 30000) })) : [];
+  const layer = night && new OffscreenCanvas(W, ctx.canvas.height).getContext('2d');
+  let stale = true;
   const drawWindows = (now) => {
-    for (const c of windows) {
-      if (now > c.next) { c.off = !c.off; c.next = now + (c.off ? rnd(5000, 25000) : rnd(10000, 50000)); }
-      if (c.off) { ctx.fillStyle = c.wall; for (const [x, y] of c.px) ctx.fillRect(x, y, 1, 1); }
+    if (!layer) return;
+    for (const c of windows) if (now > c.next) { c.off = !c.off; c.next = now + (c.off ? rnd(5000, 25000) : rnd(10000, 50000)); stale = true; }
+    if (stale) {
+      layer.clearRect(0, 0, W, layer.canvas.height);
+      for (const c of windows) if (c.off) { layer.fillStyle = c.wall; for (const [x, y] of c.px) layer.fillRect(x, y, 1, 1); }
+      stale = false;
     }
+    ctx.drawImage(layer.canvas, 0, 0);
   };
 
   // The bay: short glints that flash and fade, warm in the light and cool at night.
@@ -137,5 +144,8 @@ function setup(ctx, fx, dfill, footAt, plaza, winter) {
     flocks = flocks.filter((f) => f.x + f.tail < W + 20);   // gone once the last bird is past the edge
   };
 
-  return (now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); };
+  // The fastest mover, in art pixels a second, sets how often a frame is drawn (scene-fx.js): the snow, a bird (up to 15),
+  // a car or a walker.
+  const fps = Math.max(snow ? snow.fps : 0, 15, ...cars.map((c) => c.v * c.lane.total), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * Math.hypot(w.seg[2] - w.seg[0], w.seg[3] - w.seg[1])));
+  return Object.assign((now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); }, { fps, ready: plaza });
 }

@@ -10,7 +10,10 @@ const canvas = hero?.querySelector('.room-fx');
 const sheet = canvas?.dataset.sheet && Object.assign(new Image(), { src: canvas.dataset.sheet });   // the studio's reels
 if (hero) {
   // Where the room is wider than the screen, it opens at its data-open (0 the left edge, 1 the right).
-  const open = () => { hero.scrollLeft = (hero.scrollWidth - hero.clientWidth) * Number(hero.dataset.open); };
+  const open = () => { hero.scrollLeft = (hero.scrollWidth - hero.clientWidth) * Number(hero.dataset.open); stop(); };
+  // A tab stop (the markup's, for a page without this script) only while there is something to scroll (#305).
+  const stop = () => { hero.tabIndex = hero.scrollWidth > hero.clientWidth ? 0 : -1; };
+  addEventListener('resize', stop);
   const img = hero.querySelector('img');
   if (img.complete) open(); else img.addEventListener('load', open);
   animate(canvas, { data: canvas.dataset.fx }, canvas.dataset.room === 'radio' ? radio : post);
@@ -31,7 +34,7 @@ function radio(ctx, fx) {
   let left = 0;
   const reels = fx.reels.map(([x, y, rx, ry, dir]) => { const r = { x, y, rx, ry, dir, sx: left }; left += 2 * rx + 1; return r; });
   ctx.imageSmoothingEnabled = false;
-  return (now) => {
+  return Object.assign((now) => {
     for (const { x, y, rx, ry, dir, sx } of sheet?.complete && sheet.naturalWidth ? reels : []) {
       const w = 2 * rx + 1, h = 2 * ry + 1;
       ctx.drawImage(sheet, sx, 0, w, h, x - rx, y - ry, w, h);
@@ -50,7 +53,7 @@ function radio(ctx, fx) {
       ctx.fillStyle = 'rgba(255,80,60,.3)'; ctx.fillRect(bx - 2, by - 2, 6, 6);
       ctx.fillStyle = 'rgb(255,60,40)'; ctx.fillRect(bx, by, 2, 2);
     }
-  };
+  }, { ready: sheet && sheet.decode().catch(() => {}) });
 }
 
 function post(ctx, fx) {

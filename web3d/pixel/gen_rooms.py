@@ -51,7 +51,7 @@ PROMPTS = {
 # Where each room's animations go, in art pixels (rooms-fx.js).
 FX = {
     "radio": {
-        "lamp": [238, 70],                                       # the red on-air lamp, which breathes
+        "lamp": [238, 70],                                       # the red on-air lamp (no glow while the show is off air)
         # The tape decks' reels, left deck then right: the hub's x, y, the painted flange's half-width and half-height (a
         # disc seen at a slant), its turn (1 clockwise), and how far out its plain painted hub goes, which need not turn: on
         # the left deck the hub's ring of holes turns. Their cutouts turn about the hub over the bare metal (reels()).

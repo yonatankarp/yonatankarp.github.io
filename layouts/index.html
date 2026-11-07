@@ -132,6 +132,9 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
     <div class="city-panel">
       <h1 class="sr-only">{{ site.Title }}</h1>
       <p class="city-kicker" data-city-kicker>{{ $city.kicker }}</p>
+      {{- /* Two of the same: a phone shows this one, top right, where it is in reach after a pick; a wide screen the
+           last, under the district. Each in its place in the tab order (city.css). */}}
+      <button class="city-out city-out--top" type="button" data-city-out hidden>{{ $city.out }}</button>
       <p class="city-lede">{{ index $role 0 }}: {{ index $role 1 }}. {{ $city.hint }}</p>
       <div class="city-chips" role="group" aria-label="{{ $city.chips }}">{{ range $city.districts }}<button type="button" data-pick="{{ .key }}" aria-pressed="false">{{ .name }}</button>{{ end }}</div>
       <div class="city-say" aria-live="polite">

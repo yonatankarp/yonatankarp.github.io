@@ -16,17 +16,25 @@
 {{ if not (and $css $js) }}{{ errorf "The projects' Workshop Row needs its bundle in assets/building/: run `npm run build:building` first." }}{{ end }}
 {{ $css = $css | fingerprint }}
 {{ $js = $js | fingerprint }}
-{{- /* The painting at the visitor's hour and, in winter, under snow (head.html's time pick), set before it loads: src
-     before eager, so the dusk one is never asked for (#300). Lazy only so that it waits for this, as a page without a
-     script loads it at once, at dusk. */}}
-{{ $hour := resources.FromString "js/workshop-time.js" `(function () {
-  var i = document.currentScript.previousElementSibling, d = document.documentElement.dataset, t = d.time;
-  i.src = i.dataset.base + (d.season === 'winter' ? '-winter' : '') + (t === 'dusk' ? '' : '-' + t) + '.webp?v=' + i.dataset.version;
-  i.loading = 'eager';
-})();` | minify | fingerprint "sha256" }}
-{{ .Store.Set "bodyScripts" (slice $hour) }}
 {{ $version := "" }}{{ range $season := slice "" "-winter" }}{{ range $k, $_ := hugo.Data.phases }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/workshop%s%s.webp" $season (cond (eq $k "dusk") "" (printf "-%s" $k)))) | sha256 }}{{ end }}{{ end }}
 {{ range slice "workshop-fx.json" "workshop-depth.png" "walkers.json" "walkers.webp" "cats.json" "cats.webp" }}{{ $version = printf "%s%s" $version (os.ReadFile (printf "static/building/pixel/%s" .)) | sha256 }}{{ end }}{{/* the animations' data, walkers and cats too */}}
+{{- /* The painting at the visitor's hour and, in winter, under snow (head.html's time pick), picked in the head, where
+     the pick is preloaded before the stylesheets hold the body's scripts back (#300); the script after the picture sets
+     it from there: src before eager, so the dusk one is never asked for. Lazy only so that it waits for this, as a page
+     without a script loads it at once, at dusk. */}}
+{{ $pick := resources.FromString "js/workshop-pick.js" (printf `(function () {
+  var d = document.documentElement.dataset, t = d.time, l = document.createElement('link');
+  l.id = 'workshop-art'; l.rel = 'preload'; l.as = 'image'; l.fetchPriority = 'high';
+  l.href = %s + (d.season === 'winter' ? '-winter' : '') + (t === 'dusk' ? '' : '-' + t) + '.webp?v=' + %s;
+  document.head.appendChild(l);
+})();` ("building/pixel/workshop" | relURL | jsonify) (substr $version 0 12 | jsonify)) | minify | fingerprint "sha256" }}
+{{ $hour := resources.FromString "js/workshop-time.js" `(function () {
+  var i = document.currentScript.previousElementSibling;
+  i.src = document.getElementById('workshop-art').href;
+  i.loading = 'eager';
+})();` | minify | fingerprint "sha256" }}
+{{ .Store.Set "headScripts" (slice $pick) }}
+{{ .Store.Set "bodyScripts" (slice $hour) }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">
 <head>

@@ -10,7 +10,7 @@ const root = document.documentElement;
 const city = document.querySelector('[data-city]');
 if (city && root.classList.contains('at-city')) {
   const scene = city.querySelector('.city-scene'), map = scene.querySelector('.city-map'), panel = city.querySelector('.city-panel');
-  const kicker = city.querySelector('[data-city-kicker]'), out = city.querySelector('[data-city-out]'), overview = kicker.textContent;
+  const kicker = city.querySelector('[data-city-kicker]'), out = city.querySelectorAll('[data-city-out]'), overview = kicker.textContent;
   const zoom = JSON.parse(map.dataset.zoom), maxPx = Number(map.dataset.maxPx), artH = scene.querySelector('.city-fx').height;
   const still = matchMedia('(prefers-reduced-motion: reduce)');
   const floats = () => getComputedStyle(panel).position === 'fixed';
@@ -59,7 +59,7 @@ if (city && root.classList.contains('at-city')) {
   };
   const pick = (key) => {
     // "Whole city" hides as it zooms out, so its focus goes to the chip that was picked (#301).
-    if (!key && out.contains(document.activeElement)) city.querySelector(`.city-chips [data-pick="${current}"]`).focus();
+    if (!key && [...out].some((o) => o.contains(document.activeElement))) city.querySelector(`.city-chips [data-pick="${current}"]`).focus();
     current = key;
     city.classList.toggle('zoomed', !!key);
     for (const b of city.querySelectorAll('[data-pick]')) {
@@ -68,7 +68,7 @@ if (city && root.classList.contains('at-city')) {
     }
     for (const d of city.querySelectorAll('[data-district]')) d.hidden = d.dataset.district !== (key ?? '');
     kicker.textContent = key ? city.querySelector(`.city-chips [data-pick="${key}"]`).textContent : overview;
-    out.hidden = !key;
+    for (const o of out) o.hidden = !key;
     view(true);
   };
   view(false);

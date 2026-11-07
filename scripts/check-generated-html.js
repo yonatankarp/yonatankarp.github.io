@@ -636,9 +636,9 @@ for (const filePath of htmlFiles) {
 }
 // The time pick's zone table, as layouts/partials/time-pick.html builds it, places every zone and link (scripts/lib.js).
 {
-  const built = fs.readFileSync(path.join(publicDir, "blog", "index.html"), "utf8").match(/<script>\(function\(\)\{var (?:\w+,)*\w+=(\{"".*?\}),/)?.[1];
+  const built = fs.readFileSync(path.join(publicDir, "cv", "index.html"), "utf8").match(/<script>\(function\(\)\{var (?:\w+,)*\w+=(\{"".*?\}),/)?.[1];
   const sorted = (table) => JSON.stringify(Object.entries(table).map(([dir, cities]) => [dir, cities.split(" ").sort()]).sort());
-  if (!built || sorted(JSON.parse(built)) !== sorted(zoneTable())) failures.push("/blog/: the time pick's zone table differs from data/timezones.json's zones and links");
+  if (!built || sorted(JSON.parse(built)) !== sorted(zoneTable())) failures.push("/cv/: the time pick's zone table differs from data/timezones.json's zones and links");
 }
 
 if (failures.length > 0) {

@@ -26,8 +26,8 @@ workshop:
   view: "View"   # a project's link without params.button.btnText
 radio:
   label: "The studio"   # the painting's region, for screen readers
-  on_air: "On air"
-  kicker: "Radio Mast · now broadcasting"
+  lamp: "Off air"   # the label beside the cover's lamp
+  kicker: "Radio Mast · off air"
   listen: "▶ Listen on %s"   # %s is the podcast's platform
   also: "Rather read? The [Library](/blog/) has the long-form posts."   # Markdown, for the link
 post:

@@ -84,7 +84,10 @@ The same script picks the visitor's season, `html[data-season]`, from the date a
 `assets/js/season.js`, which `time-pick.html` and `scripts/lib.js` append after `sun.js`, and `calendar.js` re-exports;
 summer within the tropics). `?season=spring|summer|autumn|winter` overrides it. Only winter has art of its own, at every
 hour: the city, Workshop Row, the roof and the lobby's view, each the hour's pick edited to snow (`--winter` in `gen_city.py`
-and `gen_workshop.py`, `paint_rooms.py winter`, seed 700, which keeps the layout), and the backdrop, its crop. The files
+and `gen_workshop.py`, `paint_rooms.py winter`, seed 700, which keeps the layout; prompts that name the hour's light, or the model paints an
+overcast day), and the backdrop, its crop. The model snows on what is indoors too, so a winter room is its hour's
+picture with only `SNOWED` taken from its edit (`install_picks.py`): the roof but its lift housing, the lobby door's
+glass but its brass. The files
 put the season before the hour: `city-winter[-PHASE].webp`, `floor-R-winter[-PHASE].webp`, `backdrop-winter[-PHASE].webp`;
 each phase's `winter` in `phases.json` has its sky and baked rooms (`LR`, dusk too), and `art.js` fetches only the
 season's strips. The city's windows and bay are found again in the winter art (`city-winter-fx.json`); its depth map is

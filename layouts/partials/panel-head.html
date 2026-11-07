@@ -1,6 +1,6 @@
 {{- /* The top of a floor's panel (layouts/index.html): the way back to the lift, then the floor's badge, its name and its
      dates. Called with (dict "floor" "R" "name" "Roof" "when" "…"); "status" adds the copy chip's live region, inside
      the modal panel, where screen readers still hear it. */ -}}
-<button class="panel-back" type="button">Back to the lift</button>
+<button class="panel-back" type="button">{{ hugo.Data.home.en.tower.back }}</button>
 {{ if .status }}<p class="sr-only" role="status" data-copy-status></p>{{ end }}
 <div class="panel-head"><span class="floor-badge">{{ .floor }}</span><p><b>{{ .name }}</b><span>{{ .when }}</span></p></div>

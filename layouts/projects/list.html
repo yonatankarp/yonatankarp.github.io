@@ -6,8 +6,9 @@
 {{ $pages := .Pages.ByWeight }}
 {{ range $pages }}{{ if not .Params.link }}{{ errorf "%s: add `link`, where /projects/ sends the reader." .File.Path }}{{ end }}{{ if not (in (slice "app" "library" "game" "contribution") .Params.group) }}{{ errorf "%s: set `group` to app, library, game or contribution, its workshop on /projects/." .File.Path }}{{ end }}{{ end }}
 {{ $art := os.ReadFile "static/building/pixel/workshop.json" | transform.Unmarshal }}{{/* written by gen_workshop.py */}}
+{{ $t := hugo.Data.rooms.workshop }}
 {{ $workshops := slice }}
-{{ range $i, $g := slice (slice "app" "Apps") (slice "library" "Libraries") (slice "game" "Games") (slice "contribution" "Open-source contributions") }}
+{{ range $i, $g := slice (slice "app" $t.groups.app) (slice "library" $t.groups.library) (slice "game" $t.groups.game) (slice "contribution" $t.groups.contribution) }}
   {{ $workshops = $workshops | append (dict "key" (index $g 0) "name" (index $g 1) "pages" (where $pages "Params.group" (index $g 0)) "at" (index $art.labels (printf "bay-%d" (add $i 1)))) }}
 {{ end }}
 {{ $css := resources.Get "building/workshop.css" }}
@@ -32,14 +33,14 @@
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
 </head>
 <body class="px-skin">
-  <a class="skip-link" href="#projects">Skip to the projects</a>
+  <a class="skip-link" href="#projects">{{ hugo.Data.ui.skip.projects }}</a>
   {{ partial "pixel-bar.html" . }}
 
   <main id="projects">
-  <section class="workshop" aria-label="Workshop Row" data-workshop>
+  <section class="workshop" aria-label="{{ $t.title }}" data-workshop>
     <div class="city-scene">
       <div class="city-map" style="aspect-ratio:{{ index $art.size 0 }} / {{ index $art.size 1 }}">
-        <img src="{{ "building/pixel/workshop.webp" | relURL }}?v={{ substr $version 0 12 }}" alt="A row of four red-brick maker workshops with sawtooth glass roofs along a cobbled street, each roller door rolled up onto a lit workbench with tools, parts and a screen: one workshop for each kind of project." width="{{ index $art.size 0 }}" height="{{ index $art.size 1 }}" loading="lazy" fetchpriority="high" data-base="{{ "building/pixel/workshop" | relURL }}" data-version="{{ substr $version 0 12 }}">
+        <img src="{{ "building/pixel/workshop.webp" | relURL }}?v={{ substr $version 0 12 }}" alt="{{ hugo.Data.art.workshop }}" width="{{ index $art.size 0 }}" height="{{ index $art.size 1 }}" loading="lazy" fetchpriority="high" data-base="{{ "building/pixel/workshop" | relURL }}" data-version="{{ substr $version 0 12 }}">
         <script>{{ $hour.Content | safeJS }}</script>
         <canvas class="city-fx" width="{{ index $art.size 0 }}" height="{{ index $art.size 1 }}" aria-hidden="true"></canvas>{{/* the row's life: workshop-fx.js */}}
         {{ range $workshops }}
@@ -48,26 +49,26 @@
       </div>
     </div>
     <div class="city-panel">
-      <a class="workshop-back" href="{{ "" | relURL }}">← Back to the city</a>
-      <h1 class="city-kicker">Workshop Row</h1>
-      <p class="city-lede">{{ .Content | plainify }} Pick a workshop.</p>
-      <div class="city-chips" role="group" aria-label="Workshops">{{ range $workshops }}<button type="button" data-pick="{{ .key }}" data-goatcounter-click="workshop-{{ .key }}" aria-pressed="{{ eq .key "app" }}">{{ .name }}</button>{{ end }}</div>
+      <a class="workshop-back" href="{{ "" | relURL }}">{{ hugo.Data.ui.back_to_city }}</a>
+      <h1 class="city-kicker">{{ $t.title }}</h1>
+      <p class="city-lede">{{ .Content | plainify }} {{ $t.pick }}</p>
+      <div class="city-chips" role="group" aria-label="{{ $t.chips }}">{{ range $workshops }}<button type="button" data-pick="{{ .key }}" data-goatcounter-click="workshop-{{ .key }}" aria-pressed="{{ eq .key "app" }}">{{ .name }}</button>{{ end }}</div>
       <div class="city-say" aria-live="polite">
         {{ range $workshops }}
         <div data-district="{{ .key }}"{{ if ne .key "app" }} hidden{{ end }}>
           <h2>{{ .name }}</h2>
-          <p>{{ len .pages }} {{ cond (eq (len .pages) 1) "project" "projects" }}.</p>
+          <p>{{ len .pages }} {{ cond (eq (len .pages) 1) $t.project $t.projects }}.</p>
           <ol class="workshop-projects">
             {{ range .pages }}
             {{ $case := .Params.caseStudy }}
             {{ $href := cond $case .RelPermalink .Params.link }}
-            {{ $label := cond $case "Case study" (.Params.button.btnText | default "View") }}
+            {{ $label := cond $case $t.case_study (.Params.button.btnText | default $t.view) }}
             {{- /* The CTA under the name is aria-hidden, so the link describes where it goes; the name stays the title (#131). */}}
             {{ $hint := printf "where-%s" .File.ContentBaseName }}
             <li>
               <h3><a href="{{ $href }}"{{ if not $case }} target="_blank" rel="noopener"{{ end }} aria-describedby="{{ $hint }}">{{ partial "project-title.html" .Title }}</a></h3>
-              <span id="{{ $hint }}" hidden>{{ if $case }}Case study{{ else }}{{ $label }}, opens in a new tab{{ end }}</span>
-              <p class="workshop-meta">{{ if .Params.archived }}<span class="archived-tag">Archived</span> {{ end }}{{ with .Params.projectKind }}<b>{{ . }}</b> · {{ end }}{{ .Params.years | default (.Date.Format "2006") }}{{ with .Params.tech }} · {{ delimit . ", " }}{{ end }}</p>
+              <span id="{{ $hint }}" hidden>{{ if $case }}{{ $t.case_study }}{{ else }}{{ $label }}{{ hugo.Data.ui.new_tab }}{{ end }}</span>
+              <p class="workshop-meta">{{ if .Params.archived }}<span class="archived-tag">{{ hugo.Data.ui.archived }}</span> {{ end }}{{ with .Params.projectKind }}<b>{{ . }}</b> · {{ end }}{{ .Params.years | default (.Date.Format "2006") }}{{ with .Params.tech }} · {{ delimit . ", " }}{{ end }}</p>
               <p>{{ .Params.description | default (.Summary | plainify) }}</p>
               <span class="workshop-cta" aria-hidden="true">{{ $label }} {{ if $case }}&#8594;{{ else }}&#8599;{{ end }}</span>
             </li>

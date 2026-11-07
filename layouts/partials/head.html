@@ -9,13 +9,13 @@
 {{ $name := .Params.seoTitle | default .Title }}
 {{ $description := .Description | default .Summary | plainify | default $homeDescription }}
 {{ if eq .Kind "term" }}
-  {{ $name = printf "Posts tagged %s" .Title }}
+  {{ $name = printf hugo.Data.ui.meta.tag_title .Title }}
   {{ $titles := slice }}{{ range first 3 .Pages }}{{ $titles = $titles | append .Title }}{{ end }}
-  {{ $description = printf "%s on %s's blog: %s." $name $siteName (delimit $titles ", ") }}
+  {{ $description = printf hugo.Data.ui.meta.tag_description $name $siteName (delimit $titles ", ") }}
 {{ else if eq .Kind "taxonomy" }}
-  {{ $name = printf "Blog %s" (lower .Title) }}
+  {{ $name = printf hugo.Data.ui.meta.tags_title (lower .Title) }}
   {{ $terms := slice }}{{ range first 8 .Data.Terms.ByCount }}{{ $terms = $terms | append .Page.Title }}{{ end }}
-  {{ $description = printf "Browse %s's blog by %s: %s." $siteName .Data.Singular (delimit $terms ", ") }}
+  {{ $description = printf hugo.Data.ui.meta.tags_description $siteName .Data.Singular (delimit $terms ", ") }}
 {{ end }}
 {{- /* Search results cut a title near 60 characters and a description near 160, so the site name goes when it does not fit. */}}
 {{ $title := printf "%s | %s" $name $siteTitle }}
@@ -29,8 +29,8 @@
 {{ $canonical := .Permalink }}
 
 {{ $imagePath := "/images/og-city.png" }}
-{{ $imageAlt := printf "Yonatan Karp-Rudin, Staff Software Engineer, %s, beside the Career Tower in the pixel-art city of his site" hugo.Data.home.en.contact.location }}
-{{ with .Params.images }}{{ with .featured_image }}{{ $imagePath = . }}{{ $imageAlt = printf "Cover image of %s" $.Title }}{{ end }}{{ end }}
+{{ $imageAlt := printf hugo.Data.art.share hugo.Data.home.en.contact.location }}
+{{ with .Params.images }}{{ with .featured_image }}{{ $imagePath = . }}{{ $imageAlt = printf hugo.Data.art.cover $.Title }}{{ end }}{{ end }}
 {{ $image := $imagePath | absURL }}
 {{ $imageSize := false }}
 {{ $imageFile := printf "static%s" $imagePath }}
@@ -84,7 +84,7 @@
 <meta name="twitter:image:alt" content="{{ $imageAlt }}">
 {{ if not $is404 }}<link rel="canonical" href="{{ $canonical }}">{{ end }}
 {{- /* A term page offers its own feed; every other page the blog's. */}}
-{{ with (cond (eq .Kind "term") . (.Site.GetPage "/blog")).OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ cond (eq $.Kind "term") $name "Blog" }} | {{ $siteName }}">{{ end }}
+{{ with (cond (eq .Kind "term") . (.Site.GetPage "/blog")).OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" href="{{ .Permalink }}" title="{{ cond (eq $.Kind "term") $name hugo.Data.ui.feed.title }} | {{ $siteName }}">{{ end }}
 <link rel="icon" type="image/png" href="{{ "images/favicon.png" | relURL }}">
 <link rel="apple-touch-icon" href="{{ "images/apple-touch-icon.png" | relURL }}">
 <link rel="manifest" href="{{ "site.webmanifest" | relURL }}">
@@ -120,7 +120,7 @@
   {{ $place := split hugo.Data.home.en.contact.location ", " }}   {{- /* "City, Country" */}}
   {{ $sameAs := .Site.Params.seo.person.sameAs }}
   {{ with .Site.Params.social.twitter }}{{ $sameAs = $sameAs | append (printf "https://x.com/%s" .) }}{{ end }}
-  {{ $person := merge $author (dict "@context" "https://schema.org" "jobTitle" "Staff Software Engineer" "sameAs" $sameAs "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" (index $place 0) "addressCountry" (index $place 1))) }}
+  {{ $person := merge $author (dict "@context" "https://schema.org" "jobTitle" hugo.Data.ui.role "sameAs" $sameAs "worksFor" (dict "@type" "Organization" "name" "Billie") "address" (dict "@type" "PostalAddress" "addressLocality" (index $place 0) "addressCountry" (index $place 1))) }}
   {{ with resources.Get "images/showcase/showcase.jpg" }}{{ $person = merge $person (dict "image" .Permalink) }}{{ end }}
   {{ with .Site.Params.seo.person.alternateName }}{{ $person = merge $person (dict "alternateName" .) }}{{ end }}
   {{ with $homeDescription }}{{ $person = merge $person (dict "description" .) }}{{ end }}

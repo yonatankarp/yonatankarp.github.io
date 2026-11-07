@@ -1,0 +1,42 @@
+# The city's district pages, each under its room's painting: the Library (/blog/, layouts/blog/list.html), Workshop
+# Row (/projects/, layouts/projects/list.html), the Radio Mast (/podcast/, radio.html) and the Post Office (/contact/,
+# post.html). The paintings' alt texts are in data/art.yaml; the podcast and contact copy in data/home/en.yaml.
+# Their pages' lead lines are the body of content/blog/_index.md and content/projects/_index.md.
+library:
+  title: "The Library"
+  search: "Search posts"   # the search box's label, for screen readers
+  placeholder: "Search %d posts"   # %d is the number of posts
+  rss: "RSS"
+  topics: "Topics"   # the topic chips' label
+  all: "All"   # the first chip
+  count: "%d posts, newest first"   # until a chip or a search narrows the list, when assets/js/library.js words it
+workshop:
+  title: "Workshop Row"
+  pick: "Pick a workshop."   # after the page's lead line
+  chips: "Workshops"   # the chips' label, for screen readers
+  groups:   # each workshop's name, by the projects' `group`
+    app: "Apps"
+    library: "Libraries"
+    game: "Games"
+    contribution: "Open-source contributions"
+  project: "project"   # "1 project."
+  projects: "projects"   # "3 projects."
+  case_study: "Case study"   # a project with caseStudy: true
+  view: "View"   # a project's link without params.button.btnText
+radio:
+  label: "The studio"   # the painting's region, for screen readers
+  on_air: "On air"
+  kicker: "Radio Mast · now broadcasting"
+  listen: "▶ Listen on %s"   # %s is the podcast's platform
+  also: "Rather read? The [Library](/blog/) has the long-form posts."   # Markdown, for the link
+post:
+  label: "The counter hall"   # the painting's region, for screen readers
+  kicker: "Post Office · write to me"
+  write: "Write"   # the email stamp's button
+  networks:   # each social stamp's name, by its icon in data/home/en.yaml contact.social
+    linkedin: "LinkedIn"
+    github: "GitHub"
+    x: "X"
+  podcast: "Podcast"
+  parcel: "CV parcel"
+  parcel_text: "Download the PDF"

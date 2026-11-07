@@ -18,7 +18,7 @@
 {{- $lines := split (strings.TrimSpace .Inner) "\n" -}}
 {{- $src := delimit ((slice (index $lines 0) (printf "    accTitle: %s" $title) (printf "    accDescr: %s" $desc)) | append (after 1 $lines)) "\n" -}}
 {{- with resources.Get (printf "diagrams/%s.svg" (sha256 $src)) -}}
-<pre class="mermaid" role="region" aria-label="Diagram: {{ $title }}">{{ .Content | safeHTML }}</pre>
+<pre class="mermaid" role="region" aria-label="{{ printf hugo.Data.ui.diagram $title }}">{{ .Content | safeHTML }}</pre>
 {{- else -}}
   {{- errorf "%s: the Mermaid diagram %q is not drawn yet, or changed since it was. Run npm run build:building (or node scripts/render-diagrams.js)." .Position $title -}}
 {{- end }}

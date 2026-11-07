@@ -1,0 +1,34 @@
+# The CV page (/cv/, layouts/_default/cv.html), which scripts/generate-cv-pdf.js also prints to the PDF. The roles,
+# education and skills come from content/; the name is hugo.toml's title, the role line data/ui.yaml's role.
+kicker: "Curriculum vitae"   # the small line above the name
+site: "yonatankarp.com"   # the last contact chip, which links to the site
+headings:
+  summary: "Summary"
+  focus: "Staff+ focus"
+  skills: "Skills"
+  experience: "Experience"
+  open_source: "Open source, AI & writing"
+  education: "Education"
+summary:   # one paragraph each; %d is the career's length in whole years, which the template computes
+  - "I'm a Staff Software Engineer. I've been writing software for %d years: first C++ on vision processing chips at Inuitive, then backend work at NICE, then backend services for SumUp's point-of-sale products, and since 2023 risk, then payments and compliance, at Billie."
+  - "At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, one for graph-based fraud detection and one for transaction monitoring. I also started two services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke."
+focus:   # the web CV's boxes under "Staff+ focus"; the PDF shows the skills instead
+  - "Defined compliance and risk service boundaries across vendor behavior, event flows, and product rules."
+  - "Drove API-first backend design with Kotlin, Java, Spring Boot, Kafka, OpenAPI, and Backstage."
+  - "Handled operational risk with recovery paths, monitoring, migration plans, and upstream fixes."
+skills:   # the labels before the two lists, from content/skills/_index.md
+  daily: "Daily:"
+  also: "Also:"
+floor_link: "Floor %s in the building"   # each role's tower icon, for screen readers; %s is its floor
+credential: "credential"   # the link after a degree that has one
+# Markdown, for the links. The PDF prints only the first five (custom.css, section:has(> #cv-open-source)).
+# %d is the number of blog posts, which the template counts.
+open_source:
+  - "Added Spring Boot 4 and Jackson 3 support to the kotlin-spring generator in [openapi-generator](https://github.com/OpenAPITools/openapi-generator), among 6 merged generator PRs."
+  - "Built [sse-mcp-server](https://github.com/yonatankarp/sse-mcp-server), a Kotlin and Spring Boot MCP server that exposes typed backend tools to AI agents over Server-Sent Events."
+  - "Built [Mimic](https://yonatankarp.com/mimic/), a Mac app that turns a picture or a description into a 3D-printable miniature, with local models and print prep written in Swift."
+  - "Built [Lorekeeper](https://yonatankarp.com/lorekeeper/), a Tauri app for D&D session notes kept as Markdown, with end-to-end encrypted sync through a small Rust server."
+  - "Wrote and maintain [ff4k](https://yonatankarp.com/ff4k/), a Kotlin Multiplatform feature flag library published on Maven Central."
+  - "%d posts on Kotlin, backend engineering, and AI coding agents on [my blog](https://yonatankarp.com/blog/), including giving Claude Code a long-term memory with hooks."
+  - "Spoke several times at Kotlin User Group Berlin, on [code smells](https://www.meetup.com/kotlin-berlin/events/296681560/) (Oct 2023), [the xkcd comics](https://www.meetup.com/kotlin-berlin/events/304576388/) (Nov 2024, [write-up](https://yonatankarp.com/blog/xkcd-from-tile-to-picture/)), and [Kafka multi-message topics](https://www.meetup.com/kotlin-berlin/events/315180331/) (Jun 2026)."
+  - "Spoke at [DevFest Venezia 2023](https://sessionize.com/yonatankarp/) (Dec 2023) on lessons from a system design failure ([write-up](https://yonatankarp.com/blog/our-errors-your-gain-a-system-design-cautionary-tale/))."

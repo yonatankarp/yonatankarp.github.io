@@ -1,0 +1,113 @@
+# The words every page shares, and the small pages': the top bar, the footer, the buttons and labels, search, the 404,
+# a post's page, the tag pages, a project's case study, and the titles and descriptions search engines show.
+# "%s" and "%d" are filled in by the template: a name, a title or a count. The site's name is hugo.toml's title.
+role: "Staff Software Engineer"   # under the name on the CV, in the footer and in the homepage's JSON-LD
+back_to_city: "← Back to the city"   # the way out of the Library, Workshop Row, the two rooms and the tower's lobby
+archived: "Archived"   # the label on an archived project
+new_tab: ", opens in a new tab"   # after a link that opens a new tab, for screen readers
+
+skip:   # the skip links, the first thing a keyboard reaches
+  content: "Skip to content"
+  cv: "Skip to the CV"
+  floor: "Skip to the current floor"   # the homepage
+  projects: "Skip to the projects"
+
+bar:   # the top bar (layouts/partials/pixel-bar.html)
+  menu: "Menu"   # the phone's menu button
+  site: "Site"   # the tabs, for screen readers
+  tabs:
+    projects: "Projects"
+    blog: "Blog"
+    cv: "CV"
+    search: "Search"
+  pause: "Pause"   # web3d/src/scene-fx.js switches it to "Play" and back
+  social: "Find me elsewhere"   # the social icons, for screen readers; the footer's too
+  download: "Download CV"
+  download_label: "Download CV (PDF)"   # the same, for screen readers
+
+footer:
+  skills: "Skills"   # the link after the role and the place
+
+copy:   # the Copy chip beside an email address
+  text: "Copy"
+  label: "Copy email address"
+
+not_found:   # the 404 page
+  title: "That page is not here"
+  lede: "Maybe the link is old, maybe the article moved, or maybe the address was typed wrong."
+  placeholder: "Search articles, projects and pages"
+  home: "Back to the homepage"
+  blog: "To the blog"
+  recent: "Recent posts"
+
+search:   # /search/; its title and placeholder are content/search.md's
+  kicker: "Search"
+  lede: "A lightweight search across articles, projects, and pages on the site."
+  label: "Search the site"   # the box's label, here and on the 404
+  placeholder: "Search..."   # when content/search.md sets none
+  noscript: "Search needs JavaScript. Browse the [blog](/blog/) or the [projects](/projects/) instead."   # Markdown, for the links
+  try: "Try a topic"
+  topics: "Kotlin, OpenAPI, observability, Kafka, payments, risk, architecture, or Spring Boot."
+  types:   # each result's kind (layouts/index.json.json)
+    page: "Page"
+    post: "Post"
+    project: "Project"
+    contribution: "Contribution"
+    role: "Role"
+    education: "Education"
+    recommendation: "Recommendation"
+  skills: "Skills. %s %s. %s."   # what search finds for /skills/: its areas, its working set, the rest
+
+skills:   # /skills/; its title and lead line are content/skills/_index.md's
+  kicker: "Lobby · Skills"
+  areas: "Where I am strongest"
+  working_set: "Current working set"
+  working_set_text: "The tools and systems I use most in my current work."
+  familiar: "Also comfortable with"
+  familiar_text: "Things I have worked with seriously, though less often than the list above."
+
+article:   # a blog post's page (layouts/blog/single.html), and its row in the lists
+  kicker: "Article"
+  min_read: "min read"   # after the reading time
+  toc: "On this page"
+  share_label: "Share this article"   # the share buttons, for screen readers
+  share: "Share"
+  share_x: "Share on X"
+  share_linkedin: "Share on LinkedIn"
+  share_bluesky: "Share on Bluesky"
+  share_hn: "Share on Hacker News"
+  copy_link: "Copy link to this article"
+  discuss: "Questions, or a different take? Discuss this post on"   # then "LinkedIn or X."
+  discuss_linkedin: "LinkedIn"
+  discuss_or: "or"
+  discuss_x: "X"
+  author: "About the author"   # the author box, for screen readers
+  written_by: "Written by"   # then the name and the role
+  read_cv: "Read the CV"
+  keep_reading: "Keep reading"
+  tags: "Tags"   # a row's tag list, for screen readers
+
+tags:   # the tag pages (layouts/_default/taxonomy.html)
+  post: "post"   # "1 post."
+  posts: "posts"   # "4 posts."
+  all: "All %s"   # %s is "tags"
+
+project:   # a project's case study (layouts/projects/single.html)
+  meta: "Project years and technologies"   # the chips, for screen readers
+  open: "Open project"
+
+redirect:   # the old experience, education and testimonial pages, and moved posts: "<title> has moved."
+  moved: "has moved"
+  home: "is now on the homepage"
+
+feed:   # the RSS feeds
+  description: "Recent posts on %s's blog"   # %s is the site's name
+  title: "Blog"   # the feed's name in a page's head, before " | " and the site's name
+
+diagram: "Diagram: %s"   # a post's diagram, for screen readers; %s is its title
+
+meta:   # the tag pages' titles and descriptions, as search results show them
+  tag_title: "Posts tagged %s"
+  tag_description: "%s on %s's blog: %s."   # the title, the site's name, its newest three posts
+  tags_title: "Blog %s"   # %s is "tags"
+  tags_description: "Browse %s's blog by %s: %s."   # the site's name, "tag", the most used tags

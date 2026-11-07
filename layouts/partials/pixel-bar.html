@@ -7,21 +7,22 @@
 {{ $home := .IsHome }}
 {{ $animated := or $home (in (slice "radio" "post") .Layout) (and .IsSection (in (slice "projects" "blog") .Section)) }}{{/* scene-fx.js */}}
 {{ $here := .RelPermalink }}
+{{ $t := hugo.Data.ui.bar }}
 <header class="{{ cond $home "building-top" "px-bar" }}">
   {{ if $home }}
-  <a class="building-name" href="#city">Yonatan Karp-Rudin</a>
+  <a class="building-name" href="#city">{{ site.Title }}</a>
   {{ else }}
-  <a class="px-bar__name" href="{{ .Site.Home.RelPermalink }}">Yonatan Karp-Rudin</a>
+  <a class="px-bar__name" href="{{ .Site.Home.RelPermalink }}">{{ site.Title }}</a>
   {{ end }}
   <button class="{{ cond $home "building-menu" "px-menu" }}" type="button" popovertarget="site-menu">
     <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M0 1h10v2H0zM0 4h10v2H0zM0 7h10v2H0z"/></svg>
-    <span>Menu</span>
+    <span>{{ $t.menu }}</span>
   </button>
   <div class="{{ cond $home "building-links" "px-bar__links" }}" id="site-menu" popover>
-    <nav{{ if not $home }} class="px-bar__tabs"{{ end }} aria-label="Site">
-      {{ range slice (slice "Projects" "projects/") (slice "Blog" "blog/") (slice "CV" "cv/") (slice "Search" "search/") }}
+    <nav{{ if not $home }} class="px-bar__tabs"{{ end }} aria-label="{{ $t.site }}">
+      {{ range slice (slice $t.tabs.projects "projects/") (slice $t.tabs.blog "blog/") (slice $t.tabs.cv "cv/") (slice $t.tabs.search "search/") }}
       {{ $url := index . 1 | relURL }}
-      {{ $current := and (not $home) (or (hasPrefix $here $url) (and (eq (index . 0) "Blog") (hasPrefix $here ("tags/" | relURL)))) }}
+      {{ $current := and (not $home) (or (hasPrefix $here $url) (and (eq (index . 1) "blog/") (hasPrefix $here ("tags/" | relURL)))) }}
       <a href="{{ $url }}"{{ if $current }} aria-current="page"{{ end }}>{{ index . 0 }}</a>
       {{ end }}
     </nav>
@@ -29,17 +30,17 @@
     {{ if $animated }}
     <button class="{{ cond $home "building-pause" "px-pause" }}" type="button" data-building-pause hidden>
       <svg width="14" height="14" viewBox="0 0 7 7" aria-hidden="true"><path class="i-pause" fill="currentColor" d="M1 1h2v5H1zM4 1h2v5H4z"/><path class="i-play" fill="currentColor" d="M2 0h1v7H2zM3 1h1v5H3zM4 2h1v3H4zM5 3h1v1H5z"/></svg>
-      <span data-building-pause-label>Pause</span>
+      <span data-building-pause-label>{{ $t.pause }}</span>
     </button>
     {{ end }}
-    <nav class="{{ cond $home "building-social" "px-bar__social" }}" aria-label="Find me elsewhere">
+    <nav class="{{ cond $home "building-social" "px-bar__social" }}" aria-label="{{ $t.social }}">
       {{ range hugo.Data.home.en.contact.social }}<a href="{{ .url }}" aria-label="{{ .label }}" title="{{ .label }}" data-goatcounter-click="social-{{ .icon }}">{{ partial "pixel-icon.html" .icon }}</a>{{ end }}
     </nav>
   </div>
   {{- /* `npm run serve` never makes the PDF (`npm run build` does), so the dev server links the web CV instead. */}}
-  <a class="{{ cond $home "building-download" "px-download" }}" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} aria-label="Download CV (PDF)" data-goatcounter-click="cv-download">
+  <a class="{{ cond $home "building-download" "px-download" }}" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} aria-label="{{ $t.download_label }}" data-goatcounter-click="cv-download">
     <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
-    <span>Download CV</span>
+    <span>{{ $t.download }}</span>
   </a>
 </header>
 {{ if not $home }}{{ with resources.Get "js/site-menu.js" | minify | fingerprint }}<script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>{{ end }}{{ end }}

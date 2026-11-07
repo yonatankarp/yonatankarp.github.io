@@ -7,58 +7,58 @@
 {{- /* Each role links to its floor and lists its highlights; a slip names its file here instead of failing deep in the page (#58). */}}
 {{ partial "check-floors.html" $experience }}
 {{ $skills := site.GetPage "/skills" }}
+{{ $cv := hugo.Data.cv }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">
 <head>
   {{ partial "head.html" . }}
 </head>
 <body class="px-skin cv-page">
-  <a class="skip-link" href="#cv">Skip to the CV</a>
+  <a class="skip-link" href="#cv">{{ hugo.Data.ui.skip.cv }}</a>
   {{ partial "pixel-bar.html" . }}
 
   <main class="cv px-sheet" id="cv">
     <header class="cv-head">
       <div class="cv-head__who">
-        <p class="px-kicker">Curriculum vitae</p>
-        <h1>Yonatan Karp-Rudin</h1>
-        <p class="cv-role">Staff Software Engineer · {{ hugo.Data.home.en.contact.location }}</p>
+        <p class="px-kicker">{{ $cv.kicker }}</p>
+        <h1>{{ site.Title }}</h1>
+        <p class="cv-role">{{ hugo.Data.ui.role }} · {{ hugo.Data.home.en.contact.location }}</p>
         <ul class="cv-contact">
           {{ with hugo.Data.home.en.contact.email.address }}<li><a class="px-chip" href="mailto:{{ . }}" data-goatcounter-click="email">{{ . }}</a> {{ partial "copy-email.html" . }}</li>{{ end }}
           {{ range hugo.Data.home.en.contact.links }}<li><a class="px-chip" href="{{ .url }}">{{ .text }}</a></li>
           {{ end }}
-          <li><a class="px-chip" href="https://yonatankarp.com">yonatankarp.com</a></li>
+          <li><a class="px-chip" href="https://yonatankarp.com">{{ $cv.site }}</a></li>
         </ul>
       </div>
     </header>
 
     <section class="px-section" aria-labelledby="cv-summary">
-      <h2 id="cv-summary">Summary</h2>
-      <p>I'm a Staff Software Engineer. I've been writing software for {{ partial "career-years.html" . }} years: first C++ on vision processing chips at Inuitive, then backend work at NICE, then backend services for SumUp's point-of-sale products, and since 2023 risk, then payments and compliance, at Billie.</p>
-      <p>At Billie I joined the core architecture team and took two vendor integrations from an RFC to production, one for graph-based fraud detection and one for transaction monitoring. I also started two services from scratch and co-built the core of our Risk Orchestrator. A lot of my time went into the less visible work, like API contracts, dead-letter handling, monitoring, and being on call when something broke.</p>
+      <h2 id="cv-summary">{{ $cv.headings.summary }}</h2>
+      {{ $years := partial "career-years.html" . }}{{ range $cv.summary }}<p>{{ if strings.Contains . "%d" }}{{ printf . $years }}{{ else }}{{ . }}{{ end }}</p>
+      {{ end }}
     </section>
 
     <section class="px-section" aria-labelledby="cv-focus">
-      <h2 id="cv-focus">Staff+ focus</h2>
+      <h2 id="cv-focus">{{ $cv.headings.focus }}</h2>
       <ul class="cv-focus">
-        <li>Defined compliance and risk service boundaries across vendor behavior, event flows, and product rules.</li>
-        <li>Drove API-first backend design with Kotlin, Java, Spring Boot, Kafka, OpenAPI, and Backstage.</li>
-        <li>Handled operational risk with recovery paths, monitoring, migration plans, and upstream fixes.</li>
+        {{ range $cv.focus }}<li>{{ . }}</li>
+        {{ end }}
       </ul>
     </section>
 
     {{ with $skills }}
     <section class="px-section" aria-labelledby="cv-skills">   {{- /* plain text on purpose: recruiters and ATS filters search the PDF for these */ -}}
-      <h2 id="cv-skills">Skills</h2>
-      <p><strong>Daily:</strong> {{ delimit .Params.working_set ", " }}</p>
-      <p><strong>Also:</strong> {{ delimit .Params.familiar_with ", " }}</p>
+      <h2 id="cv-skills">{{ $cv.headings.skills }}</h2>
+      <p><strong>{{ $cv.skills.daily }}</strong> {{ delimit .Params.working_set ", " }}</p>
+      <p><strong>{{ $cv.skills.also }}</strong> {{ delimit .Params.familiar_with ", " }}</p>
     </section>
     {{ end }}
 
     <section class="px-section" aria-labelledby="cv-experience">
-      <h2 id="cv-experience">Experience</h2>
+      <h2 id="cv-experience">{{ $cv.headings.experience }}</h2>
       {{ range $experience }}
       <article class="cv-role-item" style="--accent:{{ index $accent .Params.floor }}">
-        <a class="cv-floor" href="{{ $.Site.Home.RelPermalink }}#floor-{{ .Params.floor }}" aria-label="Floor {{ .Params.floor }} in the building"><svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2 0h6v10H2zM3 2v1h1V2zM6 2v1h1V2zM3 5v1h1V5zM6 5v1h1V5zM4 8v2h2V8z"/></svg></a>
+        <a class="cv-floor" href="{{ $.Site.Home.RelPermalink }}#floor-{{ .Params.floor }}" aria-label="{{ printf $cv.floor_link .Params.floor }}"><svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="M2 0h6v10H2zM3 2v1h1V2zM6 2v1h1V2zM3 5v1h1V5zM6 5v1h1V5zM4 8v2h2V8z"/></svg></a>
         <div class="cv-role-item__body">
           <div class="cv-role-item__top">
             <h3>{{ .Title }}</h3>
@@ -77,21 +77,15 @@
     </section>
 
     <section class="px-section" aria-labelledby="cv-open-source" style="--accent:{{ index $accent "P" }}">
-      <h2 id="cv-open-source">Open source, AI &amp; writing</h2>
+      <h2 id="cv-open-source">{{ $cv.headings.open_source }}</h2>
       <ul class="cv-bullets">
-        <li>Added Spring Boot 4 and Jackson 3 support to the kotlin-spring generator in <a href="https://github.com/OpenAPITools/openapi-generator">openapi-generator</a>, among 6 merged generator PRs.</li>
-        <li>Built <a href="https://github.com/yonatankarp/sse-mcp-server">sse-mcp-server</a>, a Kotlin and Spring Boot MCP server that exposes typed backend tools to AI agents over Server-Sent Events.</li>
-        <li>Built <a href="https://yonatankarp.com/mimic/">Mimic</a>, a Mac app that turns a picture or a description into a 3D-printable miniature, with local models and print prep written in Swift.</li>
-        <li>Built <a href="https://yonatankarp.com/lorekeeper/">Lorekeeper</a>, a Tauri app for D&amp;D session notes kept as Markdown, with end-to-end encrypted sync through a small Rust server.</li>
-        <li>Wrote and maintain <a href="https://yonatankarp.com/ff4k/">ff4k</a>, a Kotlin Multiplatform feature flag library published on Maven Central.</li>
-        <li>{{ len (where .Site.RegularPages "Type" "blog") }} posts on Kotlin, backend engineering, and AI coding agents on <a href="{{ "blog/" | absURL }}">my blog</a>, including giving Claude Code a long-term memory with hooks.</li>
-        <li>Spoke several times at Kotlin User Group Berlin, on <a href="https://www.meetup.com/kotlin-berlin/events/296681560/">code smells</a> (Oct 2023), <a href="https://www.meetup.com/kotlin-berlin/events/304576388/">the xkcd comics</a> (Nov 2024, <a href="{{ "blog/xkcd-from-tile-to-picture/" | absURL }}">write-up</a>), and <a href="https://www.meetup.com/kotlin-berlin/events/315180331/">Kafka multi-message topics</a> (Jun 2026).</li>
-        <li>Spoke at <a href="https://sessionize.com/yonatankarp/">DevFest Venezia 2023</a> (Dec 2023) on lessons from a system design failure (<a href="{{ "blog/our-errors-your-gain-a-system-design-cautionary-tale/" | absURL }}">write-up</a>).</li>
+        {{ $posts := len (where .Site.RegularPages "Type" "blog") }}{{ range $cv.open_source }}<li>{{ if strings.Contains . "%d" }}{{ printf . $posts | markdownify }}{{ else }}{{ . | markdownify }}{{ end }}</li>
+        {{ end }}
       </ul>
     </section>
 
     <section class="px-section" aria-labelledby="cv-education">
-      <h2 id="cv-education">Education</h2>
+      <h2 id="cv-education">{{ $cv.headings.education }}</h2>
       <div class="cv-edu">
         {{ range $education }}
         <article class="cv-edu__item" style="--accent:{{ with .Params.floor }}{{ index $accent . }}{{ else }}{{ index $accent "P" }}{{ end }}">
@@ -99,7 +93,7 @@
             <h3>{{ .Params.university }}</h3>
             <span>{{ .Params.year }}</span>
           </div>
-          <p class="cv-sub">{{ .Params.degree }}{{ with .Params.link }} · <a href="{{ . | absURL }}">credential</a>{{ end }}</p>
+          <p class="cv-sub">{{ .Params.degree }}{{ with .Params.link }} · <a href="{{ . | absURL }}">{{ $cv.credential }}</a>{{ end }}</p>
           {{ with .Params.teaching }}<ul class="cv-teaching">{{ range . }}<li>{{ .title }} <span>{{ replace .when " - " " – " }}</span></li>{{ end }}</ul>{{ end }}
         </article>
         {{ end }}

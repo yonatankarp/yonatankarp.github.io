@@ -6,7 +6,8 @@
 {{- $pages = $sections | append $pages | append (site.GetPage "/projects").RegularPages.ByWeight -}}
 {{- $entries := slice -}}
 {{- range $pages -}}
-  {{- $type := "Page" -}}
+  {{- $types := hugo.Data.ui.search.types -}}
+  {{- $type := $types.page -}}
   {{- $title := .Title -}}
   {{- $href := .RelPermalink -}}
   {{- $summary := .Description | default (.Summary | plainify) -}}
@@ -17,27 +18,27 @@
   {{- else if eq .Path "/skills" -}}
     {{- $areas := slice -}}
     {{- range .Params.practice_areas }}{{ $areas = $areas | append .name .summary (delimit .tools ", ") }}{{ end -}}
-    {{- $content = printf "Skills. %s %s. %s." (delimit $areas " ") (delimit .Params.working_set ", ") (delimit .Params.familiar_with ", ") -}}
+    {{- $content = printf hugo.Data.ui.search.skills (delimit $areas " ") (delimit .Params.working_set ", ") (delimit .Params.familiar_with ", ") -}}
   {{- else if not .IsPage -}}
   {{- else if eq .Section "blog" -}}
-    {{- $type = "Post" -}}
+    {{- $type = $types.post -}}
   {{- else if eq .Section "projects" -}}
-    {{- $type = cond (eq .Params.group "contribution") "Contribution" "Project" -}}
+    {{- $type = cond (eq .Params.group "contribution") $types.contribution $types.project -}}
     {{- $title = partial "project-title.html" $title -}}
     {{- $href = .RelPermalink | default .Params.link -}}
     {{- $tags = .Params.tech | default slice -}}
   {{- else if eq .Section "experience" -}}
-    {{- $type = "Role" -}}
+    {{- $type = $types.role -}}
     {{- $href = printf "%s#floor-%s" $home .Params.floor -}}
     {{- $summary = printf "%s · %s · %s. %s" .Params.company .Params.location .Params.duration .Params.summary -}}
     {{- $content = delimit (.Params.highlights | default slice) " " -}}
   {{- else if eq .Section "education" -}}
-    {{- $type = "Education" -}}
+    {{- $type = $types.education -}}
     {{- $href = printf "%s#floor-1" $home -}}
     {{- $summary = printf "%s, %s" .Params.degree .Params.year -}}
     {{- range .Params.teaching }}{{ $content = printf "%s %s." $content .title }}{{ end -}}
   {{- else if eq .Section "testimonial" -}}
-    {{- $type = "Recommendation" -}}
+    {{- $type = $types.recommendation -}}
     {{- $href = printf "%s#floor-L" $home -}}
     {{- $summary = .Params.position -}}
   {{- end -}}

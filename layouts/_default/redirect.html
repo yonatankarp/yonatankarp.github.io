@@ -15,6 +15,6 @@
   <meta http-equiv="refresh" content="0; url={{ $target }}">
 </head>
 <body>
-  <p><a href="{{ $target }}">{{ .Title }} {{ if .Params.redirect }}has moved{{ else }}is now on the homepage{{ end }}.</a></p>
+  <p><a href="{{ $target }}">{{ .Title }} {{ if .Params.redirect }}{{ hugo.Data.ui.redirect.moved }}{{ else }}{{ hugo.Data.ui.redirect.home }}{{ end }}.</a></p>
 </body>
 </html>

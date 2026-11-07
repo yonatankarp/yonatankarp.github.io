@@ -1,0 +1,10 @@
+# The paintings' and photos' text alternatives. The city's own is city.alt in data/home/en.yaml; the art inside a post
+# takes its alt from the post's Markdown.
+library: "The Library: a lamplit reading room at dusk, tall bookcases either side of an arched window onto the city, a card catalogue under it and reading tables with green lamps."
+workshop: "A row of four red-brick maker workshops with sawtooth glass roofs along a cobbled street, each roller door rolled up onto a lit workbench with tools, parts and a screen: one workshop for each kind of project."
+radio: "A small radio studio at dusk: a mixing desk with a microphone, reel-to-reel tape decks, a red on-air lamp, and a window onto the city's radio mast."
+post: "An old post office counter hall at dusk: a wall of pigeonholes, a round clock, a grille window, parcels and a red post box."
+portrait: "Portrait of Yonatan Karp-Rudin"   # the lobby's photo
+testimonial: "Portrait of %s"   # each recommendation's photo; %s is the person's name
+share: "Yonatan Karp-Rudin, Staff Software Engineer, %s, beside the Career Tower in the pixel-art city of his site"   # the share image (og:image); %s is contact.location
+cover: "Cover image of %s"   # a post's share image; %s is its title

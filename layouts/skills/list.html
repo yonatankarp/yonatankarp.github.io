@@ -1,13 +1,14 @@
 {{ define "main" }}
+{{ $t := hugo.Data.ui.skills }}
 <div class="px-sheet px-skills">
   <header class="px-skills__head">
-    <p class="px-kicker">Lobby · Skills</p>
+    <p class="px-kicker">{{ $t.kicker }}</p>
     <h1>{{ .Title }}</h1>
     <p class="px-skills__lede">{{ .Description | default (.Content | plainify) }}</p>
   </header>
 
   <section class="px-section">
-    <h2>Where I am strongest</h2>
+    <h2>{{ $t.areas }}</h2>
     <div class="px-skills__areas">
       {{ range .Params.practice_areas }}
       <article class="px-well px-skills__area">
@@ -22,16 +23,16 @@
   </section>
 
   <section class="px-section">
-    <h2>Current working set</h2>
-    <p>The tools and systems I use most in my current work.</p>
+    <h2>{{ $t.working_set }}</h2>
+    <p>{{ $t.working_set_text }}</p>
     <ul class="px-skills__chips">
       {{ range .Params.working_set }}<li class="px-chip px-chip--strong">{{ . }}</li>{{ end }}
     </ul>
   </section>
 
   <section class="px-section">
-    <h2>Also comfortable with</h2>
-    <p>Things I have worked with seriously, though less often than the list above.</p>
+    <h2>{{ $t.familiar }}</h2>
+    <p>{{ $t.familiar_text }}</p>
     <ul class="px-skills__chips">
       {{ range .Params.familiar_with }}<li class="px-chip">{{ . }}</li>{{ end }}
     </ul>

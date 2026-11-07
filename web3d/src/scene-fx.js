@@ -22,8 +22,8 @@ export function pauseLabel(button, on, hidden) {
 }
 
 // Animates `canvas` from the JSON at `data` and, given one, the depth map at `depth` (brighter = nearer).
-// setup(ctx, fx, test) returns draw(now, dt), called each frame on a cleared canvas (draw.fps: see loop()); `test` is
-// the depth test, if any.
+// setup(ctx, fx, test) returns draw(now, dt), called each frame on a cleared canvas (draw.fps: see loop(); draw.ready,
+// a promise of what it fetches itself, for a still frame when it starts paused); `test` is the depth test, if any.
 // Nothing moves under reduced motion, or with ?fx=off, which keeps the visual captures still; `live` can hold it too.
 // Then poster(ctx), if given, draws what stands still (the city's holiday props) once instead, and again whenever motion
 // is turned off while the page is open.
@@ -189,6 +189,8 @@ function loop(ctx, draw, live, still, poster) {
     raf = requestAnimationFrame(frame);
   };
   const wake = () => { if (!raf && going()) { last = prev = performance.now(); skip = Infinity; raf = requestAnimationFrame(frame); } };
+  // Paused from the start: one still frame, once what it draws has arrived (draw.ready), so the scene stands there.
+  Promise.resolve(draw.ready).then(() => { if (paused && live() && !still.matches) { clear(); draw(performance.now(), 0); } });
   const pauseButton = document.querySelector('[data-building-pause]');
   const label = () => { if (pauseButton && live()) pauseLabel(pauseButton, paused, still.matches); };   // reduced motion has nothing to pause
   label();

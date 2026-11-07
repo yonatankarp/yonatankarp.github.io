@@ -101,5 +101,6 @@ function setup(ctx, fx, { footAt, sprite }, sheet, catSheet) {
     });
   };
 
-  return (now, dt) => { drawScreens(now); drawWeld(now, dt); drawMoths(now, dt); drawCats(dt, false); drawWalkers(now, dt); drawCats(dt, true); if (snow) snow(now, dt); };
+  return Object.assign((now, dt) => { drawScreens(now); drawWeld(now, dt); drawMoths(now, dt); drawCats(dt, false); drawWalkers(now, dt); drawCats(dt, true); if (snow) snow(now, dt); },
+    { ready: Promise.all([sheet, catSheet]) });
 }

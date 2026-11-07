@@ -101,5 +101,5 @@ function setup(ctx, fx, { dfill, sprite }, sheet) {
     });
   };
 
-  return (now, dt) => { drawReaders(now, dt); drawFire(now, dt); drawClouds(dt); drawDust(now, dt); };
+  return Object.assign((now, dt) => { drawReaders(now, dt); drawFire(now, dt); drawClouds(dt); drawDust(now, dt); }, { ready: sheet });
 }

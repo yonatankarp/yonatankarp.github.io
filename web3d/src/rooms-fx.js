@@ -31,7 +31,7 @@ function radio(ctx, fx) {
   let left = 0;
   const reels = fx.reels.map(([x, y, rx, ry, dir]) => { const r = { x, y, rx, ry, dir, sx: left }; left += 2 * rx + 1; return r; });
   ctx.imageSmoothingEnabled = false;
-  return (now) => {
+  return Object.assign((now) => {
     for (const { x, y, rx, ry, dir, sx } of sheet?.complete && sheet.naturalWidth ? reels : []) {
       const w = 2 * rx + 1, h = 2 * ry + 1;
       ctx.drawImage(sheet, sx, 0, w, h, x - rx, y - ry, w, h);
@@ -50,7 +50,7 @@ function radio(ctx, fx) {
       ctx.fillStyle = 'rgba(255,80,60,.3)'; ctx.fillRect(bx - 2, by - 2, 6, 6);
       ctx.fillStyle = 'rgb(255,60,40)'; ctx.fillRect(bx, by, 2, 2);
     }
-  };
+  }, { ready: sheet && sheet.decode().catch(() => {}) });
 }
 
 function post(ctx, fx) {

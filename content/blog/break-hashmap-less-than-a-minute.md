@@ -13,7 +13,7 @@ tags:
   - data-structures
 images:
   featured_image: "/images/blog/covers/break-hashmap-less-than-a-minute.jpg"
-coverFocus: 50
+coverFocus: 68
 ---
 
 > **TL;DR:** Never use mutable objects as keys in your HashMap!

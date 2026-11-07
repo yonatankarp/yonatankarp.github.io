@@ -14,7 +14,7 @@ tags:
   - side-projects
 images:
   featured_image: "/images/blog/covers/build-twitter-bot-kotlin.jpg"
-coverFocus: 46
+coverFocus: 50
 ---
 
 > **Note (2026):** I wrote this post in December 2021 against Twitter's v1.1 API, through Twitter4J, and `apps.twitter.com`. That address now redirects to [developer.twitter.com](https://developer.twitter.com/), so the setup steps below may not match what you see today.

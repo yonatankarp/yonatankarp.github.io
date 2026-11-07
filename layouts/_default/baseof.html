@@ -4,7 +4,7 @@
     {{ partial "head.html" . }}
   </head>
   <body class="px-skin px-page">
-    <a class="skip-link" href="#main-content">Skip to content</a>
+    <a class="skip-link" href="#main-content">{{ hugo.Data.ui.skip.content }}</a>
     {{ partial "pixel-bar.html" . }}
     <main id="main-content">
       {{ block "main" . }}{{ end }}

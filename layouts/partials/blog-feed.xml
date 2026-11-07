@@ -9,7 +9,7 @@
   <channel>
     <title>{{ .Site.Title }}</title>
     <link>{{ .Permalink }}</link>
-    <description>Recent posts on {{ .Site.Title }}'s blog</description>
+    <description>{{ printf hugo.Data.ui.feed.description .Site.Title }}</description>
     <generator>Hugo</generator>
     <language>{{ site.Language.Locale }}</language>{{ with .Site.Copyright }}
     <copyright>{{ . }}</copyright>{{ end }}{{ with $pages }}

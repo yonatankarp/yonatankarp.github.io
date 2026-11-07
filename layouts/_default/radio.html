@@ -1,22 +1,23 @@
 {{- /* The podcast's page (/podcast/, content/podcast.md) is the city's Radio Mast: its studio across the head
-     (partials/room-hero.html), then the show as a now-playing card. Its copy is contact.podcast in data/home/en.yaml. */ -}}
+     (partials/room-hero.html), then the show as a now-playing card. Its copy is contact.podcast in data/home/en.yaml,
+     its labels radio in data/rooms.yaml. */ -}}
 {{ define "main" }}
 {{ $pod := hugo.Data.home.en.contact.podcast }}
+{{ $r := hugo.Data.rooms.radio }}
 <div class="room">
-{{ partial "room-hero.html" (dict "room" "radio" "open" 0.32 "label" "The studio"
-  "alt" "A small radio studio at dusk: a mixing desk with a microphone, reel-to-reel tape decks, a red on-air lamp, and a window onto the city's radio mast.") }}
+{{ partial "room-hero.html" (dict "room" "radio" "open" 0.32 "label" $r.label "alt" hugo.Data.art.radio) }}
 <div class="room-sheet">
-  <a class="room-back" href="{{ "" | relURL }}">← Back to the city</a>
+  <a class="room-back" href="{{ "" | relURL }}">{{ hugo.Data.ui.back_to_city }}</a>
   <section class="radio-player">
-    <div class="radio-cover">{{ partial "pixel-icon.html" "podcast" }}<span class="radio-onair"><i></i>On air</span></div>
+    <div class="radio-cover">{{ partial "pixel-icon.html" "podcast" }}<span class="radio-onair"><i></i>{{ $r.on_air }}</span></div>
     <div>
-      <p class="room-kicker">Radio Mast · now broadcasting</p>
+      <p class="room-kicker">{{ $r.kicker }}</p>
       <h1>{{ $pod.title }}</h1>
       <p class="room-lede">{{ $pod.text }}</p>
       {{- /* A sound bar in CSS steps, each bar at its own pace, still under reduced motion. */}}
       <div class="radio-eq" aria-hidden="true">{{ range $i := seq 0 17 }}<i style="animation-duration:{{ printf "%.2f" (add 0.55 (div (mod (mul $i 37) 11) 20.0)) }}s;animation-delay:-{{ printf "%.2f" (mul $i 0.13) }}s"></i>{{ end }}</div>
-      <a class="room-big" href="{{ $pod.url }}" data-goatcounter-click="podcast-radio">▶ Listen on {{ $pod.platform }}</a>
-      <p class="room-also">Rather read? The <a href="{{ "blog/" | relURL }}">Library</a> has the long-form posts.</p>
+      <a class="room-big" href="{{ $pod.url }}" data-goatcounter-click="podcast-radio">{{ printf $r.listen $pod.platform }}</a>
+      <p class="room-also">{{ $r.also | markdownify }}</p>
     </div>
   </section>
 </div>

@@ -4,7 +4,7 @@
   "scripts": {
     "build": "npm run build:building && node scripts/run-hugo.js --gc --minify --cleanDestinationDir && npm run pdf",
     "check": "npm run check:static && npm run check:csp",
-    "check:static": "npm run check:blog-assets && npm run check:phases && npm run build && npm run check:site-metadata && npm run check:generated-html && npm run check:cv-print && npm run check:links",
+    "check:static": "npm run check:blog-assets && npm run check:phases && npm run check:template-copy && npm run build && npm run check:site-metadata && npm run check:generated-html && npm run check:cv-print && npm run check:links",
     "check:blog-assets": "node scripts/check-blog-assets.js",
     "check:cv-print": "node scripts/check-cv-print.js",
     "check:csp": "node scripts/check-csp.js",
@@ -12,6 +12,7 @@
     "check:hugo-pin": "node scripts/check-hugo-pin.js",
     "check:phases": "node scripts/check-phases.js",
     "check:security-txt": "node scripts/check-security-txt.js",
+    "check:template-copy": "node scripts/check-template-copy.js",
     "check:links": "node scripts/check-links.js",
     "check:links:external": "node scripts/check-links.js --external",
     "check:site-metadata": "node scripts/check-site-metadata.js",

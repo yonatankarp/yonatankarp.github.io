@@ -1,19 +1,20 @@
 {{- /* The contact page (/contact/, content/contact.md) is the city's Post Office: its counter hall across the head
-     (partials/room-hero.html), then a letter and a sheet of stamps. Its copy is contact in data/home/en.yaml. The letter
+     (partials/room-hero.html), then a letter and a sheet of stamps. Its copy is contact in data/home/en.yaml, its labels
+     post in data/rooms.yaml. The letter
      is ruled: every line of its text sits on a 30px row (custom.css), which scripts/capture-screenshots.js measures. */ -}}
 {{ define "main" }}
 {{ $c := hugo.Data.home.en.contact }}
 {{ $place := split $c.location ", " }}
-{{ $names := dict "linkedin" "LinkedIn" "github" "GitHub" "x" "X" }}
+{{ $r := hugo.Data.rooms.post }}
+{{ $names := $r.networks }}
 <div class="room">
-{{ partial "room-hero.html" (dict "room" "post" "open" 0.4 "label" "The counter hall"
-  "alt" "An old post office counter hall at dusk: a wall of pigeonholes, a round clock, a grille window, parcels and a red post box.") }}
+{{ partial "room-hero.html" (dict "room" "post" "open" 0.4 "label" $r.label "alt" hugo.Data.art.post) }}
 <div class="room-sheet">
-  <a class="room-back" href="{{ "" | relURL }}">← Back to the city</a>
+  <a class="room-back" href="{{ "" | relURL }}">{{ hugo.Data.ui.back_to_city }}</a>
   <div class="post-desk">
     <article class="post-letter">
       <p class="post-mark" aria-hidden="true">{{ index $place 0 }}<b>{{ now.Year }}</b>{{ index $place 1 }}</p>
-      <p class="room-kicker">Post Office · write to me</p>
+      <p class="room-kicker">{{ $r.kicker }}</p>
       <h1>{{ $c.title }}</h1>
       <p>{{ $c.text }}</p>
       <ul>{{ range $c.priorities }}<li>{{ . }}</li>{{ end }}</ul>
@@ -22,15 +23,15 @@
     <div class="post-stamps">
       <div class="post-stamp post-stamp--email">
         {{ partial "pixel-icon.html" "email" }}<b>{{ $c.email.label }}</b><span>{{ $c.email.address }}</span>
-        <p class="with-copy"><a class="post-btn" href="mailto:{{ $c.email.address }}" data-goatcounter-click="email">Write</a> {{ partial "copy-email.html" $c.email.address }}</p>
+        <p class="with-copy"><a class="post-btn" href="mailto:{{ $c.email.address }}" data-goatcounter-click="email">{{ $r.write }}</a> {{ partial "copy-email.html" $c.email.address }}</p>
       </div>
       {{- /* The profiles of the top bar's social row, by its icons, each under its handle; the podcast is the Radio Mast. */}}
       {{ range $c.social }}{{ $name := index $names .icon }}{{ if $name }}{{ $handle := replaceRE `^https?://[^/]+/(.*?)/?$` "$1" .url }}
       <a class="post-stamp" href="{{ .url }}" data-goatcounter-click="social-{{ .icon }}">{{ partial "pixel-icon.html" .icon }}<b>{{ $name }}</b><span>{{ cond (eq .icon "x") "@" "" }}{{ $handle }}</span></a>
       {{ end }}{{ end }}
-      <a class="post-stamp" href="{{ "podcast/" | relURL }}">{{ partial "pixel-icon.html" "podcast" }}<b>Podcast</b><span>{{ $c.podcast.title }}</span></a>
+      <a class="post-stamp" href="{{ "podcast/" | relURL }}">{{ partial "pixel-icon.html" "podcast" }}<b>{{ $r.podcast }}</b><span>{{ $c.podcast.title }}</span></a>
       {{- /* The CV as the top bar's Download CV has it: `npm run serve` never makes the PDF, so the dev server links the web CV. */}}
-      <a class="post-stamp post-stamp--parcel" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} data-goatcounter-click="cv-download"><span><b>CV parcel</b><span>Download the PDF</span></span><span class="post-go" aria-hidden="true">↓</span></a>
+      <a class="post-stamp post-stamp--parcel" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} data-goatcounter-click="cv-download"><span><b>{{ $r.parcel }}</b><span>{{ $r.parcel_text }}</span></span><span class="post-go" aria-hidden="true">↓</span></a>
     </div>
   </div>
   <p class="sr-only" role="status" data-copy-status></p>

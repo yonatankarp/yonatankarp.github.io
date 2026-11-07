@@ -1,17 +1,18 @@
 {{ define "main" }}
+{{ $t := hugo.Data.ui.not_found }}
 <div class="px-sheet px-notfound">
   <p class="px-kicker">404</p>
-  <h1>That page is not here</h1>
-  <p class="px-notfound__lede">Maybe the link is old, maybe the article moved, or maybe the address was typed wrong.</p>
+  <h1>{{ $t.title }}</h1>
+  <p class="px-notfound__lede">{{ $t.lede }}</p>
   <form class="px-notfound__search" role="search" action="{{ "search/" | relURL }}" method="get">
-    <label class="px-search__label" for="notfound-search">Search the site</label>
-    <input id="notfound-search" class="search-input" type="search" name="q" placeholder="Search articles, projects and pages">
+    <label class="px-search__label" for="notfound-search">{{ hugo.Data.ui.search.label }}</label>
+    <input id="notfound-search" class="search-input" type="search" name="q" placeholder="{{ $t.placeholder }}">
   </form>
   <div class="px-notfound__links">
-    <a class="px-cta" href="{{ .Site.Home.RelPermalink }}">Back to the homepage</a>
-    <a class="px-cta px-cta--out" href="{{ "blog/" | relURL }}">To the blog</a>
+    <a class="px-cta" href="{{ .Site.Home.RelPermalink }}">{{ $t.home }}</a>
+    <a class="px-cta px-cta--out" href="{{ "blog/" | relURL }}">{{ $t.blog }}</a>
   </div>
-  <h2>Recent posts</h2>
+  <h2>{{ $t.recent }}</h2>
   <div class="px-search__results">
     {{ range first 3 (sort (where site.RegularPages "Section" "blog") "Date" "desc") }}
     <article class="search-result">

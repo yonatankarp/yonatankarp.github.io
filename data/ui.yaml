@@ -83,6 +83,7 @@ article:   # a blog post's page (layouts/blog/single.html), and its row in the l
   discuss_x: "X"
   author: "About the author"   # the author box, for screen readers
   written_by: "Written by"   # then the name and the role
+  views: "The views here are his own, not his employer's."   # under the availability; data/llms.yaml says the same
   read_cv: "Read the CV"
   keep_reading: "Keep reading"
   tags: "Tags"   # a row's tag list, for screen readers

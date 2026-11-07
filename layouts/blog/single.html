@@ -73,6 +73,7 @@
     <aside class="article-author px-well" aria-label="{{ $t.author }}">
       <p class="article-author__name">{{ $t.written_by }} {{ partial "nobreak.html" site.Title }}, {{ index (split $hero.eyebrow " · ") 0 }}</p>
       <p>{{ partial "nobreak.html" $hero.availability }}</p>
+      <p>{{ $t.views }}</p>
       <p class="article-author__links">
         <a href="{{ "cv/" | relURL }}" data-goatcounter-click="author-cv">{{ $t.read_cv }}</a>
         <a href="{{ printf "/%s" $hero.primaryAction.url | relURL }}" data-goatcounter-click="author-roof">{{ $hero.primaryAction.label }}</a>

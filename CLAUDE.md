@@ -100,8 +100,8 @@ holidays and everyone's come up, and the weather (`weatherOf`) is still unused. 
 Jewish holidays by their Hebrew date (Rosh Hashanah, Sukkot, Hanukkah, Purim, Passover, Independence Day with the law's
 moves, Lag BaOmer, Shavuot; not the solemn days). The Hebrew and Islamic ones (`sunset: true`) begin at sunset:
 `holidaysOn`'s `evening` flag reads the next day for them, which outside.js sets once the sun is below -0.833° at the
-visitor's city after noon, from `assets/js/sun.js`, the elevation the time-of-day pick uses too (`time-pick.html` and
-`scripts/lib.js` put it after `time-pick.js`, without its `export`). `?holiday=` pins them as before.
+visitor's city after noon (`isEvening` in calendar.js), from `assets/js/sun.js`, the elevation the time-of-day pick uses too (`time-pick.html` and
+`scripts/lib.js` put it after `time-pick.js`, without its `export`). `?holiday=` pins them (`fromQuery` in calendar.js).
 
 The tower's art is 928x308 a room (painted at 2304x768, box-reduced and median-cut to 64 colours, no dither, like the
 city), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an edit of the lobby carried across, so the
@@ -148,12 +148,13 @@ On the plaza either side of the tower stand the holidays' props (`web3d/src/prop
 `scripts/test/props.test.js`): a hanukkiah through Hanukkah, foot at art (694, 233), lit on day N with the shamash and N+1
 candles from the right, and a Christmas tree from 1 to 26 December, foot at (800, 236), snowy in winter and plain in any
 other season (a southern Christmas), its 34 bulbs twinkling and its star glowing. Candles and lights burn at dusk and
-night only, the props are darkened with the hour (`TINT`), and walkers and props are drawn by their feet's row, so
+night only, the props are darkened with the hour (`TINT`; which go up, which candles burn, lit or not and the tint are
+`dressing`, tested apart from the drawing), and walkers and props are drawn by their feet's row, so
 nobody walks through one. `?holiday=hanukkah:3,christmas` (or `none`) pins them. They are `props.webp` and `props.json`,
 baked by `web3d/pixel/gen_props.py` (`pose`, `paint`, `unflame`, `key`, `bake`) from `picks/props/`: hanukkiah 11 with its
 painted flames erased (the cup tops in `hanukkiah.json`), tree 11 and `tree-plain`, tree 11 with its snow painted off,
 each box-reduced to ~30 and 34 art px on 32 colours with a hard edge. Nothing moves under reduced
-motion or with `?fx=off`, which the visual captures use, but the props still stand there, steady (`animate`'s `poster`);
+motion or with `?fx=off`, but the props still stand there, steady (`animate`'s `poster`);
 the loop stops while the tab is hidden, the city is off screen or the tower is entered.
 
 Workshop Row (`/projects/`) and the Library's header (`/blog/`) move the same way, sharing `web3d/src/scene-fx.js` (the
@@ -298,8 +299,12 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 Push to `main` triggers GitHub Actions workflow (`.github/workflows/deploy.yml`) which builds Hugo and deploys to GitHub Pages.
 
 CI, the deploy and the weekly link check share `.github/actions/build-site`, which runs `npm run check:static`;
-CI and the deploy then run `npm run check:csp`, which also fails on axe's serious and critical findings. CI captures
-the visual smoke screenshots from the built `public/` and compares them, without failing, with the last deploy's,
+CI and the deploy then run `npm run check:csp`, which also fails on axe's serious and critical findings, and on any of
+the site's own requests answered with 400 or more but the 404 route's own page, so a missing scene or prop file fails
+it (the scenes forgive only a failed fetch: a file that cannot be read, or a setup that throws, is a page error). CI captures
+the visual smoke screenshots from the built `public/` (`scripts/capture-screenshots.js`: every route pins its hour,
+`season=autumn` and, on the homepage, `holiday=none`, but `city-winter`, a winter night with Hanukkah and Christmas; under
+reduced motion, with CSS animations disabled, so they hold still) and compares them, without failing, with the last deploy's,
 which the deploy's `visual_capture` job takes from the Pages artifact beside the `deploy` job, never holding it up.
 Node's version is `.nvmrc`.
 

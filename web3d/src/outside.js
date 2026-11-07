@@ -5,24 +5,12 @@
 // hanukkah:3,christmas (the number is the day of it, from 0). The Hebrew and Islamic holidays begin at sunset there: past
 // it, the evening already counts as the next day's (the first Hanukkah candle).
 import { sunAt } from '../../assets/js/sun.js';
-import { HOLIDAYS, holidaysOn } from './calendar.js';
+import { fromQuery, holidaysOn, isEvening } from './calendar.js';
 
 const root = document.documentElement, query = new URLSearchParams(location.search);
 const [lat, lon] = (root.dataset.place || '52.5,13.4').split(',').map(Number);
 const today = new Date();
-// Past sunset (the sun's top below the horizon, -0.833 degrees) and still the same date: the afternoon goes by the
-// clock, not the sun's hour angle, since the holidays change at the date's midnight, which solar midnight is not.
-// shortcut: in the polar night it is true from noon, and in the midnight sun never; give those a fixed hour if it matters.
-const evening = today.getHours() >= 12 && sunAt(today.getTime(), lat, lon)[0] < -0.833;
-
-function fromQuery(list) {
-  const out = {};
-  for (const item of list.split(',')) {
-    const [name, day] = item.trim().split(':');
-    if (HOLIDAYS[name]) out[name] = Math.max(0, Number(day) || 0);
-  }
-  return out;
-}
+const evening = isEvening(today, sunAt(today.getTime(), lat, lon)[0]);
 
 export const OUTSIDE = {
   season: root.dataset.season,

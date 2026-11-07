@@ -39,33 +39,41 @@ const citySelectors = [
   [".city-chips button[aria-pressed]", 5, "district chips"],
 ];
 // "/" opens on the city; the building's routes name a floor, the lobby where the city leads in, which opens it directly.
+// Every route pins its hour and an autumn (the art follows the visitor's clock and date otherwise, so captures could not
+// be compared, #151 and #298), and the homepage's no holiday, but city-winter, which shows winter and its props on purpose.
+const pinned = "time=dusk&season=autumn";
 const routes = [
   {
     name: "city",
-    path: "/?time=dusk&fx=off",   // fx=off: the animations (scene-fx.js) would move between captures
+    path: `/?${pinned}&holiday=none&fx=off`,   // fx=off: the animations (scene-fx.js) would move between captures
     pick: true,
     requiredSelectors: [...citySelectors, ["html.at-city[data-time='dusk']", 1, "the city at dusk"]],
   },
   {
     name: "city-night",
-    path: "/?time=night&fx=off",
+    path: "/?time=night&season=autumn&holiday=none&fx=off",
     requiredSelectors: [...citySelectors, ["html.at-city[data-time='night']", 1, "the city at night"]],
   },
   {
+    name: "city-winter",
+    path: "/?time=night&season=winter&holiday=hanukkah:3,christmas&fx=off",   // the snowy tree and four candles, lit
+    requiredSelectors: [...citySelectors, ["html.at-city[data-time='night'][data-season='winter']", 1, "the city on a winter night"]],
+  },
+  {
     name: "home",
-    path: "/?time=dusk#floor-L",   // pinned: the art follows the clock otherwise, so captures could not be compared (#151)
+    path: `/?${pinned}&holiday=none#floor-L`,
     pauseLabel: true,
     ride: true,
     requiredSelectors: [...homeSelectors, ["html[data-time='dusk']", 1, "dusk art"]],
   },
   ...Object.keys(phases).filter((time) => time !== "dusk").map((time) => ({
     name: `home-${time}`,
-    path: `/?time=${time}#floor-R`,   // the roof, which has its own picture at each hour
+    path: `/?time=${time}&season=autumn&holiday=none#floor-R`,   // the roof, which has its own picture at each hour
     requiredSelectors: [...homeSelectors, [`html[data-time='${time}']`, 1, `${time} art`]],
   })),
   {
     name: "projects",
-    path: "/projects/?time=dusk&fx=off",   // Workshop Row follows the clock like the city, so pinned; still, as the city is
+    path: `/projects/?${pinned}&fx=off`,   // still, as the city is
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-bar__tabs a", 4, "top bar tabs"],
@@ -79,7 +87,7 @@ const routes = [
   },
   {
     name: "case-study",
-    path: "/projects/ff4k/",
+    path: `/projects/ff4k/?${pinned}`,
     ctaFocus: true,
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
@@ -90,7 +98,7 @@ const routes = [
   },
   {
     name: "blog",
-    path: "/blog/?fx=off",   // the Library's fire and dust (library-fx.js) held still
+    path: `/blog/?${pinned}&fx=off`,   // the Library's fire and dust (library-fx.js) held still
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-bar__tabs a", 4, "top bar tabs"],
@@ -100,7 +108,7 @@ const routes = [
   },
   {
     name: "podcast",
-    path: "/podcast/?fx=off",   // the Radio Mast's studio (rooms-fx.js) held still
+    path: `/podcast/?${pinned}&fx=off`,   // the Radio Mast's studio (rooms-fx.js) held still
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-download", 1, "CV download"],
@@ -110,7 +118,7 @@ const routes = [
   },
   {
     name: "contact",
-    path: "/contact/?fx=off",   // the Post Office's hall held still
+    path: `/contact/?${pinned}&fx=off`,   // the Post Office's hall held still
     ruledLetter: true,
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
@@ -122,7 +130,7 @@ const routes = [
   },
   {
     name: "cv",
-    path: "/cv/",
+    path: `/cv/?${pinned}`,
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-bar__tabs a", 4, "top bar tabs"],
@@ -133,7 +141,7 @@ const routes = [
   },
   {
     name: "post-self-compiling-second-brain",
-    path: "/blog/self-compiling-second-brain/",
+    path: `/blog/self-compiling-second-brain/?${pinned}`,
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-bar__tabs a", 4, "top bar tabs"],
@@ -143,7 +151,7 @@ const routes = [
   },
   {
     name: "search",
-    path: "/search/",
+    path: `/search/?${pinned}`,
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-bar__tabs a", 4, "top bar tabs"],
@@ -155,7 +163,7 @@ const routes = [
   },
   {
     name: "skills",
-    path: "/skills/",
+    path: `/skills/?${pinned}`,
     requiredSelectors: [
       [".px-bar__name", 1, "name plate"],
       [".px-bar__tabs a", 4, "top bar tabs"],
@@ -664,6 +672,7 @@ async function main() {
         const page = await browser.newPage({
           viewport: { width: viewport.width, height: viewport.height },
           deviceScaleFactor: 1,
+          reducedMotion: "reduce",   // the tower, its receptionist and cats, and every scene hold still (#298)
         });
         await page.addInitScript(() => {
           const observer = new MutationObserver(() => {
@@ -704,10 +713,6 @@ async function main() {
           fail(`${route.path} (${viewport.name}) threw uncaught page errors: ${pageErrors.join("; ")}`);
         }
 
-        if (route.pauseLabel) {
-          await assertPauseLabel(page, route, viewport);
-        }
-
         if (route.ruledLetter) {
           await assertLetterOnRules(page, route, viewport);
         }
@@ -718,7 +723,15 @@ async function main() {
 
         await page.locator("body").screenshot({
           path: path.join(screenshotDir, screenshotFileName(route, viewport)),
+          animations: "disabled",   // CSS ones too, such as the Radio Mast's EQ
         });
+
+        // After the capture, motion as a visitor has it: held, the building has no Pause to show, and the rides are instant.
+        await page.emulateMedia({ reducedMotion: "no-preference" });
+
+        if (route.pauseLabel) {
+          await assertPauseLabel(page, route, viewport);
+        }
 
         if (route.ride) {   // after the capture, so the screenshot shows the floor the page opened on
           await assertRide(page, route, viewport);

@@ -54,3 +54,10 @@ test('mirror flips each row and undoes itself', async () => {
   assert.deepEqual([...m.subarray(12, 16)], [20, 21, 22, 23]);
   assert.deepEqual(mirror(m, 3), px);
 });
+
+test('every draws as often as the scene needs, evenly, through a jittery frame interval', async () => {
+  const { every } = await load();
+  for (const [fps, hz, k] of [[60, 60, 1], [60, 120, 2], [22, 60, 2], [23, 120, 5], [60, 40, 0], [22, 40, 1]]) {
+    for (const j of [0.98, 1, 1.02]) assert.equal(Math.max(1, every(fps, 1000 / hz * j)), Math.max(1, k), `${fps} fps at ${hz} Hz x${j}`);
+  }
+});

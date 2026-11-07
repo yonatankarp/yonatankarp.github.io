@@ -161,6 +161,10 @@ export function snowfall(ctx, night) {
   }, { fps: 23 });   // its fastest flake's art pixels a second
 }
 
+// How many screen frames, iv ms apart, a scene at fps waits between draws: the most that still draws fps a second. A
+// little slack keeps a screen whose rate divides evenly (60 at 120 Hz) from flipping between two counts as iv jitters.
+export const every = (fps, iv) => Math.floor(1000 / (fps * iv) + 0.1);
+
 // Drawn only while it can be seen: the tab shown, the canvas on screen, motion welcome, not paused, and `live`. Paused, it
 // keeps the frame it was on. A scene whose draw has an fps, its fastest mover's art pixels a second, is drawn every k-th
 // screen frame, as many as still keep that mover to a pixel a frame: evenly, so nothing judders, and not twice as often
@@ -175,7 +179,7 @@ function loop(ctx, draw, live, still, poster) {
     if (!going()) { if (still.matches) hold(); return; }
     iv += (Math.min(100, now - prev) - iv) / 8;
     prev = now;
-    if (++skip >= Math.floor(1000 / (fps * iv))) {
+    if (++skip >= every(fps, iv)) {
       skip = 0;
       const dt = Math.min(100, now - last);
       last = now;

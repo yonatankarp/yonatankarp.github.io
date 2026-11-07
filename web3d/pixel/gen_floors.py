@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pillow==12.1.0"]
+# dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """Pixel-art floors for the career tower (same approach as Before Dark's gen_art.py).
 
@@ -14,7 +14,7 @@ strip on a wide screen, the lift's cab (a painting of its own, shown as the door
 same box in all FRAMES - 1 other frames), side by side. The rooms
 with another picture at another hour (data/phases.json "baked") also write floor-<key>-<phase>.webp. floors.json is what
 web3d/src/ draws by: the frame, the runs, each strip's moving box, the lift doors (pixel.js slides them), the lamps, and
-floor 7's capsule (capsule.webp), which pixel.js draws live.
+floor 7's capsule (capsule.webp) and the lobby's receptionists (receptionists.webp), which pixel.js draws live.
 
 Every run also writes data/floor_accents.yaml from FLOORS (accents()) and checks data/phases.json (check_phases()).
 """
@@ -294,6 +294,85 @@ def capsule(out):
                       "clip": [[x + LOBBY_X, y + CEIL, w, h] for x, y, w, h in CAPSULE["clip"]], "size": [w, h]}
 
 
+# The lobby's two receptionists behind its desk, whose top edge (DESK_Y) hides them below the hands. Painted people
+# (picks/reception/NAME_POSE.png: paint_rooms.py receptionists), baked into receptionists.webp, a row per person and a column
+# per pose, which pixel.js draws live (web3d/src/reception.js picks the poses). Each rests most of the time, and now and then
+# writes in the ledger or looks toward the lift (left) or the door (right), on their own clock, resting in between. x is
+# the middle of each, in the painting's pixels; the times are ms, from-to.
+RECEPTION = dict(
+    spots={"ana": 420, "ben": 497},
+    weights={"ana": {"idle": 5, "write": 3, "left": 1.2, "right": 1.2}, "ben": {"idle": 5, "write": 1.2, "left": 1.5, "right": 1.5}},
+    times={"start": [1000, 4000], "idle": [2500, 7000], "write": [3000, 6500], "left": [1500, 3200], "right": [1500, 3200]},
+)
+DESK_Y = 196                  # the desk's top edge, in the painting's pixels
+HEAD = 17                     # a receptionist's head, crown to chin, in art pixels: the skeleton's is 7.2 units
+
+
+def largest(alpha):
+    """Only the biggest connected shape stays: the person, not a stray ring of the painted lamp's glow."""
+    import numpy as np
+
+    a = np.asarray(alpha) > 0
+    h, w = a.shape
+    seen = np.zeros_like(a)
+    best = []
+    for y0 in range(h):
+        for x0 in range(w):
+            if a[y0, x0] and not seen[y0, x0]:
+                part, todo = [], [(y0, x0)]
+                seen[y0, x0] = True
+                while todo:
+                    y, x = todo.pop()
+                    part.append((y, x))
+                    for yy, xx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+                        if 0 <= yy < h and 0 <= xx < w and a[yy, xx] and not seen[yy, xx]:
+                            seen[yy, xx] = True
+                            todo.append((yy, xx))
+                if len(part) > len(best):
+                    best = part
+    out = np.zeros((h, w), np.uint8)
+    for y, x in best:
+        out[y, x] = 255
+    return Image.fromarray(out)
+
+
+def receptionists(out):
+    """receptionists.webp: each pick with its magenta (and the model's lamp-lit pinks) keyed out, cut at the desk's top and
+    above the hair, scaled premultiplied (no halo) so the head is HEAD art px, on 32 colours of its own, only its largest
+    shape kept. Returns RECEPTION for floors.json, in strip pixels, with the frame's size and its row on the desk's edge."""
+    import numpy as np  # here, not at the top: gen_icons and pixelate import this module with pillow alone
+
+    from paint_rooms import DESK_POSES, DESK_SIZE, DESK_TOP, DESK_U, RECEPTIONISTS
+
+    (W0, H0), s = DESK_SIZE, HEAD / (7.2 * DESK_U)
+    rows = []
+    for name in RECEPTIONISTS:
+        row = []
+        for kind in DESK_POSES:
+            a = np.asarray(Image.open(PICKS / "reception" / f"{name}_{kind}.png").convert("RGB").resize((W0, H0))).astype(int)
+            r, g, b = a[..., 0], a[..., 1], a[..., 2]
+            bg = ((g < 0.55 * np.minimum(r, b)) | ((np.minimum(r, b) - g > 45) & (abs(r - b) < 90))
+                  | ((r > 200) & (g < 0.6 * r) & (b > g + 15))) & (r > 60) & (b > 60)   # magenta, and its lamp-lit pinks and corals
+            bg[DESK_TOP + 4:] = True   # below the desk's top: the room's own desk stands in front
+            bg[:40] = True             # the model hangs a lamp over every head: cut above the hair
+            alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5))
+            im = Image.fromarray(a.astype(np.uint8), "RGB")
+            im.putalpha(alpha)
+            small = im.convert("RGBa").resize((round(W0 * s), round(H0 * s)), Image.BOX).convert("RGBA")
+            rgb = small.convert("RGB").quantize(32, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
+            rgb.putalpha(largest(small.getchannel("A").point(lambda v: 255 if v > 140 else 0)))
+            row.append(rgb)
+        rows.append(row)
+    fw, fh = rows[0][0].size
+    sheet = Image.new("RGBA", (fw * len(DESK_POSES), fh * len(rows)))
+    for j, row in enumerate(rows):
+        for k, f in enumerate(row):
+            sheet.paste(f, (k * fw, j * fh))
+    save_lossless(sheet, out / "receptionists.webp")
+    return RECEPTION | {"people": list(RECEPTIONISTS), "poses": DESK_POSES, "w": fw, "h": fh, "desk": round(DESK_TOP * s),
+                        "deskY": DESK_Y + CEIL, "spots": {n: x + LOBBY_X for n, x in RECEPTION["spots"].items()}}
+
+
 # Roof: the flag's folds run along it, the crane's warning light blinks, and at night the far city's windows twinkle.
 FLAG = (812, 94, 845, 127)
 
@@ -494,5 +573,6 @@ if __name__ == "__main__":
         sky(out)
         lamps = {key: [DOOR["mid"], *(x + LOBBY_X for x in v[3])] for key, v in FLOORS.items() if v[3]}
         art = {"frame": [W, H], "frames": FRAMES, "edge": EDGE, "room": [LOBBY_X, W - LOBBY_X], "door": DOOR, "cab": CAB, "boxes": BOXES,
-               "bayer": BAYER, "lamps": lamps, "order": list(FLOORS), "anim": anim, "capsule": {"floor": "7", **capsule(out)}}
+               "bayer": BAYER, "lamps": lamps, "order": list(FLOORS), "anim": anim, "capsule": {"floor": "7", **capsule(out)},
+               "reception": {"floor": "L", **receptionists(out)}}
         (out / "floors.json").write_text(json.dumps(art))

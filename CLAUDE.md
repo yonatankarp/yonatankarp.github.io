@@ -78,7 +78,9 @@ that show outside have a painting at each other hour, an edit of the dusk pick t
 (`paint_rooms.py retime`): the roof whole, the lobby only through its glass door. `gen_floors.py` bakes them into
 `floor-{L,R}-NAME.webp`. The other pages' backdrop is a crop of the city at the hour (`backdrop[-NAME].webp`, written by
 `gen_city.py build`), behind the sheet: the pick is `layouts/partials/time-pick.html`, shared by the homepage and
-`head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop.
+`head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop. The Radio Mast and the Post Office
+hide the backdrop and skip the pick, so they have no `html[data-time]`, `data-season` or `data-place`: code there that
+needs them adds the pick back in `head.html`.
 `data/phases.json` lists the phases (the sky above the roof, the baked rooms, how far a dark room falls), and
 `web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the backdrop rules in
 `custom.css`, and paint the city, Workshop Row, the roof and the lobby's view at it: `npm run check:phases` (part of

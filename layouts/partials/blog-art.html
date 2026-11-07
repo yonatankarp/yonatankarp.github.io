@@ -5,7 +5,7 @@
 {{ $cover := "" }}
 {{ $thumbs := "" }}
 {{ with .Params.images.featured_image }}
-  {{ $px := replaceRE `^/?images/blog/covers/([^/]+)\.\w+$` "images/blog/covers/pixel/$1.png" . }}
+  {{ $px := replaceRE `^/?images/blog/covers/([^/]+)\.\w+$` "images/blog/covers/pixel/$1.webp" . }}
   {{ if not (fileExists (path.Join "static" $px)) }}
     {{ errorf "%s: no pixel cover at static/%s. Make it with: uv run web3d/pixel/pixelate.py static/%s static/%s --size 960x540" $.File.Path $px (strings.TrimPrefix "/" .) $px }}
   {{ end }}
@@ -13,7 +13,7 @@
   {{ with resources.Get $px }}{{/* static/images/blog is mounted into assets (hugo.toml) */}}
     {{ $img := . }}
     {{ $set := slice }}
-    {{ range $x := slice 1 2 3 }}{{ $set = $set | append (printf "%s %dx" ($img.Resize (printf "%dx Box png" (mul 192 $x))).RelPermalink $x) }}{{ end }}
+    {{ range $x := slice 1 2 3 }}{{ $set = $set | append (printf "%s %dx" ($img.Resize (printf "%dx Box webp lossless" (mul 192 $x))).RelPermalink $x) }}{{ end }}
     {{ $thumbs = delimit $set ", " }}
   {{ end }}
 {{ else }}

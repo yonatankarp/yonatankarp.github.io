@@ -36,11 +36,11 @@ While this is an inaccurate definition, it gives a good understanding of what it
 
 If we have 2 CPUs on our machine, we can run our songs on 1 processor while running our game on another processor. An illustration of the execution would look something like this:
 
-![Two hummingbirds feeding at the same moment, each with its beak in its own flower, one red and one blue](/images/blog/pixel/concurrency-parallel.png)
+![Two hummingbirds feeding at the same moment, each with its beak in its own flower, one red and one blue](/images/blog/pixel/concurrency-parallel.webp)
 
 As we can see, each processor is busy running an independent task. Now, let's assume that our machine has only 1 CPU. In such a scenario, we will not be able to run both tasks at the same time since we have only 1 physical processor on our machine. The solution to this problem would be to break the 2 tasks into small intervals. Once we do so, we can rotate between the 2 on our CPU. If the intervals are small enough, from the user's view, the tasks would feel as if they run in parallel. In this scenario, our execution would look something like this:
 
-![One hummingbird sipping at a red flower, a faded copy of it in mid-air where it just was, and a dotted trail weaving back and forth to a blue flower](/images/blog/pixel/concurrency-interleaved.png)
+![One hummingbird sipping at a red flower, a faded copy of it in mid-air where it just was, and a dotted trail weaving back and forth to a blue flower](/images/blog/pixel/concurrency-interleaved.webp)
 
 In the above example, our system has only 1 CPU. Yet, running our threads in small intervals allows the user to feel as if they're running at the same time.
 

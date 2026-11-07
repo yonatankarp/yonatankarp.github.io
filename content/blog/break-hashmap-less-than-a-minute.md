@@ -113,7 +113,7 @@ flowchart LR
 
 ## Can we avoid this problem?
 
-![A squirrel on a boulder too big to move, gripped by tree roots, with its acorn buried right underneath](/images/blog/pixel/break-hashmap-fixed-stone.png)
+![A squirrel on a boulder too big to move, gripped by tree roots, with its acorn buried right underneath](/images/blog/pixel/break-hashmap-fixed-stone.webp)
 
 Yes, we can! To avoid this issue, we should use an immutable class instead of a mutable one. This means that once the class creates its state, it cannot be changed.
 

@@ -27,7 +27,7 @@ a **later** item is missing, do the steps that don't need it and list what is le
   - **(b) Repaint the city from a new `blockout()`.** Seed 700 is the only one that kept the layout. A repaint moves
     things, so every hand-placed list must be measured again:
     - in `gen_city.py`: `WALKS`, `PLAZAS`, `LANES` (`MAIN`, `RING`, …), `LIGHTS`, `POSTS`, `TREES`, `BAY_SEED`,
-      `CRANE`, `DOOR`, `DOOR_OPEN`, `DOORWAY`, `DOORS`, `BACKDROP` and `PAINTED`;
+      `CRANE`, `DOOR`, `DOOR_OPEN`, `DOORWAY`, `DOORS`, `BACKDROP` and `LABELS`;
     - the holidays' props: `PLACE`, `PUMPKINS` and `HALLOWEEN` in `gen_props.py`;
     - the tower's door edit and its open crops, and `city-depth.png`.
 - **The page:**
@@ -56,12 +56,13 @@ a **later** item is missing, do the steps that don't need it and list what is le
    Clicking the label zooms there; a second click goes to a sketch of the page.
    Screenshot and critique it yourself before showing him; iterate until he approves the spot, the label and the page.
 2. **The copy.**
-   - Add `{key, name, title, text, go}` to `city.districts` in `data/home/en.yaml`. List order is the chips' order.
+   - Add `{key, name, title, text, go, url}` to `city.districts` in `data/home/en.yaml`, `url` being `"<slug>/"` (from
+     the site's root). List order is the chips' order.
    - Update `city.alt`, which names the five buildings.
    - The page's labels under a new key in `data/rooms.yaml`, the painting's alt in `data/art.yaml`, the page in
      `data/llms.yaml` `pages`, and a `CONTENT.md` row per piece of text. No English in templates.
 3. **`layouts/index.html`.**
-   - Add `"<key>" ("<slug>/" | relURL)` to `$go` (until #338 moves URLs into the YAML).
+   - Nothing for the link: `$go` is built from each district's `url`.
    - If the title has `%d`, add the count to `$counts`. If its text comes from elsewhere, add it to `$texts`.
    - Copy any special case modelled on `{{ if eq .key "post" }}` with care.
    - The label, chip, panel, `<noscript>` column and pre-paint all loop over the districts.
@@ -69,9 +70,10 @@ a **later** item is missing, do the steps that don't need it and list what is le
    - **`gen_city.py`:**
      - `SPOTS["<key>"]` and `LOTS["<key>"]`, used by `blockout()`.
      - The landmark drawn in `blockout()`.
-     - `anchors()`: add its unpack (a fixed 5-tuple, until #339) and its `tops` entry (where the label's foot sits).
-     - `PAINTED["<key>"]`, if the painting moved its top.
+     - `LABELS["<key>"] = (x, y)`: the top of its landmark as the pick painted it, in art px, where the label's foot
+       sits. `anchors()` turns it into the template's %.
      - `ZOOM["<key>"] = [x%, y%, zoom]`.
+     - An assert at import fails unless `LABELS`, `ZOOM` and `SPOTS` have the same keys and cover `LOTS` and `DOORS`.
      - `DOORS` only if the push-in should land on a door in the next view. Then `next.<key>` in `city.js` must return a
        width `w`, as `tower()` and `workshop()` do.
    - **(b), at the dusk pick:**
@@ -88,13 +90,13 @@ a **later** item is missing, do the steps that don't need it and list what is le
    - If the walkers' or cars' paths now cross the building, fix `WALKS` and `LANES`, and check the props' feet in
      `gen_props.py` (`uv run web3d/pixel/gen_props.py bake static/building/pixel`).
 5. **The push-in (`web3d/src/city.js`).**
-   - `through()` calls `next[key](r)` with no fallback, so a key without an entry throws on the go link. For a room
-     page, add `next.<key> = next.radio;` beside `next.post`.
+   - `through()` calls `next[key]?.(r)`, so a key without an entry gets no push-in, only the plain link's wipe. For a
+     room page, add `next.<key> = next.radio;` beside `next.post` (`city.js:149`).
    - Other heads need their own middle, mirrored from their CSS, as `library` mirrors `custom.css`'s `.library-hero`.
-     Leave a back-pointer comment in `custom.css` (until #337 adds a check).
+     Extend `scripts/test/push-in.test.js`, which holds city.js's numbers to custom.css's.
 6. **The page.**
-   - Create `content/<slug>.md` like `content/podcast.md`: `title`, `layout: "<layout>"`, `description`, and a
-     hand-set `lastmod`.
+   - Create `content/<slug>.md` like `content/podcast.md`: `title`, `layout: "<layout>"`, `description`, a
+     hand-set `lastmod`, and the two flags in step 9.
    - Create `layouts/_default/<layout>.html` from `radio.html`:
      - wrap it in `<div class="room">`, which hides the backdrop (`custom.css:193`);
      - add `partial "room-hero.html" (dict "room" "<key>" "open" 0.4 "label" … "alt" …)`;
@@ -110,52 +112,55 @@ a **later** item is missing, do the steps that don't need it and list what is le
      input is never committed.
    - Bake with `uv run web3d/pixel/gen_rooms.py build`.
 8. **The room's animation (`web3d/src/rooms-fx.js`).**
-   - `animate(…, canvas.dataset.room === 'radio' ? radio : post)` silently gives any third room the Post Office's
-     animation. Make it a map, `{ radio, post, <key> }[canvas.dataset.room]`, and write `function <key>(ctx, fx)`.
+   - Add `<key>` to the map in `animate(…, { radio, post }[canvas.dataset.room])` (`rooms-fx.js:21`), and write
+     `function <key>(ctx, fx)`. Without it the setup is `undefined`, and the page throws.
    - Update the file's header comment, and `ENTRIES`' comment in `web3d/vite.config.mjs`.
    - The `rooms` bundle already loads on any `room-hero.html` page; it needs no new entry.
    - Only for a scene of its own:
-     - a new `ENTRIES` mode in `web3d/vite.config.mjs`, and a `vite build … --mode <mode>` in `package.json`'s
-       `build:building`;
-     - its own `gen_<key>.py`, with a step in `ci.yml`'s art rebuild;
+     - a new `ENTRIES` mode in `web3d/vite.config.mjs` (`scripts/build-building.js` builds each one);
+     - its own `gen_<key>.py`, with a step in `STEPS` in `web3d/pixel/build_art.py` (`npm run art`, which CI's art
+       rebuild runs), and its blockout in `ci.yml`'s "Run the art's blockouts and poses";
      - a `depth_map.py` choice;
      - `iris.js`'s `arrive()` called on load. Without it the page stays hidden under `html.iris` until `push-in.js`'s
        3 s timeout.
-9. **Lists of district pages** (until #338 makes them front matter). Add `"<layout>"` to the `(slice "radio" "post")`
-   in both:
-   - `layouts/partials/head.html` (the time-pick skip list: the page then has no `data-time`);
-   - `layouts/partials/pixel-bar.html` (`$animated`, the Pause).
+9. **The page's front matter flags**, as in `content/podcast.md`:
+   - `scene: true`: `pixel-bar.html` gives the page the Pause;
+   - `backdrop: false`: `head.html` skips the time pick, as the room hides the backdrop (the page then has no
+     `data-time`).
 10. **Checks and captures.**
-    - In `scripts/check-generated-html.js`, add the route to `animated` (the Pause, line ~277). Add `["<key>",
-      "/<slug>/"]` to the label loop (~429). Add a content check like `/podcast/`'s if the page has a key link.
+    - In `scripts/check-generated-html.js`, add `["<key>", "/<slug>/"]` to the label loop (~425). Add a content
+      check like `/podcast/`'s if the page has a key link. The Pause needs no edit: the check finds it on every page
+      that loads a scene's bundle.
     - In `scripts/capture-screenshots.js`, add a route `/<slug>/?${pinned}&fx=off` with its `requiredSelectors`, and
       raise `.city-tag` and the chips from 5 to 6 in `citySelectors`. Those are minimums, so nothing fails if you don't.
     - `check:csp` walks every built page by itself.
 11. **`CLAUDE.md`.**
-    - "zooms into five districts", and the list after it.
+    - "zooms into five districts" in "The city", and the list after it.
     - The GoatCounter list (`district-<key>`), and the new page's event, if any.
-    - "Content Structure", and `head.html`'s note about which pages skip the pick.
+    - "Content Structure", the pages with `backdrop: false` in "Time of day and season", and `head.html`'s note
+      about which pages skip the pick.
 
 ## What catches mistakes
-- **A label without an anchor** (`anchors()` or `city.json` missing the key): Hugo fails at `index $at 0`.
+- **A label without an anchor** (`LABELS` or `city.json` missing the key): Hugo fails at `index $at 0`.
 - **A missing `FX` key:** `KeyError` in `gen_rooms.py build`. A missing `<key>-fx.json` or `<key>.webp`: Hugo fails in
   `room-hero.html`. A missing rooms bundle: its own `errorf`.
-- **The Pause** missing, or appearing where it shouldn't: `check-generated-html.js` (once step 10 lists the route).
+- **The Pause** missing (no `scene: true`), or appearing where it shouldn't: `check-generated-html.js`, against the
+  pages that load a scene's bundle.
+- **A missing `ZOOM` or `LABELS` key:** the assert in `gen_city.py`.
+- **A room missing from `rooms-fx.js`'s map:** its page throws, which `check:csp` fails as a page error.
 - **The label's href or `district-<key>`:** `check-generated-html.js` (step 10's loop). A `#<key>` back link to a
   missing label: `check-links.js`.
 - **Committed art not matching the picks:** CI's "Rebuild the art and compare it". Art never committed: `check:csp`
   sees its 404. A missing phase's city art: `npm run check:phases`.
 - **Words in a template:** `check:template-copy`.
 - **Caught by nothing:**
-  - a missing `next.<key>` (the go link throws in the browser);
-  - `rooms-fx.js` falling through to `post`;
-  - a missing `ZOOM` key (the zoom breaks, and so does the pre-paint's return from the district);
-  - `head.html`'s skip list (the city backdrop is picked behind the room);
+  - a missing `next.<key>` (the go link quietly gets the wipe, with no push-in);
+  - a missing `backdrop: false` (the city backdrop is picked behind the room);
   - movers walking through the new building;
   - a stale depth map;
   - CLAUDE.md, CONTENT.md and `llms.yaml`.
 
-  `check:csp` never clicks a go link into a district page (#337). Try the push-in by hand.
+  `check:csp`'s one push-in route is the Library's (`/?push#library`). Try the new district's push-in by hand.
 
 ## Verify
 - `uv run web3d/pixel/gen_city.py json` (only `city.json`: fast) after a change to `gen_city.py`'s data.
@@ -172,4 +177,5 @@ a **later** item is missing, do the steps that don't need it and list what is le
 - He approved the mock. The building stands in all 8 city pictures. Its label and chip zoom there and go in, and the
   push-in lands on the page.
 - The page shows its room, animated, with the Pause, a way back to `#<key>`, and its words in `data/`.
-- All art and JSON are committed as baked. The lists in steps 9 and 10, `CLAUDE.md` and `CONTENT.md` name the district.
+- All art and JSON are committed as baked. The flags in step 9, the label loop in step 10, `CLAUDE.md` and `CONTENT.md`
+  name the district.

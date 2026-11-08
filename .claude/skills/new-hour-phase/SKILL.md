@@ -10,13 +10,13 @@ description: Add a new time of day the site's art shows (a phase beside dawn, da
 Stop and tell Yonatan exactly what is missing, and how to supply it, if any **hard blocker** fails.
 
 Hard blockers (ask for them; nothing can be edited without them):
-- **The name**: lowercase letters only (`[a-z]+`). A digit escapes `head.html`'s backdrop cache-bust (`^backdrop[-a-z]*\.webp$`),
+- **The name**: lowercase letters only (`[a-z]+`). A digit escapes `head.html`'s backdrop cache-bust (`backdrop[-a-z]*\.webp`),
   a `-` is not read by `check-phases.js`'s CSS parse (`data-time="(\w+)"`), `_` is the candidates' `NAME_SEED.png`
   separator, and `check-phases.js` requires `?time=noon` to be ignored, so not `noon`.
 - **Its band of the sun**: where it sits in `sunPhase` (`assets/js/time-pick.js`: day > +6°, night <= -8°, dawn/dusk
   between, split by noon). It must come up in Berlin on 20 March 2026 at 10-minute steps (`check-phases.js`), or the check fails.
-- **The light, in words**, for each prompt dict below (the city's, the Row's, the rooms', the street through the lobby door),
-  and whether it counts as **dark** (lamps lit, stars, moths, dimmed walkers) for each rule in "Nothing checks" below.
+- **The light, in words**, for each prompt dict below (the city's, the Row's, the roof's, the street through the lobby door),
+  and whether it counts as **dark**: are the lamps `lit` and the roof `starry` (step 4), and for each rule in step 7.
 - **Colours for `data/phases.json`**: `sky` and `winter.sky` (hex; any hex passes `sky()`, as `sky_band` paints it as row 0)
   and `dark` (three factors, like `[0.42, 0.42, 0.52]`). Or say they will be read off the roof painting once it is picked.
 
@@ -31,7 +31,7 @@ tell Yonatan what is left for him.
 | Chromium | `node -e "process.exit(require('fs').existsSync(require('playwright').chromium.executablePath())?0:1)" && echo ok` | `npx playwright install chromium` | Later: Verify (`npm run serve`) |
 
 Committed inputs the paint steps edit from (Later: step 3; missing means the branch is not cut from origin/main):
-`git ls-files --error-unmatch web3d/pixel/paintings/picks/{city,workshop,workshop-depth,lobby-px,reception-open}.png web3d/pixel/paintings/candidates/{roof_1100,reception_1117}.png`
+`git ls-files --error-unmatch web3d/pixel/paintings/picks/{city,workshop,workshop-depth,lobby-px,reception-open,reception-door-winter}.png web3d/pixel/paintings/candidates/{roof_1100,reception_1117}.png`
 
 Draw Things down, or no picks chosen yet: do the code steps (1, 2, 5), stop before step 3, and tell Yonatan which
 `uv run` commands are his to run and which candidates he must pick. Nothing builds green until every painting is in:
@@ -45,9 +45,11 @@ Draw Things down, or no picks chosen yet: do the code steps (1, 2, 5), stop befo
      (`WINTER` is built from `LIGHT`; only `night` has its own winter prompt).
    - `web3d/pixel/gen_workshop.py`: `PICKS` (1000), `WINTER_PICKS` (700), `HOURS[PHASE]` (`LIGHT` derives); `WINTER`
      uses its `"day"` template for every hour but night.
-   - `web3d/pixel/paint_rooms.py`: `HOURS[PHASE]`, `THROUGH[PHASE]` (what the lobby door shows); fix the docstring's `--time dawn|day|night`.
-   - `web3d/pixel/patch_picks.py`: `ROW_LIGHT[PHASE]`, and PHASE in the van patch's literal hour tuple, here and in
-     `gen_workshop.py` `PATCHES` (until #339 lands).
+   - `web3d/pixel/paint_rooms.py`: `HOURS[PHASE]` (the roof), `DOOR_LIGHT[PHASE]` (the street through the lobby door);
+     fix the docstring's `--time dawn|day|night`.
+   - `web3d/pixel/patch_picks.py`: `ROW_LIGHT[PHASE]`, and PHASE in the van patch's literal hour tuple in `PATCH`.
+     `gen_workshop.py`'s `PATCHES` lists a van per phase in `phases.json` by itself, so the bake fails until that van
+     patch is painted (step 3).
 2. **The pick** `assets/js/time-pick.js`: the name in the `?time=` regex and its band in `sunPhase`; update
    `layouts/partials/time-pick.html`'s and `layouts/index.html`'s comments. Re-derive `scripts/test/time-pick.test.js`'s
    instants (its fixed times fail on purpose when a band moves).
@@ -60,31 +62,39 @@ Draw Things down, or no picks chosen yet: do the code steps (1, 2, 5), stop befo
    - Row: `uv run web3d/pixel/gen_workshop.py paint --time PHASE --count 3` -> `picks/workshop-PHASE.png`; winter
      `paint --winter --time PHASE --start 700 --count 1` -> `picks/workshop-winter-PHASE.png`; then the van mend:
      `uv run web3d/pixel/patch_picks.py paint workshop-winter-PHASE-van`, `... pick workshop-winter-PHASE-van`.
-   - Roof and lobby view: `uv run web3d/pixel/paint_rooms.py retime --src roof_1100.png --time PHASE` and
-     `--src reception_1117.png`; winter `paint_rooms.py winter --src roof_1100-PHASE_SEED.png --start 700` (and the
-     reception's). Add each to `install_picks.py` `PICKS` (`"roof-PHASE"`, `"reception-PHASE"`, `"roof-winter-PHASE"`,
-     `"reception-winter-PHASE"`) and `!` lines for those candidates in `.gitignore` (allowlisted by name; nothing checks).
-     Then `uv run web3d/pixel/install_picks.py roof-PHASE reception-PHASE roof-winter-PHASE reception-winter-PHASE`.
-   - Lobby's open entrance: `paint_rooms.py entrance --time PHASE --start 2634 --count 1` (`ENTRANCE_SEED`; the default
-     start is 1000), then `entrance --time PHASE --pick 2634`; winter `entrance --time PHASE --winter --start 700 --count 3`,
-     then `--winter --pick SEED`. Writes `picks/reception-open[-winter]-PHASE.png`.
-4. **`data/phases.json`**: `"PHASE": { "sky": "#…", "baked": "LR", "dark": [r, g, b], "winter": { "sky": "#…", "baked": "LR" } }`.
-5. **`assets/css/custom.css`** (by line 658): `html[data-time="PHASE"] .px-skin { --scene: url(../building/pixel/backdrop-PHASE.webp); }`
+   - Roof: `uv run web3d/pixel/paint_rooms.py retime --src roof_1100.png --time PHASE`; winter
+     `paint_rooms.py winter --src roof_1100-PHASE_SEED.png --start 700`. `!` lines for those candidates in `.gitignore`
+     (allowlisted by name; nothing checks).
+   - Lobby view, a crop round its door: `paint_rooms.py door --time PHASE`, then `door --time PHASE --pick SEED`
+     (`picks/reception-door-PHASE.png`); winter, once the winter dusk is installed, `door --winter --time PHASE` and
+     `--pick SEED` (`picks/reception-door-winter-PHASE.png`). Those picks are allowlisted by a glob.
+   - Add each to `install_picks.py` `PICKS` (`"roof-PHASE"`, `"reception-PHASE": "reception-door-PHASE.png"`,
+     `"roof-winter-PHASE"`, `"reception-winter-PHASE": "reception-door-winter-PHASE.png"`), then
+     `uv run web3d/pixel/install_picks.py roof-PHASE reception-PHASE roof-winter-PHASE reception-winter-PHASE`.
+   - Lobby's open entrance, on that hour's installed lobby: `paint_rooms.py entrance --time PHASE --count 3` (default
+     `--start 1000`), then `entrance --time PHASE --pick SEED`; winter the same with `--winter`. Writes
+     `picks/reception-open[-winter]-PHASE.png`.
+4. **`data/phases.json`**: `"PHASE": { "sky": "#…", "baked": "LR", "dark": [r, g, b], "lit": true|false, "starry": true|false, "winter": { "sky": "#…", "baked": "LR" } }`.
+   `lit` lights the lamps, candles, headlights and moths (props.js, city-fx.js, workshop-fx.js); `starry` puts the
+   stars over the roof (pixel.js). `check:phases` fails a phase without either.
+5. **`assets/css/custom.css`** (by line 660): `html[data-time="PHASE"] .px-skin { --scene: url(../building/pixel/backdrop-PHASE.webp); }`
    and `html[data-season="winter"][data-time="PHASE"] .px-skin { --scene: url(../building/pixel/backdrop-winter-PHASE.webp); }`,
    exactly that shape (check-phases parses it with a strict regex).
-6. **Bake** (out dir always in full: `gen_floors.py` with none writes into `.`):
-   `uv run web3d/pixel/gen_floors.py static/building/pixel`, `uv run web3d/pixel/gen_city.py build`,
-   `uv run web3d/pixel/gen_workshop.py build`. New files: `city[-winter]-PHASE.webp`, `backdrop…`, `door-open…`,
+6. **Bake**: `npm run art` rebuilds it all into `static/building/pixel/`; or only
+   `uv run web3d/pixel/gen_floors.py`, `uv run web3d/pixel/gen_city.py build` and
+   `uv run web3d/pixel/gen_workshop.py build`, each writing there by default. New files: `city[-winter]-PHASE.webp`, `backdrop…`, `door-open…`,
    `workshop…`, `floor-{L,R}[-winter]-PHASE.webp`, `floor-L-open…`, and `floors.json`/fx JSON may change.
-7. **Dark-hours rules** (decide each with Yonatan; until #337's `lit` flag lands): `web3d/src/props.js` `TINT` (`:10`)
-   and `lit` (`:42`); `city-fx.js:28` (`night`, `lamps`); `workshop-fx.js:12,18` (night) and `:49` (moths: all but day);
-   `pixel.js:418` (roof stars, night only); Python: `gen_floors.py` `roof()` (crane light `!= "day"`, twinkle
-   `== "night"`), `sky_band`'s stars (`hour(variant) == "night"`), `gen_workshop.py` `bake` (kerb lamp relit but by day),
-   `install_picks.py` `TOUCHUPS["roof-winter-night"]`; `city-windows.json` is fetched only at night.
-8. **Docs**: CLAUDE.md's `/?time=dawn|day|dusk|night` and the phase paragraph.
+7. **Dark-hours rules** that still name an hour (decide each with Yonatan): `web3d/src/props.js` `TINT` (`:10`);
+   `city-fx.js:29` (`night`: darker walkers, windows going dark, and `city-windows.json`, fetched only then);
+   `workshop-fx.js:13,19,67` (`night`: 4 dimmed walkers, the moths, the snow); Python: `gen_floors.py` `roof()` (crane light
+   `!= "day"`, twinkle `== "night"`), `sky_band`'s stars (`hour(variant) == "night"`), `gen_workshop.py` `bake` (kerb
+   lamp relit but by day), `install_picks.py` `TOUCHUPS["roof-winter-night"]` and `night_view` (the door's night),
+   `paint_rooms.py` `entrance_pick` (the night's open doorway relit to the shut view).
+8. **Docs**: CLAUDE.md's `/?time=dawn|day|dusk|night` and the phases in its "Time of day and season" section.
 
 Automatic, no edit: `check-csp.js` routes `/?time=PHASE`, `capture-screenshots.js`'s `home-PHASE` (roof), the art
-hashes (`index.html`, `projects/list.html`, `head.html`), and the suffix builders in `art.js`, `city.js`, the pre-paints.
+version (`layouts/partials/art-version.html`, a hash of every file), and the file suffix, `html[data-art]`, which
+`time-pick.js` builds and `art.js` (`strip()`), `city.js` and the pre-paints (`assets/js/home-*.js`, `workshop-*.js`) read.
 
 ## What catches mistakes
 
@@ -96,7 +106,9 @@ hashes (`index.html`, `projects/list.html`, `head.html`), and the suffix builder
 | No `TINT` for PHASE | `npm test` (`props.test.js`) |
 | Committed art not rebuilt from the picks | CI "Rebuild the art and compare it" |
 | A 404 on `/?time=PHASE` | CI `check:csp` |
-| `dark`, the dark-hours rules (step 7), `.gitignore` lines, `install_picks.py` not rerun, prompt wording | **nothing: check by hand** |
+| A phase without `lit` or `starry` | `npm run check:phases` |
+| A `-px.png` not reinstalled after a `PICKS` change | CI's art rebuild (it reruns `install_picks.py`) |
+| `dark`, the dark-hours rules (step 7), `.gitignore` lines, prompt wording | **nothing: check by hand** |
 
 ## Verify (the full suite runs in CI; the machine is busy)
 
@@ -107,10 +119,11 @@ hashes (`index.html`, `projects/list.html`, `head.html`), and the suffix builder
 
 ## A second season with art (beside winter)
 
-Not done before; `-winter` is hard-coded (until #337's one suffix lands): `web3d/src/art.js:27-29`, `city.js:104`,
-`city-fx.js:15-16`, `workshop-fx.js:19`, `layouts/index.html:61,78`, `projects/list.html:19,28`, `custom.css:662-665`,
-`scripts/check-phases.js` (its `[false, true]` loops), `phases.json`'s `winter` key, `name()` in `gen_city.py` and
-`gen_workshop.py`, `winter()` in `gen_floors.py`, `install_picks.py` `SNOWED`/`DRY`/`-winter`, `paint_rooms.py winter`.
+Not done before. The file suffix is one, `html[data-art]`, built in `assets/js/time-pick.js:14`, so a season with art
+starts there; `winter` is still named in `web3d/src/art.js:27` (`SEASON`), `city-fx.js:16-17`, `workshop-fx.js:20`,
+`custom.css:663-666`, `scripts/check-phases.js` (`suffixOf`, `[false, true]` loops), `phases.json`'s `winter` key,
+`name()` in `art_common.py` (the city's) and `gen_workshop.py`, `winter()` in `gen_floors.py`, `install_picks.py`
+`SNOWED`/`DRY`/`-winter`, `paint_rooms.py winter` and `door --winter`.
 Plan it with Yonatan as its own change; every phase then needs that season's paintings as in step 3.
 
 ## Done when

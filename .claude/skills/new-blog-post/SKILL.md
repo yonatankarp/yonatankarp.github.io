@@ -137,9 +137,10 @@ The machine is often busy. Painting, `npm run serve` and builds are his to run o
    ````
    - `title`: unique on the page. Both `title` and `desc` are one line each, with no semicolon and no `"`
      (`render-diagrams.js` reads them with `="([^"]*)"`).
-   - Then run `node scripts/render-diagrams.js`. It draws every fence to the gitignored `assets/diagrams/<sha256>.svg`
-     with Playwright's Chromium, and `npm run build:building` runs it too. Rerun it after every edit to a diagram,
-     including during `npm run serve`.
+   - Then run `node scripts/render-diagrams.js`. It draws each fence that has no drawing yet to the gitignored
+     `assets/diagrams/<sha256>.svg` with Playwright's Chromium (needed only then), keeps the drawings still named and
+     removes the rest; `npm run build:building` runs it too. Rerun it after every edit to a diagram, including during
+     `npm run serve`.
 7. **Nothing else to edit:** `/blog/`, the tag pages, the RSS feeds (`/blog/index.xml` and `/rss.xml`), `index.json`
    (search), `llms.txt`, the city's post count and the post's accent colour all come from the post itself.
 8. **dev.to:** the repo has no cross-posting tooling. dev.to shows up only as the destination of posts moved off the

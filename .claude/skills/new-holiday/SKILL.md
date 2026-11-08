@@ -54,28 +54,30 @@ commands that are his to run.
    (`PROP: (art px tall, pose box, how it looks)`), a placement list like `HALLOWEEN` (`(PROP, x, y)`), a prompt template like
    `PUMPKIN_PROMPT` and a branch in `prompt()`, a pose function called from `pose()` (writes `candidates/PROP_pose.png`
    on flat magenta `MAG`), and a bake function like `halloween()` writing `NAME.webp` and `NAME.json` from
-   `small()`/`reduce()`, gated in `bake()` by `if ready(DICT): fn(out)`. Copy `halloween()`'s keep-out assert (door crop
+   `small()`/`reduce()`, gated in `bake()` by `if ready(DICT): fn(out)`. Add the dict's keys to `paint`'s `name`
+   choices in the argparse block at the foot, beside `PUMPKINS`. Copy `halloween()`'s keep-out assert (door crop
    `DOOR_OPEN`, `PLAZAS`, `PLACE`) and add the lanterns' boxes from `HALLOWEEN` to it by hand: that check does not know
    them. Lights the page draws (candles, bulbs, a face) are found or painted dark in the bake and listed in the JSON.
    Commands (Draw Things for `paint`, Yonatan's to run or approve):
    `uv run web3d/pixel/gen_props.py pose`, `uv run web3d/pixel/gen_props.py paint PROP 11 12 13 14`,
    `uv run web3d/pixel/gen_props.py key PROP PROP_SEED.png`, `uv run web3d/pixel/gen_props.py bake`.
-   A mistyped command bakes straight into `static/building/pixel` (until #339 lands); a bare run raises IndexError.
-   `PROPS_PICKS=dir` points the picks at a mock. `picks/props/` is allowlisted in `.gitignore`; a candidate a later step
+   A mistyped or bare command is an argparse error that lists the commands; `bake` writes into `static/building/pixel`
+   unless given a folder. `PROPS_PICKS=dir` points the picks at a mock. `picks/props/` is allowlisted in `.gitignore`; a candidate a later step
    edits from (as `tree-plain` edits `tree_11.png`, `INIT`) needs its own `!` line.
 4. **`web3d/src/props.js`**: in `dressing()` a flag (`KEY: 'NAME' in holidays`, or a season choice like `tree`); in
-   `props()` one more `sheet('NAME', d.KEY)` in the `Promise.all` and its slot in the destructuring, by position (until
-   #338 lands); then an item `{ y: footRow, draw(ctx, t) { stand(ctx, [x, y], w); ctx.drawImage(sprite(img, S, tint), x0, y0); if (!lit) return; … } }`.
+   `SHEETS` the sheet and the flags that load it (`NAME: ['KEY']`), and in `props()` its slot in the destructuring, by
+   name (`NAME: [N, img]`); then an item `{ y: footRow, draw(ctx, t) { stand(ctx, [x, y], w); ctx.drawImage(sprite(img, S, tint), x0, y0); if (!lit) return; … } }`.
    `t === null` is the still frame (reduced motion, `?fx=off`: `animate`'s `poster`): draw lights steady; something that only
    reads in motion returns early, as the fireworks do. Lights burn only when `lit` (dusk, night).
 5. **`scripts/test/props.test.js`**: "No holiday, nothing up" `deepEqual`s every `dressing` key, so it fails until the new
    flag is added; add a test of when it goes up and lights, and NAME to "Missing art leaves the plaza bare".
 6. **Only if it moves beyond the plaza**: load and draw it in `web3d/src/city-fx.js` as `spooks` does (`people()` sheets
-   from `gen_props.py framed()`), and add its speed to the `fps` max (`city-fx.js:197`).
-7. **CI route**: add `"/?time=night&holiday=NAME"` to `scripts/check-csp.js`'s routes (line 89-90); no route loads
+   from `gen_props.py framed()`), and add its speed to the `fps` max (`city-fx.js:198`).
+7. **CI route**: add `"/?time=night&holiday=NAME"` to `scripts/check-csp.js`'s routes (lines 90-91); no route loads
    Halloween's or a new sheet, so a broken one is otherwise unchecked in a browser.
-8. **Docs**: CLAUDE.md's holiday list ("Every visitor gets the same holidays, his: …") and its props paragraph (what,
-   where, sizes, seeds, files), and the comment heads of `calendar.js`, `props.js` and `gen_props.py`.
+8. **Docs**: CLAUDE.md's "Holidays and props" section (the list, "Every visitor gets the same holidays, his: …", and
+   the props: what, where, sizes, files), `web3d/CLAUDE.md`'s "The holidays' props" (the picks, seeds and bake), and the
+   comment heads of `calendar.js`, `props.js` and `gen_props.py`.
 
 ## What catches mistakes
 

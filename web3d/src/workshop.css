@@ -1,8 +1,7 @@
 /* The projects' Workshop Row (layouts/projects/list.html, workshop.js): the city's painting and panel (city.css) a screen
-   tall, under the top bar. The skin's tokens under city.css's names. A project's row is one link: its name's, stretched
-   over it, as the old cards were. */
+   tall, under the top bar, on the skin's tokens (custom.css's .px-skin, under the names city.css reads). A project's row
+   is one link: its name's, stretched over it, as the old cards were. */
 .workshop {
-  --text: var(--px-text); --text-soft: var(--px-soft); --display: var(--pixel-font);
   position: relative; height: 100vh; height: 100svh;
   --bar-clear: 160px;   /* the labels' tops clear the top bar's second row, which is in flow here */
 }

@@ -1,4 +1,4 @@
-// What the animations over the pixel-art paintings share (city-fx.js, workshop-fx.js, library-fx.js): a canvas at the
+// What the animations over the pixel-art paintings share (city-fx.js, workshop-fx.js, library-fx.js, rooms-fx.js): a canvas at the
 // art's own pixels laid over the picture, so they stay crisp pixel art; their data, written by the pipeline
 // (web3d/pixel/); a depth test that hides movers behind what stands nearer; and a loop that runs only while it is seen.
 export const rnd = (a, b) => a + Math.random() * (b - a);
@@ -9,11 +9,31 @@ const TOL = 5;   // out of 255: how much nearer than a mover's feet a pixel may 
 
 // The top bar's Pause (pixel-bar.html, WCAG 2.2.2) holds the scenes as it holds the tower (pixel.js), kept the same way:
 // per viewer, across reloads and pages, and read again when Back restores a page another one paused or played.
-// On the city it is the tower's once the tower is entered (live() goes false).
-export const PAUSE_KEY = 'building-paused';
-export const pausedStored = () => { try { return localStorage.getItem(PAUSE_KEY) === 'true'; } catch { return false; } };   // blocked storage: not remembered
-let paused = pausedStored();
-export function pauseLabel(button, on, hidden) {
+// One state and one click, kept here: the scenes' loop() and the tower each hold it (holdPause), and the one that is
+// live() has its label. On the city it is the tower's once the tower is entered (the city's live() goes false).
+const PAUSE_KEY = 'building-paused';
+const pausedStored = () => { try { return localStorage.getItem(PAUSE_KEY) === 'true'; } catch { return false; } };   // blocked storage: not remembered
+export let paused = pausedStored();   // a live binding: an importer reads every change
+const holders = [];
+const pauseButton = () => document.querySelector('[data-building-pause]');
+const relabel = () => { const b = pauseButton(), h = holders.find((o) => o.live()); if (b && h) pauseLabel(b, paused, h.hidden()); };
+// live(): whether the Pause is this holder's now; hidden(): nothing to pause, so the button hides; wake(): after a press,
+// or Back. Returns relabel, for when hidden() changes.
+export function holdPause(holder) {
+  if (!holders.length) {
+    pauseButton()?.addEventListener('click', () => {
+      if (!holders.some((o) => o.live())) return;
+      paused = !paused;
+      try { localStorage.setItem(PAUSE_KEY, paused); } catch { /* as above */ }
+      relabel(); holders.forEach((o) => o.wake());
+    });
+    addEventListener('pageshow', (e) => { if (e.persisted) { paused = pausedStored(); relabel(); holders.forEach((o) => o.wake()); } });   // Back, from a page that changed it
+  }
+  holders.push({ live: () => true, ...holder });
+  relabel();
+  return relabel;
+}
+function pauseLabel(button, on, hidden) {
   button.hidden = hidden;
   button.dataset.paused = on;
   button.setAttribute('aria-label', on ? 'Play the animation' : 'Pause the animation');
@@ -195,16 +215,7 @@ function loop(ctx, draw, live, still, poster) {
   const wake = () => { if (!raf && going()) { last = prev = performance.now(); skip = Infinity; raf = requestAnimationFrame(frame); } };
   // Paused from the start: one still frame, once what it draws has arrived (draw.ready), so the scene stands there.
   Promise.resolve(draw.ready).then(() => { if (paused && live() && !still.matches) { clear(); draw(performance.now(), 0); } });
-  const pauseButton = document.querySelector('[data-building-pause]');
-  const label = () => { if (pauseButton && live()) pauseLabel(pauseButton, paused, still.matches); };   // reduced motion has nothing to pause
-  label();
-  pauseButton?.addEventListener('click', () => {
-    if (!live()) return;
-    paused = !paused;
-    label(); wake();
-    try { localStorage.setItem(PAUSE_KEY, paused); } catch { /* as above */ }
-  });
-  addEventListener('pageshow', (e) => { if (e.persisted) { paused = pausedStored(); label(); wake(); } });
+  const label = holdPause({ live, hidden: () => still.matches, wake });   // reduced motion has nothing to pause
   document.addEventListener('visibilitychange', wake);
   still.addEventListener('change', () => { label(); if (still.matches) hold(); else wake(); });
   new IntersectionObserver(([e]) => { seen = e.isIntersecting; wake(); }).observe(canvas);

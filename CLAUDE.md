@@ -186,7 +186,7 @@ shut view's; and `gen_floors.py` box-reduces that crop exactly as the whole pain
 offset) and bakes it on that hour's lobby colours (`floor-L-open[-winter][-PHASE].webp`). The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
 box, lift doors, the lobby's entrance, dither, each room's lamps, the floors' order, floor 7's capsule, the lobby's receptionists and cats) are written into `static/building/pixel/floors.json` by
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
-rerun it, never the copies. `pixel.js` is the lift and the floors, `art.js` what it reads; it keeps only the storeys
+rerun it, never the copies. `pixel.js` is the lift and the floors, `ride.js` the lift's ride (tested in `scripts/test/ride.test.js`), `art.js` what it reads; it keeps only the storeys
 round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most, and loads the stop's strip
 before the storeys round it. When only the live sprites below change, it redraws just their boxes. With a floor's panel open on a wide screen it slides the
 room right, at the same scale, until the room covers the view beside the panel (`besidePanel`). One thing moves live, not in the
@@ -260,8 +260,8 @@ painted sprite is drawn from its frame, made once, cut by the depth map only whe
 says `scene: true`, which `check-generated-html.js` checks against the pages that load a scene's bundle, and shown once the page's script animates it) holds the tower and all five scenes (a scene loaded paused shows one still
 frame, its props and people standing there), and the Radio Mast's CSS EQ (its on-air lamp is unlit and still while
 the show is off air); reduced motion hides it. It is kept as the tower always kept
-it, per viewer in `localStorage` (`building-paused`), now across pages too: `scene-fx.js` keeps it, `pixel.js` shares its
-label, and on the city it is the tower's once the tower is entered.
+it, per viewer in `localStorage` (`building-paused`), now across pages too: `scene-fx.js` keeps it and its one click
+(`holdPause`, which `pixel.js` and the scenes call), and on the city it is the tower's once the tower is entered.
 
 Workshop Row (`/projects/`) and the Library's header (`/blog/`) move the same way, sharing `web3d/src/scene-fx.js` (the
 canvas loop, its pauses and the depth test) with the city. `workshop-fx.js`: walkers on the pavement, two cats on the left

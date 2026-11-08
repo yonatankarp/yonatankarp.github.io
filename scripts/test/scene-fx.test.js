@@ -2,6 +2,18 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
+// The top bar's Pause, as far as scene-fx.js touches the page: set before the module first loads, as it reads the stored one then.
+const listeners = {}, stored = { 'building-paused': 'true' }, label = { textContent: '' };
+const button = {
+  hidden: true, dataset: {}, attrs: {},
+  addEventListener: (type, fn) => { listeners[`button ${type}`] = fn; },
+  setAttribute(k, v) { this.attrs[k] = v; }, getAttribute(k) { return this.attrs[k]; },
+  querySelector: () => label,
+};
+globalThis.document = { querySelector: (sel) => (sel === '[data-building-pause]' ? button : null) };
+globalThis.addEventListener = (type, fn) => { listeners[type] = fn; };
+Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: (k) => stored[k] ?? null, setItem: (k, v) => { stored[k] = String(v); } } });
+
 const load = () => import('../../web3d/src/scene-fx.js');
 
 function seeded(seed) {
@@ -60,4 +72,25 @@ test('every draws as often as the scene needs, evenly, through a jittery frame i
   for (const [fps, hz, k] of [[60, 60, 1], [60, 120, 2], [22, 60, 2], [23, 120, 5], [60, 40, 0], [22, 40, 1]]) {
     for (const j of [0.98, 1, 1.02]) assert.equal(Math.max(1, every(fps, 1000 / hz * j)), Math.max(1, k), `${fps} fps at ${hz} Hz x${j}`);
   }
+});
+
+test('one Pause: the live holder has the press and the label, every holder wakes, it is kept, and Back reads it again', async () => {
+  const fx = await load();
+  assert.equal(fx.paused, true, 'the stored one');
+  let cityLive = true;
+  const woke = [];
+  fx.holdPause({ live: () => cityLive, hidden: () => false, wake: () => woke.push('city') });
+  assert.deepEqual([button.hidden, button.dataset.paused, label.textContent], [false, true, 'Play']);
+  listeners['button click']();
+  assert.deepEqual([fx.paused, stored['building-paused'], label.textContent, woke.join()], [false, 'false', 'Pause', 'city']);
+  cityLive = false;   // the tower entered, not yet mounted: a press holds nothing
+  listeners['button click']();
+  assert.equal(fx.paused, false);
+  const relabel = fx.holdPause({ hidden: () => true, wake: () => woke.push('tower') });
+  listeners['button click']();
+  assert.deepEqual([fx.paused, stored['building-paused'], button.hidden, label.textContent, woke.join()], [true, 'true', true, 'Play', 'city,city,tower']);
+  stored['building-paused'] = 'false';
+  listeners.pageshow({ persisted: true });
+  assert.deepEqual([fx.paused, label.textContent], [false, 'Pause']);
+  assert.equal(typeof relabel, 'function');
 });

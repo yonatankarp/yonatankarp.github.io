@@ -1,5 +1,5 @@
 // Floor-to-floor navigation for the building: wheel, swipe, keys and the elevator panel each ride one floor; cards
-// follow arrivals. pixel.js passes an api with go(index), index(), moving() and aside(panel or null), and emits
+// follow arrivals. pixel.js passes an api with go(index), index(), moving(), paused() and aside(panel or null), and emits
 // building:floor / building:depart / building:arrive on document.
 // Short or narrow (zoomed) screens have no room for a room, a card and the lift at once: they get the plain,
 // scrolling page of the no-JS layout. Zooming crosses the line both ways, so it is followed live (#24).
@@ -13,6 +13,8 @@ export function guide(api, root = document) {
   const indicator = root.querySelector('[data-elevator-floor]');
   const arrow = root.querySelector('[data-elevator-arrow]');
   const status = root.querySelector('[data-building-status]');
+  // Step inside's motion: asked for no motion, or on Pause, it cuts as it always did.
+  const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches || api.paused();
 
   // Stops are in page order, top to bottom as the building stands, but the ride runs up: in from the city at the lobby,
   // then floor by floor to the roof. Scrolling down (+1) rides on, up (-1) back.
@@ -301,10 +303,9 @@ export function guide(api, root = document) {
   });
 }
 
-// Step inside's motion: quick, this is the way to the text. Asked for no motion, or on Pause, it cuts as it always did.
+// Step inside's motion: quick, this is the way to the text.
 export const PANEL_MS = 280;
 const PANEL_STEPS = 16;
-const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.querySelector('[data-building-pause]')?.dataset.paused === 'true';
 
 // A GoatCounter event (CLAUDE.md, Analytics). count.js loads async, may be blocked, and a page can set
 // window.goatcounter before it does, so the call may find nothing to call.

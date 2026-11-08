@@ -137,7 +137,7 @@ if (city && root.classList.contains('at-city')) {
       const k = size()[1] / artH, mapW = ROW.size[0] * k, [x, y, w] = ROW.door;
       if (mapW < r.width) return null;   // a screen wider than the street stretches it: there is no door to land on
       const focus = floats() ? (panel.getBoundingClientRect().right + r.width) / 2 : r.width / 2;
-      // bay-1: the Apps workshop's label (layouts/projects/list.html), which workshop.js opens on.
+      // bay-1: the first workshop's label (data/rooms.yaml's groups, Apps), which workshop.js opens on.
       const left = Math.min(mapW - r.width, Math.max(0, Math.round(ROW.labels['bay-1'][0] / 100 * mapW) - focus));
       return { x: x * k - left, y: y * k, w: w * k };
     },

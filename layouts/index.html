@@ -44,7 +44,7 @@
 {{- /* The hour's art (#151): dawn, day, dusk or night, and in winter its snowy art (city-winter[-PHASE].webp), picked
      once here (partials/time-pick.html) and read by pixel.js, never changed while the page is open. */}}
 {{ $time := replace (replace (replace (resources.Get "js/home-time.js").Content "FLOOR_HASH" $floorHash) "VERSION" ($artVersion | jsonify)) "ART" ($base | jsonify) }}
-{{ $time = resources.FromString "inline/home-time.js" (printf "(function(){%s\n%s})();" (partial "time-pick.html" .) $time) | minify | fingerprint "sha256" }}
+{{ $time = resources.FromString "inline/home-time.js" (printf "(function(){%s\n%s})();" (partialCached "time-pick.html" .) $time) | minify | fingerprint "sha256" }}
 {{ $lobby := resources.FromString "inline/home-lobby.js" (replace (resources.Get "js/home-lobby.js").Content "LOBBY_HASH" $lobbyHash) | minify | fingerprint "sha256" }}
 {{- /* The city's picture at the hour, and its first view, by city.js's maths (home-view.js). Minified twice, as one pass
      of it renames its variables again on the next, and minifyOutput must find nothing to change: if

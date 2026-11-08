@@ -2,7 +2,7 @@
 // a date, worked out in the browser, with no service to ask. Pure, so scripts/test/calendar.test.js runs it under Node.
 // The Jewish dates come from the browser's own Hebrew calendar (Intl, with ICU's); Easter is a formula.
 
-// The holidays, kept for every visitor: his (Israel, and Germany, where he lives) and the new year. first(date) says which
+// The holidays, kept for every visitor: his (Israel, and Germany, where he lives), Halloween and the new year. first(date) says which
 // day of decorations the date is (0 for its first), or -1. A `sunset` one follows the Hebrew calendar, whose day begins
 // at sunset: after sunset it is already the next day's (holidaysOn's `evening`).
 // Left out on purpose: Yom Kippur, Yom HaShoah and Yom HaZikaron, solemn days that get no festive dressing.
@@ -18,6 +18,7 @@ export const HOLIDAYS = {
   sukkot: { sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Tishri', 15, 7) },
   hanukkah: { sunset: true, first: (d) => sinceDay(d, 'hebrew', 'Kislev', 25, 8) },
   christmas: { first: (d) => (d.getMonth() === 11 && d.getDate() <= 26 ? d.getDate() - 1 : -1) },   // the lights are up all of Advent
+  halloween: { first: (d) => (d.getMonth() === 9 && d.getDate() >= 24 ? d.getDate() - 24 : -1) },   // its last week, 24 to 31 October
 };
 
 // The holidays on a date, with which day of each it is: { hanukkah: 3 } is its fourth day, the fourth candle. `evening`: the sun has set where they are, so the sunset

@@ -81,6 +81,16 @@ test("Sukkot, Easter, Christmas and the new year", async () => {
   assert.equal(holidaysOn(on("2027-01-01"))["new-year"], 1);
 });
 
+test("Halloween's last week, 24 to 31 October, by the date alone", async () => {
+  const { holidaysOn } = await load();
+  assert.equal(holidaysOn(on("2026-10-23")).halloween, undefined);
+  assert.equal(holidaysOn(on("2026-10-24")).halloween, 0);
+  assert.equal(holidaysOn(on("2026-10-31")).halloween, 7);
+  assert.equal(holidaysOn(on("2026-10-31"), true).halloween, 7);   // not a sunset holiday: the evening is still the 31st
+  assert.equal(holidaysOn(on("2026-11-01")).halloween, undefined);
+  assert.equal(holidaysOn(on("2026-09-24")).halloween, undefined);
+});
+
 test("seasons flip south of the equator, and the tropics have none", async () => {
   const { seasonOn } = await load();
   assert.equal(seasonOn(on("2026-01-15"), 52.5), "winter");
@@ -110,6 +120,7 @@ test("?holiday= pins the holidays: none, a day each, and nothing the calendar do
   assert.deepEqual(fromQuery("hanukkah:-2"), { hanukkah: 0 });
   assert.deepEqual(fromQuery("hanukkah:abc"), { hanukkah: 0 });
   assert.deepEqual(fromQuery("sukkot:1,diwali,yule,toString,__proto__"), { sukkot: 1 });
+  assert.deepEqual(fromQuery("halloween,new-year:1"), { halloween: 0, "new-year": 1 });
 });
 
 test("the evening begins past sunset in the afternoon, the sun's top below -0.833 degrees", async () => {

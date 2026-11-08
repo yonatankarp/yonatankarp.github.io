@@ -52,8 +52,9 @@ if (city && root.classList.contains('at-city')) {
     if (e.target.matches('.city-tag.away')) place(free() - e.target.offsetLeft * at.s, at.y, at.s, true);
   });
   // The picked building's middle (city.json's zoom) at the middle of the free view: right of a floating panel and a little
-  // high, or the scene's middle where the panel stacks under it. Its zoom stops where an art pixel would pass maxPx screen
-  // px, which a big screen reaches first, and never goes under 1. Unpicked, the whole city on the tower, as the page opens,
+  // high, or the scene's middle where the panel stacks under it. Its zoom, to the nearest whole number of device px an
+  // art px as the whole city's is (city.css), stops where one would pass maxPx screen px, which a big screen reaches
+  // first, and never goes under the whole city's. Unpicked, the whole city on the tower, as the page opens,
   // moved right until the Library's label clears a floating panel, as far as the tower's stays whole (and home-city.js).
   const view = (smooth) => {
     const fx = free();
@@ -62,7 +63,8 @@ if (city && root.classList.contains('at-city')) {
       const clear = floats() ? panel.getBoundingClientRect().right + 8 + lib.offsetWidth / 2 - lib.offsetLeft : -Infinity;
       return place(Math.min(Math.max(fx - tower.offsetLeft, clear), scene.clientWidth - 8 - tower.offsetWidth / 2 - tower.offsetLeft), 0, 1, smooth);
     }
-    const [w, h] = size(), [x, y, z] = zoom[current], s = Math.max(1, Math.min(z, maxPx / (h / artH)));
+    const [w, h] = size(), [x, y, z] = zoom[current], dpr = devicePixelRatio || 1, n = dpr * h / artH;   // n: device px an art px, whole city
+    const s = Math.max(Math.round(n), Math.min(Math.round(n * z), Math.floor(maxPx * dpr))) / n;
     place(fx - x / 100 * w * s, scene.clientHeight * (floats() ? 0.46 : 0.5) - y / 100 * h * s, s, smooth);
   };
   const pick = (key, fromOut = false) => {
@@ -119,9 +121,10 @@ if (city && root.classList.contains('at-city')) {
       return { x: (x0 + (E.x0 + E.x1) / 2 * s) / dpr, y: (ry + (E.y0 + E.y1) / 2 * s) / dpr, w: (E.x1 - E.x0) * s / dpr };
     },
     // Workshop Row's Apps door, where /projects/ pans it as it loads (pan.js): its label mid-way across the free view. The
-    // street is laid out as the city is, the same height at the top of its page, its panel the city's.
+    // street is laid out as the city is, the same size at the top of its page, its panel the city's, and its art pixels
+    // are the city's (city.css).
     workshop(r) {
-      const k = r.height / ROW.size[1], mapW = ROW.size[0] * k, [x, y, w] = ROW.door;
+      const k = size()[1] / artH, mapW = ROW.size[0] * k, [x, y, w] = ROW.door;
       if (mapW < r.width) return null;   // a screen wider than the street stretches it: there is no door to land on
       const focus = floats() ? (panel.getBoundingClientRect().right + r.width) / 2 : r.width / 2;
       const left = Math.min(mapW - r.width, Math.max(0, Math.round(ROW.labels['bay-1'][0] / 100 * mapW) - focus));
@@ -129,7 +132,7 @@ if (city && root.classList.contains('at-city')) {
     },
     // The room headers' middles (custom.css: .library-hero, .room-map), at the top of their pages.
     library: () => ({ x: innerWidth / 2, y: (innerWidth <= 760 ? innerHeight * 0.38 : Math.min(innerHeight * 0.52, 470)) / 2 }),
-    radio: () => ({ x: innerWidth / 2, y: Math.min(480, Math.max(230, innerWidth * 0.241)) / 2 }),
+    radio: () => ({ x: innerWidth / 2, y: Math.min(480, Math.max(230, innerWidth * 347 / 1440)) / 2 }),
   };
   next.post = next.radio;
   let entering = false;

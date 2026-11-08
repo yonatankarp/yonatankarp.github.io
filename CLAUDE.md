@@ -28,7 +28,11 @@ that zooms into five districts, picked from a label or a chip in its panel: the 
 Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (`/podcast/`) and the Post Office (`/contact/`). The
 map moves by one transform (translate and scale, never scrolling), clamped so no edge of the art shows; a wheel, a
 trackpad or a finger pans it sideways at any zoom, and a pinch is the browser's zoom. A resize keeps the pan, re-clamped, and
-re-centres only on a new width. The same chip again, or "Whole city", zooms back out ("Whole city" hands
+re-centres only on a new width. Every scene at rest, like the tower, shows an art pixel as a whole number of device px:
+the city, Workshop Row, the Library's head and the rooms' heads at the fewest that cover their box, rounded up, never
+under 1 (`round()` by `--dpr`, which `assets/js/dpr.js` sets on html before the first paint, in `city.css` and
+`custom.css`), so they crop a little more than the plain cover, at the foot (the Library's about its 50% 62%), and the
+panning takes up the width; only a glide or a push-in passes through other scales. The same chip again, or "Whole city", zooms back out ("Whole city" hands
 focus to the chip that was picked; on a phone it sits at the panel's top right, beside the kicker, so it shows without a scroll). A label's first
 click zooms to its district; the picked label then shows "→" and its next click goes in. A label stays whole on screen,
 slid inside the edges by `--shift` as on Workshop Row; one whose district is out of view, or that would sit under the
@@ -39,8 +43,9 @@ copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one; the dusk pick carries one more edit, the tower's glass entrance doors, from `gen_city.py door`, and the hours were
 edited from it with the door), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
-middle in % of the art, and how far to zoom: `ZOOM`), capped where an art pixel would pass `MAX_PX` (4) screen px,
-so a big screen zooms less than a phone, and never under 1. Going in (a district's go link, or its label's second
+middle in % of the art, and how far to zoom: `ZOOM`), times the whole city's device px an art px, to the nearest
+whole number, capped where an art pixel would pass `MAX_PX` (4) screen px, so a big screen zooms less than a phone, and
+never under the whole city (where that is the nearest, a pick only pans). Going in (a district's go link, or its label's second
 click) the map pushes on, ease-in over 450 ms, and the next view opens from it in a dithered iris (`web3d/src/iris.js`)
 while it settles from 1.18 to 1; every other link keeps the wipe. The tower and Workshop Row have doors (`doors` in
 `city.json`, `DOORS` in `gen_city.py`): the city's lands on the next view's door at its size, to 14 screen px a city art
@@ -265,8 +270,9 @@ flange's half-width and half-height, its turn and its plain hub's reach, in `FX`
 - `content/skills/_index.md` — skills page
 - `content/cv.md` — printable CV page
 - `content/podcast.md` and `content/contact.md` — the Radio Mast (`/podcast/`, `layouts/_default/radio.html`) and the Post
-  Office (`/contact/`, `post.html`). Each opens on its room, painted across the head at its own 1440:347 shape
-  (`partials/room-hero.html`; a phone pans it): `radio.webp` and `post.webp`, baked by `web3d/pixel/gen_rooms.py` from
+  Office (`/contact/`, `post.html`). Each opens on its room, painted across the head (`partials/room-hero.html`), the
+  head as tall as the painting's 1440:347 shape at the screen's width, between 230 and 480px, the room at whole device px
+  an art px covering it, its foot cropped, and a phone panning it: `radio.webp` and `post.webp`, baked by `web3d/pixel/gen_rooms.py` from
   `web3d/pixel/paintings/picks/{radio,post}.png` (one painting each, at dusk), with `ROOM-fx.json` for their animations
   (`web3d/src/rooms-fx.js`, its own bundle, `--mode rooms`). Their copy is `contact` in `data/home/en.yaml` and their labels
   `radio` and `post` in `data/rooms.yaml`. The Post

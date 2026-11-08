@@ -75,7 +75,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   x = Math.min(f ? Math.max(x, r + 8 + l.offsetWidth / 2 - l.offsetLeft) : x, s.clientWidth - 8 - t.offsetWidth / 2 - t.offsetLeft);
   m.style.transform = 'translate(' + Math.min(0, Math.max(s.clientWidth - m.offsetWidth, x)) + 'px, 0px) scale(1)';
 })();` | minify | fingerprint "sha256" }}
-{{ .Store.Set "inlineScripts" (slice $time $guided $lobby $cityStart) }}
+{{ $dpr := resources.Get "js/dpr.js" | minify | fingerprint "sha256" }}{{/* the scenes' device px, for city.css */}}
+{{ .Store.Set "inlineScripts" (slice $time $dpr $guided $lobby $cityStart) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
@@ -85,6 +86,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 <head>
   {{ partial "head.html" . }}
   <script>{{ $time.Content | safeJS }}</script>
+  <script>{{ $dpr.Content | safeJS }}</script>
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   {{- /* A CSP with hash sources stops Chrome's preload scanner from fetching the module early: it then waited for the
        parser, 1717 ms in, and the first picture drew 400 ms later (Fast 3G, #149). So the module is preloaded by hand. */}}

@@ -11,11 +11,13 @@ const canvas = document.querySelector('.library-fx');
 if (canvas) {
   const sheet = people((ext) => `${canvas.dataset.readers}.${ext}?v=${canvas.dataset.version}`, false);
   animate(canvas, { data: canvas.dataset.fx, depth: canvas.dataset.depth }, (ctx, fx, test) => setup(ctx, fx, test, sheet));
-  // In from the city's push-in: its frame opens from the header's middle, the room and its life settling about it.
+  // In from the city's push-in: its frame opens from the header's middle, the room and its life settling about it (the
+  // picture is larger than the header, at its whole device px: custom.css).
   const img = canvas.previousElementSibling;
   arrive(img, () => {
-    const r = img.getBoundingClientRect(), o = [r.width / 2, r.height / 2];
-    return { at: [r.left + o[0], r.top + o[1]], settle: [[img, ...o], [canvas, ...o]] };
+    const h = img.parentElement.getBoundingClientRect(), r = img.getBoundingClientRect(), at = [h.left + h.width / 2, h.top + h.height / 2];
+    const o = [at[0] - r.left, at[1] - r.top];
+    return { at, settle: [[img, ...o], [canvas, ...o]] };
   });
 }
 

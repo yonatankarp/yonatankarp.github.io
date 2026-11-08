@@ -42,7 +42,7 @@ if (row) {
   addEventListener('resize', fit);
   const map = scene.querySelector('.city-map'), img = map.querySelector('img');
   arrive(img, () => {
-    const k = map.offsetHeight / ROW.size[1], [x, y] = ROW.door, m = map.getBoundingClientRect();
+    const m = map.getBoundingClientRect(), k = m.height / ROW.size[1], [x, y] = ROW.door;   // unrounded, as a device px may be half a CSS px
     shutter(map, img);
     return { at: [m.left + x * k, m.top + y * k], settle: [[map, x * k, y * k]] };
   });

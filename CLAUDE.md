@@ -376,6 +376,11 @@ reduced motion, with CSS animations disabled, so they hold still) and compares t
 which the deploy's `visual_capture` job takes from the Pages artifact beside the `deploy` job, never holding it up.
 Node's version is `.nvmrc`.
 
+The `Cross-browser` workflow (not a required check; run by hand, and on a pull request that changes it or
+`scripts/check-cross-browser.js`) loads the main routes in Firefox and WebKit at 1440 and 390, failing on page errors,
+console errors and the site's own failed requests, and tries Whole city's focus, the tower's arrow keys and a lift ride
+(`npm run check:cross-browser`; Firefox runs only there, as it does not launch on macOS 27).
+
 Hugo is pinned once, as `HUGO_VERSION` and `HUGO_SHA256` in `.github/hugo.env`. Bump both values together:
 `HUGO_SHA256` is the `hugo_extended_<version>_linux-amd64.deb` line of the release's `hugo_<version>_checksums.txt`,
 and the install step fails when it does not match. The weekly `Pin staleness` workflow reports a stale pin and fails

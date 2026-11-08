@@ -8,6 +8,7 @@
     "check:blog-assets": "node scripts/check-blog-assets.js",
     "check:cv-print": "node scripts/check-cv-print.js",
     "check:csp": "node scripts/check-csp.js",
+    "check:cross-browser": "node scripts/check-cross-browser.js",
     "check:generated-html": "node scripts/check-generated-html.js",
     "check:hugo-pin": "node scripts/check-hugo-pin.js",
     "check:phases": "node scripts/check-phases.js",

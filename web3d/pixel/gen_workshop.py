@@ -25,8 +25,6 @@ The row's animations (web3d/src/workshop-fx.js) draw from workshop-fx.json, the 
 stands nearer in picks/workshop-depth.png, made by depth_map.py (it needs torch) and copied here as it is.
 """
 import argparse
-import base64
-import io
 import json
 import math
 import sys
@@ -36,13 +34,13 @@ from pathlib import Path
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import gen_city  # noqa: E402
-from gen_city import ART_W, COLOURS, PH, PW, ROOT, SIZE, H  # noqa: E402
-from paint_rooms import OUT as CANDIDATES, call, patched  # noqa: E402
+import art_common  # noqa: E402
+from art_common import (  # noqa: E402
+    ART_W, CANDIDATES, OUT, PH, PICKS as PICKED, PW, ROOT, SIZE, H, bake as bake_panorama, paint_candidate, save_lossless,
+)
 
 PICKS = {"dusk": 1000, "dawn": 1000, "day": 1000, "night": 1000}   # the seed of each hour's pick, for the record
 WINTER_PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}   # ... and of each hour's winter
-PICKED = Path(__file__).resolve().parent / "paintings" / "picks"   # picks/workshop[-PHASE].png
 BAYS = [900, 1480, 2060, 2640]   # each workshop's centre, all pannable to the middle of the view
 HALF, EAVE, GROUND = 260, 330, 660   # half a workshop's width, its eaves, the pavement's edge
 BRICK, MORTAR, GLASS, LAMP = (150, 62, 45), (120, 50, 38), (170, 200, 215), (255, 190, 100)
@@ -147,11 +145,11 @@ WINTER = {"day": "Edit this picture. Keep the time of day exactly as it is, {}, 
 
 
 def name(phase, winter=False):
-    return gen_city.name(phase, winter, "workshop")
+    return art_common.name(phase, winter, "workshop")
 
 
 def pick(phase, winter=False):
-    return gen_city.pick(phase, winter, "workshop")
+    return art_common.pick(phase, winter, "workshop")
 
 
 def paint(count, start, host, phase, winter=False):
@@ -161,33 +159,23 @@ def paint(count, start, host, phase, winter=False):
     else:
         base = blockout().resize((PW, PH), Image.LANCZOS) if phase == "dusk" else Image.open(pick("dusk")).convert("RGB").crop((0, 0, PW, PH))
         prompt = DUSK if phase == "dusk" else f"Edit this picture. Change only the time of day to {HOURS[phase]}. {KEEP}"
-    buf = io.BytesIO()
-    base.save(buf, "PNG")
     CANDIDATES.mkdir(parents=True, exist_ok=True)
     for k in range(count):
         seed = start + 17 * k
-        path = CANDIDATES / f"{name(phase, winter)}_{seed}.png"
-        if path.exists():
-            print("kept", path.name)
-            continue
-        res = call(host, "/sdapi/v1/img2img", {"prompt": prompt, "width": PW, "height": PH, "seed": seed, "batch_size": 1, "strength": 1.0,
-                          "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-        Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).save(path)
-        print("painted", path.name, flush=True)
+        paint_candidate(CANDIDATES / f"{name(phase, winter)}_{seed}.png", prompt, (PW, PH), seed, host, base)
 
 
 # Mends over a winter pick (patch_picks.py): the snowy tree its edit stood in the sky at dusk and dawn, and the van, which
-# it painted longer than the shared depth map has it, the hour's own van under snow.
-PATCHES = {**{name(ph, True): [(f"{name(ph, True)}-tree.png", (1515, 0))] for ph in ("dusk", "dawn")}}
-for _ph in ("dusk", "dawn", "day", "night"):
-    PATCHES.setdefault(name(_ph, True), []).append((f"{name(_ph, True)}-van.png", (2869, 500)))
+# it painted longer than the shared depth map has it, the hour's own van under snow, at every hour (a new one needs its van).
+PHASES = list(json.loads((ROOT / "data" / "phases.json").read_text()))
+PATCHES = {name(ph, True): [*([f"{name(ph, True)}-tree.png"] if ph in ("dusk", "dawn") else []), f"{name(ph, True)}-van.png"]
+           for ph in PHASES}
 
 
 def bake(phase, winter=False):
     """The painting box-reduced to the art's size on its own COLOURS colours, undithered, with the Library's k-means
     passes after the median cut so the small lamps keep a colour of their own."""
-    im = patched(Image.open(pick(phase, winter)).convert("RGB"), PATCHES.get(name(phase, winter), ())).crop((0, 0, PW, PH))
-    im = im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
+    im = bake_panorama(pick(phase, winter), PATCHES.get(name(phase, winter), ()))
     return im if phase == "day" else relight(im)
 
 
@@ -255,14 +243,14 @@ def write_json(out):
 
 
 def build(out):
-    phases = json.loads((ROOT / "data" / "phases.json").read_text())
+    phases = PHASES
     for picks in (PICKS, WINTER_PICKS):
         if set(phases) != set(picks):
             sys.exit(f"PICKS and WINTER_PICKS must each have data/phases.json's {sorted(phases)}: give every phase a painting")
     for winter, picks in ((False, PICKS), (True, WINTER_PICKS)):
         for phase in phases:
             path = out / f"{name(phase, winter)}.webp"
-            bake(phase, winter).save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
+            save_lossless(bake(phase, winter), path)
             print("drew", path.name, "from seed", picks[phase], f"at {ART_W} wide")
     write_json(out)
     write_fx(out)
@@ -271,7 +259,7 @@ def build(out):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["blockout", "paint", "build", "json"])
-    ap.add_argument("out", nargs="?", default="static/building/pixel")
+    ap.add_argument("out", nargs="?", type=Path, default=OUT)
     ap.add_argument("--count", type=int, default=2)
     ap.add_argument("--start", type=int, default=1000)
     ap.add_argument("--host", default="http://127.0.0.1:7860")

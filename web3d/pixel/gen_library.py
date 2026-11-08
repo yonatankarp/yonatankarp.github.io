@@ -22,8 +22,6 @@ behind the reading tables by picks/library-depth.png, made by depth_map.py (it n
 wall back (backdrop).
 """
 import argparse
-import base64
-import io
 import json
 import sys
 from pathlib import Path
@@ -33,11 +31,10 @@ from random import Random
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gen_city import ART_W, COLOURS, PH, PW, SIZE, H  # noqa: E402
-from paint_rooms import OUT as CANDIDATES, call, patched  # noqa: E402
+from art_common import ART_W, CANDIDATES, OUT, PH, PICKS, PW, H, bake, paint_candidate, save_lossless  # noqa: E402
 
 PICK = 900                       # the seed of the pick, for the record
-PICKED = Path(__file__).resolve().parent / "paintings" / "picks" / "library.png"
+PICKED = PICKS / "library.png"
 SHELVES = [858, 1148, 1438, 2018, 2308, 2598]   # each bookcase's centre: three either side of the window
 CATALOGUE = 1728                 # the window and the card catalogue under it
 TOP, FLOOR, BAY = 120, 640, 200  # a shelf's cornice, the floor line, a shelf's width
@@ -131,28 +128,10 @@ PROMPT = (
 
 
 def paint(count, start, host):
-    buf = io.BytesIO()
-    blockout().resize((PW, PH), Image.LANCZOS).save(buf, "PNG")
+    init = blockout().resize((PW, PH), Image.LANCZOS)
     for k in range(count):
         seed = start + 17 * k
-        path = CANDIDATES / f"library_{seed}.png"
-        if path.exists():
-            print("kept", path.name)
-            continue
-        res = call(host, "/sdapi/v1/img2img", {"prompt": PROMPT, "width": PW, "height": PH, "seed": seed, "batch_size": 1,
-                                               "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-        Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).save(path)
-        print("painted", path.name, flush=True)
-
-
-def bake(path=PICKED, patches=(), size=SIZE):
-    """The painting box-reduced to the art's size, on its own COLOURS colours: the city's pixel look, undithered. A few
-    k-means passes after the median cut, as plain median cut spends no colour on the small green lamps. gen_rooms.py
-    bakes its rooms with it too, at the city's SIZE; the Library is LIB."""
-    if not path.exists():
-        sys.exit(f"no {path}: paint (gen_library.py paint), copy the chosen candidate there and note its seed in PICK")
-    im = patched(Image.open(path).convert("RGB"), patches).crop((0, 0, PW, PH))
-    return im.resize(size, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
+        paint_candidate(CANDIDATES / f"library_{seed}.png", PROMPT, (PW, PH), seed, host, init)
 
 
 # Where the room's animations go, in art pixels (library-fx.js): x0, y0, x1, y1.
@@ -222,8 +201,10 @@ def backdrop(depth):
 
 
 def build(out):
-    im = bake(size=LIB)
-    im.save(out / "library.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    if not PICKED.exists():
+        sys.exit(f"no {PICKED}: paint (gen_library.py paint), copy the chosen candidate there and note its seed in PICK")
+    im = bake(PICKED, size=LIB)   # art_common.bake, which gen_rooms.py and gen_workshop.py bake with at the city's SIZE
+    save_lossless(im, out / "library.webp")
     (out / "library-fx.json").write_text(json.dumps({**FX, "sky": sky(im)}, separators=(",", ":")))
     depth = Image.open(PICKED.with_name("library-depth.png")).convert("L").resize(LIB, Image.BOX)   # depth_map.py's map, at the room's size
     backdrop(depth).save(out / "library-depth.png")   # the wall pushed back
@@ -233,7 +214,7 @@ def build(out):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["blockout", "paint", "build"])
-    ap.add_argument("out", nargs="?", default="static/building/pixel")
+    ap.add_argument("out", nargs="?", type=Path, default=OUT)
     ap.add_argument("--count", type=int, default=3)
     ap.add_argument("--start", type=int, default=900)
     ap.add_argument("--host", default="http://127.0.0.1:7860")

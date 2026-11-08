@@ -4,8 +4,8 @@
 # ///
 """Pixel-art floors for the career tower (same approach as Before Dark's gen_art.py).
 
-Run: uv run web3d/pixel/gen_floors.py <out_dir> [KEY ...]
-     uv run web3d/pixel/gen_floors.py --data       # only data/floor_accents.yaml, and the check of data/phases.json
+Run: uv run web3d/pixel/gen_floors.py [OUT [KEY ...]]   # OUT defaults to static/building/pixel
+     uv run web3d/pixel/gen_floors.py --data          # only data/floor_accents.yaml, and the check of data/phases.json
 
 Every floor is a 960x360 side-on cutaway: slab, room, slab. Between the slabs is one Draw Things painting (paint_rooms.py:
 the lift lobby carried on into that floor's room) baked by install_picks.py; the slabs, the floor number and everything
@@ -21,6 +21,7 @@ gen_walkers.py), which pixel.js draws live, and the lobby's glass entrance stand
 
 Every run also writes data/floor_accents.yaml from FLOORS (accents()) and checks data/phases.json (check_phases()).
 """
+import argparse
 import json
 import math
 import sys
@@ -29,10 +30,13 @@ from pathlib import Path
 from random import Random
 
 import numpy as np
-from PIL import Image, ImageChops, ImageFilter
+from PIL import Image, ImageChops
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import ENTRANCE_KEEP, FLOOR_SIZE, magenta  # noqa: E402
+from art_common import BAYER, INK, OUT, PICKS, R, ROOT, key as keyed, magenta, ramp, save_lossless  # noqa: E402
+from gen_walkers import CAT, CAT_LOBBY  # noqa: E402
+from install_picks import PIVOT, TWINKLE, twinkles  # noqa: E402
+from paint_rooms import DESK_POSES, DESK_SIZE, DESK_TOP, DESK_U, ENTRANCE_KEEP, FLOOR_SIZE, RECEPTIONISTS  # noqa: E402
 
 W, H = 960, 360
 CEIL, SLAB = 28, 24           # the slab above the room (rows 0..CEIL), and below it (H - SLAB..H)
@@ -46,61 +50,8 @@ SCREEN = (122, 83, 146, 95)   # the floor display over the lift, in the painting
 HOUSING = 265                 # on the roof, the lift housing ends here, in the painting's pixels: open sky right of it
 CAB = W + 2 * EDGE            # in a strip, where its cab is, after the runs; the moving box's frames follow it
 BOXES = CAB + DOOR["x1"] - DOOR["x0"]
-PICKS = Path(__file__).resolve().parent / "paintings" / "picks"
-ROOT = Path(__file__).resolve().parents[2]   # the repository
-
-
-def save_lossless(im, path):
-    """Write the art as small as it goes without changing a pixel (#184): lossless WebP for a .webp path, else a PNG
-    indexed on the picture's own colours (the art has well under 256). Read back and checked before it returns."""
-    path = Path(path)
-    ref = im.convert("RGBA" if "A" in im.getbands() or "transparency" in im.info else "RGB")
-    if path.suffix == ".webp":
-        ref.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)   # exact: keeps a clear pixel's colour
-    elif colours := ref.getcolors(256):
-        pal = [c for _, c in colours]
-        index = {c: i for i, c in enumerate(pal)}
-        p = Image.new("P", ref.size)
-        p.putdata([index[c] for c in ref.get_flattened_data()])
-        p.putpalette([v for c in pal for v in c], rawmode=ref.mode)
-        p.save(path, optimize=True)
-    else:
-        ref.save(path, optimize=True)
-    with Image.open(path) as back:
-        assert back.convert("RGBA").tobytes() == ref.convert("RGBA").tobytes(), f"{path} does not read back as drawn"
-
-
-def ramp(*hexes):
-    return [tuple(int(h[i:i + 2], 16) for i in (1, 3, 5)) for h in hexes]
-
-
-# The palette of what is drawn in code (slabs, lights, screens), the accents and the icons (gen_icons.py). The paintings,
-# and the covers baked from them, keep their own colours.
-R = {
-    "wall": ramp("#2a2226", "#3d3034", "#574447", "#77605c", "#9a8072", "#bfa58c"),
-    "wood": ramp("#24170f", "#3b2618", "#583a22", "#7a5530", "#9e7441", "#c39a5c"),
-    "plank": ramp("#1f1610", "#33231a", "#4c3526", "#6a4b35", "#8a6446", "#ac8159"),
-    "dark": ramp("#0d0f14", "#151923", "#1f2532", "#2b3344", "#3b4559", "#505d74"),
-    "amber": ramp("#3a2208", "#6a3f0c", "#a0640f", "#d38f1b", "#f2b13b", "#ffd77a"),
-    "steel": ramp("#1c2026", "#30363e", "#4a525c", "#6d7782", "#97a2ac", "#c9d1d7"),
-    "chalk": ramp("#141c18", "#1e2a24", "#2b3a32", "#3d5046", "#5a7064", "#8aa294"),
-    "plant": ramp("#0f1f16", "#173222", "#22482f", "#2f613e", "#43804f", "#68a466"),
-    "cream": ramp("#3a3530", "#5d564d", "#857c70", "#ada395", "#d3cabb", "#f2ece0"),
-    "sky": ramp("#141a33", "#232a4d", "#3b3f6a", "#5d5a86", "#8e78a0", "#d79a9c"),
-    "red": ramp("#2a0d0f", "#4a1418", "#73201f", "#a03227", "#c94f33", "#e7794a"),
-    "blue": ramp("#0f1a2e", "#17284a", "#21406f", "#2f5c96", "#4f86c0", "#86b6e0"),
-    "cyan": ramp("#08262c", "#0d3f49", "#126470", "#1c94a0", "#3fc6cf", "#9cf0f2"),
-    "violet": ramp("#1b1230", "#2c1c4f", "#47307a", "#6a4fa8", "#9b7bff", "#cdbcff"),
-    "magenta": ramp("#2a0f33", "#4a1757", "#74228a", "#a332b8", "#d04ee0", "#f09af5"),
-    "coral": ramp("#2c0f0e", "#521b18", "#7f2c24", "#b44434", "#ff6b5a", "#ffb0a2"),
-    "mint": ramp("#0e211b", "#183b30", "#24594a", "#3a8068", "#62b08e", "#a9dcc2"),
-    "grey": ramp("#1a1c1f", "#2e3136", "#484c52", "#6a6f76", "#9499a0", "#c8ccd1"),
-}
-assert len({c for r in R.values() for c in r}) == sum(len(r) for r in R.values()), "two ramps share a colour"
-INK = (10, 11, 16)                                  # outlines
 GLOW = {"amber": (255, 181, 71), "green": (124, 242, 176), "city": (255, 210, 138), "red": (255, 80, 64),
         "cyan": (156, 240, 242), "white": (255, 244, 220)}
-BAYER = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]]
 FONT = {  # 3x5 glyphs for the lift display, drawn at 2x
     "L": ["#..", "#..", "#..", "#..", "###"], "R": ["##.", "#.#", "##.", "#.#", "#.#"],
     "1": [".#.", "##.", ".#.", ".#.", "###"], "2": ["##.", "..#", ".#.", "#..", "###"],
@@ -243,7 +194,7 @@ def sumup(room, f, phase):
 
 # Floor 5, Billie risk: the credit gauge's needle swings toward red and settles (install_picks.unneedle took the
 # painted one down).
-GAUGE = (344, 105, 26)        # the pivot, and the needle's length
+GAUGE = (*PIVOT, 26)          # the pivot, and the needle's length
 NEEDLE = [52, 52, 40, 22, 4, -10, -16, -12, 2, 22, 40, 52]   # its angle, degrees up from the right, by frame
 
 
@@ -295,14 +246,10 @@ def billie_payments(room, f, phase):
 def capsule(out):
     """capsule.webp: the picked painting with its magenta keyed out (as gen_walkers keys the cats), cropped to the capsule and
     scaled to CAPSULE_SCALE times its size in art pixels. Returns CAPSULE in strip pixels, for floors.json."""
-    import numpy as np  # here, not at the top: gen_icons and pixelate import this module with pillow alone
-
-    im = Image.open(PICKS / "capsule.png").convert("RGB")
-    bg = magenta(np.asarray(im).astype(int))
-    alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5))   # eats the pink fringe
-    im.putalpha(alpha)
+    a = np.asarray(Image.open(PICKS / "capsule.png").convert("RGB")).astype(int)
+    im = keyed(a, magenta(a), 5)   # the min filter eats the pink fringe
     w, h = CAPSULE["size"]
-    save_lossless(im.crop(alpha.getbbox()).resize((w * CAPSULE_SCALE, h * CAPSULE_SCALE), Image.LANCZOS), out / "capsule.webp")
+    save_lossless(im.crop(im.getchannel("A").getbbox()).resize((w * CAPSULE_SCALE, h * CAPSULE_SCALE), Image.LANCZOS), out / "capsule.webp")
     return CAPSULE | {"path": [[x + LOBBY_X, y + CEIL] for x, y in CAPSULE["path"]],
                       "clip": [[x + LOBBY_X, y + CEIL, w, h] for x, y, w, h in CAPSULE["clip"]], "size": [w, h]}
 
@@ -324,8 +271,6 @@ HEAD = 17                     # a receptionist's head, crown to chin, in art pix
 
 def largest(alpha):
     """Only the biggest connected shape stays: the person, not a stray ring of the painted lamp's glow."""
-    import numpy as np
-
     a = np.asarray(alpha) > 0
     h, w = a.shape
     seen = np.zeros_like(a)
@@ -354,10 +299,6 @@ def receptionists(out):
     """receptionists.webp: each pick with its magenta (and the model's lamp-lit pinks) keyed out, cut at the desk's top and
     above the hair, scaled premultiplied (no halo) so the head is HEAD art px, on its person's 32 colours, only its largest
     shape kept. Returns RECEPTION for floors.json, in strip pixels, with the frame's size and its row on the desk's edge."""
-    import numpy as np  # here, not at the top: gen_icons and pixelate import this module with pillow alone
-
-    from paint_rooms import DESK_POSES, DESK_SIZE, DESK_TOP, DESK_U, RECEPTIONISTS
-
     (W0, H0), s = DESK_SIZE, HEAD / (7.2 * DESK_U)
     rows = []
     for name in RECEPTIONISTS:
@@ -368,9 +309,7 @@ def receptionists(out):
             bg = magenta(a, ((np.minimum(r, b) - g > 45) & (abs(r - b) < 90)) | ((r > 200) & (g < 0.6 * r) & (b > g + 15)))   # and its lamp-lit pinks and corals
             bg[DESK_TOP + 4:] = True   # below the desk's top: the room's own desk stands in front
             bg[:40] = True             # the model hangs a lamp over every head: cut above the hair
-            alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5))
-            im = Image.fromarray(a.astype(np.uint8), "RGB")
-            im.putalpha(alpha)
+            im = keyed(a, bg, 5)
             smalls.append(im.convert("RGBa").resize((round(W0 * s), round(H0 * s)), Image.BOX).convert("RGBA"))
         # one cut of 32 colours over the person's opaque pixels in every pose, so they keep their clothes' colours from
         # pose to pose (cut apart, ben's light blue shirt went cream at rest)
@@ -412,8 +351,6 @@ LOBBY_CATS = dict(
 def lobby_cats():
     """LOBBY_CATS for floors.json, in strip pixels, with k, the cats' size against Workshop Row's, and the room they are
     clipped to."""
-    from gen_walkers import CAT, CAT_LOBBY  # here, not at the top: it needs numpy (see receptionists)
-
     perches = [[x0 + LOBBY_X, y + CEIL, x1 + LOBBY_X] for x0, y, x1 in LOBBY_CATS["perches"]]
     return {"street": LOBBY_CATS["street"] + CEIL, "edge": [x + LOBBY_X for x in LOBBY_CATS["edge"]], "perches": perches,
             "start": [[x + LOBBY_X, p] for x, p in LOBBY_CATS["start"]], "k": CAT_LOBBY / CAT,
@@ -435,23 +372,23 @@ def roof(room, f, phase):
     if f % 4 < 2 and phase != "day":
         room.rect(708, 4, 711, 7, GLOW["red"])
     if phase == "night":
-        room.lit((380, 176, 760, 202), lambda col: col[0] > 200 and col[1] > 150 and col[2] < 140, f, every=4, on=2)
+        room.lit(TWINKLE, twinkles, f, every=4, on=2)
 
 
-FLOORS = {  # key: (painting, accent ramp, animation, its hanging lamps' x in the painting), bottom to top
-    "L": ("reception", "wood", reception, [364, 562, 677]),
-    "1": ("reichman", "mint", reichman, [442, 620, 740]),
-    "2": ("inuitive", "mint", inuitive, [334, 515, 570, 648, 719, 775]),
-    "3": ("nice", "blue", nice, [396, 565, 676, 761]),
-    "4": ("sumup", "amber", sumup, [516, 591, 677, 742, 813, 832]),
-    "5": ("billie_risk", "cyan", billie_risk, [662, 710]),
-    "6": ("billie_orchestrator", "violet", billie_orchestrator, [363, 515, 599, 678]),
-    "7": ("billie_payments", "coral", billie_payments, [565, 660, 780]),
-    "R": ("roof", "amber", roof, []),
+# key: (painting, accent ramp, animation, its hanging lamps' x in the painting, the skirting's top row at its right edge),
+# bottom to top. That skirting is where the right run's grain is lined up (runs()): a return wall's, in perspective, is
+# lower than the back wall's (SKIRTING). The roof's right run is its sky: None.
+FLOORS = {
+    "L": ("reception", "wood", reception, [364, 562, 677], 318),
+    "1": ("reichman", "mint", reichman, [442, 620, 740], 311),
+    "2": ("inuitive", "mint", inuitive, [334, 515, 570, 648, 719, 775], 305),
+    "3": ("nice", "blue", nice, [396, 565, 676, 761], 309),
+    "4": ("sumup", "amber", sumup, [516, 591, 677, 742, 813, 832], 305),
+    "5": ("billie_risk", "cyan", billie_risk, [662, 710], 316),
+    "6": ("billie_orchestrator", "violet", billie_orchestrator, [363, 515, 599, 678], 301),
+    "7": ("billie_payments", "coral", billie_payments, [565, 660, 780], 330),
+    "R": ("roof", "amber", roof, [], None),
 }
-# The skirting's top row at each room's right edge, where the runs' grain is lined up (runs()): a return wall's, in
-# perspective, is lower than the back wall's (SKIRTING). The roof's right run is its sky.
-RIGHT_SKIRTING = {"L": 318, "1": 311, "2": 305, "3": 309, "4": 305, "5": 316, "6": 301, "7": 330}
 
 
 MASTS = [(280, 285), (346, 383)]   # the lightning rod and the crane's mast, where they leave the roof's painting at its top
@@ -473,7 +410,7 @@ def sky_band(painting, plate, night):
     for x in range(x0, x1 + LOBBY_X):
         near = [px[xx, y] for xx in range(max(x0, x - 32), min(x1, x + 33)) if xx not in mast for y in range(4)]
         sky[x] = tuple(sum(col[i] for col in near) / len(near) for i in range(3))
-    dist = lambda a, b: sum(abs(u - v) for u, v in zip(a, b, strict=True))  # noqa: E731
+    dist = lambda a, b: sum(abs(u - v) for u, v in zip(a, b, strict=True))
     seen = Counter(px[x, y] for x in range(x0, x1) if x not in mast for y in range(CEIL))
     own = sorted({col for col, n in seen.items() if n * 100 >= seen.total()} | {plate})   # 1% of that sky or more
     nearest = {}
@@ -487,7 +424,7 @@ def sky_band(painting, plate, night):
             band[x, y] = nearest[want] if y else plate
             if x in mast and dist(m := px[x, CEIL - 1 - y], sky[x]) > 40:
                 band[x, y] = m
-    bright = lambda x, y: 0 <= y < painting.height and x0 <= x < x1 and lum(px[x, y]) > lum(sky[x]) + 24  # noqa: E731
+    bright = lambda x, y: 0 <= y < painting.height and x0 <= x < x1 and lum(px[x, y]) > lum(sky[x]) + 24
     for y in range(CEIL if night else 0):
         for x in range(x0, x1):   # a star: a speck of a pixel or two, brighter than the sky, alone (not a cable's glints)
             if x not in mast and bright(x, y) and sum(bright(x + dx, y + dy) for dx in range(-2, 3) for dy in range(-2, 3)) <= 2:
@@ -552,7 +489,7 @@ def runs(rest, key):
     of real wall: the room's outer GRAIN columns on the left, plain wall, skirting and floor in every room, less their
     light, mirrored outward and back (period 2 * GRAIN, which divides EDGE, so a run meets the strip and the next run with
     no seam). The right edge is a return wall's few columns, mostly in perspective or behind something, so its run takes
-    the same left grain, its skirting and floor lined up with that edge's (RIGHT_SKIRTING). Smeared, the edge's pixel
+    the same left grain, its skirting and floor lined up with that edge's (FLOORS' last). Smeared, the edge's pixel
     made streaks (#302); mirrored with its light, a block of painterly wall repeated it in arches. On the room's colours.
     The roof's right run is its sky, which keeps its stars, scattered afresh (scatter)."""
     strip = np.asarray(rest, dtype=float)
@@ -562,7 +499,7 @@ def runs(rest, key):
     grain = np.clip(room[:, :GRAIN] - light[:, :GRAIN], -CLIP, CLIP)
     mirror = [m if (m := d % (2 * GRAIN)) < GRAIN else 2 * GRAIN - 1 - m for d in range(EDGE)]   # d columns out: its grain column
     top = SKIRTING - CEIL
-    for edge, skirting, left in ((light[:, 0], SKIRTING, True), (light[:, -1], None if key == "R" else RIGHT_SKIRTING[key], False)):
+    for edge, skirting, left in ((light[:, 0], SKIRTING, True), (light[:, -1], FLOORS[key][4], False)):
         if skirting is None:
             continue
         sk = skirting - CEIL
@@ -623,7 +560,7 @@ def winter(phase):
 
 def frames(key, variant):
     """The floor's FRAMES pictures at an hour, or an hour in winter (its own painting there, else dusk's)."""
-    name, accent, animate, _ = FLOORS[key]
+    name, accent, animate, *_ = FLOORS[key]
     pick = PICKS / f"{name}-{variant}-px.png"
     phase = hour(variant)
     painting = Image.open(pick if pick.exists() else PICKS / f"{name}-px.png").convert("RGB")
@@ -710,7 +647,7 @@ def phases(path=ROOT / "data" / "phases.json"):
     and dusk, the plain files, none; and in winter (its "winter") those with one in winter
     (picks/<room>-winter[-<hour>]-px.png). Returns {hour or winter variant: its baked keys}."""
     site = json.loads(path.read_text())
-    keys = lambda variant: "".join(k for k, (name, *_) in FLOORS.items() if (PICKS / f"{name}-{variant}-px.png").exists())  # noqa: E731
+    keys = lambda variant: "".join(k for k, (name, *_) in FLOORS.items() if (PICKS / f"{name}-{variant}-px.png").exists())
     want = {hour: keys(hour) for hour in site} | {winter(hour): keys(winter(hour)) for hour in site}
     have = {hour: p["baked"] for hour, p in site.items()} | {winter(hour): p["winter"]["baked"] for hour, p in site.items()}
     assert have == want, f"{path}'s baked rooms disagree with the paintings in {PICKS}: {have} != {want}"
@@ -734,17 +671,24 @@ def write_data():
 
 
 if __name__ == "__main__":
+    ap = argparse.ArgumentParser()
+    ap.add_argument("out", nargs="?", type=Path, default=OUT)
+    ap.add_argument("keys", nargs="*", metavar="KEY", help=f"only these floors, and no floors.json: {' '.join(FLOORS)}")
+    ap.add_argument("--data", action="store_true", help="only write data/floor_accents.yaml and check data/phases.json")
+    a = ap.parse_args()
+    if unknown := set(a.keys) - FLOORS.keys():
+        ap.error(f"no such floor: {', '.join(sorted(unknown))}")
     baked = write_data()
-    if sys.argv[1:] == ["--data"]:
+    if a.data:
         sys.exit()
-    out = Path(sys.argv[1] if len(sys.argv) > 1 else ".")
+    out = a.out
     out.mkdir(parents=True, exist_ok=True)
     anim = {}
-    for key in sys.argv[2:] or FLOORS:
+    for key in a.keys or FLOORS:
         anim[key] = build(key, out, [hour for hour, keys in baked.items() if key in keys])
         if key == "L":
             entrance(out, [hour for hour, keys in baked.items() if key in keys])
-    if not sys.argv[2:]:
+    if not a.keys:
         sky(out)
         lamps = {key: [DOOR["mid"], *(x + LOBBY_X for x in v[3])] for key, v in FLOORS.items() if v[3]}
         art = {"frame": [W, H], "frames": FRAMES, "edge": EDGE, "room": [LOBBY_X, W - LOBBY_X], "door": DOOR, "cab": CAB, "boxes": BOXES,

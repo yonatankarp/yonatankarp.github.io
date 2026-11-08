@@ -17,8 +17,6 @@ The rooms' animations (web3d/src/rooms-fx.js) draw from ROOM-fx.json, FX below, 
 radio-reels.webp (reels()).
 """
 import argparse
-import base64
-import io
 import json
 import math
 import sys
@@ -27,14 +25,11 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gen_city import ART_W, PH, PW  # noqa: E402
-from gen_library import bake as library_bake  # noqa: E402
-from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
+from art_common import ART_W, CANDIDATES, OUT, PH, PICKS as PICKED, PW, bake, paint_candidate, save_lossless  # noqa: E402
 
 PICKS = {"radio": 1500, "post": 1500}   # the seed of each room's pick, for the record
-PICKED = Path(__file__).resolve().parent / "paintings" / "picks"
 # Mends over a room's pick (patch_picks.py): the studio's on-air lamp unlit, as the show is off air (data/rooms.yaml).
-PATCHES = {"radio": [("radio-off-air.png", (437, 35))]}
+PATCHES = {"radio": ["radio-off-air.png"]}
 STYLE = ("Wide panoramic interior of one room, seen straight on from the middle of the room, highly detailed painterly "
          "pixel-art-ready video game background, warm golden dusk light through the windows, soft lamp light, rich warm "
          "palette, cosy. No people, no text, no letters, no logos, no writing anywhere. ")
@@ -128,21 +123,15 @@ def paint(count, start, host):
     for room, prompt in PROMPTS.items():
         for k in range(count):
             seed = start + 17 * k
-            path = CANDIDATES / f"{room}_{seed}.png"
-            if path.exists():
-                print("kept", path.name)
-                continue
-            res = call(host, "/sdapi/v1/txt2img", {"prompt": prompt, "width": PW, "height": PH, "seed": seed, "batch_size": 1})
-            Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).save(path)
-            print("painted", path.name, flush=True)
+            paint_candidate(CANDIDATES / f"{room}_{seed}.png", prompt, (PW, PH), seed, host)
 
 
 def build(out):
     for room, seed in PICKS.items():
-        art = library_bake(pick(room), PATCHES.get(room, ()))
-        art.save(out / f"{room}.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+        art = bake(pick(room), PATCHES.get(room, ()))
+        save_lossless(art, out / f"{room}.webp")
         if "reels" in FX[room]:
-            reels(art, FX[room]["reels"]).save(out / f"{room}-reels.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+            save_lossless(reels(art, FX[room]["reels"]), out / f"{room}-reels.webp")
         (out / f"{room}-fx.json").write_text(json.dumps(FX[room], separators=(",", ":")))
         print(f"drew {room}.webp from seed {seed} at {ART_W} wide")
 
@@ -150,7 +139,7 @@ def build(out):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["paint", "build"])
-    ap.add_argument("out", nargs="?", default="static/building/pixel")
+    ap.add_argument("out", nargs="?", type=Path, default=OUT)
     ap.add_argument("--count", type=int, default=2)
     ap.add_argument("--start", type=int, default=1500)
     ap.add_argument("--host", default="http://127.0.0.1:7860")

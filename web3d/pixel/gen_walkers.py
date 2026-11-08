@@ -6,8 +6,9 @@
 of them in the Library (library-fx.js), who also stand at a shelf, reach up, take a book and read it. And Yonatan's two
 cats on Workshop Row's wall and pavement (cats.js): an 8-frame walk, a sit, a loaf, a crouch and a leap each.
 
-Run: uv run web3d/pixel/gen_walkers.py pose                  # the 8 walk poses and 4 browse poses, from a skeleton on magenta,
-                                                             # and each cat's 12 poses
+Run: uv run web3d/pixel/gen_walkers.py pose [OUT]            # the 8 walk poses and 4 browse poses, from a skeleton on magenta,
+                                                             # and each cat's 12 poses, into OUT/walkers and OUT/cats
+                                                             # (OUT: paintings/candidates, where the paints read them)
      uv run web3d/pixel/gen_walkers.py paint [NAME...]       # Draw Things repaints each walk pose as that person (port 7860)
      uv run web3d/pixel/gen_walkers.py browse [NAME...]      # ... and each browse pose, for the Library's readers
      uv run web3d/pixel/gen_walkers.py cats [NAME...]        # ... and each cat pose as that cat
@@ -24,21 +25,20 @@ people out as rows of one sheet, a frame per column, all standing on the same fo
 (the black one smaller) on 24 colours.
 """
 import argparse
-import base64
-import io
+import functools
 import json
 import math
 import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import OUT as CANDIDATES, call, magenta  # noqa: E402
+from art_common import CANDIDATES, OUT, PICKS, key, magenta, paint_candidate, reduce, save_lossless  # noqa: E402
 
 PAINTED = CANDIDATES / "walkers"
-PICKED = Path(__file__).resolve().parent / "paintings" / "picks" / "walkers"
+PICKED = PICKS / "walkers"
 FRAMES = 8
 W, H = 384, 768                 # the painting's size per frame; the figure stands on the line at FOOT
 FOOT, U = 700, 17.0             # the ground line, and pixels per skeleton unit (a person is ~36 units tall)
@@ -184,32 +184,15 @@ BROWSE_PROMPT = ("Edit this picture. Repaint the figure as one ordinary adult in
 def paint_browse(name, host):
     seed, look = PEOPLE[name]
     for kind in BROWSE:
-        out = PAINTED / f"{name}_browse_{kind}.png"
-        if out.exists():
-            print("kept", out.name)
-            continue
-        buf = io.BytesIO()
-        Image.open(PAINTED / f"browse_{kind}_pose.png").save(buf, "PNG")
-        res = call(host, "/sdapi/v1/img2img", {"prompt": BROWSE_PROMPT.format(action=ACTION[kind], look=look), "width": W, "height": H,
-                                               "seed": seed + (17 if kind in ("stand", "reach") else 0),   # the picked stand and reach were repainted on a fresh seed
-                                               "batch_size": 1, "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-        out.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
-        print("painted", out.name, flush=True)
+        paint_candidate(PAINTED / f"{name}_browse_{kind}.png", BROWSE_PROMPT.format(action=ACTION[kind], look=look), (W, H),
+                        seed + (17 if kind in ("stand", "reach") else 0),   # the picked stand and reach were repainted on a fresh seed
+                        host, Image.open(PAINTED / f"browse_{kind}_pose.png"))
 
 
 def paint(name, host):
     seed, look = PEOPLE[name]
     for k in range(FRAMES):
-        out = PAINTED / f"{name}_{k}.png"
-        if out.exists():
-            print("kept", out.name)
-            continue
-        buf = io.BytesIO()
-        Image.open(PAINTED / f"walk_{k}_pose.png").save(buf, "PNG")
-        res = call(host, "/sdapi/v1/img2img", {"prompt": PROMPT.format(look=look), "width": W, "height": H, "seed": seed, "batch_size": 1,
-                                               "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-        out.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
-        print("painted", out.name, flush=True)
+        paint_candidate(PAINTED / f"{name}_{k}.png", PROMPT.format(look=look), (W, H), seed, host, Image.open(PAINTED / f"walk_{k}_pose.png"))
 
 
 CAT_PAINTED, CAT_PICKED = CANDIDATES / "cats", PICKED.parent / "cats"
@@ -318,44 +301,33 @@ def cat_pose(kind, col):
 def paint_cat(name, host):
     seed, _, look, _ = CATS[name]
     for p in CAT_POSES:
-        out = CAT_PAINTED / f"{name}_{p}.png"
-        if out.exists():
-            print("kept", out.name)
-            continue
-        buf = io.BytesIO()
-        Image.open(CAT_PAINTED / f"{name}_{p}_pose.png").save(buf, "PNG")
-        res = call(host, "/sdapi/v1/img2img", {"prompt": CAT_PROMPT.format(action=CAT_ACTION[p.split("_")[0]], look=look), "width": CW,
-                                               "height": CH, "seed": seed, "batch_size": 1, "strength": 1.0,
-                                               "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-        out.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
-        print("painted", out.name, flush=True)
+        paint_candidate(CAT_PAINTED / f"{name}_{p}.png", CAT_PROMPT.format(action=CAT_ACTION[p.split("_")[0]], look=look), (CW, CH),
+                        seed, host, Image.open(CAT_PAINTED / f"{name}_{p}_pose.png"))
 
 
-def cat_keyed(pick, black=False):
-    """A picked cat painting with its magenta keyed out: its pixels, its alpha and its height from paw to ear tip. The
-    model paints the black cat brown, so it is pulled towards black, keeping a little of the warm sheen."""
+@functools.cache
+def cat_keyed(pick):
+    """A picked cat painting (its int RGB array) and the same with its magenta keyed out, and its height from paw to ear
+    tip. Each of the 24 is keyed once, for both sheets."""
     path = CAT_PICKED / f"{pick}.png"
     if not path.exists():
         sys.exit(f"no {path}: paint it (gen_walkers.py cats) and copy the chosen frame there")
     a = np.asarray(Image.open(path).convert("RGB").resize((CW, CH))).astype(int)
-    bg = magenta(a)
-    if black:
-        lum = (a * [.3, .59, .11]).sum(-1, keepdims=True)
-        a = np.clip((lum + (a - lum) * .35) * .7, 0, 255).astype(int)
-    alpha = np.asarray(Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5)))
-    ys = np.nonzero(alpha.max(1))[0]
-    return a, alpha, ys[-1] - ys[0]
+    im = key(a, magenta(a), 5)
+    _, y0, _, y1 = im.getchannel("A").getbbox()
+    return a, im, y1 - 1 - y0
 
 
 def cat_frame(pick, s, black):
-    """One picked cat painting scaled by s (premultiplied, so no halo) on 24 colours."""
-    a, alpha, _ = cat_keyed(pick, black)
-    im = Image.fromarray(a.astype(np.uint8), "RGB")
-    im.putalpha(Image.fromarray(alpha))
-    small = im.convert("RGBa").resize((round(CW * s), round(CH * s)), Image.BOX).convert("RGBA")
-    rgb = small.convert("RGB").quantize(24, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
-    rgb.putalpha(small.getchannel("A").point(lambda v: 255 if v > 140 else 0))
-    return rgb
+    """One picked cat painting scaled by s (premultiplied, so no halo) on 24 colours. The model paints the black cat
+    brown, so it is pulled towards black, keeping a little of the warm sheen."""
+    a, im, _ = cat_keyed(pick)
+    if black:
+        lum = (a * [.3, .59, .11]).sum(-1, keepdims=True)
+        dark = Image.fromarray(np.clip((lum + (a - lum) * .35) * .7, 0, 255).astype(int).astype(np.uint8), "RGB")
+        dark.putalpha(im.getchannel("A"))
+        im = dark
+    return reduce(im, (round(CW * s), round(CH * s)), 24, 140)
 
 
 def cat_sheet(out, height=CAT, stem="cats"):
@@ -374,9 +346,9 @@ def cat_sheet(out, height=CAT, stem="cats"):
     for j, row in enumerate(rows):
         for k, f in enumerate(row):
             im.paste(f, (k * fw + (fw - f.width) // 2, j * fh + fh - f.height))
-    im.save(out / f"{stem}.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    save_lossless(im, out / f"{stem}.webp")
     frames = [[im.crop((k * fw, j * fh, (k + 1) * fw, (j + 1) * fh)) for k in range(len(CAT_POSES))] for j in range(len(rows))]
-    foot = [[max(y for y in range(fh) for x in range(fw) if f.getpixel((x, y))[3]) for f in row] for row in frames]
+    foot = [[f.getchannel("A").getbbox()[3] - 1 for f in row] for row in frames]
     (out / f"{stem}.json").write_text(json.dumps({"people": list(CATS), "frames": len(CAT_POSES), "poses": CAT_POSES, "w": fw, "h": fh,
                                                "foot": foot, "stride": strides}))
     print(f"baked {stem}.webp:", len(CATS), "cats of", len(CAT_POSES), "frames,", fw, "x", fh)
@@ -388,15 +360,8 @@ def frame(pick, person):
     if not path.exists():
         sys.exit(f"no {path}: paint it (gen_walkers.py paint or browse) and copy the chosen frame there")
     a = np.asarray(Image.open(path).convert("RGB").resize((W, H))).astype(int)
-    bg = magenta(a)
-    alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(7))
-    im = Image.fromarray(a.astype(np.uint8), "RGB")
-    im.putalpha(alpha)
     s = person / (36 * U)
-    small = im.convert("RGBa").resize((round(W * s), round(H * s)), Image.BOX).convert("RGBA")   # premultiplied: no halo
-    rgb = small.convert("RGB").quantize(32, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
-    rgb.putalpha(small.getchannel("A").point(lambda v: 255 if v > 150 else 0))
-    return rgb
+    return reduce(key(a, magenta(a), 7), (round(W * s), round(H * s)), 32, 150)
 
 
 def sheet(out, stem, names, columns, person, **more):
@@ -409,8 +374,8 @@ def sheet(out, stem, names, columns, person, **more):
     for j, row in enumerate(rows):
         for k, f in enumerate(row):
             im.paste(f, (k * fw, j * fh))
-    im.save(out / f"{stem}.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
-    foot = [[max(y for y in range(fh) for x in range(fw) if f.getpixel((x, y))[3]) for f in row] for row in rows]
+    save_lossless(im, out / f"{stem}.webp")
+    foot = [[f.getchannel("A").getbbox()[3] - 1 for f in row] for row in rows]
     (out / f"{stem}.json").write_text(json.dumps({"people": names, "frames": len(columns), "w": fw, "h": fh,
                                                   "foot": foot, "stride": stride(person), **more}))
     print(f"baked {stem}.webp:", len(names), "people of", len(columns), "frames,", fw, "x", fh)
@@ -427,20 +392,21 @@ def bake(out):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["pose", "paint", "browse", "cats", "bake"])
-    ap.add_argument("args", nargs="*", help="paint, browse, cats: the people (cats) to paint (all, or the readers, by default); bake: OUT")
+    ap.add_argument("args", nargs="*", help="paint, browse, cats: the people (cats) to paint (all, or the readers, by default); pose, bake: OUT")
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     a = ap.parse_args()
     if a.cmd == "pose":
-        PAINTED.mkdir(parents=True, exist_ok=True)
+        people, cats = (Path(a.args[0]) / "walkers", Path(a.args[0]) / "cats") if a.args else (PAINTED, CAT_PAINTED)
+        people.mkdir(parents=True, exist_ok=True)
         for k in range(FRAMES):
-            pose(2 * math.pi * k / FRAMES).save(PAINTED / f"walk_{k}_pose.png")
+            pose(2 * math.pi * k / FRAMES).save(people / f"walk_{k}_pose.png")
         for kind in BROWSE:
-            browse_pose(kind).save(PAINTED / f"browse_{kind}_pose.png")
-        CAT_PAINTED.mkdir(parents=True, exist_ok=True)
+            browse_pose(kind).save(people / f"browse_{kind}_pose.png")
+        cats.mkdir(parents=True, exist_ok=True)
         for n, (_, coat, *_) in CATS.items():
             for p in CAT_POSES:
-                cat_pose(p, coat).save(CAT_PAINTED / f"{n}_{p}_pose.png")
-        print("posed", FRAMES, "walk and", len(BROWSE), "browse frames in", PAINTED, "and", len(CAT_POSES), "per cat in", CAT_PAINTED)
+                cat_pose(p, coat).save(cats / f"{n}_{p}_pose.png")
+        print("posed", FRAMES, "walk and", len(BROWSE), "browse frames in", people, "and", len(CAT_POSES), "per cat in", cats)
     elif a.cmd == "paint":
         for n in a.args or PEOPLE:
             paint(n, a.host)
@@ -451,4 +417,4 @@ if __name__ == "__main__":
         for n in a.args or CATS:
             paint_cat(n, a.host)
     else:
-        bake(Path(a.args[0] if a.args else "static/building/pixel"))
+        bake(Path(a.args[0]) if a.args else OUT)

@@ -121,8 +121,12 @@ after a tzdata release that adds zones) gives the sun's elevation now, day above
 after noon. It is picked once at load by the inline script in `layouts/index.html` (`html[data-time]`), from
 `assets/js/time-pick.js` (tested in `scripts/test/time-pick.test.js`). `/?time=dawn|day|dusk|night` overrides it for
 testing; anything else means the sun. Never pick by the hour: read `html[data-time]`. Dusk is the plain files. The rooms
-that show outside have a painting at each other hour, an edit of the dusk pick that changes only the light
-(`paint_rooms.py retime`): the roof whole, the lobby only through its glass door. `gen_floors.py` bakes them into
+that show outside have a painting at each other hour that changes only the light: the roof an edit of its dusk pick,
+whole (`paint_rooms.py retime`); the lobby only through its glass door, one street at every hour, from an edit of a crop
+round the door alone that names the street to keep (`paint_rooms.py door`, `DOOR`, at strength 1.0: lower, this model
+hardly changes the picture; edited whole, the room got another street at every hour), kept as painted in
+`picks/reception-door[-PHASE].png`, of which `install_picks.py` takes only the glass (`DOOR`), its night dulled from the
+model's royal blue toward a grey night blue before the colours are cut (`night_view`, `NIGHT`). `gen_floors.py` bakes them into
 `floor-{L,R}-NAME.webp`. The other pages' backdrop is a crop of the city at the hour (`backdrop[-NAME].webp`, written by
 `gen_city.py build`), behind the sheet: the pick is `layouts/partials/time-pick.html`, shared by the homepage and
 `head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop. The Library (`/blog/`), the Radio Mast and the
@@ -137,11 +141,13 @@ there are) and its sky (the roof strip's top row, which `sky_band` draws in it) 
 The same script picks the visitor's season, `html[data-season]`, from the date and their zone's latitude (`seasonOn`,
 `assets/js/season.js`, which `time-pick.html` and `scripts/lib.js` append after `sun.js`, and `calendar.js` re-exports;
 summer within the tropics). `?season=spring|summer|autumn|winter` overrides it. Only winter has art of its own, at every
-hour: the city, Workshop Row, the roof and the lobby's view, each the hour's pick edited to snow (`--winter` in `gen_city.py`
+hour: the city, Workshop Row and the roof, each the hour's pick edited to snow (`--winter` in `gen_city.py`
 and `gen_workshop.py`, `paint_rooms.py winter`, seed 700, which keeps the layout; prompts that name the hour's light, or the model paints an
-overcast day), and the backdrop, its crop. The model snows on what is indoors too, so a winter room is its hour's
+overcast day), the lobby's view, its dusk door crop under snow and each hour that winter crop retimed, so the street and
+its snow are the same at every hour (`paint_rooms.py door --winter [--time PHASE]`, `DOOR_WINTER`;
+`picks/reception-door-winter[-PHASE].png`), and the backdrop, its crop. The model snows on what is indoors too, so a winter room is its hour's
 picture with only `SNOWED` taken from its edit (`install_picks.py`): the roof but its lift housing, the lobby door's
-glass but its brass. The files
+glass but its brass (`unsnow` refills the brass's rows behind the bars). The files
 put the season before the hour: `city-winter[-PHASE].webp`, `floor-R-winter[-PHASE].webp`, `backdrop-winter[-PHASE].webp`;
 each phase's `winter` in `phases.json` has its sky and baked rooms (`LR`, dusk too), and `art.js` fetches only the
 season's strips. The city's windows and bay are found again in the winter art (`city-winter-fx.json`,
@@ -172,13 +178,12 @@ wide screen (each row in the light the room's edge leaves it with, grained with 
 `runs`), the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
 they slide apart), and its moving box's other frames. The lobby has one more picture at each hour,
 `floor-L-open[-PHASE].webp`, its glass entrance standing open (cut at `ENTRANCE`), which the push-in from the city lands on:
-`paint_rooms.py entrance` edits a crop round the doors of that hour's shut lobby, the leaves blocked out at either side
-of the doorway, every hour at the dusk pick's seed (`ENTRANCE_SEED`); `entrance --time PHASE --pick SEED` puts the pick
-back under a tight mask on the doorway and keeps only its crop, `picks/reception-open[-PHASE].png`; and `gen_floors.py`
-box-reduces that crop exactly as the whole painting is (the same filter at the same offset) and bakes it on that hour's
-lobby colours. In winter (`floor-L-open-winter[-PHASE].webp`), `entrance --winter` edits the hour's open lobby to snow as
-the shut winter lobby was (`WINTER_VIEW`, at that hour's winter seed), and its pick puts only the doorway on the shut
-winter lobby (`picks/reception-open-winter[-PHASE].png`). The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
+`paint_rooms.py entrance [--winter] --time PHASE` edits the crop round the doors of that hour's shut lobby (as
+`install_picks.painting()` makes it), asked to open the leaves and keep the street seen through them (`ENTRANCE_PROMPT`,
+which names it); `entrance [--winter] --time PHASE --pick SEED` puts the pick back under a tight mask on the doorway and
+keeps only its crop, `picks/reception-open[-winter][-PHASE].png`, picked only where the street through the opening is the
+shut view's; and `gen_floors.py` box-reduces that crop exactly as the whole painting is (the same filter at the same
+offset) and bakes it on that hour's lobby colours (`floor-L-open[-winter][-PHASE].webp`). The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
 box, lift doors, the lobby's entrance, dither, each room's lamps, the floors' order, floor 7's capsule, the lobby's receptionists and cats) are written into `static/building/pixel/floors.json` by
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
 rerun it, never the copies. `pixel.js` is the lift and the floors, `art.js` what it reads; it keeps only the storeys

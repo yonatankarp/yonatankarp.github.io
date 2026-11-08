@@ -19,15 +19,15 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import LOBBY, patched  # noqa: E402
+from paint_rooms import ENTRANCE_CROP, LOBBY, patched  # noqa: E402
 
 HERE = Path(__file__).resolve().parent / "paintings"
 LOBBY_PX, FLOOR_PX, CAB_PX, COLOURS = (264, 308), (928, 308), (96, 168), 64   # the cab: gen_floors.DOOR's size
 LIFT = (76, 100, 194, 284)   # the lift's frame and doors in the lobby's pixels, down to its sill
 SIGN = (117, 79, 152, 96)    # the floor display over them, which gen_floors lights with the floor's number
 PANEL, WALL = (196, 146, 218, 199), (219, 231)   # the lift's call panel with its shadow, and the bare wall right of it
-PICKS = {  # name: its candidate. The roof's and the reception's other hours are the dusk pick edited (paint_rooms retime),
-           # and each hour's winter is that hour's pick edited (paint_rooms winter)
+PICKS = {  # name: its candidate. The roof's other hours are the dusk pick edited (paint_rooms retime), and each hour's
+           # winter is that hour's pick edited (paint_rooms winter); the reception's are crops round its door (DOOR)
     "lobby": "lobby_1017.png",
     "cab": "cab_1000.png",   # the lift's cab, behind its doors as they open (gen_floors)
     "reichman": "reichman_1168-wall.png",
@@ -38,17 +38,17 @@ PICKS = {  # name: its candidate. The roof's and the reception's other hours are
     "billie_orchestrator": "billie_orchestrator_1117.png",
     "billie_payments": "billie_payments_1134.png",
     "reception": "reception_1117.png",
-    "reception-dawn": "reception_1117-dawn_1000.png",
-    "reception-day": "reception_1117-day_1000.png",
-    "reception-night": "reception_1117-night_1000.png",
+    "reception-dawn": "reception-door-dawn.png",
+    "reception-day": "reception-door-day.png",
+    "reception-night": "reception-door-night.png",
     "roof": "roof_1100.png",
     "roof-dawn": "roof_1100-dawn_1000.png",
     "roof-day": "roof_1100-day_1000.png",
     "roof-night": "roof_1100-night_1017.png",
-    "reception-winter": "reception_1117-winter_717.png",
-    "reception-winter-dawn": "reception_1117-dawn_1000-winter_700.png",
-    "reception-winter-day": "reception_1117-day_1000-winter_700.png",
-    "reception-winter-night": "reception_1117-night_1000-winter_717.png",
+    "reception-winter": "reception-door-winter.png",
+    "reception-winter-dawn": "reception-door-winter-dawn.png",
+    "reception-winter-day": "reception-door-winter-day.png",
+    "reception-winter-night": "reception-door-winter-night.png",
     "roof-winter": "roof_1100-winter_717.png",
     "roof-winter-dawn": "roof_1100-dawn_1000-winter_700.png",
     "roof-winter-day": "roof_1100-day_1000-winter_700.png",
@@ -66,9 +66,10 @@ def blank(img, src, boxes):
     return img
 
 
-# Indoors, an hour's edit relit the whole room (sun across the wall, the bench recoloured): only what is seen outside is
-# taken from it, onto the dusk room. The reception's glass door with its frame, in painting pixels.
-VIEW = {"reception": (1970, 96, 2252, 724)}
+# The lobby at its other hours and in winter is the dusk room with only its glass door's view changed: each is the model's
+# edit of a crop round the door alone (paint_rooms door: an edit of the whole room repainted the street at every hour),
+# kept in picks/ as painted, at this box, and only its glass (snowed()) is taken from it.
+DOOR = {"reception": ENTRANCE_CROP}
 # Winter's edits snowed on what is indoors too (the roof's lift housing, the lobby door's frame, bars and handles), and
 # would not keep the lobby's view: a winter pick is the hour's own picture with only what may be snowy taken from its
 # edit. The roof: all but the housing (gen_floors.HOUSING, 265 art px); the lobby: its door's glass panes, but its push
@@ -209,21 +210,47 @@ def mended(name, src):
     return src
 
 
-def painting(name):
-    """What a pick is baked from: its candidate; an hour of a room, its view pasted on the dusk room; winter, the hour's
-    own picture with what may be snowy (snowed()) from its edit."""
-    src = mended(name, Image.open(HERE / "candidates" / PICKS[name]).convert("RGB"))
+def painting(name, dull=True):
+    """What a pick is baked from: its candidate; the lobby at another hour or in winter, door_view(); winter on the roof,
+    the hour's own picture with what may be snowy (snowed()) from its edit."""
     room = name.split("-")[0]
+    if room in DOOR and name != room:
+        return door_view(name, room, dull)
+    src = mended(name, Image.open(HERE / "candidates" / PICKS[name]).convert("RGB"))
     if "-winter" in name:
         hour = painting(name.replace("-winter", ""))
         hour.paste(unsnow(src, room), (0, 0), snowed(room, hour))
         return hour
-    if room in VIEW and room != name:
-        hour, src = src, Image.open(HERE / "candidates" / PICKS[room]).convert("RGB")
-        src.paste(hour.crop(VIEW[room]), VIEW[room][:2])
     if room in BLANK:
         src = blank(src, *BLANK[room])
     return src
+
+
+def door_view(name, room, dull=True):
+    """The dusk room with its door's glass from the hour's crop (DOOR), as snowed() takes it; in winter onto the hour's
+    room, unsnow() over the brass as on the roof. At night the view is dulled (night_view())."""
+    edit = painting(room)
+    edit.paste(Image.open(HERE / "picks" / PICKS[name]).convert("RGB"), DOOR[room][:2])
+    winter = "-winter" in name
+    hour = painting(name.replace("-winter", ""), dull=False) if winter else painting(room)
+    hour.paste(unsnow(edit, room) if winter else edit, (0, 0), snowed(room, hour))
+    return night_view(hour, room) if dull and name.endswith("night") else hour
+
+
+NIGHT = 0.5   # how much of its blue the lobby's night view keeps: the model paints it a saturated royal blue
+
+
+def night_view(img, room, mask=None):
+    """The night view through the lobby's glass (or `mask`) dulled toward a grey night blue, before the colours are cut:
+    each pixel's blue cast (how much bluer than red it is) cut by NIGHT, so the lantern's warm light and what it lights
+    keep theirs."""
+    import numpy as np   # here only, as in carried()
+    a = np.asarray(img).astype(float)
+    y = (a @ np.array([0.299, 0.587, 0.114]))[..., None]
+    grey = y * np.array([0.92, 0.98, 1.12])                                    # a cool grey: the night blue, dulled
+    w = np.clip((a[..., 2] - a[..., 0] - 8) / 40, 0, 1)[..., None]             # how blue; the warm pixels keep theirs
+    out = Image.fromarray((a + (grey - a) * w * (1 - NIGHT)).clip(0, 255).round().astype(np.uint8))
+    return Image.composite(out, img, snowed(room, img) if mask is None else mask)
 
 
 def relit(lobby, room, box):

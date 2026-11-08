@@ -6,7 +6,8 @@
 Halloween's jack-o'-lanterns; Halloween's ghosts and bats; and the new year's fireworks over the city. Painted on magenta
 (the bursts on black, as light is, and as magenta keying would eat a red one), keyed, and baked the city's way.
 
-Run: uv run web3d/pixel/gen_props.py pose                     # the shapes the model paints over, on magenta (bursts on black)
+Run: uv run web3d/pixel/gen_props.py pose [OUT]               # the shapes the model paints over, on magenta (bursts on black),
+                                                              # into OUT (paintings/candidates, where paint reads them)
      uv run web3d/pixel/gen_props.py paint NAME SEED...       # Draw Things paints them (port 7860): hanukkiah, tree,
                                                               # tree-plain (the snowy tree's pick with its snow taken off),
                                                               # a pumpkin, a burst, or every frame of ghost-a, ghost-b or bat
@@ -32,8 +33,7 @@ a frame per column, scene-fx.js's people()); ghosts.json has each ghost's path a
 same art pixels; fireworks.json has their boxes, the sky box their middles fall in (SKY), what stands in front of
 the sky there (the tower and the crane, which hide them) and the crane's lights their middles keep off. Each of those four is baked only once all its picks are in, so the bake keeps the committed art.
 """
-import base64
-import io
+import argparse
 import json
 import math
 import os
@@ -45,11 +45,11 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from art_common import CANDIDATES, OUT, PICKS, key as keyed, magenta, paint_candidate, reduce, save_lossless  # noqa: E402
 from gen_city import DOOR_OPEN, LIGHTS, PLAZAS  # noqa: E402
-from paint_rooms import OUT as CANDIDATES, call, magenta  # noqa: E402
 
-PICKED = Path(os.environ.get("PROPS_PICKS") or Path(__file__).resolve().parent / "paintings" / "picks" / "props")   # PROPS_PICKS: a mock's
-DEPTH = Path(__file__).resolve().parent / "paintings" / "picks" / "city-depth.png"
+PICKED = Path(os.environ.get("PROPS_PICKS") or PICKS / "props")   # PROPS_PICKS: a mock's
+DEPTH = PICKS / "city-depth.png"
 W, H, MAG = 512, 512, (255, 0, 255)
 GOLD, DARK = (196, 150, 70), (120, 88, 40)
 # The hanukkiah's pose: a base, a stem, four arms each side curving up, cups level at y 150 and the shamash's raised, at 105.
@@ -156,7 +156,7 @@ def prompt(name, k=None):
     return PROMPTS[name]
 
 
-def pose():
+def pose(out=CANDIDATES):
     h = Image.new("RGB", (W, H), MAG)
     d = ImageDraw.Draw(h)
     d.rectangle([206, 420, 306, 444], fill=DARK)
@@ -169,7 +169,7 @@ def pose():
     for x, y in CUPS:
         d.rectangle([x - 12, y, x + 12, y + 12], fill=GOLD)
         d.rectangle([x - 5, y - 40, x + 5, y], fill=(240, 236, 220))
-    h.save(CANDIDATES / "hanukkiah_pose.png")
+    h.save(out / "hanukkiah_pose.png")
     t = Image.new("RGB", (W, H), MAG)
     d = ImageDraw.Draw(t)
     d.ellipse([196, 440, 316, 470], fill=(90, 70, 50))
@@ -177,15 +177,15 @@ def pose():
     for y0, y1, w in [(70, 200, 70), (150, 300, 110), (240, 420, 150)]:
         d.polygon([(256, y0), (256 - w, y1), (256 + w, y1)], fill=(36, 82, 50))
     d.regular_polygon((256, 64, 22), 5, fill=(240, 200, 80))
-    t.save(CANDIDATES / "tree_pose.png")
+    t.save(out / "tree_pose.png")
     for name, (_, box, _) in PUMPKINS.items():
-        pumpkin_pose(box).save(CANDIDATES / f"{name}_pose.png")
+        pumpkin_pose(box).save(out / f"{name}_pose.png")
     for name, (_, colour, _) in BURSTS.items():
-        burst_pose(name, colour).save(CANDIDATES / f"{name}_pose.png")
+        burst_pose(name, colour).save(out / f"{name}_pose.png")
     for k in range(GHOST_FRAMES):
-        ghost_pose(k).save(CANDIDATES / f"ghost_{k}_pose.png")
+        ghost_pose(k).save(out / f"ghost_{k}_pose.png")
     for k in range(BAT_FRAMES):
-        bat_pose(k).save(CANDIDATES / f"bat_{k}_pose.png")
+        bat_pose(k).save(out / f"bat_{k}_pose.png")
 
 
 def pumpkin_pose(box):
@@ -256,16 +256,8 @@ def paint(name, seeds, host="http://127.0.0.1:7860"):
         [(None, INIT.get(name, CANDIDATES / f"{name}_pose.png"), name)]
     for seed in seeds:
         for k, init, stem in jobs:
-            out = CANDIDATES / f"{stem}_{seed}.png"
-            if out.exists():
-                print("kept", out.name)
-                continue
-            im, buf = Image.open(init).convert("RGB"), io.BytesIO()
-            im.save(buf, "PNG")
-            res = call(host, "/sdapi/v1/img2img", {"prompt": prompt(name, k), "width": im.width, "height": im.height, "seed": seed,
-                                                   "batch_size": 1, "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-            out.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
-            print("painted", out.name, flush=True)
+            im = Image.open(init).convert("RGB")
+            paint_candidate(CANDIDATES / f"{stem}_{seed}.png", prompt(name, k), im.size, seed, host, im)
 
 
 def unflame(seed):
@@ -297,12 +289,10 @@ def key(name, file):
     a = np.asarray(Image.open(CANDIDATES / file).convert("RGB")).astype(int)
     r, g, b = a[..., 0], a[..., 1], a[..., 2]
     if name in BURSTS:
-        alpha = Image.fromarray(np.where(a.max(axis=2) > 40, 255, 0).astype(np.uint8))
+        im = Image.fromarray(a.astype(np.uint8), "RGB")
+        im.putalpha(Image.fromarray(np.where(a.max(axis=2) > 40, 255, 0).astype(np.uint8)))
     else:
-        bg = magenta(a, (r > 200) & (b > 150) & (g < 0.6 * r))
-        alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(3))
-    im = Image.fromarray(a.astype(np.uint8), "RGB")
-    im.putalpha(alpha)
+        im = keyed(a, magenta(a, (r > 200) & (b > 150) & (g < 0.6 * r)), 3)
     PICKED.mkdir(parents=True, exist_ok=True)
     im.save(PICKED / f"{name}.png")
     print("keyed", name)
@@ -316,14 +306,6 @@ def small(name, height):
     im = im.crop(box)
     s = height / im.height
     return reduce(im, (max(1, round(im.width * s)), height)), box, s
-
-
-def reduce(im, size, colours=32, cut=80):
-    """An RGBA picture box-reduced to `size` (premultiplied, so no halo) on `colours` colours, its edge hard at alpha `cut`."""
-    sm = im.convert("RGBa").resize(size, Image.BOX).convert("RGBA")
-    rgb = sm.convert("RGB").quantize(colours, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
-    rgb.putalpha(sm.getchannel("A").point(lambda v: 255 if v > cut else 0))
-    return rgb
 
 
 def flames(sprite, box, s):
@@ -369,7 +351,7 @@ def bake(out):
     for name, sprite in (("tree", t), ("tree-plain", p)):
         bulbs, star = lights(sprite)
         data[name] |= {"at": PLACE["tree"][:2], "bulbs": bulbs, "star": star}
-    sheet.save(out / "props.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    save_lossless(sheet, out / "props.webp")
     (out / "props.json").write_text(json.dumps(data, separators=(",", ":")))
     print("drew props.webp", sheet.size)
     if ready(PUMPKINS):
@@ -428,7 +410,7 @@ def halloween(out):
         sheet.alpha_composite(sprite, (x, 0))
         data[n] = {"sx": x, "w": sprite.width, "h": sprite.height, "glow": glow}
         x += sprite.width
-    sheet.save(out / "halloween.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    save_lossless(sheet, out / "halloween.webp")
     (out / "halloween.json").write_text(json.dumps({"pumpkins": data, "places": HALLOWEEN}, separators=(",", ":")))
     print("drew halloween.webp", sheet.size)
 
@@ -476,7 +458,7 @@ def fireworks(out):
         for f in frames:
             sheet.alpha_composite(f, (x, 0))
             x += f.width
-    sheet.save(out / "fireworks.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    save_lossless(sheet, out / "fireworks.webp")
     (out / "fireworks.json").write_text(json.dumps({"bursts": data, "frames": len(BURST_FRAMES), "grow": GROW, "sky": SKY, "box": box,
                                                     "fronts": fronts, "avoid": LIGHTS["blinks"], "core": CORE}, separators=(",", ":")))
     print("drew fireworks.webp", sheet.size)
@@ -506,21 +488,34 @@ def framed(out, stem, names, n, size, across=False, **more):
     for j, row in enumerate(rows):
         for k, f in enumerate(row):
             sheet.paste(f, (k * fw + (fw - f.width) // 2, j * fh + fh - f.height))
-    sheet.save(out / f"{stem}.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
+    save_lossless(sheet, out / f"{stem}.webp")
     foot = [[fh // 2 if across else fh - 1] * n for _ in names]
     (out / f"{stem}.json").write_text(json.dumps({"people": names, "frames": n, "w": fw, "h": fh, "foot": foot, **more}))
     print(f"drew {stem}.webp", sheet.size)
 
 
 if __name__ == "__main__":
-    cmd, args = sys.argv[1], sys.argv[2:]
-    if cmd == "pose":
-        pose()
-    elif cmd == "paint":
-        paint(args[0], [int(a) for a in args[1:]])
-    elif cmd == "unflame":
-        unflame(int(args[0]))
-    elif cmd == "key":
-        key(args[0], args[1])
+    ap = argparse.ArgumentParser()
+    cmd = ap.add_subparsers(dest="cmd", required=True)
+    cmd.add_parser("pose").add_argument("out", nargs="?", type=Path, default=CANDIDATES)
+    sp = cmd.add_parser("paint")
+    sp.add_argument("name", choices=sorted([*PROMPTS, *PUMPKINS, *BURSTS, *GHOSTS, "bat"]))
+    sp.add_argument("seeds", nargs="+", type=int)
+    sp.add_argument("--host", default="http://127.0.0.1:7860")
+    cmd.add_parser("unflame").add_argument("seed", type=int)
+    sp = cmd.add_parser("key")
+    sp.add_argument("name")
+    sp.add_argument("file", help="a candidate's file name; for a framed one (ghost-a, ghost-b, bat), its seed, or pose")
+    cmd.add_parser("bake").add_argument("out", nargs="?", type=Path, default=OUT)
+    a = ap.parse_args()
+    if a.cmd == "pose":
+        a.out.mkdir(parents=True, exist_ok=True)
+        pose(a.out)
+    elif a.cmd == "paint":
+        paint(a.name, a.seeds, a.host)
+    elif a.cmd == "unflame":
+        unflame(a.seed)
+    elif a.cmd == "key":
+        key(a.name, a.file)
     else:
-        bake(Path(args[0] if args else "static/building/pixel"))
+        bake(a.out)

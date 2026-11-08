@@ -22,6 +22,7 @@
     "serve": "npm run build:building && node scripts/run-hugo.js server --renderToMemory",
     "visual:compare": "node scripts/compare-visual-captures.js",
     "build:building": "node scripts/build-building.js && node scripts/render-diagrams.js",
+    "art": "uv run web3d/pixel/build_art.py",
     "pdf": "node scripts/generate-cv-pdf.js",
     "test": "node --test scripts/test/*.test.js",
     "lint": "eslint . && uvx ruff@0.14.3 check web3d/pixel"

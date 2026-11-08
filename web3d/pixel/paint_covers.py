@@ -22,7 +22,6 @@ SIZE is 5x the old 192x108: a post's head shows the cover across the screen, so 
 fills the article's 758px column at 1:1 (custom.css).
 """
 import argparse
-import base64
 import sys
 from pathlib import Path
 
@@ -31,10 +30,9 @@ from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pixelate as P  # noqa: E402
-from paint_rooms import call  # noqa: E402
+from art_common import CANDIDATES, ROOT, paint_candidate, save_lossless  # noqa: E402
 
-CANDIDATES = Path(__file__).resolve().parent / "paintings" / "candidates"
-COVERS_DIR = Path(__file__).resolve().parents[2] / "static" / "images" / "blog" / "covers"
+COVERS_DIR = ROOT / "static" / "images" / "blog" / "covers"
 INLINE_DIR = COVERS_DIR.parent / "pixel"
 SIZE, INLINE_SIZE = (960, 540), (576, 324)
 STYLE = (
@@ -261,7 +259,7 @@ def install():
         if candidate.exists():                                                 # touched up once, into the .jpg, the source after
             TOUCH_UPS.get(slug, lambda i: i)(Image.open(candidate).convert("RGB")).save(jpg, quality=90)
     for jpg in sorted(COVERS_DIR.glob("*.jpg")):                               # every committed cover, whatever COVERS lists
-        P.G.save_lossless(P.bake(Image.open(jpg), SIZE), COVERS_DIR / "pixel" / f"{jpg.stem}.webp")   # as the hint does
+        save_lossless(P.bake(Image.open(jpg), SIZE), COVERS_DIR / "pixel" / f"{jpg.stem}.webp")   # as the hint does
 
 
 def fill(a, mask, passes=400):
@@ -311,7 +309,7 @@ def install_inline():
             print("kept, no candidate:", name)
             continue
         painting = Image.open(candidate).convert("RGB")
-        P.G.save_lossless(P.bake(INLINE_TOUCH_UPS.get(name, lambda i: i)(painting), INLINE_SIZE), INLINE_DIR / f"{name}.webp")
+        save_lossless(P.bake(INLINE_TOUCH_UPS.get(name, lambda i: i)(painting), INLINE_SIZE), INLINE_DIR / f"{name}.webp")
 
 
 def main():
@@ -332,23 +330,15 @@ def main():
         ap.error("name a slug, or pass --install")
     prompt = STYLE + (COVERS | INLINE)[args.slug][2] + NO_TEXT
     kind = "inline" if args.slug in INLINE else "cover"
-    base, job = "", {}
+    base, init = "", None
     if args.edit:
         if args.slug not in EDITS:
             ap.error(f"no edit for {args.slug} in EDITS")
         base, prompt = f"{EDITS[args.slug][0]}-e", EDITS[args.slug][1]
-        init = CANDIDATES / f"{kind}-{args.slug}_{EDITS[args.slug][0]}.png"
-        job = {"strength": 1.0, "init_images": [base64.b64encode(init.read_bytes()).decode()]}
+        init = (CANDIDATES / f"{kind}-{args.slug}_{EDITS[args.slug][0]}.png").read_bytes()   # sent as it is, not re-encoded
     for k in range(args.count):
         seed = args.start + 11 * k
-        path = CANDIDATES / f"{kind}-{args.slug}_{base}{seed}.png"
-        if path.exists():
-            print("kept", path.name)
-            continue
-        res = call(args.host, "/sdapi/v1/img2img" if job else "/sdapi/v1/txt2img",
-                   {"prompt": prompt, "width": 1024, "height": 576, "seed": seed, "batch_size": 1, **job}, timeout=900)
-        path.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
-        print("painted", path.name, flush=True)
+        paint_candidate(CANDIDATES / f"{kind}-{args.slug}_{base}{seed}.png", prompt, (1024, 576), seed, args.host, init, timeout=900)
 
 
 if __name__ == "__main__":

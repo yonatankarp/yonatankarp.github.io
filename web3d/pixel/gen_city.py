@@ -39,9 +39,7 @@ picks/city-depth.png, is made by depth_map.py (it needs torch) and copied here w
 (POSTS, TREES), so this script never needs torch.
 """
 import argparse
-import base64
 import functools
-import io
 import json
 import math
 import sys
@@ -52,21 +50,24 @@ from random import Random
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
-
-ROOT = Path(__file__).resolve().parents[2]
-PW, H = 3456, 864                # the blockout: 4:1, so every district can be panned to the middle with city either side
-PH = H // 64 * 64                # the painting's rows: Draw Things paints whole 64s, and pick 700's last 32 rows are black
-ART_W, COLOURS = 1440, 64
-SIZE = [ART_W, round(ART_W * PH / PW)]
+# PW x H, the blockout: 4:1, so every district can be panned to the middle with city either side
+from art_common import (  # noqa: E402
+    ART_W, CANDIDATES, COLOURS, H, OUT, PH, PICKS as PICKED, PW, ROOT, SIZE, name, paint_candidate, pick, save_lossless,
+)
 # The seed of each hour's pick, for the record. Dusk is 700 plus the door edit (DOOR_SEED); the other hours were
 # remade from that pick, each at seed 700.
 PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}
 WINTER_PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}   # each hour's winter, an edit of that hour's pick
-PICKED = Path(__file__).resolve().parent / "paintings" / "picks"   # picks/city[-PHASE].png: each hour's chosen candidate
+# The blockout's districts, in painting px: where each landmark stands, and the lot kept clear round it (x0, y0, x1, y1).
 SPOTS = {"radio": (1090, 470), "library": (1180, 720), "tower": (1760, 580), "post": (2420, 470), "workshop": (2300, 730)}
 LOTS = {"radio": (970, 380, 1210, 490), "post": (2290, 360, 2560, 490), "library": (1010, 560, 1380, 740),
-        "workshop": (2080, 610, 2520, 750)}   # x0, y0, x1, y1: kept clear for each landmark
+        "workshop": (2080, 610, 2520, 750)}
+# Each district's label (city.js), in art px: the top of its landmark as the pick painted it, where the label's bottom sits.
+LABELS = {"tower": (750, 17),       # the crane: mid-jib, at its mast's top
+          "library": (491, 231),    # the dome
+          "workshop": (959, 263),   # mid-row, at the sawtooth roofs
+          "radio": (458, 39),       # the mast's tip
+          "post": (1008, 122)}      # the clock
 # Where picking a district zooms (city.js): its building's middle, in % of the art (x, y), and how far to zoom so it fills
 # the free view (the tall tower and mast zoom less).
 ZOOM = {"tower": [51.4, 36, 1.2], "library": [35.3, 75, 2.4], "workshop": [66.5, 79, 2.4], "radio": [31.8, 33, 1.7],
@@ -74,8 +75,6 @@ ZOOM = {"tower": [51.4, 36, 1.2], "library": [35.3, 75, 2.4], "workshop": [66.5,
 MAX_PX = 4   # but never so far that an art pixel grows past this many screen px: a big screen's overview is already ~3
 # city.js applies both on the screen: the zoom is the whole city's device px an art px times ZOOM, to the nearest whole
 # device px, and the cap is MAX_PX's whole device px.
-# Where pick 700 painted a landmark's top away from the blockout's, in painting pixels: its mast and clock tower taller.
-PAINTED = {"radio": (9, -85), "library": (0, -6), "workshop": (27, -8), "post": (0, -26)}
 
 
 def box(d, x, y, w, depth, h, top, left, right):
@@ -174,16 +173,8 @@ def blockout():
 
 
 def anchors():
-    """Each label's anchor, in % of the painting (x, top): the top of its landmark in the blockout, where the label's
-    bottom sits, moved to where the pick painted it."""
-    (tx, _), (rx, ry), (lx, ly), (wx, wy), (px, py) = (SPOTS[k] for k in ("tower", "radio", "library", "workshop", "post"))
-    tops = {"tower": (tx + 42, 40),          # the crane: mid-jib, at its mast's top
-            "library": (lx, ly - 160),       # the dome
-            "workshop": (wx - 25, wy - 90),  # mid-row, at the sawtooth roofs
-            "radio": (rx, ry - 290),         # the mast's tip
-            "post": (px, py - 150)}          # the clock
-    return {k: [round(100 * (x + PAINTED.get(k, (0, 0))[0]) / PW, 1), round(100 * (y + PAINTED.get(k, (0, 0))[1]) / PH)]
-            for k, (x, y) in tops.items()}
+    """Each label's anchor, in % of the art (x, top), as layouts/index.html reads it."""
+    return {k: [round(100 * x / SIZE[0], 1), round(100 * y / SIZE[1])] for k, (x, y) in LABELS.items()}
 
 
 DUSK = (
@@ -216,8 +207,7 @@ HOURS = {
 SNOW = ("fresh white snow lying on every roof, on the parks, the plaza and the hills, snow banked along the roads and "
         "pavements, the trees bare and dusted with snow")
 LIGHT = {
-    "dawn": "early dawn, just before sunrise: a cool pale blue and soft pink sky, the first pale light on the hills and the "
-            "sea, soft long shadows, a few windows and street lamps still lit",
+    "dawn": HOURS["dawn"],
     "day": "a bright clear midday: a clear blue sky, strong high sunlight, crisp short shadows, the blue sea",
     "dusk": "golden dusk: a purple-to-peach sunset sky, warm golden sunset light, long soft shadows, the sea glowing at the "
             "horizon, warm street lamps coming on",
@@ -228,19 +218,6 @@ WINTER = {**{ph: f"Edit this picture. Keep the time of day exactly as it is, {li
                    "under the street lamps and blue in the moonlight. Keep every lit window and lamp. "}
 
 
-def name(phase, winter=False, stem="city"):
-    """city, city-night, city-winter, city-winter-night: the season, then the hour, each left out at its default. Workshop
-    Row's (stem "workshop", painted by gen_workshop.py) are named the same way."""
-    return f"{stem}{'-winter' if winter else ''}{'' if phase == 'dusk' else '-' + phase}"
-
-
-def pick(phase, winter=False, stem="city"):
-    path = PICKED / f"{name(phase, winter, stem)}.png"
-    if not path.exists():
-        sys.exit(f"no {path}: paint it (gen_{stem}.py paint --time {phase}{' --winter' if winter else ''}), copy the chosen candidate there and note its seed in {'WINTER_PICKS' if winter else 'PICKS'}")
-    return path
-
-
 def paint(count, start, host, phase, winter=False):
     if winter:
         base = Image.open(pick(phase)).convert("RGB").crop((0, 0, PW, PH))
@@ -248,18 +225,9 @@ def paint(count, start, host, phase, winter=False):
     else:
         base = blockout().resize((PW, PH), Image.LANCZOS) if phase == "dusk" else Image.open(pick("dusk")).convert("RGB").crop((0, 0, PW, PH))
         prompt = DUSK if phase == "dusk" else f"Edit this picture. Change only the time of day to {HOURS[phase]}. {KEEP}"
-    buf = io.BytesIO()
-    base.save(buf, "PNG")
     for k in range(count):
         seed = start + 17 * k
-        path = CANDIDATES / f"{name(phase, winter)}_{seed}.png"
-        if path.exists():
-            print("kept", path.name)
-            continue
-        res = call(host, "/sdapi/v1/img2img", {"prompt": prompt, "width": PW, "height": PH, "seed": seed, "batch_size": 1,
-                                               "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-        Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).save(path)
-        print("painted", path.name, flush=True)
+        paint_candidate(CANDIDATES / f"{name(phase, winter)}_{seed}.png", prompt, (PW, PH), seed, host, base)
 
 
 # The Career Tower's entrance: a glass double door in a bronze frame, painted into the dusk painting after it was picked.
@@ -291,18 +259,9 @@ def paint_door(count, start, host):
     d.rectangle([*a(727, 216), *a(739, 229)], fill=(58, 36, 22))   # the doors' blockout (art 727-739 x 216-229), so the
     d.rectangle([*a(728, 217), *a(738, 229)], fill=(150, 105, 55))  # model paints them there and nowhere else
     d.line([*a(733, 217), *a(733, 229)], fill=(58, 36, 22), width=3)
-    buf = io.BytesIO()
-    crop.save(buf, "PNG")
     for k in range(count):
         seed = start + 17 * k
-        path = CANDIDATES / f"city-door_{seed}.png"
-        if path.exists():
-            print("kept", path.name)
-            continue
-        res = call(host, "/sdapi/v1/img2img", {"prompt": DOOR_PROMPT, "width": crop.width, "height": crop.height, "seed": seed,
-                                               "batch_size": 1, "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-        Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).convert("RGB").save(path)
-        print("painted", path.name, flush=True)
+        paint_candidate(CANDIDATES / f"city-door_{seed}.png", DOOR_PROMPT, crop.size, seed, host, crop)
 
 
 def install_door(seed):
@@ -401,18 +360,11 @@ def cut_open(painting, phase):
 
 def paint_open_winter(count, start, host, phase):
     """The hour's open doors' crop edited to winter, as the hour's pick was (WINTER[phase]): city-open-winter[-PHASE]_SEED.png."""
-    buf = io.BytesIO()
-    Image.open(open_crop(phase)).convert("RGB").save(buf, "PNG")
+    init = Image.open(open_crop(phase)).convert("RGB")
     for k in range(count):
         seed = start + 17 * k
-        path = CANDIDATES / f"{open_crop(phase, True).stem}_{seed}.png"
-        if path.exists():
-            print("kept", path.name)
-            continue
-        res = call(host, "/sdapi/v1/img2img", {"prompt": WINTER[phase] + KEEP, "width": DOOR[2] - DOOR[0], "height": DOOR[3] - DOOR[1],
-                                               "seed": seed, "batch_size": 1, "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-        Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).convert("RGB").save(path)
-        print("painted", path.name, flush=True)
+        paint_candidate(CANDIDATES / f"{open_crop(phase, True).stem}_{seed}.png", WINTER[phase] + KEEP,
+                        (DOOR[2] - DOOR[0], DOOR[3] - DOOR[1]), seed, host, init)
 
 
 def keep_open_winter(phase, seed):
@@ -662,6 +614,7 @@ def upright(depth, day):
 # The doors going in pushes through (city.js): the tower's entrance and the Apps workshop's roller door, in art px (their
 # middle x, y and their width), which the push-in lays on the next view's door.
 DOORS = {"tower": [733, 224, 12], "workshop": [900, 287, 16]}
+assert set(LABELS) == set(ZOOM) == set(SPOTS) >= set(LOTS) | set(DOORS), "the districts' labels, zooms, spots, lots and doors disagree"
 
 
 def write_json(out):
@@ -686,9 +639,9 @@ def build(out):
         baked = {phase: im.convert("RGB") for phase, im in paletted.items()}
         for phase, im in baked.items():
             path = out / f"{name(phase, winter)}.webp"
-            im.save(path, "WEBP", lossless=True, quality=100, method=6, exact=True)
-            im.crop(BACKDROP).save(out / f"backdrop{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
-            bake_open(phase, paletted[phase], winter).save(out / f"door-open{path.name[4:]}", "WEBP", lossless=True, quality=100, method=6, exact=True)
+            save_lossless(im, path)
+            save_lossless(im.crop(BACKDROP), out / f"backdrop{path.name[4:]}")
+            save_lossless(bake_open(phase, paletted[phase], winter), out / f"door-open{path.name[4:]}")
             print("drew", path.name, "its backdrop and its open door, from seed", picks[phase])
         plain = write_fx(out, baked["night"], baked["day"], baked["dusk"], plain)
     write_json(out)
@@ -697,7 +650,7 @@ def build(out):
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["blockout", "paint", "door", "build", "json"])
-    ap.add_argument("out", nargs="?", default="static/building/pixel")
+    ap.add_argument("out", nargs="?", type=Path, default=OUT)
     ap.add_argument("--count", type=int, default=2)
     ap.add_argument("--start", type=int, default=700)
     ap.add_argument("--host", default="http://127.0.0.1:7860")

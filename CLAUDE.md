@@ -18,10 +18,11 @@ npm run build            # production build: bundle, hugo --gc --minify, then th
 npm run check            # the build plus every check of the built site
 npm test                 # node:test tests of the scripts (scripts/test/)
 npm run lint             # ESLint, and Ruff over web3d/pixel/ (needs uv)
+npm run art              # rebuild all the art from the committed picks into static/building/pixel/ (or -- OUT)
 ```
 
-Scripts share their helpers through `scripts/lib.js`. CI also rebuilds the art and fails unless it matches the committed
-files pixel for pixel (`web3d/pixel/compare_art.py`).
+Scripts share their helpers through `scripts/lib.js`. CI also rebuilds the art (`npm run art`, and `install_picks.py`'s
+picks) and fails unless it matches the committed files pixel for pixel (`web3d/pixel/compare_art.py`).
 
 The homepage (`layouts/index.html`) opens on the city: an aerial pixel-art panorama (`web3d/src/city.js`, `city.css`)
 that zooms into five districts, picked from a label or a chip in its panel: the Career Tower, the
@@ -109,7 +110,7 @@ hook fails the build when a diagram changed since it was drawn: rerun `node scri
 `npm run serve`), which keeps the drawings it still needs and removes the rest. The art is in `static/building/pixel/`, made by the Python pipeline in
 `web3d/pixel/` (Draw Things paintings, pixelated and animated in code). A fault in a pick is mended, not repainted:
 `web3d/pixel/patch_picks.py` has the model edit a crop round it and keeps only the fault, as an RGBA crop in `picks/`
-(its alpha the feathered mask) that the bakes paste over the painting (`PATCHES` in `install_picks.py`, `gen_rooms.py`
+(its alpha the feathered mask, the place it goes in its PNG) that the bakes paste over the painting (`PATCHES` in `install_picks.py`, `gen_rooms.py`
 and `gen_workshop.py`); a thin stray line is filled in code instead (`FILLS` in `install_picks.py`). Its data that is bundled into the JS
 (`floors.json`, `cats-lobby.json`) or read while building (`city.json`, `workshop.json`) is kept out of `public/` by the
 `static` mount's `files` in `hugo.toml`: a new such file goes there too. Each experience entry's `floor`
@@ -383,7 +384,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
   `1`, `R` and `L` are taken by the template, and `P` is the CV's colour for open source. A new storey (a single
   character: `8`, `9`) needs its room: its painting (`ROOMS` in `web3d/pixel/paint_rooms.py`, picked into `PICKS` in
   `install_picks.py`), and in `web3d/pixel/gen_floors.py` its entry in `FLOORS` (its accent, which goes into
-  `data/floor_accents.yaml`, its animation and its lamps) and in `RIGHT_SKIRTING`. Then rebuild all the art, as CI does: the lift's order
+  `data/floor_accents.yaml`, its animation, its lamps and its right skirting's row). Then rebuild all the art (`npm run art`): the lift's order
   (`ORDER` in `web3d/src/art.js`) comes from `floors.json`.
 - `highlights`: a list; the first three show on the floor's card, the rest inside it.
 

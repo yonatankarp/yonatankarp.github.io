@@ -19,7 +19,7 @@ import numpy as np
 from PIL import Image, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import gen_floors as G  # noqa: E402  (module level only defines data; main is guarded)
+from art_common import save_lossless  # noqa: E402
 
 
 def bake(src, size, colours=64, line_art=False):
@@ -38,5 +38,5 @@ if __name__ == "__main__":
     a = ap.parse_args()
     w, h = map(int, a.size.split("x"))
     im = bake(Image.open(a.src), (w, h), a.colours, a.line_art)
-    G.save_lossless(im, a.out)
+    save_lossless(im, a.out)
     print(a.out, im.size, "colours:", len({tuple(p) for p in np.asarray(im).reshape(-1, 3)}))

@@ -9,23 +9,21 @@ Run: uv run web3d/pixel/patch_picks.py paint NAME [--count N] [--start S]   # cr
      uv run web3d/pixel/patch_picks.py pick NAME [--seed S]                 # the chosen one into picks/NAME.png
 
 A patch is an RGBA crop, picks/NAME.png: the candidate's pixels, toned to the painting round the mask (the model shifts a
-crop's tone as a whole), with the feathered mask as its alpha. The bakes paste it over their painting at PATCHES[NAME]'s
-place (paint_rooms.patched): install_picks.PATCHES, gen_rooms.PATCHES, gen_workshop.PATCHES. Candidates go to
-paintings/candidates/<stem>_<seed>.png, kept, never repainted, as paint_rooms' are.
+crop's tone as a whole), with the feathered mask as its alpha, and the place it was cut from as its PNG's "at" text. The
+bakes that list it paste it there over their painting (art_common.patched): install_picks.PATCHES, gen_rooms.PATCHES,
+gen_workshop.PATCHES. Candidates go to paintings/candidates/<stem>_<seed>.png, kept, never repainted, as paint_rooms' are.
 """
 import argparse
-import base64
-import io
 import sys
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
+from PIL.PngImagePlugin import PngInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
+from art_common import CANDIDATES, PICKS, paint_candidate  # noqa: E402
 
-PICKS = CANDIDATES.parent / "picks"
 STYLE = "in the same painterly video game style and the same light. No people, no text, no letters, no numbers, no logos."
 JIB = ("Edit this picture. Below the crane's jib and the moon, a second long thin horizontal steel lattice truss floats "
        "across the night sky with nothing holding it: take that floating truss away completely and paint open dark blue "
@@ -116,18 +114,10 @@ PATCH = {
 
 def paint(name, count, start, host):
     p = PATCH[name]
-    buf = io.BytesIO()
-    (p["init"]() if "init" in p else Image.open(p["src"]).convert("RGB")).crop(p["box"]).save(buf, "PNG")
-    box = p["box"]
+    init, box = (p["init"]() if "init" in p else Image.open(p["src"]).convert("RGB")).crop(p["box"]), p["box"]
     for k in range(count):
-        seed, path = start + 17 * k, CANDIDATES / f"{p['stem']}_{start + 17 * k}.png"
-        if path.exists():
-            print("kept", path.name)
-            continue
-        res = call(host, "/sdapi/v1/img2img", {"prompt": p["prompt"], "width": box[2] - box[0], "height": box[3] - box[1], "seed": seed,
-                                               "batch_size": 1, "strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]})
-        Image.open(io.BytesIO(base64.b64decode(res["images"][0].split(",")[-1]))).convert("RGB").save(path)
-        print("painted", path.name, flush=True)
+        seed = start + 17 * k
+        paint_candidate(CANDIDATES / f"{p['stem']}_{seed}.png", p["prompt"], (box[2] - box[0], box[3] - box[1]), seed, host, init)
 
 
 def toned(cand, orig, keep):
@@ -140,7 +130,7 @@ def toned(cand, orig, keep):
 
 
 def pick(name, seed):
-    """picks/NAME.png: the candidate, toned, with the mask as alpha, cut to where the mask is: paste it at PATCHES' place."""
+    """picks/NAME.png: the candidate, toned, with the mask as alpha, cut to where the mask is, and where it goes."""
     p = PATCH[name]
     base, box = Image.open(p["src"]).convert("RGB"), p["box"]
     m = p["mask"](base.size).crop(box)
@@ -148,7 +138,9 @@ def pick(name, seed):
     patch = toned(cand, base.crop(box), np.asarray(m) >= 248 if p.get("inside") else np.asarray(m) < 8)
     patch.putalpha(m)
     bbox = m.getbbox()
-    patch.crop(bbox).save(PICKS / f"{name}.png")
+    meta = PngInfo()
+    meta.add_text("at", f"{box[0] + bbox[0]},{box[1] + bbox[1]}")   # what art_common.patched reads
+    patch.crop(bbox).save(PICKS / f"{name}.png", pnginfo=meta)
     print("wrote", PICKS / f"{name}.png", "at", (box[0] + bbox[0], box[1] + bbox[1]))
 
 

@@ -48,7 +48,7 @@ web3d/pixel/paintings/candidates/*
 !web3d/pixel/paintings/candidates/hanukkiah_11.png
 # the lobby's dawn as the room was first retimed: install_picks.BLANK takes its unlettered papers
 !web3d/pixel/paintings/candidates/reception_1117-dawn_1000.png
-# install_picks.py also saves each crop beside its pixel art; only the -px.png files are read
+# picks/ commits only what the bakes read: install_picks.py's -px.png files, and the paintings, maps and patches below
 web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/*-px.png
 # and the city's hours, the Library, Workshop Row's hours and the radio and post rooms, painted whole (gen_city.py,

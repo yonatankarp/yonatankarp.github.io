@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
+# dependencies = ["pillow==12.1.0"]
 # ///
 """The favicon and touch icon: the career building at dusk, a tiny lit tower under its crane.
 
@@ -16,9 +16,8 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import gen_floors as G  # noqa: E402  (module level only defines data; main is guarded)
+from art_common import BAYER, INK, R  # noqa: E402
 
-R, INK = G.R, G.INK
 SKY = [R["magenta"][2], R["violet"][3], R["sky"][4], R["sky"][5]]   # top to horizon, the old street's dusk
 BRIGHT, LIT, DIM = R["amber"][5], R["amber"][4], R["amber"][2]
 CRANE, CRANE_HI, CRANE_LO = R["amber"][4], R["amber"][5], R["amber"][3]
@@ -63,7 +62,7 @@ def tower(size):
         t = max(0, y - top) / 24 * (len(SKY) - 1)
         i = min(int(t), len(SKY) - 2)
         for x in range(size):
-            im.putpixel((x, y), (*SKY[i + (t - i > G.BAYER[y % 4][x % 4] / 16)], 255))
+            im.putpixel((x, y), (*SKY[i + (t - i > BAYER[y % 4][x % 4] / 16)], 255))
     x, y = o, top
     fill(im, x + 22, y + 0, x + 23, y + 9, CRANE_LO)    # mast
     fill(im, x + 22, y + 0, x + 22, y + 9, CRANE)

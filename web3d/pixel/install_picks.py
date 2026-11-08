@@ -5,23 +5,26 @@
 """Install the picked paintings: bake each to the art standard (the city's: box-reduced, a median cut to 64 colours, no
 dither, no palette), with the one lift pasted in.
 
-Run: uv run web3d/pixel/install_picks.py [NAME ...]
+Run: uv run web3d/pixel/install_picks.py [--out DIR] [NAME ...]   # DIR defaults to paintings/picks (CI: a scratch folder)
 
 PICKS names every painting's candidate (paint_rooms.py; floors 1 and 3 mended by its `wall`). A floor's painting is
 the lobby carried on into its room, so its lift is already where the lobby's is; the lobby's own lift (its frame and
 doors, and the floor display over them) is pasted over it all the same, so the doors pixel.js slides are one pair on
-every floor. Writes paintings/picks/<name>-px.png: 928 x 308, the lobby 264 x 308. Install the lobby first.
+every floor. Writes <name>-px.png: 928 x 308, the lobby 264 x 308. The lobby is installed first, and the roof's night
+before its winter night, as PICKS lists them: the others read them from DIR.
 """
+import argparse
 import math
 import sys
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import ENTRANCE_CROP, LOBBY, patched  # noqa: E402
+from art_common import CANDIDATES, PICKS as PICKED, patched  # noqa: E402
 
-HERE = Path(__file__).resolve().parent / "paintings"
+LOBBY = ("lobby_1017.png", (7, 7, 684, 761))   # the picked lobby candidate (PICKS["lobby"]) and its crop
 LOBBY_PX, FLOOR_PX, CAB_PX, COLOURS = (264, 308), (928, 308), (96, 168), 64   # the cab: gen_floors.DOOR's size
 LIFT = (76, 100, 194, 284)   # the lift's frame and doors in the lobby's pixels, down to its sill
 SIGN = (117, 79, 152, 96)    # the floor display over them, which gen_floors lights with the floor's number
@@ -60,7 +63,7 @@ BLANK = {"reception": ("reception_1117-dawn_1000.png", [(766, 172, 918, 368), (9
 
 
 def blank(img, src, boxes):
-    clean = Image.open(HERE / "candidates" / src).convert("RGB")
+    clean = Image.open(CANDIDATES / src).convert("RGB")
     for box in boxes:
         img.paste(clean.crop(box), box[:2])
     return img
@@ -69,6 +72,7 @@ def blank(img, src, boxes):
 # The lobby at its other hours and in winter is the dusk room with only its glass door's view changed: each is the model's
 # edit of a crop round the door alone (paint_rooms door: an edit of the whole room repainted the street at every hour),
 # kept in picks/ as painted, at this box, and only its glass (snowed()) is taken from it.
+ENTRANCE_CROP = (1792, 0, 2304, 768)   # painting px: the crop round the lobby's glass door, 512 x 768 (paint_rooms edits it)
 DOOR = {"reception": ENTRANCE_CROP}
 # Winter's edits snowed on what is indoors too (the roof's lift housing, the lobby door's frame, bars and handles), and
 # would not keep the lobby's view: a winter pick is the hour's own picture with only what may be snowy taken from its
@@ -110,10 +114,13 @@ def unsnow(edit, room):
     return edit
 
 
-def unneedle(px):
+PIVOT = (344, 105)   # floor 5's gauge: its needle's pivot, in the room's pixels, about which gen_floors' needle swings
+
+
+def unneedle(px, _out):
     """Floor 5: the gauge's painted needle is taken down, so gen_floors' can swing (its GAUGE). Each pixel near the
     needle, its tail too, takes the dial's colour a little round the face at the same distance from the pivot."""
-    (cx, cy), tip, turn = (344, 105), (364, 78), math.radians(-35)
+    (cx, cy), tip, turn = PIVOT, (364, 78), math.radians(-35)
     src, out = px.load(), px.copy()
     q = out.load()
     tx, ty, n = tip[0] - cx, tip[1] - cy, math.dist((cx, cy), tip)
@@ -130,7 +137,7 @@ PLAQUES = [(312, 73, 370, 148), (392, 75, 450, 149), (471, 77, 530, 150)]   # th
 INK, HEADER, SEAL = (64, 44, 30), (122, 85, 48), (160, 50, 39)
 
 
-def plaques(px):
+def plaques(px, _out):
     """The lobby: the three recommendations, blank paper in the painting (it painted scrawl, and its dawn none), are
     written in code as the old cel-shaded lobby's were, at 2x: a header bar, four lines of text, a signature and its
     seal. The paper keeps its painted light."""
@@ -147,7 +154,7 @@ def plaques(px):
 
 def unletter(*boxes):
     """Lettering the model painted on a floor: each row of a box takes its median, so the planks keep their colour."""
-    def fix(px):
+    def fix(px, _out):
         for x0, y0, x1, y1 in boxes:
             for y in range(y0, y1):
                 row = sorted(px.getpixel((x, y)) for x in range(x0, x1))
@@ -157,31 +164,37 @@ def unletter(*boxes):
     return fix
 
 
-def night_lights(px, box=(380, 176, 760, 202)):
+TWINKLE = (380, 176, 760, 202)   # the roof's far city, whose lit windows twinkle at night (gen_floors.roof): x0, y0, x1, y1
+
+
+def twinkles(col):
+    """A lit window of the roof's far city."""
+    return col[0] > 200 and col[1] > 150 and col[2] < 140
+
+
+def night_lights(px, out):
     """The roof at winter night: its snow edit painted the far city's windows dark, and its colours have none that the
     night's twinkle (gen_floors.roof) lights. The plain night's lit pixels there are put on it as they are (a few colours
     past the 64, as the twinkle's own dimmed ones are): roof-night-px.png must be installed first."""
-    night = Image.open(HERE / "picks" / "roof-night-px.png").convert("RGB").load()
-    out = px.load()
-    for y in range(box[1], box[3]):
-        for x in range(box[0], box[2]):
-            c = night[x, y]
-            if c[0] > 200 and c[1] > 150 and c[2] < 140:   # gen_floors.roof's test
-                out[x, y] = c
+    night = Image.open(out / "roof-night-px.png").convert("RGB").load()
+    q = px.load()
+    for y in range(TWINKLE[1], TWINKLE[3]):
+        for x in range(TWINKLE[0], TWINKLE[2]):
+            if twinkles(c := night[x, y]):
+                q[x, y] = c
     return px
 
 
 TOUCHUPS = {"billie_risk": unneedle, "reception": plaques, "roof-day": unletter((136, 278, 164, 286)),   # a room, or one hour of it
             "roof-winter-night": night_lights}
 # Mends over a candidate (patch_picks.py): the roof's floating second jib at night, floor 2's ghost second pendant.
-PATCHES = {"roof-night": [("roof-night-jib.png", (1012, 248))], "inuitive": [("inuitive-pendant.png", (805, 0))]}
+PATCHES = {"roof-night": ["roof-night-jib.png"], "inuitive": ["inuitive-pendant.png"]}
 
 
 def carried(im, box, across):
     """The box filled in code, each row carried across from the pixels just left of it to just right (`across`), or each
     column down from just above it to just below, its edge softened a pixel: a thin line the model drew is gone, and a
     line crossing it the other way (a cable, a pole) runs on."""
-    import numpy as np   # here only, as in paint_rooms
     a = np.asarray(im).astype(float).copy()
     x0, y0, x1, y1 = box
     if across:
@@ -216,7 +229,7 @@ def painting(name, dull=True):
     room = name.split("-")[0]
     if room in DOOR and name != room:
         return door_view(name, room, dull)
-    src = mended(name, Image.open(HERE / "candidates" / PICKS[name]).convert("RGB"))
+    src = mended(name, Image.open(CANDIDATES / PICKS[name]).convert("RGB"))
     if "-winter" in name:
         hour = painting(name.replace("-winter", ""))
         hour.paste(unsnow(src, room), (0, 0), snowed(room, hour))
@@ -230,7 +243,7 @@ def door_view(name, room, dull=True):
     """The dusk room with its door's glass from the hour's crop (DOOR), as snowed() takes it; in winter onto the hour's
     room, unsnow() over the brass as on the roof. At night the view is dulled (night_view())."""
     edit = painting(room)
-    edit.paste(Image.open(HERE / "picks" / PICKS[name]).convert("RGB"), DOOR[room][:2])
+    edit.paste(Image.open(PICKED / PICKS[name]).convert("RGB"), DOOR[room][:2])
     winter = "-winter" in name
     hour = painting(name.replace("-winter", ""), dull=False) if winter else painting(room)
     hour.paste(unsnow(edit, room) if winter else edit, (0, 0), snowed(room, hour))
@@ -244,7 +257,6 @@ def night_view(img, room, mask=None):
     """The night view through the lobby's glass (or `mask`) dulled toward a grey night blue, before the colours are cut:
     each pixel's blue cast (how much bluer than red it is) cut by NIGHT, so the lantern's warm light and what it lights
     keep theirs."""
-    import numpy as np   # here only, as in carried()
     a = np.asarray(img).astype(float)
     y = (a @ np.array([0.299, 0.587, 0.114]))[..., None]
     grey = y * np.array([0.92, 0.98, 1.12])                                    # a cool grey: the night blue, dulled
@@ -271,12 +283,12 @@ def relit(lobby, room, box):
     return out, mask.filter(ImageFilter.MaxFilter(5)).filter(ImageFilter.GaussianBlur(1))
 
 
-def install(name):
+def install(name, out):
     src, room = painting(name), name.split("-")[0]
     small = {"lobby": lambda: src.crop(LOBBY[1]).resize(LOBBY_PX, Image.BOX), "cab": lambda: src.resize(CAB_PX, Image.BOX)}.get(
         name, lambda: src.resize(FLOOR_PX, Image.BOX))()
     if name not in ("lobby", "cab"):   # before the colours are cut, so the lift has its share of the floor's budget
-        lobby = Image.open(HERE / "picks" / "lobby-px.png").convert("RGB")
+        lobby = Image.open(out / "lobby-px.png").convert("RGB")
         for box in (LIFT, SIGN):
             small.paste(lobby.crop(box), box[:2])
     px = small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
@@ -288,11 +300,18 @@ def install(name):
         px.paste(small.crop(PANEL).quantize(palette=cut, dither=Image.Dither.NONE).convert("RGB"), PANEL[:2],
                  mask.point(lambda v: 255 * (v > 0)))
     for key in {room, name, name.replace("-winter", "")} & TOUCHUPS.keys():   # winter keeps its hour's touch-ups
-        px = TOUCHUPS[key](px)
-    px.save(HERE / "picks" / f"{name}-px.png")
+        px = TOUCHUPS[key](px, out)
+    px.save(out / f"{name}-px.png")
     print("installed", name, src.size, "->", px.size, "colours:", len(px.getcolors(4096)))
 
 
 if __name__ == "__main__":
-    for name in sys.argv[1:] or PICKS:
-        install(name)
+    ap = argparse.ArgumentParser()
+    ap.add_argument("names", nargs="*", metavar="NAME", help=f"of PICKS (all, by default): {', '.join(PICKS)}")
+    ap.add_argument("--out", type=Path, default=PICKED, help="where the -px.png files go")
+    a = ap.parse_args()
+    if unknown := set(a.names) - PICKS.keys():
+        ap.error(f"not in PICKS: {', '.join(sorted(unknown))}")
+    a.out.mkdir(parents=True, exist_ok=True)
+    for name in a.names or PICKS:
+        install(name, a.out)

@@ -26,22 +26,24 @@ The model runs at guidance 1, so prompts say what to show; negative prompts do n
 time.
 """
 import argparse
-import base64
-import io
-import json
-import urllib.request
 from pathlib import Path
 
+import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
-HERE = Path(__file__).resolve().parent / "paintings"
-OUT = HERE / "candidates"
+from art_common import CANDIDATES as OUT, PAINTINGS as HERE, paint_candidate
+from install_picks import ENTRANCE_CROP, LOBBY, painting, snowed
+
 # The art standard (the city's): painterly, art 928 x 308 at about 2.5 painting pixels each. Every room is painted from
 # the lobby, an edit of the first one (OLD_LOBBY, cel-shaded), so the lift stayed where the floors' code has it.
 FLOOR_SIZE = (2304, 768)
 LOBBY_SIZE = (704, 768)       # the lobby alone: art 264 x 308 px
-LOBBY = ("lobby_1017.png", (7, 7, 684, 761))   # the picked lobby candidate and its crop (install_picks.py)
 OLD_LOBBY = "lobby_100.png"
+
+
+def lobby_edge(h):
+    """Where the lobby ends and its room begins in a floor's painting h px tall: the lobby is 264 x 308 art px."""
+    return round(h * 132 / 154)
 
 EDIT = (
     "Edit this picture. Repaint it as highly detailed painterly city-builder video game art of a single room seen "
@@ -304,7 +306,6 @@ ROOMS = {  # what furnishes each floor, right of the lift; walls and floor come 
 # leaves aside and keep the street seen through them (ENTRANCE_PROMPT). The pick goes back under a tight mask on the
 # doorway, and only the doorway and a margin are kept: picks/reception-open[-winter][-PHASE].png, which gen_floors.py bakes
 # into floor-L-open[-winter][-PHASE].webp.
-ENTRANCE_CROP = (1792, 0, 2304, 768)     # painting px: what the model sees, 512 x 768
 ENTRANCE = (1990, 212, 2232, 735)        # painting px: the doorway, under the transom and between the frame's posts
 ENTRANCE_SILL = 36                       # painting px: how much higher the doorway's sill is at its left than its right
 ENTRANCE_KEEP = (1976, 200, 2248, 748)   # painting px: what is kept, the doorway and a margin for the box filter
@@ -324,7 +325,6 @@ def tag(phase, winter=False):
 
 def shut_lobby(phase, winter=False):
     """The lobby's painting at an hour, as install_picks bakes it."""
-    from install_picks import painting   # here only: install_picks imports this module
     return painting(f"reception{tag(phase, winter)}")
 
 
@@ -337,7 +337,6 @@ def entrance_pick(phase, seed, winter=False):
     ImageDraw.Draw(mask).polygon([(x0, y0), (x1, y0), (x1, y1), (x0, y1 - ENTRANCE_SILL)], fill=255)   # the sill falls to the right
     painted = Image.open(OUT / f"reception-open{tag(phase, winter)}_{seed}.png").convert("RGB")
     if phase == "night":   # the model lights it brighter and bluer than the shut view: put it in that view's light
-        from install_picks import snowed
         painted = lit_as(painted, crop, snowed("reception", shut).crop(ENTRANCE_CROP))
     out = Image.composite(painted, crop, mask.filter(ImageFilter.GaussianBlur(1)))
     keep = [v - o for v, o in zip(ENTRANCE_KEEP, ENTRANCE_CROP[:2] * 2, strict=True)]
@@ -349,7 +348,6 @@ def entrance_pick(phase, seed, winter=False):
 def lit_as(img, ref, mask):
     """img in ref's light: an affine colour map from img to ref, fitted by least squares over the mask (the shut glass,
     which shows the same street), applied to all of img."""
-    import numpy as np   # here only: gen_city, gen_library and gen_workshop import this module without numpy
     a, b = np.asarray(img, dtype=np.float64), np.asarray(ref, dtype=np.float64)
     m = np.asarray(mask) > 200
     feats = lambda x: np.concatenate([x.reshape(-1, 3), np.ones((x.size // 3, 1))], 1)
@@ -360,7 +358,7 @@ def lit_as(img, ref, mask):
 def floor_base(size=FLOOR_SIZE):
     """The lobby on the left, its plain wall, skirting and floor (a strip from its edge) carried rightwards."""
     name, box = LOBBY
-    lobby_w = round(size[1] * 132 / 154)
+    lobby_w = lobby_edge(size[1])
     lobby = Image.open(OUT / name).convert("RGB").crop(box).resize((lobby_w, size[1]), Image.LANCZOS)
     # a painterly wall tiled reads as stripes, and as a corner at the lobby's edge: carry each row's colour on
     plain = lobby.crop((lobby_w - 40, 0, lobby_w, size[1])).resize((1, size[1]), Image.BOX)
@@ -377,33 +375,10 @@ PINNED = {"model": "flux_2_klein_9b_q6p.ckpt", "steps": 4, "sampler": "UniPC Tra
           "tiled_decoding": False, "tiled_diffusion": False}
 
 
-def call(host, path, payload, timeout=4 * 3600):   # a shared queue can hold a job long
-    req = urllib.request.Request(host + path, data=json.dumps(payload).encode(), headers={"Content-Type": "application/json"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return json.loads(r.read())
-
-
-def magenta(a, also=False):
-    """Where a painting on magenta (an int RGB array) shows its backdrop, a magenta gradient: green far under red and
-    blue, both bright. `also` adds a subject's own fringe (lamp-lit pinks and corals), under the same brightness test."""
-    import numpy as np   # here only: gen_city, gen_library and gen_workshop import this module without numpy
-    r, g, b = a[..., 0], a[..., 1], a[..., 2]
-    return ((g < 0.55 * np.minimum(r, b)) | also) & (r > 60) & (b > 60)
-
-
-def patched(im, patches):
-    """im with each patch (patch_picks.py) pasted: (its file in picks/, where its top left goes), an RGBA crop whose
-    alpha is its feathered mask."""
-    for name, at in patches:
-        crop = Image.open(HERE / "picks" / name).convert("RGBA")
-        im.paste(crop, at, crop)
-    return im
-
-
 def band(size, x1, y1, feather=40):
     """The mask of the wall next to the lift: full from the lobby's edge to x1 - 40 and down to y1 - 20, fading out
     over 40 px to the right and 20 below, and in over `feather` px of the lobby's wall on the left."""
-    x0 = round(size[1] * 132 / 154)
+    x0 = lobby_edge(size[1])
     mask = Image.new("L", size)
     px = mask.load()
     for y in range(y1):
@@ -418,14 +393,13 @@ def mended(src, x1, y1, side="lobby"):
     of its edge, mirrored again and again, so its plaster, light and skirting run on with no seam. From the room's
     (where that would mirror the lobby lamp's light into a V), each row goes over from the lobby's edge colour to the
     back wall's past x1, and the plaster's grain (the fine detail of the wall left of the edge) is mirrored across it."""
-    x0 = round(src.height * 132 / 154)
+    x0 = lobby_edge(src.height)
     fill = src.copy()
     if side == "lobby":
         strip = src.crop((x0 - 100, 0, x0, src.height))
         for i, x in enumerate(range(x0, x1, 100)):
             fill.paste(strip.transpose(Image.FLIP_LEFT_RIGHT) if i % 2 == 0 else strip, (x, 0))
         return Image.composite(fill, src, band(src.size, x1, y1))
-    import numpy as np   # here only: gen_city, gen_library and gen_workshop import this module without numpy
     a = np.asarray(src, dtype=np.float64)
     smooth = np.asarray(src.filter(ImageFilter.GaussianBlur(12)), dtype=np.float64)
     t = np.linspace(0, 1, x1 - x0)[None, :, None]
@@ -441,7 +415,7 @@ def mended(src, x1, y1, side="lobby"):
 def ceiling(src, x1, y1):
     """A lowered ceiling the model hung over the room (floor 3's alcove): the wall under it, mirrored up over it from the
     lobby's edge to x1, so the plaster and the lamps' cords run on to the top; faded in over 20 px below and at x1."""
-    x0, fill = round(src.height * 132 / 154), src.copy()
+    x0, fill = lobby_edge(src.height), src.copy()
     fill.paste(src.crop((0, y1, src.width, 2 * y1)).transpose(Image.FLIP_TOP_BOTTOM), (0, 0))
     mask = Image.new("L", src.size)
     px = mask.load()
@@ -449,21 +423,6 @@ def ceiling(src, x1, y1):
         for x in range(x0, x1):
             px[x, y] = round(255 * min(1, (y1 + 20 - y) / 20, (x1 - x) / 20))
     return Image.composite(fill, src, mask)
-
-
-def paint(path, prompt, size, seed, host, init=None):
-    """One candidate, kept if painted already (the model does not redraw a seed bit for bit)."""
-    if path.exists():
-        print("kept", path.name)
-        return
-    job = {"prompt": prompt, "width": size[0], "height": size[1], "seed": seed, "batch_size": 1} | PINNED
-    if init is not None:
-        buf = io.BytesIO()
-        init.save(buf, "PNG")
-        job |= {"strength": 1.0, "init_images": [base64.b64encode(buf.getvalue()).decode()]}
-    res = call(host, "/sdapi/v1/img2img" if init is not None else "/sdapi/v1/txt2img", job)
-    path.write_bytes(base64.b64decode(res["images"][0].split(",")[-1]))
-    print("painted", path.name, flush=True)
 
 
 def main():
@@ -541,7 +500,7 @@ def main():
         jobs = [(OUT / f"{args.room}_{args.start + 17 * k}.png", prompt, FLOOR_SIZE, args.start + 17 * k, init)
                 for k in range(args.count)]
     for path, prompt, size, seed, init in jobs:
-        paint(path, prompt, size, seed, args.host, init)
+        paint_candidate(path, prompt, size, seed, args.host, init, extra=PINNED)
 
 
 if __name__ == "__main__":

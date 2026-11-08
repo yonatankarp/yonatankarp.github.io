@@ -43,7 +43,7 @@ FRAMES = 8
 W, H = 384, 768                 # the painting's size per frame; the figure stands on the line at FOOT
 FOOT, U = 700, 17.0             # the ground line, and pixels per skeleton unit (a person is ~36 units tall)
 PERSON = 60                     # art px tall on the street: against its roller doors (~100) and lamp posts (~133)
-READER = 135                    # art px tall in the Library, in front of its bookcases
+READER = 68                     # art px tall in the Library, in front of its bookcases (its art is half the city's width)
 BROWSE = ["stand", "reach", "take", "read"]   # a reader at a shelf, in order (library-fx.json times each)
 READERS = ["blue", "mustard", "tote"]
 

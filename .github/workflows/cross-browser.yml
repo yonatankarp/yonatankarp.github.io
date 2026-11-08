@@ -1,0 +1,48 @@
+name: Cross-browser
+
+# Firefox and WebKit over the built site (scripts/check-cross-browser.js). Not a required check: it runs by hand, and on
+# a pull request only when the check itself changes, so it does not slow every PR.
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/cross-browser.yml
+      - .github/actions/setup-playwright/**
+      - scripts/check-cross-browser.js
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cross-browser-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    name: Firefox and WebKit
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build and check the site
+        uses: ./.github/actions/build-site
+
+      - name: Set up Playwright's Firefox and WebKit
+        uses: ./.github/actions/setup-playwright
+        with:
+          browsers: firefox webkit
+
+      - name: Check the site in Firefox and WebKit
+        env:
+          TZ: Europe/Berlin
+        run: npm run check:cross-browser

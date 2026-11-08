@@ -15,6 +15,13 @@ html:not(.at-city) :is(.city, .skip-link--city), html.at-city :is(.skip-link:not
 .city-map { position: relative; height: 100%; min-width: 100%; }   /* its aspect-ratio is the art's (city.json) */
 .city-map :is(img, .city-fx) { display: block; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
 .city-fx { position: absolute; inset: 0; pointer-events: none; }   /* over the picture, cropped as it is (city-fx.js) */
+/* At rest a city or street art pixel is a whole number of device px (--dpr: assets/js/dpr.js), as the tower's are
+   (art.js's lay): the fewest that cover the scene, rounded up, so the map is a little larger than the scene and its
+   foot is cropped. Both paintings are 1440x347 (city.json, workshop.json). Where round() is not, the cover above. */
+@supports (width: round(up, 1cqw, 1px)) {
+  .city-scene { container-type: size; }
+  .city-map { --u: round(up, max(100cqw / 1440, 100cqh / 347), 1px / var(--dpr, 1)); width: calc(1440 * var(--u)); height: calc(347 * var(--u)); min-width: 0; }
+}
 /* The homepage's map moves and scales in one transform (city.js), not by scrolling: it glides over --glide, 0s until a
    pick sets it, and a finger's sideways drag is the script's. Its labels scale back by --inv to keep their size. */
 .city .city-scene { overflow: clip; touch-action: pan-y pinch-zoom; }   /* clip: not even focus may scroll it under the transform */

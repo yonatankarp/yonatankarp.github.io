@@ -28,9 +28,14 @@ that zooms into five districts, picked from a label or a chip in its panel: the 
 Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (`/podcast/`) and the Post Office (`/contact/`). The
 map moves by one transform (translate and scale, never scrolling), clamped so no edge of the art shows; a wheel, a
 trackpad or a finger pans it sideways at any zoom, and a pinch is the browser's zoom. A resize keeps the pan, re-clamped, and
-re-centres only on a new width. The same chip again, or "Whole city", zooms back out ("Whole city" hands
+re-centres only on a new width. Every scene at rest, like the tower, shows an art pixel as a whole number of device px:
+the city, Workshop Row, the Library's head and the rooms' heads at the fewest that cover their box, rounded up, never
+under 1 (`round()` by `--dpr`, which `assets/js/dpr.js` sets on html before the first paint, in `city.css` and
+`custom.css`), so they crop a little more than the plain cover, at the foot (the Library's about its 50% 62%, though its head is as tall as its whole room shows), and the
+panning takes up the width; only a glide or a push-in passes through other scales. The same chip again, or "Whole city", zooms back out ("Whole city" hands
 focus to the chip that was picked; on a phone it sits at the panel's top right, beside the kicker, so it shows without a scroll). A label's first
-click zooms to its district; the picked label then shows "→" and its next click goes in. A label stays whole on screen,
+click zooms to its district; the picked label then shows "→", carries `aria-current` and the description `again` in
+`city` (`#city-again`), and its next click goes in. Enter or Space on a label goes straight in (a click with no pointer). A label stays whole on screen,
 slid inside the edges by `--shift` as on Workshop Row; one whose district is out of view, or that would sit under the
 floating panel, fades but keeps its place in the tab order, and focusing it pans the map to it. The whole city opens on
 the tower, moved right until the Library's label clears the panel, as far as the tower's stays whole (the pre-paint
@@ -39,8 +44,10 @@ copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one; the dusk pick carries one more edit, the tower's glass entrance doors, from `gen_city.py door`, and the hours were
 edited from it with the door), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
-middle in % of the art, and how far to zoom: `ZOOM`), capped where an art pixel would pass `MAX_PX` (4) screen px,
-so a big screen zooms less than a phone, and never under 1. Going in (a district's go link, or its label's second
+middle in % of the art, and how far to zoom: `ZOOM`), times the whole city's device px an art px, to the nearest
+whole number, capped where an art pixel would pass `MAX_PX` (4) screen px, so a big screen zooms less than a phone, and
+never under the whole city (where that is the nearest, a pick only pans). The tower's crane is the roof's yellow at every hour:
+`gen_city.py`'s bake recolours it (`yellow_crane`, its shape kept for the depth map) on 4 colours past the city's 64. Going in (a district's go link, or its label's second
 click) the map pushes on, ease-in over 450 ms, and the next view opens from it in a dithered iris (`web3d/src/iris.js`)
 while it settles from 1.18 to 1; every other link keeps the wipe. The tower and Workshop Row have doors (`doors` in
 `city.json`, `DOORS` in `gen_city.py`): the city's lands on the next view's door at its size, to 14 screen px a city art
@@ -59,10 +66,16 @@ Library, the Radio Mast and the Post Office push into the building's middle, end
 Those are pages of their own: the city leaves its last frame in sessionStorage, and their head's pre-paint
 (`assets/js/push-in.js`, allowed by its hash in `head.html`) holds the old page's view transition (`html.iris` in
 `custom.css`) until iris.js lays the frame over the page. A plain link under reduced motion, with `?fx=off`, where the
-tower is the plain page, or for a click that opens a tab; Back restores the city as it was (`pageshow`). The Career Tower is the pixel-art career
+tower is the plain page, or for a click that opens a tab; Back restores the city as it was (`pageshow`); where the
+browser reloads it instead, the city opens on the district it went into, from the entry's `history.state.at`, which
+`pick()` keeps. The four pages' "← Back to the city" link is `/#KEY`, which the pre-paint `home-city.js` moves into
+that state and off the address; it lays out the zoomed view, the picked label and the panel before the first paint, as
+`pick()` does (minified twice, as one pass is not stable under `minifyOutput`). A plain visit to `/`, the name plate
+included, opens on the whole city. The Career Tower is the pixel-art career
 building, entered at its lobby: any `#floor-X` address, or an old one-page anchor (`LEGACY` in `web3d/src/hash.js`, which the pre-paint
 `$floorHash` in `layouts/index.html` must match: `scripts/test/building-hash.test.js`), opens it directly, and pixel.js mounts it only then; back
-at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city. It is the career
+at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city: Back, zoomed on the
+tower (its entry keeps `history.state.at`), and `#city`, a new entry, on the whole city. It is the career
 only: every other topic has its building in the city. The old street's `#floor-E` lands in the lobby (`web3d/src/hash.js`),
 and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/`, query kept (the pre-paint script in `layouts/index.html`). The lift's plate starts with
 "← City" on every floor, a link to `#city` like the name plate and the lobby's sign. Without a script the city is its
@@ -72,7 +85,8 @@ so those links still land on it. At the city the city's section is the page's ma
 tower it is "Skip to the current floor" (`#building-stops`), and `city.css` shows the one that fits.
 
 The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library.webp`, baked
-by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk), then every listed
+by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk, at 720x173, half the
+city's width, so a 1440 screen shows the whole room at 2 device px an art px: the head is at least that tall, to 52vh), then every listed
 post as a card (`partials/blog-row.html`). A chip for every tag the listed posts carry filters the list, with the search
 box (`assets/js/library.js`): the curated topics and labels in `data/library.yaml` first (a tag no listed post carries is
 skipped, one with no tag page fails the build), then the rest, most posts first (ties by name). Without a script the
@@ -93,7 +107,10 @@ package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitigno
 `render-codeblock-mermaid.html` inlines, so posts ship no Mermaid JS; `assets/js/diagram-zoom.js` adds the Zoom in. The
 hook fails the build when a diagram changed since it was drawn: rerun `node scripts/render-diagrams.js` (also during
 `npm run serve`). The art is in `static/building/pixel/`, made by the Python pipeline in
-`web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Its data that is bundled into the JS
+`web3d/pixel/` (Draw Things paintings, pixelated and animated in code). A fault in a pick is mended, not repainted:
+`web3d/pixel/patch_picks.py` has the model edit a crop round it and keeps only the fault, as an RGBA crop in `picks/`
+(its alpha the feathered mask) that the bakes paste over the painting (`PATCHES` in `install_picks.py`, `gen_rooms.py`
+and `gen_workshop.py`); a thin stray line is filled in code instead (`FILLS` in `install_picks.py`). Its data that is bundled into the JS
 (`floors.json`, `cats-lobby.json`) or read while building (`city.json`, `workshop.json`) is kept out of `public/` by the
 `static` mount's `files` in `hugo.toml`: a new such file goes there too. Each experience entry's `floor`
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
@@ -186,13 +203,15 @@ open lift's doors; paused they hold their pose, held one loafs on the bench and 
 
 The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
 laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the
-main street and the ring road (headlights at dusk and night), windows going dark at night, glints on the bay, the radio
+main street, the ring road and its branches and the roads on the left (headlights at dusk and night; each lane in `LANES`
+a one-way route between two hidden ends, offset to the right of its road's middle, the ground under its points capping
+`footAt` so the greenhouses hide the road behind them), windows going dark at night, glints on the bay, the radio
 mast's beacon and the crane's lights, and flocks of birds. Movers hide behind what is nearer in `city-depth.png`
 (brighter = nearer). `gen_city.py build` writes `city-fx.json` (the bay found in the baked art, only the water the day
 art's blue reaches from `BAY_SEED`, so no glint lands on the far shore; and the walks, plazas, lanes and lights in its
 `WALKS`, `PLAZAS`, `LANES` and `LIGHTS`), `city-windows.json` (the lit windows, each a whole window grown from its warm
 rim, so it goes dark as one; fetched only at night) and copies `city-depth.png` from
-`web3d/pixel/paintings/picks/`, which `uv run web3d/pixel/depth_map.py city` makes from the dusk pick (it needs torch, so
+`web3d/pixel/paintings/picks/` with the lamp posts and the tree crowns in front of a lane or the walk stood up (`POSTS`, `TREES`, `upright`: a crown as near as its trunk's foot), which `uv run web3d/pixel/depth_map.py city` makes from the dusk pick (it needs torch, so
 it is not part of the build: rerun it, and commit its output, when the dusk pick changes). In winter snow falls over the whole art (`snowfall` in `scene-fx.js`: 520 flakes, 1 px and some 2 px, 7-23 px a second
 with a drift, bluish and dimmer at night), on Workshop Row too; not on the roof, whose canvas redraws only when it moves.
 On the plaza either side of the tower stand the holidays' props (`web3d/src/props.js`, tested in
@@ -240,7 +259,7 @@ window's sky, from `library-fx.json`, which `gen_library.py build` writes from i
 Three readers walk its floor, each its own way (`web3d/src/readers.js`, tested on a seed in `scripts/test/readers.test.js`):
 walking past and out of the room, stopping to look, or taking a book to read, facing either way, never two at one shelf, and none stopping within `gap` of another (they start that far apart too).
 The floor line (on the lit parquet, behind the reading tables), the shelves, the gap, their speed, pace, weights and times are `FX["readers"]`. They are `readers.webp` and `readers.json`, which `gen_walkers.py bake` makes from
-the walkers' frames and four browse poses (`browse` paints them; picks `NAME_browse_KIND.png`), 135 px tall, each on a soft
+the walkers' frames and four browse poses (`browse` paints them; picks `NAME_browse_KIND.png`), 68 px tall, each on a soft
 contact shadow. Only the reading lamps, the tables, the armchairs and the globe in front hide them: `gen_library.py`
 pushes everything else in `depth_map.py library`'s map back to 0 down to the shadows' rows (`backdrop`), as the model reads
 books and the wall's seams as nearer than the floor, so `library-fx.js` tests them from depth 0.
@@ -265,8 +284,9 @@ flange's half-width and half-height, its turn and its plain hub's reach, in `FX`
 - `content/skills/_index.md` — skills page
 - `content/cv.md` — printable CV page
 - `content/podcast.md` and `content/contact.md` — the Radio Mast (`/podcast/`, `layouts/_default/radio.html`) and the Post
-  Office (`/contact/`, `post.html`). Each opens on its room, painted across the head at its own 1440:347 shape
-  (`partials/room-hero.html`; a phone pans it): `radio.webp` and `post.webp`, baked by `web3d/pixel/gen_rooms.py` from
+  Office (`/contact/`, `post.html`). Each opens on its room, painted across the head (`partials/room-hero.html`), the
+  head as tall as the painting's 1440:347 shape at the screen's width, between 230 and 480px, the room at whole device px
+  an art px covering it, its foot cropped, and a phone panning it: `radio.webp` and `post.webp`, baked by `web3d/pixel/gen_rooms.py` from
   `web3d/pixel/paintings/picks/{radio,post}.png` (one painting each, at dusk), with `ROOM-fx.json` for their animations
   (`web3d/src/rooms-fx.js`, its own bundle, `--mode rooms`). Their copy is `contact` in `data/home/en.yaml` and their labels
   `radio` and `post` in `data/rooms.yaml`. The Post
@@ -375,6 +395,11 @@ the visual smoke screenshots from the built `public/` (`scripts/capture-screensh
 reduced motion, with CSS animations disabled, so they hold still) and compares them, without failing, with the last deploy's,
 which the deploy's `visual_capture` job takes from the Pages artifact beside the `deploy` job, never holding it up.
 Node's version is `.nvmrc`.
+
+The `Cross-browser` workflow (not a required check; run by hand, and on a pull request that changes it or
+`scripts/check-cross-browser.js`) loads the main routes in Firefox and WebKit at 1440 and 390, failing on page errors,
+console errors and the site's own failed requests, and tries Whole city's focus, the tower's arrow keys and a lift ride
+(`npm run check:cross-browser`; Firefox runs only there, as it does not launch on macOS 27).
 
 Hugo is pinned once, as `HUGO_VERSION` and `HUGO_SHA256` in `.github/hugo.env`. Bump both values together:
 `HUGO_SHA256` is the `hugo_extended_<version>_linux-amd64.deb` line of the release's `hugo_<version>_checksums.txt`,

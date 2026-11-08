@@ -58,7 +58,7 @@
       </div>
     </div>
     <div class="city-panel">
-      <a class="workshop-back" href="{{ "" | relURL }}">{{ hugo.Data.ui.back_to_city }}</a>
+      <a class="workshop-back" href="{{ "" | relURL }}#workshop">{{ hugo.Data.ui.back_to_city }}</a>
       <h1 class="city-kicker">{{ $t.title }}</h1>
       <p class="city-lede">{{ .Content | plainify }} {{ $t.pick }}</p>
       <div class="city-chips" role="group" aria-label="{{ $t.chips }}">{{ range $workshops }}<button type="button" data-pick="{{ .key }}" aria-pressed="{{ eq .key "app" }}">{{ .name }}</button>{{ end }}</div>

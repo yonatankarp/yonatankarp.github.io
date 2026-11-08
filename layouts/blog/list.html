@@ -30,10 +30,12 @@
 {{ $fxVersion = substr $fxVersion 0 12 }}
 <div class="blog-px library">
 <header class="library-hero">
-  <img src="{{ $img | relURL }}?v={{ substr (sha256 (os.ReadFile (printf "static/%s" $img))) 0 12 }}" alt="{{ hugo.Data.art.library }}" width="{{ $size.Width }}" height="{{ $size.Height }}" fetchpriority="high">
-  <canvas class="library-fx" width="{{ $size.Width }}" height="{{ $size.Height }}" aria-hidden="true" data-fx="{{ $fxData | relURL }}?v={{ $fxVersion }}" data-depth="{{ "building/pixel/library-depth.png" | relURL }}?v={{ $fxVersion }}" data-readers="{{ "building/pixel/readers" | relURL }}" data-version="{{ $fxVersion }}"></canvas>
+  <div class="library-art">
+    <img src="{{ $img | relURL }}?v={{ substr (sha256 (os.ReadFile (printf "static/%s" $img))) 0 12 }}" alt="{{ hugo.Data.art.library }}" width="{{ $size.Width }}" height="{{ $size.Height }}" fetchpriority="high">
+    <canvas class="library-fx" width="{{ $size.Width }}" height="{{ $size.Height }}" aria-hidden="true" data-fx="{{ $fxData | relURL }}?v={{ $fxVersion }}" data-depth="{{ "building/pixel/library-depth.png" | relURL }}?v={{ $fxVersion }}" data-readers="{{ "building/pixel/readers" | relURL }}" data-version="{{ $fxVersion }}"></canvas>
+  </div>
   <div class="library-title">
-    <a class="library-back" href="{{ "" | relURL }}">{{ hugo.Data.ui.back_to_city }}</a>
+    <a class="library-back" href="{{ "" | relURL }}#library">{{ hugo.Data.ui.back_to_city }}</a>
     <h1>{{ $t.title }}</h1>
     <p>{{ .Content | plainify }}</p>
   </div>

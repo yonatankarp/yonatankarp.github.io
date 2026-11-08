@@ -75,6 +75,11 @@ web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/props/
 # the lobby's glass entrance standing open at each hour, its doorway's crop (paint_rooms.py entrance; gen_floors.py bakes it)
 !web3d/pixel/paintings/picks/reception-open*.png
+# mends pasted over a pick (patch_picks.py): the roof's night jib, floor 2's ghost pendant, the studio's on-air lamp unlit
+# (Workshop Row's, workshop-winter*-tree and -van, are under workshop*.png)
+!web3d/pixel/paintings/picks/roof-night-jib.png
+!web3d/pixel/paintings/picks/inuitive-pendant.png
+!web3d/pixel/paintings/picks/radio-off-air.png
 __pycache__/
 
 # Machine-specific Claude Code launch config and agent worktrees

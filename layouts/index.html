@@ -64,18 +64,45 @@ var d=document.documentElement.dataset,time=d.time,l=document.createElement('lin
      and the pause, wherever the tower moves. */}}
 {{ $lobby := resources.FromString "js/home-lobby.js" `/^(#floor-l)?$/i.test(location.hash) || document.currentScript.previousElementSibling.classList.remove('is-here');
 document.documentElement.classList.contains('building--guided') && !matchMedia('(prefers-reduced-motion: reduce)').matches && (document.querySelector('[data-building-pause]').hidden = false);` | minify | fingerprint "sha256" }}
-{{- /* The city's picture at the hour, and its first view on the tower before the first paint, as city.js places it. */}}
-{{ $cityStart := resources.FromString "js/home-city.js" `(function () {
-  var x, d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel'), m = s.firstElementChild;
+{{- /* The city's picture at the hour, and its first view before the first paint, as city.js places it: on the tower, or
+     back from a district (#305) zoomed on it, as city.js's pick() does. The district is the back link's #KEY (moved into
+     this entry's history.state and off the address), or that state on a Back that reloads, which city.js keeps. Minified
+     twice, as one pass of it renames its variables again on the next, and minifyOutput must find nothing to change. */}}
+{{ $cityStart := resources.FromString "js/home-city-src.js" `(function () {
+  var x, y = 0, k = 1, d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel'), m = s.firstElementChild;
   if (!d.classList.contains('at-city')) return;
   var f = getComputedStyle(p).position === 'fixed', r = p.getBoundingClientRect().right, t = c.querySelector('.city-tag[data-pick=tower]'), l = c.querySelector('.city-tag[data-pick=library]');
+  var j, b, e = c.querySelectorAll('.city-tag'), h = location.hash.slice(1), fx = f ? (r + s.clientWidth) / 2 : s.clientWidth / 2;
+  for (j = 0; j < e.length; j++) if (e[j].dataset.pick === h) history.replaceState({ at: h }, '', location.pathname + location.search);
+  for (j = 0; j < e.length; j++) if (history.state && e[j].dataset.pick === history.state.at) b = e[j];
   i.src = i.dataset.base + (d.dataset.season === 'winter' ? '-winter' : '') + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
   i.loading = 'eager';
-  x = (f ? (r + s.clientWidth) / 2 : s.clientWidth / 2) - t.offsetLeft;
-  x = Math.min(f ? Math.max(x, r + 8 + l.offsetWidth / 2 - l.offsetLeft) : x, s.clientWidth - 8 - t.offsetWidth / 2 - t.offsetLeft);
-  m.style.transform = 'translate(' + Math.min(0, Math.max(s.clientWidth - m.offsetWidth, x)) + 'px, 0px) scale(1)';
-})();` | minify | fingerprint "sha256" }}
-{{ .Store.Set "inlineScripts" (slice $time $guided $lobby $cityStart) }}
+  if (b) {
+    var key = b.dataset.pick, z = JSON.parse(m.dataset.zoom)[key], mh = m.getBoundingClientRect().height, chip = c.querySelector('.city-chips [data-pick=' + key + ']');
+    var dpr = devicePixelRatio || 1, n = dpr * mh / s.querySelector('.city-fx').height;   /* whole device px an art px, as city.js's view() */
+    k = Math.max(Math.round(n), Math.min(Math.round(n * z[2]), Math.floor(m.dataset.maxPx * dpr))) / n;
+    x = fx - z[0] / 100 * m.offsetWidth * k;
+    y = Math.min(0, Math.max(s.clientHeight - mh * k, s.clientHeight * (f ? 0.46 : 0.5) - z[1] / 100 * mh * k));
+    m.style.setProperty('--inv', 1 / k);
+    c.classList.add('zoomed');
+    b.classList.add('on');
+    b.setAttribute('aria-current', 'true');
+    b.setAttribute('aria-describedby', 'city-again');
+    chip.setAttribute('aria-pressed', 'true');
+    c.querySelector('[data-city-kicker]').textContent = chip.textContent;
+    e = c.querySelectorAll('[data-district]');
+    for (j = 0; j < e.length; j++) e[j].hidden = e[j].dataset.district !== key;
+    e = c.querySelectorAll('[data-city-out]');
+    for (j = 0; j < e.length; j++) e[j].hidden = false;
+  } else {
+    x = fx - t.offsetLeft;
+    x = Math.min(f ? Math.max(x, r + 8 + l.offsetWidth / 2 - l.offsetLeft) : x, s.clientWidth - 8 - t.offsetWidth / 2 - t.offsetLeft);
+  }
+  m.style.transform = 'translate(' + Math.min(0, Math.max(s.clientWidth - m.offsetWidth * k, x)) + 'px, ' + y + 'px) scale(' + k + ')';
+})();` | minify }}
+{{ $cityStart = resources.FromString "js/home-city.js" $cityStart.Content | minify | fingerprint "sha256" }}
+{{ $dpr := resources.Get "js/dpr.js" | minify | fingerprint "sha256" }}{{/* the scenes' device px, for city.css */}}
+{{ .Store.Set "inlineScripts" (slice $time $dpr $guided $lobby $cityStart) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
@@ -85,6 +112,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 <head>
   {{ partial "head.html" . }}
   <script>{{ $time.Content | safeJS }}</script>
+  <script>{{ $dpr.Content | safeJS }}</script>
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   {{- /* A CSP with hash sources stops Chrome's preload scanner from fetching the module early: it then waited for the
        parser, 1717 ms in, and the first picture drew 400 ms later (Fast 3G, #149). So the module is preloaded by hand. */}}
@@ -133,7 +161,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
     </div>
     <div class="city-panel">
       <h1 class="sr-only">{{ site.Title }}</h1>
-      <p class="city-kicker" data-city-kicker>{{ $city.kicker }}</p>
+      <p class="city-kicker" data-city-kicker="{{ $city.kicker }}">{{ $city.kicker }}</p>
       {{- /* Two of the same: a phone shows this one, top right, where it is in reach after a pick; a wide screen the
            last, under the district. Each in its place in the tab order (city.css). */}}
       <button class="city-out city-out--top" type="button" data-city-out hidden>{{ $city.out }}</button>
@@ -156,6 +184,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
       </div>
       <button class="city-out" type="button" data-city-out hidden>{{ $city.out }}</button>
     </div>
+    {{- /* The picked label's description (its aria-describedby, city.js): its next click goes in. */}}
+    <span id="city-again" hidden>{{ $city.again }}</span>
   </section>
   <script>{{ $cityStart.Content | safeJS }}</script>
   <p class="sr-only" role="status" aria-live="polite" data-building-status data-copy-status></p>

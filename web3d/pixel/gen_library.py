@@ -8,8 +8,9 @@ Run: uv run web3d/pixel/gen_library.py blockout [OUT]                  # the cod
      uv run web3d/pixel/gen_library.py paint [--count N] [--start S]   # Draw Things repaints the blockout (port 7860)
      uv run web3d/pixel/gen_library.py build [OUT]                     # OUT/library.webp, library-fx.json, library-depth.png
 
-The city's pipeline (gen_city.py) at the city's size and colours, so the grain matches: the blockout fixes where every
-shelf sits, the model paints over it, and the pick is box-reduced and quantised undithered. One painting, at dusk: the
+The city's pipeline (gen_city.py) at the city's colours: the blockout fixes where every shelf sits, the model paints
+over it, and the pick is box-reduced and quantised undithered, to half the city's width (LIB), so that a 1440 screen
+shows the whole room at 2 device px an art px rather than a crop of it (custom.css snaps the head to whole ones). One painting, at dusk: the
 room is lit by its own lamps, and the window's dusk is the city's. No shelf stands for a topic, so a new tag never
 needs new art.
 Paintings go to web3d/pixel/paintings/candidates/library_SEED.png (not committed); the chosen one is copied to
@@ -33,13 +34,14 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gen_city import ART_W, COLOURS, PH, PW, SIZE, H  # noqa: E402
-from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
+from paint_rooms import OUT as CANDIDATES, call, patched  # noqa: E402
 
 PICK = 900                       # the seed of the pick, for the record
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks" / "library.png"
 SHELVES = [858, 1148, 1438, 2018, 2308, 2598]   # each bookcase's centre: three either side of the window
 CATALOGUE = 1728                 # the window and the card catalogue under it
 TOP, FLOOR, BAY = 120, 640, 200  # a shelf's cornice, the floor line, a shelf's width
+LIB = [ART_W // 2, round(ART_W // 2 * PH / PW)]   # the baked room, 720x173: the city's aspect, coarser pixels
 
 WOOD, DARK, GOLD = (120, 72, 40), (70, 40, 22), (230, 170, 80)
 
@@ -143,40 +145,40 @@ def paint(count, start, host):
         print("painted", path.name, flush=True)
 
 
-def bake(path=PICKED):
+def bake(path=PICKED, patches=(), size=SIZE):
     """The painting box-reduced to the art's size, on its own COLOURS colours: the city's pixel look, undithered. A few
     k-means passes after the median cut, as plain median cut spends no colour on the small green lamps. gen_rooms.py
-    bakes its rooms with it too."""
+    bakes its rooms with it too, at the city's SIZE; the Library is LIB."""
     if not path.exists():
         sys.exit(f"no {path}: paint (gen_library.py paint), copy the chosen candidate there and note its seed in PICK")
-    im = Image.open(path).convert("RGB").crop((0, 0, PW, PH))
-    return im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
+    im = patched(Image.open(path).convert("RGB"), patches).crop((0, 0, PW, PH))
+    return im.resize(size, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
 
 
 # Where the room's animations go, in art pixels (library-fx.js): x0, y0, x1, y1.
 FX = {
-    "fire": [1276, 215, 1310, 258],                      # the flames, above the logs
-    "glow": [[1240, 250, 1350, 280], [1255, 280, 1345, 300]],   # the hearth and the floor before it
-    "dust": [655, 40, 795, 300],                         # the window's shaft of light
-    "clouds": [620, 40, 820, 110],                       # where clouds drift past outside, left to right
+    "fire": [638, 107, 655, 129],                        # the flames, above the logs
+    "glow": [[620, 125, 675, 140], [627, 140, 672, 150]],   # the hearth and the floor before it
+    "dust": [327, 20, 397, 150],                         # the window's shaft of light
+    "clouds": [310, 20, 410, 55],                        # where clouds drift past outside, left to right
     # The readers (gen_walkers.py's readers.webp; their routine is web3d/src/readers.js). Where: their soles' row, on the lit
-    # parquet between the bookcases' plinths (which end at row 263) and the reading tables' tops (from row 271), which hide
+    # parquet between the bookcases' plinths (which end at row 131) and the reading tables' tops (from row 135), which hide
     # their feet as they pass behind; each bookcase's middle and how far either side a reader may stop; the room they walk,
     # past the art's edges to leave it; and the gap, in px, no reader stops within of another, about a reader's width and a
     # margin. How: walking speed in px/s; each reader's own pace, a factor on every time; what to do next, by weight (walk
     # past, stop and look, take a book); and times in ms: stand, reach and take, then a read short or long ([min, max,
     # weight]), a look, an idle pause between, and a while out of the room. Chances: a walk past leaves the room, a read
     # goes on to the shelf next door, a stop keeps the walking direction (else either way).
-    "readers": {"floor": 277, "shelves": [360, 479, 601, 846, 965, 1087], "spread": 20, "room": [-60, 1500], "gap": 70,
-                "speed": [45, 60], "pace": [0.7, 1.4], "choose": {"pass": 2, "look": 3, "browse": 4},
+    "readers": {"floor": 138, "shelves": [180, 239, 300, 423, 482, 543], "spread": 10, "room": [-30, 750], "gap": 35,
+                "speed": [22, 30], "pace": [0.7, 1.4], "choose": {"pass": 2, "look": 3, "browse": 4},
                 "browse": [[600, 900], [900, 1300], [700, 900]], "read": [[2500, 8000, 3], [10000, 20000, 1]],
                 "look": [2000, 5000], "idle": [800, 4000], "away": [3000, 9000], "leave": 0.4, "nearby": 0.4, "keep": 0.3},
 }
-LAMPS = 222                                              # the armchairs' tops, above the globe's and the lamps': above them, nothing stands in front of the readers
-REACH = 64                                               # px either side: past half a reading table or an armchair, to the floor beside it
-TABLES, GROW = 271, 4                                    # the reading tables' tops, and how far up their back edges grow
-SHADOW = 3                                               # the soles' row and the two under it, which the readers' shadows reach
-WINDOW = (655, 20, 795, 175)                             # x0, y0, x1, y1: where the sky shows through the window
+LAMPS = 111                                              # the armchairs' tops, above the globe's and the lamps': above them, nothing stands in front of the readers
+REACH = 32                                               # px either side: past half a reading table or an armchair, to the floor beside it
+TABLES, GROW = 135, 2                                    # the reading tables' tops, and how far up their back edges grow
+SHADOW = 2                                               # the soles' row and the one under it, which the readers' shadows reach
+WINDOW = (327, 10, 397, 87)                              # x0, y0, x1, y1: where the sky shows through the window
 
 
 def sky(im):
@@ -220,11 +222,12 @@ def backdrop(depth):
 
 
 def build(out):
-    im = bake()
+    im = bake(size=LIB)
     im.save(out / "library.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
     (out / "library-fx.json").write_text(json.dumps({**FX, "sky": sky(im)}, separators=(",", ":")))
-    backdrop(Image.open(PICKED.with_name("library-depth.png")).convert("L")).save(out / "library-depth.png")   # depth_map.py's map, the wall pushed back
-    print("drew library.webp from seed", PICK, f"at {ART_W} wide")
+    depth = Image.open(PICKED.with_name("library-depth.png")).convert("L").resize(LIB, Image.BOX)   # depth_map.py's map, at the room's size
+    backdrop(depth).save(out / "library-depth.png")   # the wall pushed back
+    print("drew library.webp from seed", PICK, f"at {LIB[0]} wide")
 
 
 if __name__ == "__main__":

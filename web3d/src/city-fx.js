@@ -92,8 +92,9 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
   };
 
   // Cars: each lane runs, one way, from where its road comes out from behind something (or in off the art) to where it
-  // goes behind something again, fading in and out over its last 8 px. A car per 200 px of lane, all of a lane's at one
-  // speed so none runs into another, slower up the picture (`far`), where things are smaller.
+  // goes behind something again, fading in and out over its last 8 px. A car per 200 px of lane, all at one speed, slower
+  // up the picture (`far`), where things are smaller: routes share stretches of road, and one car must not pass through
+  // another there.
   // A lane point's ground is footAt there (its ends, hidden by design, take the next point's). Between points it goes
   // linearly from one to the next, and caps footAt, which alone would see only the greenhouses where they stand over
   // the whole road, and put the car on top of them.
@@ -109,8 +110,8 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
     return [Math.round(a[0] + (b[0] - a[0]) * f), Math.round(a[1] + (b[1] - a[1]) * f), Math.sign(b[0] - a[0]) || 1, feet[i] + (feet[i + 1] - feet[i]) * f];
   };
   const far = (y) => Math.min(1, Math.max(0.35, (y - 120) / 180));
-  const cars = lanes.flatMap((lane, l) => {
-    const n = Math.max(1, Math.round(lane.total / 200)), v = rnd(13, 21);
+  const v = rnd(13, 21), cars = lanes.flatMap((lane, l) => {
+    const n = Math.max(1, Math.round(lane.total / 200));
     return Array.from({ length: n }, (_, i) => ({ lane, v, k: 1, d: (i + Math.random() * 0.6) / n * lane.total,
       body: ['60,70,90', '150,40,30', '200,190,170', '40,90,60'][(l + i) % 4] }));
   });

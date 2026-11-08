@@ -424,9 +424,10 @@ LANES = [lane(MAIN, 1.75), lane(MAIN[::-1], 1.75),
          lane(RING + RIGHT[:2] + DIAG), lane(DIAG[::-1] + RIGHT[1::-1] + RING[::-1]),   # the sheds and the bottom edge
          lane(LEFT + CURVE[5::-1], 1.5), lane(CURVE[:6] + LEFT[::-1], 1.5),             # the left road and the brick block
          lane(CURVE[::-1]), lane(CURVE)]                                                # the curve's two ends
-# Lamp posts in front of a lane, as x, top (the lamp) and foot, in art px. The depth model fades a thin post into the
-# road behind it, so a car would show over it.
-POSTS = [(648, 286, 305), (716, 287, 307), (731, 293, 308), (1077, 253, 266), (1170, 290, 301)]
+# Lamp posts in front of a lane, a column each, as x, top (the lamp) and foot, in art px: the depth model fades a thin
+# post into the road behind it, so a car would show over it. Where a post is two pixels wide, both columns.
+POSTS = [(648, 286, 305), (716, 287, 307), (730, 302, 308), (731, 293, 308), (1077, 253, 266), (1169, 290, 301),
+         (1170, 290, 301)]
 LIGHTS = {"beacon": [457, 39], "blinks": [[800, 37], [746, 18]]}   # the radio mast's top, the crane's tips
 
 

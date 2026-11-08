@@ -8,6 +8,7 @@
 import { OUTSIDE } from './outside.js';
 import { dressing, fireworksFps, props } from './props.js';
 import { animate, asset, people, rnd, snowfall } from './scene-fx.js';
+import PHASES from '../../data/phases.json';   // which hours the lamps are lit at
 
 const root = document.documentElement;
 
@@ -15,7 +16,7 @@ export function cityFx(canvas, img) {
   const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`, winter = root.dataset.season === 'winter';
   const season = winter ? 'winter-' : '';
   const dir = new URL('.', new URL(img.dataset.base, location.href)).pathname;   // the art's folder: props.webp sits beside the city
-  const sheet = (name) => (ext) => `${dir}${name}.${ext}?v=${img.dataset.version}`, options = { ...OUTSIDE, time: root.dataset.time };
+  const sheet = (name) => (ext) => `${dir}${name}.${ext}?v=${img.dataset.version}`, options = { ...OUTSIDE, time: root.dataset.time, lit: PHASES[root.dataset.time].lit };
   const plaza = props(sheet, options), show = dressing(options);
   const spooks = Promise.all([show.ghosts && people(sheet('ghosts'), false), show.bats && people(sheet('bats'), show.night)]);
   const poster = (ctx) => plaza.then((items) => { ctx.clearRect(0, 0, canvas.width, canvas.height); for (const p of items) p.draw(ctx, null); });
@@ -25,7 +26,7 @@ export function cityFx(canvas, img) {
 }
 
 function setup(ctx, fx, dfill, footAt, sprite, plaza, spooks, show, windowsUrl, winter) {
-  const W = ctx.canvas.width, time = root.dataset.time, night = time === 'night', lamps = night || time === 'dusk';
+  const W = ctx.canvas.width, night = root.dataset.time === 'night', lamps = show.lit;
   const snow = winter && snowfall(ctx, night);
   let plazaItems = [];
   plaza.then((items) => { plazaItems = items; });

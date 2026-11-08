@@ -2,7 +2,7 @@
 // Advent and jack-o'-lanterns through Halloween's last week, from the visitor's calendar (outside.js); and the new year's
 // fireworks over the city. Painted and baked by web3d/pixel/gen_props.py into props.webp (with props.json: where each
 // stands, its candle tops, bulbs and star), halloween.webp and fireworks.webp (each with its .json). The candles, the
-// tree's lights and the lanterns' faces burn at dusk and night only, drawn here: flickering and twinkling in the loop,
+// tree's lights and the lanterns' faces burn at dusk and night only (phases.json's `lit`), drawn here: flickering and twinkling in the loop,
 // steady in a still frame (draw's t null), which has no fireworks: a burst held still reads as a stain on the sky.
 import { loadSheet, rnd } from './scene-fx.js';
 
@@ -37,9 +37,10 @@ export function burstFrame(ms, grow, frames) {
 // the jack-o'-lanterns through Halloween's last week, and its ghosts and bats (for the birds) at its dusk and night; the
 // fireworks on the night of 31 December, from its evening (past sunset where the visitor is) through the small hours of
 // 1 January, in the dark (1 January's own evening is an ordinary night: the party is over); whether the candles, the
-// lights and the lanterns burn (at dusk and night only) and the hour's tint. `evening` and `afternoon` are outside.js's.
-export function dressing({ holidays, time, season, evening, afternoon }) {
-  const lit = time === 'dusk' || time === 'night', halloween = 'halloween' in holidays, nye = holidays['new-year'];
+// lights and the lanterns burn (`lit`, the hour's in data/phases.json: dusk and night) and the hour's tint. `evening` and
+// `afternoon` are outside.js's.
+export function dressing({ holidays, time, lit, season, evening, afternoon }) {
+  const halloween = 'halloween' in holidays, nye = holidays['new-year'];
   return {
     hanukkiah: 'hanukkah' in holidays,
     tree: 'christmas' in holidays ? (season === 'winter' ? 'tree' : 'tree-plain') : null,
@@ -65,14 +66,17 @@ const stand = (ctx, [x, y], w) => {   // a soft contact shadow, so it stands on 
   ctx.fillStyle = 'rgba(30,34,52,.16)'; ctx.fillRect(x - (w >> 1) - 2, y, w + 4, 1);
 };
 
+// The sheet each prop is painted on, fetched only when one of its props is up.
+export const SHEETS = { props: ['hanukkiah', 'tree'], halloween: ['pumpkins'], fireworks: ['fireworks'] };
+
 // The props up for these holidays, at this hour and season: a promise of [{ y, draw(ctx, t) }], y its foot's row, so the
 // city draws them among its walkers, nearer over farther (the fireworks, in the sky, first). url(name) gives a sheet's
 // url(ext). Each goes without its art.
 export function props(url, options) {
-  const d = dressing(options), { lit, night, tint } = d;
-  const sheet = (name, wanted) => (wanted ? loadSheet(url(name)) : Promise.resolve([]));
-  return Promise.all([sheet('props', d.hanukkiah || d.tree), sheet('halloween', d.pumpkins), sheet('fireworks', d.fireworks)])
-    .then(([[P, img], [J, lanterns], [F, bursts]]) => {
+  const d = dressing(options), { lit, night, tint } = d, names = Object.keys(SHEETS);
+  return Promise.all(names.map((name) => (SHEETS[name].some((key) => d[key]) ? loadSheet(url(name)) : Promise.resolve([]))))
+    .then((loaded) => Object.fromEntries(names.map((name, i) => [name, loaded[i]])))
+    .then(({ props: [P, img], halloween: [J, lanterns], fireworks: [F, bursts] }) => {
       const out = [];
       if (P && img && d.hanukkiah) {
         const H = P.hanukkiah, pic = sprite(img, H, tint), x0 = H.at[0] - (H.w >> 1), y0 = H.at[1] - H.h;

@@ -4,7 +4,7 @@
 // securitypolicyviolation, CSP console error or page error (#149). It also runs the paths that load
 // late: the diagram zoom, video, search, the homepage's city and the way from it into the building, the lift and a floor
 // panel, the arrival at the homepage from
-// another page, and the 404's GoatCounter setup.
+// another page, the city's push-in into the Library, and the 404's GoatCounter setup.
 //
 // GoatCounter is made to fire on localhost (allow_local) so its CSP is exercised, but no hit reaches it:
 // every goatcounter.com request is answered by a stub, and Chromium cannot resolve the host anyway.
@@ -35,6 +35,7 @@ const phases = require("../data/phases.json");
 
 const missingRoute = "/this-page-does-not-exist/";
 const arrivalRoute = "/projects/?arrive";   // leaves for the homepage, under the view transition that page's styles animate
+const pushRoute = "/?push#library";   // the city back on the Library, whose go link pushes into /blog/ (city.js, iris.js)
 const workers = Number(process.env.CSP_WORKERS || 4);   // pages mostly wait on the network, so CI runs 8
 if (!Number.isInteger(workers) || workers < 1) {
   console.error(`CSP_WORKERS must be a positive integer, got "${process.env.CSP_WORKERS}"`);
@@ -86,7 +87,7 @@ function builtRoutes() {
   // The homepage at every hour: this script runs at wall-clock time, so "/" alone would only ever see one (#151).
   // "/" opens on the city; a floor's address opens the building, which axe then sees at load: the lobby, and the roof at
   // night. And winter, which has art of its own: the city at night with the holidays' props on its plaza, and the roof by day.
-  return routes.sort().concat(missingRoute, arrivalRoute, ...Object.keys(phases).map((time) => `/?time=${time}`), "/#floor-L", "/?time=night#floor-R",
+  return routes.sort().concat(missingRoute, arrivalRoute, pushRoute, ...Object.keys(phases).map((time) => `/?time=${time}`), "/#floor-L", "/?time=night#floor-R",
     "/?time=night&season=winter&holiday=hanukkah:3,christmas", "/?time=day&season=winter#floor-R");
 }
 
@@ -95,7 +96,7 @@ function recordViolations() {
   window.__csp = [];
   addEventListener("pagereveal", (event) => event.viewTransition?.ready.then(() => {
     window.__transition = document.getAnimations().map((animation) => animation.animationName);
-  }));
+  }, () => {}));   // skipped, as the push-in's iris skips it (iris.js): no animations, and no unhandled rejection of ours
   document.addEventListener("securitypolicyviolation", (event) => {
     window.__csp.push(`${event.effectiveDirective} blocked ${event.blockedURI} at ${event.sourceFile}:${event.lineNumber} ${event.sample || ""}`.trim());
   });
@@ -195,6 +196,21 @@ async function exercise(page, route) {
     }
     await page.waitForFunction(() => !document.documentElement.classList.contains("px-arrive"), null, { timeout: 5000 });
     did.push("arrived at the homepage");
+  }
+
+  if (route === pushRoute) {
+    // The push hands its last frame to /blog/, whose pre-paint (push-in.js) holds html.iris and whose library-fx.js
+    // opens it in the iris (html.iris-open), all within push-in.js's own 3 s fallback.
+    await page.click(".city-say a[data-go='library']");
+    await page.waitForURL(/\/blog\/$/, { timeout: 5000 });
+    const left = Date.now();
+    await page.waitForFunction(() => document.documentElement.classList.contains("iris-open"), null, { timeout: 2500, polling: "raf" }).catch(() => {
+      throw new Error("the push-in into the Library never opened its iris on /blog/");
+    });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("iris"), null, { timeout: 2500 });
+    if (Date.now() - left > 2500) throw new Error("html.iris cleared on /blog/ only by push-in.js's fallback");
+    did.push("pushed into the Library");
+    return did;
   }
 
   if (route === "/projects/") {

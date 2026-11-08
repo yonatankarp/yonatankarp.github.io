@@ -40,7 +40,7 @@ click zooms to its district; the picked label then shows "→", carries `aria-cu
 slid inside the edges by `--shift` as on Workshop Row; one whose district is out of view, or that would sit under the
 floating panel, fades but keeps its place in the tab order, and focusing it pans the map to it. The whole city opens on
 the tower, moved right until the Library's label clears the panel, as far as the tower's stays whole (the pre-paint
-`home-city.js` in `layouts/index.html` does the same). Its
+`assets/js/home-city.js`, inlined by `layouts/index.html`, does the same, by city.js's maths in `assets/js/home-view.js`). Its
 copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-PHASE].webp`, baked by
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one; the dusk pick carries one more edit, the tower's glass entrance doors, from `gen_city.py door`, and the hours were
@@ -121,7 +121,9 @@ when unknown; each zone's latitude and longitude from the tz database, written b
 after a tzdata release that adds zones) gives the sun's elevation now, day above +6°, night at -8° or below, and dawn or dusk between, before or
 after noon. It is picked once at load by the inline script in `layouts/index.html` (`html[data-time]`), from
 `assets/js/time-pick.js` (tested in `scripts/test/time-pick.test.js`). `/?time=dawn|day|dusk|night` overrides it for
-testing; anything else means the sun. Never pick by the hour: read `html[data-time]`. Dusk is the plain files. The rooms
+testing; anything else means the sun. Never pick by the hour: read `html[data-time]`, and a file by `html[data-art]`,
+its `[-winter][-PHASE]` suffix (`strip()` in `web3d/src/art.js` for a storey). Dusk is the plain files. Which hours light
+the lamps (props, headlights, moths: `lit`) and show the stars over the roof (`starry`) is each phase's in `data/phases.json`. The rooms
 that show outside have a painting at each other hour that changes only the light: the roof an edit of its dusk pick,
 whole (`paint_rooms.py retime`); the lobby only through its glass door, one street at every hour, from an edit of a crop
 round the door alone that names the street to keep (`paint_rooms.py door`, `DOOR`, at strength 1.0: lower, this model
@@ -266,7 +268,7 @@ it, per viewer in `localStorage` (`building-paused`), now across pages too: `sce
 
 Workshop Row (`/projects/`) and the Library's header (`/blog/`) move the same way, sharing `web3d/src/scene-fx.js` (the
 canvas loop, its pauses and the depth test) with the city. `workshop-fx.js`: walkers on the pavement, two cats on the left
-wall, a welder's sparks, code on the screens and moths round the lamps (not by day), from `workshop-fx.json` and
+wall, a welder's sparks, code on the screens and moths round the lamps (at dusk and night), from `workshop-fx.json` and
 `workshop-depth.png`, which `gen_workshop.py build` writes from its `FX` and the map `depth_map.py workshop` makes.
 Its walkers are painted people: `web3d/pixel/gen_walkers.py` draws 8 walk-cycle poses from a skeleton (`pose`), Draw Things
 repaints them as each of six people with one seed apiece (`paint`), and `bake` turns the picked frames in

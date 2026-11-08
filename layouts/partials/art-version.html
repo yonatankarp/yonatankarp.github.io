@@ -1,0 +1,7 @@
+{{- /* The art's version, put on every URL of static/building/pixel/ as ?v=: a hash of every file there, its name and
+     contents, never their dates, so a fresh checkout keeps it. A strip cached from before a change of the art never
+     meets the numbers bundled for the new one (#65), and no file is served stale for being left off a list; the files
+     keep their names for the pipeline and CI. Called with partialCached, so the folder is read once a build. */ -}}
+{{- $art := "" }}
+{{- range os.ReadDir "static/building/pixel" }}{{ if not .IsDir }}{{ $art = printf "%s%s\x00%s" $art .Name (os.ReadFile (path.Join "static/building/pixel" .Name)) }}{{ end }}{{ end }}
+{{- return substr (sha256 $art) 0 12 }}

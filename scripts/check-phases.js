@@ -1,10 +1,13 @@
 #!/usr/bin/env node
 
 // The phases the art is baked for live in data/phases.json (name, the colour above the roof, the rooms baked for it, how
-// dark a room falls with its lights off), which web3d/src/art.js and the scripts read and web3d/pixel/gen_floors.py
-// checks against its PHASES. What cannot read JSON is checked against it here:
+// dark a room falls with its lights off, whether the lamps are lit and whether there are stars), which web3d/src/art.js,
+// the scenes and the scripts read and web3d/pixel/gen_floors.py checks against its PHASES. What cannot read JSON is
+// checked against it here:
+// - every phase says whether its lamps, candles and moths are lit (`lit`, read by props.js, city-fx.js and
+//   workshop-fx.js) and whether the stars are out over the roof (`starry`, pixel.js), so a new one cannot skip them;
 // - assets/js/time-pick.js, through layouts/partials/time-pick.html, picks each phase from the sun over a day, and
-//   takes exactly these names from ?time=;
+//   takes exactly these names from ?time=, and names the art's files at each (html[data-art]) as they are named here;
 // - assets/css/custom.css puts each phase's backdrop (a crop of the city, gen_city.py) behind the other pages, and in
 //   winter (html[data-season]) its snowy one;
 // - and the art those name is in static/building/pixel/: the tower's baked rooms (gen_floors.py), the homepage's city and
@@ -28,6 +31,11 @@ if ([...day].sort().join() !== [...names].sort().join()) problems.push(`time-pic
 for (const name of names) {
   if (run(noon, `?time=${name}`) !== name) problems.push(`time-pick.js ignores ?time=${name}`);
 }
+for (const name of names) {
+  for (const flag of ["lit", "starry"]) {
+    if (typeof phases[name][flag] !== "boolean") problems.push(`phases.json gives ${name} no "${flag}" (true or false)`);
+  }
+}
 for (const other of ["noon", "Dusk", ""]) {
   if (run(noon, `?time=${other}`) !== run(noon)) problems.push(`time-pick.js takes ?time=${other}`);
 }
@@ -46,6 +54,12 @@ const customCss = read("assets/css/custom.css");
 const backdrops = new Map([...customCss.matchAll(/(?:html(\[data-season="winter"\])?\[data-time="(\w+)"\] )?\.px-skin \{ --scene: url\(\.\.\/building\/pixel\/(backdrop(?:-\w+)*\.webp)\); \}/g)]
   .map((match) => [`${match[1] ? "winter " : ""}${match[2] ?? "dusk"}`, match[3]]));
 const suffixOf = (name, winter) => `${winter ? "-winter" : ""}${name === "dusk" ? "" : `-${name}`}`;
+for (const winter of [false, true]) {
+  for (const name of names) {
+    const art = runTimePick({ zone: "Europe/Berlin", ms: noon, query: `?time=${name}&season=${winter ? "winter" : "spring"}` }).art;
+    if (art !== suffixOf(name, winter)) problems.push(`time-pick.js names the art ${art} ${winter ? "in winter " : ""}at ${name}, its files are *${suffixOf(name, winter)}.webp`);
+  }
+}
 for (const winter of [false, true]) {
   for (const name of names) {
     const key = `${winter ? "winter " : ""}${name}`, want = `backdrop${suffixOf(name, winter)}.webp`;

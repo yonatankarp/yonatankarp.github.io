@@ -18,7 +18,7 @@ if (hero) {
   addEventListener('resize', stop);
   const img = hero.querySelector('img');
   if (img.complete) open(); else img.addEventListener('load', open);
-  animate(canvas, { data: canvas.dataset.fx }, canvas.dataset.room === 'radio' ? radio : post);
+  animate(canvas, { data: canvas.dataset.fx }, { radio, post }[canvas.dataset.room]);
   // In from the city's push-in: its frame opens from the header's middle, the room settling about it.
   arrive(img, () => {
     open();

@@ -23,84 +23,34 @@
 {{ $js := resources.Get "building/building.js" }}
 {{ $css := resources.Get "building/building.css" }}
 {{ $base := "building/" | relURL }}{{/* where pixel.js finds its art: the canvas's data-base */}}
-{{- /* The art's version, the canvas's data-version: a hash of every file in static/building/pixel/, its contents, never
-     their dates, so a fresh checkout keeps it. pixel.js puts it on the art's URLs, so a strip cached from before a change
-     of the art never meets the numbers bundled for the new one (#65); the files keep their names for the pipeline and CI. */}}
-{{ $art := "" }}
-{{ range os.ReadDir "static/building/pixel" }}{{ if not .IsDir }}{{ $art = printf "%s%s\x00%s" $art .Name (os.ReadFile (path.Join "static/building/pixel" .Name)) }}{{ end }}{{ end }}
-{{ $artVersion := substr (sha256 $art) 0 12 }}
+{{ $artVersion := partialCached "art-version.html" . }}{{/* the canvas's data-version, on every art URL */}}
 {{ if and $js $css }}
   {{ $js = $js | fingerprint }}
   {{ $css = $css | fingerprint }}
 {{ else }}
   {{ errorf "The homepage needs the pixel building bundle in assets/building/: run `npm run build:building` first." }}
 {{ end }}
-{{- /* The two pre-paint scripts stay inline, as a file would be one more request before the city draws (#130), and the
-     CSP allows exactly these bytes by their sha256 (head.html reads them from .Store, #149). Minified here, so that
-     minifyOutput finds nothing left to change; scripts/check-generated-html.js checks the built bytes still match. The
-     error listener replaces the module tag's onerror attribute, which the CSP would block: capture phase, as a script's
-     error event does not bubble, and registered before the tag, so no failure comes too early for it. */}}
-{{- /* The city (at-city) wherever the address names no floor and a module can run; without one, the plain page. A floor's
-     address is #floor-X or one of the old one-page anchors, LEGACY in web3d/src/hash.js, which floorShaped there and
-     scripts/test/building-hash.test.js keep in step with this. The old garage's addresses go first, to the projects' own
-     page, at the same query: the tower has no garage now. */}}
+{{- /* The pre-paint scripts stay inline, as a file would be one more request before the city draws (#130), and the CSP
+     allows exactly these bytes by their sha256 (head.html reads them from .Store, #149). Their source is in assets/js/
+     (home-*.js), with this template's values written in for their placeholders as time-pick.html writes its ZONES.
+     Minified here, so that minifyOutput finds nothing left to change; scripts/check-generated-html.js checks the built
+     bytes still match. */}}
+{{- /* A floor's address: #floor-X or one of the old one-page anchors, LEGACY in web3d/src/hash.js, which floorShaped there
+     and scripts/test/building-hash.test.js keep in step with this; and the lobby's, the bare address or one LEGACY sends
+     to L, which floorKey there and that test keep in step with $lobbyHash. */}}
 {{ $floorHash := `/^#(floor-|(about|contact|experience|proof|testimonial)$)/i` }}
-{{ $guided := resources.FromString "js/home-guided.js" (printf `
-if (/^#(floor-p|client-and-work-section)$/i.test(location.hash)) location.replace('%s' + location.search);
-addEventListener('error', function (e) { if (e.target.type === 'module') { document.documentElement.classList.remove('building--guided', 'at-city'); document.querySelector('[data-building-pause]').hidden = true; } }, true);
-addEventListener('pagereveal', function (e) { if (e.viewTransition) { document.documentElement.classList.add('px-arrive'); document.dispatchEvent(new Event('building:reveal')); } });
-var modular = 'noModule' in HTMLScriptElement.prototype, floor = %s.test(location.hash);
-if (modular && !floor) document.documentElement.classList.add('at-city');
-if (modular && floor && matchMedia('(min-height: 500px) and (min-width: 360px)').matches) document.documentElement.classList.add('building--guided');
-` ("projects/" | relURL) $floorHash) | minify | fingerprint "sha256" }}
+{{ $lobbyHash := `/^(#(floor-l|floor-8|floor-e|about|testimonial))?$/i` }}
+{{ $guided := resources.FromString "inline/home-guided.js" (replace (replace (resources.Get "js/home-guided.js").Content "PROJECTS" ("projects/" | relURL | jsonify)) "FLOOR_HASH" $floorHash) | minify | fingerprint "sha256" }}
 {{- /* The hour's art (#151): dawn, day, dusk or night, and in winter its snowy art (city-winter[-PHASE].webp), picked
-     once here (partials/time-pick.html) and read by pixel.js, never changed while the page is open. Before the stylesheet, which would hold this script back, so the city's art
-     starts at once; a static preload tag would fetch the dusk city at every hour. A floor's address has no city. */}}
-{{ $time := resources.FromString "js/home-time.js" (printf `
-(function(){%s
-var d=document.documentElement.dataset,time=d.time,l=document.createElement('link');if(%s.test(location.hash))return;l.rel='preload';l.as='image';l.fetchPriority='high';l.href='%spixel/city'+(d.season==='winter'?'-winter':'')+(time==='dusk'?'':'-'+time)+'.webp?v=%s';document.head.appendChild(l)})();
-` (partial "time-pick.html" .) $floorHash $base $artVersion) | minify | fingerprint "sha256" }}
-{{- /* The lobby is where the lift starts, so its card is there at the first paint, unless the address names another floor;
-     and the pause, wherever the tower moves. */}}
-{{ $lobby := resources.FromString "js/home-lobby.js" `/^(#floor-l)?$/i.test(location.hash) || document.currentScript.previousElementSibling.classList.remove('is-here');
-document.documentElement.classList.contains('building--guided') && !matchMedia('(prefers-reduced-motion: reduce)').matches && (document.querySelector('[data-building-pause]').hidden = false);` | minify | fingerprint "sha256" }}
-{{- /* The city's picture at the hour, and its first view before the first paint, as city.js places it: on the tower, or
-     back from a district (#305) zoomed on it, as city.js's pick() does. The district is the back link's #KEY (moved into
-     this entry's history.state and off the address), or that state on a Back that reloads, which city.js keeps. Minified
-     twice, as one pass of it renames its variables again on the next, and minifyOutput must find nothing to change. */}}
-{{ $cityStart := resources.FromString "js/home-city-src.js" `(function () {
-  var x, y = 0, k = 1, d = document.documentElement, c = document.currentScript.previousElementSibling, s = c.querySelector('.city-scene'), i = s.querySelector('img'), p = c.querySelector('.city-panel'), m = s.firstElementChild;
-  if (!d.classList.contains('at-city')) return;
-  var f = getComputedStyle(p).position === 'fixed', r = p.getBoundingClientRect().right, t = c.querySelector('.city-tag[data-pick=tower]'), l = c.querySelector('.city-tag[data-pick=library]');
-  var j, b, e = c.querySelectorAll('.city-tag'), h = location.hash.slice(1), fx = f ? (r + s.clientWidth) / 2 : s.clientWidth / 2;
-  for (j = 0; j < e.length; j++) if (e[j].dataset.pick === h) history.replaceState({ at: h }, '', location.pathname + location.search);
-  for (j = 0; j < e.length; j++) if (history.state && e[j].dataset.pick === history.state.at) b = e[j];
-  i.src = i.dataset.base + (d.dataset.season === 'winter' ? '-winter' : '') + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
-  i.loading = 'eager';
-  if (b) {
-    var key = b.dataset.pick, z = JSON.parse(m.dataset.zoom)[key], mh = m.getBoundingClientRect().height, chip = c.querySelector('.city-chips [data-pick=' + key + ']');
-    var dpr = devicePixelRatio || 1, n = dpr * mh / s.querySelector('.city-fx').height;   /* whole device px an art px, as city.js's view() */
-    k = Math.max(Math.round(n), Math.min(Math.round(n * z[2]), Math.floor(m.dataset.maxPx * dpr))) / n;
-    x = fx - z[0] / 100 * m.offsetWidth * k;
-    y = Math.min(0, Math.max(s.clientHeight - mh * k, s.clientHeight * (f ? 0.46 : 0.5) - z[1] / 100 * mh * k));
-    m.style.setProperty('--inv', 1 / k);
-    c.classList.add('zoomed');
-    b.classList.add('on');
-    b.setAttribute('aria-current', 'true');
-    b.setAttribute('aria-describedby', 'city-again');
-    chip.setAttribute('aria-pressed', 'true');
-    c.querySelector('[data-city-kicker]').textContent = chip.textContent;
-    e = c.querySelectorAll('[data-district]');
-    for (j = 0; j < e.length; j++) e[j].hidden = e[j].dataset.district !== key;
-    e = c.querySelectorAll('[data-city-out]');
-    for (j = 0; j < e.length; j++) e[j].hidden = false;
-  } else {
-    x = fx - t.offsetLeft;
-    x = Math.min(f ? Math.max(x, r + 8 + l.offsetWidth / 2 - l.offsetLeft) : x, s.clientWidth - 8 - t.offsetWidth / 2 - t.offsetLeft);
-  }
-  m.style.transform = 'translate(' + Math.min(0, Math.max(s.clientWidth - m.offsetWidth * k, x)) + 'px, ' + y + 'px) scale(' + k + ')';
-})();` | minify }}
-{{ $cityStart = resources.FromString "js/home-city.js" $cityStart.Content | minify | fingerprint "sha256" }}
+     once here (partials/time-pick.html) and read by pixel.js, never changed while the page is open. */}}
+{{ $time := replace (replace (replace (resources.Get "js/home-time.js").Content "FLOOR_HASH" $floorHash) "VERSION" ($artVersion | jsonify)) "ART" ($base | jsonify) }}
+{{ $time = resources.FromString "inline/home-time.js" (printf "(function(){%s\n%s})();" (partialCached "time-pick.html" .) $time) | minify | fingerprint "sha256" }}
+{{ $lobby := resources.FromString "inline/home-lobby.js" (replace (resources.Get "js/home-lobby.js").Content "LOBBY_HASH" $lobbyHash) | minify | fingerprint "sha256" }}
+{{- /* The city's picture at the hour, and its first view, by city.js's maths (home-view.js). Minified twice, as one pass
+     of it renames its variables again on the next, and minifyOutput must find nothing to change: if
+     check-generated-html.js finds it changed, reshape home-city.js's vars (two used as often swap names). */}}
+{{ $cityStart := resources.FromString "inline/home-city-src.js" (printf "(function(){%s\n%s})();" (replace (resources.Get "js/home-view.js").Content "export " "") (resources.Get "js/home-city.js").Content) | minify }}
+{{ $cityStart = resources.FromString "inline/home-city.js" $cityStart.Content | minify | fingerprint "sha256" }}
 {{ $dpr := resources.Get "js/dpr.js" | minify | fingerprint "sha256" }}{{/* the scenes' device px, for city.css */}}
 {{ .Store.Set "inlineScripts" (slice $time $dpr $guided $lobby $cityStart) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}

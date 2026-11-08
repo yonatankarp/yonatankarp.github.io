@@ -36,10 +36,9 @@
 {{ $imageFile := printf "static%s" $imagePath }}
 {{ if and (hasPrefix $imagePath "/") (fileExists $imageFile) }}{{ $imageSize = imageConfig $imageFile }}{{ end }}
 
-{{- /* The backdrops custom.css names get ?v= from their bytes, like the other building art, so a repainted one is not served stale. */ -}}
-{{ $backdrops := "" }}{{ range os.ReadDir "static/building/pixel" }}{{ if findRE `^backdrop[-a-z]*\.webp$` .Name }}{{ $backdrops = printf "%s%s" $backdrops (os.ReadFile (printf "static/building/pixel/%s" .Name)) | sha256 }}{{ end }}{{ end }}
+{{- /* The backdrops custom.css names get the art's ?v=, like the other building art, so a repainted one is not served stale. */ -}}
 {{ $css := resources.Get "css/custom.css" }}
-{{ $css = replaceRE `(backdrop[-a-z]*\.webp)\)` (printf "${1}?v=%s)" (substr $backdrops 0 12)) $css.Content | resources.FromString "css/custom.css" | minify | fingerprint }}
+{{ $css = replaceRE `(backdrop[-a-z]*\.webp)\)` (printf "${1}?v=%s)" (partialCached "art-version.html" .)) $css.Content | resources.FromString "css/custom.css" | minify | fingerprint }}
 {{ $chroma := resources.Get "css/chroma.css" | minify | fingerprint }}
 <meta charset="utf-8">
 {{- /* GitHub Pages sets no headers, so the policy is a meta tag (#149). A meta CSP has no report-only mode, so after

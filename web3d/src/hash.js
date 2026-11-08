@@ -1,7 +1,8 @@
 // The floor an address names, for pixel.js. No DOM and no bundled JSON, so scripts/test can import it as it is.
 // The old one-page site's anchors, still linked from elsewhere, land on the floor that took their place (#29); the
 // closed newsroom's (floor 8) and the street's (E), which the city replaced as the way in, on the lobby. The garage's
-// (#floor-P, #client-and-work-section) go to /projects/ before this runs (layouts/index.html).
+// (#floor-P, #client-and-work-section) go to /projects/ before this runs (layouts/index.html). The pre-paint there keeps
+// the lobby's card for those that land on L ($lobbyHash, held to floorKey by scripts/test/building-hash.test.js).
 export const LEGACY = { about: 'L', testimonial: 'L', contact: 'R', experience: '7', proof: '7', 'floor-8': 'L', 'floor-e': 'L' };
 
 // '#floor-5', '#FLOOR-l' (Hugo lowercases menu URLs, so the site menu's About arrives as #floor-l) or a legacy anchor:

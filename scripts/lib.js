@@ -154,7 +154,7 @@ function runTimePick({ zone, ms, query = "" }) {
     Date: class extends Date { constructor(...a) { super(...(a.length ? a : [ms])); } static now() { return ms; } },
   });
   vm.runInContext(script, context);
-  return { time: documentElement.dataset.time, season: documentElement.dataset.season, place: documentElement.dataset.place, sunPhase: context.sunPhase };
+  return { time: documentElement.dataset.time, season: documentElement.dataset.season, place: documentElement.dataset.place, art: documentElement.dataset.art, sunPhase: context.sunPhase };
 }
 
 module.exports = { rootDir, publicDir, hugoBinary, fail, walk, collectAttribute, routeToPublicPath, escapeRegex, splitFrontMatter, frontMatterValue, loadPlaywright, zoneTable, runTimePick };

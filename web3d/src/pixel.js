@@ -14,7 +14,7 @@
 // - storage: localStorage building-paused, the Pause (scene-fx.js); sessionStorage push-in, the city's last frame
 //   (city.js), which assets/js/push-in.js reads on the next page into window.pushIn for iris.js.
 import { guide, roomy, PANEL_MS } from './guide.js';
-import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, ENTRANCE, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, FOCUS, lay, clamp01, colourAt, shade, darken, bayer } from './art.js';
+import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, ENTRANCE, LAMPS, STARRY, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, FOCUS, lay, clamp01, colourAt, shade, darken, bayer, strip } from './art.js';
 import { capsuleAt } from './capsule.js';
 import { rideU, pos, sunk, motion, plan } from './ride.js';
 import { reception } from './reception.js';
@@ -62,7 +62,7 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
     if (key === CAPSULE.floor) pay.img ??= Object.assign(new Image(), { onload: wake, src: artUrl('capsule') });
     if (key === RECEPTION.floor) desk.img ??= Object.assign(new Image(), { onload: wake, src: artUrl('receptionists') });
     if (key === CATS.floor) kit.img ??= Object.assign(new Image(), { onload: wake, src: artUrl('cats-lobby') });
-    const url = artUrl(`floor-${key}${BAKED?.includes(key) ? HOUR : ''}`);
+    const url = artUrl(strip(key));
     // Decoded off the main thread, as a bitmap: an <img> is decoded by the first drawImage, the whole strip there and then (#184).
     const art = 'createImageBitmap' in window
       ? fetch(url).then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.blob(); }).then((b) => createImageBitmap(b))
@@ -203,7 +203,7 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
   const way = through ? { img: null, waits: 2 } : null;   // the open entrance; waits: for it and for the lobby
   if (way) {
     way.img = new Image();
-    way.img.src = artUrl(`floor-L-open${BAKED?.includes('L') ? HOUR : ''}`);
+    way.img.src = artUrl(strip('L', '-open'));
     way.img.decode().catch(() => { way.img = null; }).finally(() => inLobby('L'));
   }
   const ajar = (now) => (way?.img && pan ? 1 - clamp01((now - pan[1] - SHUT_AFTER) / SHUT_MS) : 0);   // how open it is
@@ -397,7 +397,7 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
         // At night its stars too: a patch of the roof's own top rows right of the crane, plain sky and stars, each course
         // shifted so no column of them lines up.
         const [sx, sw] = STARS;
-        if (TIME === 'night' && img) for (let r = 1, gy = y - 32 * s; gy + 32 * s > 0; r++, gy -= 32 * s) for (let gx = -(r * 97 % sw) * s; gx < w; gx += sw * s) ctx.drawImage(img, sx, 0, sw, 32, gx, gy, sw * s, 32 * s);
+        if (STARRY && img) for (let r = 1, gy = y - 32 * s; gy + 32 * s > 0; r++, gy -= 32 * s) for (let gx = -(r * 97 % sw) * s; gx < w; gx += sw * s) ctx.drawImage(img, sx, 0, sw, 32, gx, gy, sw * s, 32 * s);
       }
       if (key === ORDER[0] && y + FH * s < h) {                                           // and the ground under the lobby
         ctx.fillStyle = GROUND[1]; ctx.fillRect(0, y + FH * s, w, h);

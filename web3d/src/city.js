@@ -65,9 +65,10 @@ if (city && root.classList.contains('at-city')) {
     const [w, h] = size(), [x, y, z] = zoom[current], s = Math.max(1, Math.min(z, maxPx / (h / artH)));
     place(fx - x / 100 * w * s, scene.clientHeight * (floats() ? 0.46 : 0.5) - y / 100 * h * s, s, smooth);
   };
-  const pick = (key) => {
-    // "Whole city" hides as it zooms out, so its focus goes to the chip that was picked (#301).
-    if (!key && [...out].some((o) => o.contains(document.activeElement))) city.querySelector(`.city-chips [data-pick="${current}"]`).focus();
+  const pick = (key, fromOut = false) => {
+    // "Whole city" hides as it zooms out, so its focus goes to the chip that was picked (#301). Told by the click, not by
+    // document.activeElement: Safari does not focus a button it clicks.
+    if (fromOut) city.querySelector(`.city-chips [data-pick="${current}"]`).focus();
     current = key;
     city.classList.toggle('zoomed', !!key);
     for (const b of city.querySelectorAll('[data-pick]')) {
@@ -199,7 +200,7 @@ if (city && root.classList.contains('at-city')) {
   // Going in is only kept from its link's default, so its count goes on to the link.
   city.addEventListener('click', (e) => {
     if (city.classList.contains('going')) return e.preventDefault();
-    if (e.target.closest('[data-city-out]')) return pick(null);
+    if (e.target.closest('[data-city-out]')) return pick(null, true);
     const b = e.target.closest('[data-pick]');
     const go = e.target.closest('a[data-go]') ?? (b?.matches('a') && b.dataset.pick === current ? b : null);   // the picked label's second click goes in
     if (go) {

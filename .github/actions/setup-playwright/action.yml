@@ -1,7 +1,11 @@
-name: Set up Playwright's Chromium
-description: Installs Chromium for the Playwright version in node_modules, cached by that version.
+name: Set up Playwright's browsers
+description: Installs browsers (Chromium unless told) for the Playwright version in node_modules, cached by that version.
 
-# The caller has run npm ci. Shared by build-site and the deploy's visual capture job.
+# The caller has run npm ci. Shared by build-site, the deploy's visual capture job and the cross-browser check.
+inputs:
+  browsers:
+    description: The browsers to install, separated by spaces.
+    default: chromium
 runs:
   using: composite
   steps:
@@ -17,7 +21,8 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ~/.cache/ms-playwright
-        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+        # Plain Chromium keeps its old key, so its cache stays warm; other browsers get one of their own.
+        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}${{ inputs.browsers != 'chromium' && format('-{0}', inputs.browsers) || '' }}
 
     # The packages install-deps adds to this runner image (the fonts), so a hit skips the Ubuntu mirror, which has
     # taken ten minutes for their 22 MB.
@@ -27,24 +32,25 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ~/.cache/playwright-debs
-        key: playwright-debs-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}
+        key: playwright-debs-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}${{ inputs.browsers != 'chromium' && format('-{0}', inputs.browsers) || '' }}
 
     - name: Install Playwright browser
       shell: bash
       env:
         CACHED: ${{ steps.playwright-cache.outputs.cache-hit }}
         DEBS_CACHED: ${{ steps.debs-cache.outputs.cache-hit }}
+        BROWSERS: ${{ inputs.browsers }}
       run: |
         # On a hit the browser's libraries are on the runner already, but not the fonts install-deps adds (unifont,
         # wqy-zenhei, ipafont, ...): without them the diagrams, the CV PDF and the captures would fall back differently.
         debs=~/.cache/playwright-debs
         if [[ "$CACHED" != "true" ]]; then
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps $BROWSERS
         elif [[ "$DEBS_CACHED" == "true" ]]; then
           sudo apt-get install -y --no-install-recommends "$debs"/*.deb
         else
           sudo apt-get clean   # so the archives hold only what install-deps fetches
-          npx playwright install-deps chromium
+          npx playwright install-deps $BROWSERS
           mkdir -p "$debs"
           cp /var/cache/apt/archives/*.deb "$debs"/ || echo "::warning::apt kept no packages to cache"
           ls "$debs"

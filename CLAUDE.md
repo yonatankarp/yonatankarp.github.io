@@ -168,7 +168,8 @@ there: lights, screens, a glint in the room's own colours). The roof has open sk
 painting's own sky at its top blended up, in its own colours and flat bands, into `phases.json`'s sky, its masts carried
 on up (mirrored: the one shape that still is, as a lattice reads the same either way) and, at night, its stars
 scattered over it. A strip is its rest frame, two runs pixel.js tiles past it on a
-wide screen, the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
+wide screen (each row in the light the room's edge leaves it with, grained with the left wall's outer columns mirrored:
+`runs`), the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
 they slide apart), and its moving box's other frames. The lobby has one more picture at each hour,
 `floor-L-open[-PHASE].webp`, its glass entrance standing open (cut at `ENTRANCE`), which the push-in from the city lands on:
 `paint_rooms.py entrance` edits a crop round the doors of that hour's shut lobby, the leaves blocked out at either side
@@ -182,7 +183,8 @@ box, lift doors, the lobby's entrance, dither, each room's lamps, the floors' or
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
 rerun it, never the copies. `pixel.js` is the lift and the floors, `art.js` what it reads; it keeps only the storeys
 round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most, and loads the stop's strip
-before the storeys round it. When only the live sprites below change, it redraws just their boxes. One thing moves live, not in the
+before the storeys round it. When only the live sprites below change, it redraws just their boxes. With a floor's panel open on a wide screen it slides the
+room right, at the same scale, until the room covers the view beside the panel (`besidePanel`). One thing moves live, not in the
 strip's 12 frames: floor 7's payment, a painted pneumatic-post capsule (`picks/capsule.png`, on magenta, from
 `paint_rooms.py capsule`; `gen_floors.py` keys it into `capsule.webp` at 4x). pixel.js turns and smooths it into the room's
 own art pixels every frame, along `CAPSULE` (its path, size, ride and clip, in floors.json; the path and easing are
@@ -374,7 +376,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
   `1`, `R` and `L` are taken by the template, and `P` is the CV's colour for open source. A new storey (a single
   character: `8`, `9`) needs its room: its painting (`ROOMS` in `web3d/pixel/paint_rooms.py`, picked into `PICKS` in
   `install_picks.py`), and in `web3d/pixel/gen_floors.py` its entry in `FLOORS` (its accent, which goes into
-  `data/floor_accents.yaml`, its animation and its lamps). Then rebuild all the art, as CI does: the lift's order
+  `data/floor_accents.yaml`, its animation and its lamps) and in `RIGHT_SKIRTING`. Then rebuild all the art, as CI does: the lift's order
   (`ORDER` in `web3d/src/art.js`) comes from `floors.json`.
 - `highlights`: a list; the first three show on the floor's card, the rest inside it.
 

@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pillow==12.1.0"]
+# dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """The favicon and touch icon: the career building at dusk, a tiny lit tower under its crane.
 

@@ -103,7 +103,8 @@ jobs:
       # The pixel art is built from the committed picks (web3d/pixel/paintings/picks/) and committed as built. Rebuilt here, it
       # must match pixel for pixel (a lossless WebP's bytes can differ between runs), and the data the pipeline writes
       # (every JSON in static/building/pixel/, the depth maps, data/floor_accents.yaml, the check of data/phases.json) must come out unchanged.
-      # The blog covers' pixel bakes (from their committed .jpg, rebaked in place) and the icons are compared the same way.
+      # The blog covers' pixel bakes (from their committed .jpg, rebaked in place), the art inside the posts and the icons are
+      # compared the same way.
       - name: Rebuild the art and compare it
         run: |
           out="${RUNNER_TEMP}/art"
@@ -116,13 +117,20 @@ jobs:
           uv run web3d/pixel/gen_walkers.py bake "$out"
           uv run web3d/pixel/gen_props.py bake "$out"
           uv run web3d/pixel/compare_art.py "$out"
+          # The covers rebake from every committed .jpg into an emptied folder, so a WebP left without its .jpg fails too.
           cp -R static/images/blog/covers/pixel "$out/covers-committed"
+          rm static/images/blog/covers/pixel/*.webp
           uv run web3d/pixel/paint_covers.py --install
           uv run web3d/pixel/compare_art.py static/images/blog/covers/pixel "$out/covers-committed"
+          # The art inside a post, from its committed paintings (a WebP with none is kept as its own source).
+          cp -R static/images/blog/pixel "$out/inline-committed"
+          uv run web3d/pixel/paint_covers.py --install-inline
+          uv run web3d/pixel/compare_art.py static/images/blog/pixel "$out/inline-committed"
           mkdir -p "$out/icons/images" "$out/icons-committed"
           cp static/images/favicon.png static/images/apple-touch-icon.png "$out/icons-committed/"
           uv run web3d/pixel/gen_icons.py "$out/icons"
           uv run web3d/pixel/compare_art.py "$out/icons/images" "$out/icons-committed"
+          cmp static/favicon.ico "$out/icons/favicon.ico"   # its 32 frame is in no PNG; the pinned Pillow writes it byte for byte
           if ! git diff --exit-code -- data; then
             echo "::error::The art pipeline rewrote committed files (diff above): rerun it locally and commit the result."
             exit 1

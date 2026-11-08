@@ -96,7 +96,7 @@ function recordViolations() {
   window.__csp = [];
   addEventListener("pagereveal", (event) => event.viewTransition?.ready.then(() => {
     window.__transition = document.getAnimations().map((animation) => animation.animationName);
-  }));
+  }, () => {}));   // skipped, as the push-in's iris skips it (iris.js): no animations, and no unhandled rejection of ours
   document.addEventListener("securitypolicyviolation", (event) => {
     window.__csp.push(`${event.effectiveDirective} blocked ${event.blockedURI} at ${event.sourceFile}:${event.lineNumber} ${event.sample || ""}`.trim());
   });

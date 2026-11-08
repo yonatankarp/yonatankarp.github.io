@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("path");
-const { publicDir, routeToPublicPath, collectAttribute } = require("../lib");
+const { publicDir, routeToPublicPath, collectAttribute, splitFrontMatter, frontMatterValue } = require("../lib");
 
 test("routeToPublicPath serves a folder's index.html", () => {
   assert.equal(routeToPublicPath("/"), path.join(publicDir, "index.html"));
@@ -55,4 +55,33 @@ test("collectAttribute reads unquoted values with = and ?, single quotes, spaces
   assert.equal(collectAttribute('<img alt src="/x.png">', "alt"), null);
   assert.equal(collectAttribute('<a hidden href="/after-boolean/">', "href"), "/after-boolean/");
   assert.equal(collectAttribute('<a href="/first/" href="/second/">', "href"), "/first/");
+});
+
+test("splitFrontMatter parts a Markdown file's front matter from its body, and leaves a file without any whole", () => {
+  assert.deepEqual(splitFrontMatter('---\ntitle: "A"\n---\n\nBody.\n'), { frontMatter: 'title: "A"', body: "Body.\n" });   // the closing line takes the blank lines after it
+  assert.deepEqual(splitFrontMatter("\uFEFF+++\ntitle = 'A'\n+++\nBody"), { frontMatter: "title = 'A'", body: "Body" });
+  assert.deepEqual(splitFrontMatter("Just text."), { frontMatter: "", body: "Just text." });
+});
+
+test("frontMatterValue reads a one-line value, quoted or not, at any indent, without its comment", () => {
+  const frontMatter = [
+    'title: "Emma\'s Inferno"',
+    "caseStudy: true",
+    'pullQuote: "I’d love to work with him #1 again."   # an exact excerpt',
+    "date: 2026-01-07T00:00:00+01:00   # the repository's creation",
+    'tech: ["Kotlin", "Spring Boot"]',
+    "link: https://example.com/#top",
+    "params:",
+    "    button:",
+    '        btnText: "Play on itch.io"',
+  ].join("\n");
+  assert.equal(frontMatterValue(frontMatter, "title"), "Emma's Inferno");
+  assert.equal(frontMatterValue(frontMatter, "caseStudy"), "true");
+  assert.equal(frontMatterValue(frontMatter, "pullQuote"), "I’d love to work with him #1 again.");
+  assert.equal(frontMatterValue(frontMatter, "date"), "2026-01-07T00:00:00+01:00");
+  assert.equal(frontMatterValue(frontMatter, "tech"), '["Kotlin", "Spring Boot"]');
+  assert.equal(frontMatterValue(frontMatter, "link"), "https://example.com/#top");
+  assert.equal(frontMatterValue(frontMatter, "btnText"), "Play on itch.io");
+  assert.equal(frontMatterValue(frontMatter, "params"), "");
+  assert.equal(frontMatterValue(frontMatter, "archived"), undefined);
 });

@@ -3,15 +3,16 @@ import { fileURLToPath } from 'node:url';
 
 const here = (p) => fileURLToPath(new URL(p, import.meta.url));
 
-// `npm run build:building`: the pixel building as one ES module and one stylesheet in assets/building/, which the
-// homepage template (layouts/index.html) fingerprints. The art itself is served from static/building/pixel/.
-// `--mode workshop` builds the projects' Workshop Row (workshop.js, layouts/projects/list.html) the same way, apart, so
-// neither page loads the other's code and no shared chunk needs a URL of its own. `--mode library` builds the blog's
-// Library animations (library-fx.js, layouts/blog/list.html) so too, and `--mode rooms` the Radio Mast's and the Post
-// Office's (rooms-fx.js, layouts/_default/radio.html and post.html).
-const ENTRIES = { workshop: ['src/workshop.js', 'workshop'], library: ['src/library-fx.js', 'library'], rooms: ['src/rooms-fx.js', 'rooms'] };
+// `npm run build:building` (scripts/build-building.js) builds each of ENTRIES, a mode each: the pixel building, in the
+// default mode, as one ES module and one stylesheet in assets/building/, which the homepage template (layouts/index.html)
+// fingerprints. The art itself is served from static/building/pixel/. `--mode workshop` builds the projects' Workshop Row
+// (workshop.js, layouts/projects/list.html) the same way, apart, so neither page loads the other's code and no shared
+// chunk needs a URL of its own. `--mode library` builds the blog's Library animations (library-fx.js,
+// layouts/blog/list.html) so too, and `--mode rooms` the Radio Mast's and the Post Office's (rooms-fx.js,
+// layouts/_default/radio.html and post.html). A new scene's bundle is one more entry here.
+export const ENTRIES = { production: ['src/pixel.js', 'building'], workshop: ['src/workshop.js', 'workshop'], library: ['src/library-fx.js', 'library'], rooms: ['src/rooms-fx.js', 'rooms'] };
 export default defineConfig(({ mode }) => {
-  const [entry, name] = ENTRIES[mode] ?? ['src/pixel.js', 'building'];
+  const [entry, name] = ENTRIES[mode] ?? ENTRIES.production;
   return {
     root: here('.'),
     publicDir: false,

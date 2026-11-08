@@ -72,10 +72,12 @@ contact:
     - "Payments, risk, compliance, or platform architecture."
     - "OSS, technical writing, and teaching."
   location: &location "Berlin, Germany"   # where Yonatan lives now: the roof, CV, footer, share alt and JSON-LD read it; hugo.toml's descriptions repeat it by hand
-  facts:
-    - label: "Based in"
+  facts:   # the roof's; `key` stays as it is: the Post Office's letter picks its fact by best_for
+    - key: "location"
+      label: "Based in"
       text: *location
-    - label: "Best for"
+    - key: "best_for"
+      label: "Best for"
       text: "Teams turning scattered services and vendors into one platform"
   podcast:   # the city's Radio Mast; `text`, one optional sentence, goes before the link
     title: "The Reading Club"
@@ -122,24 +124,29 @@ city:   # the homepage's city (layouts/index.html): its arrival panel, then a di
       title: "%d roles and a degree, a floor each."
       text: "Ride the lift from university to payments. Each floor is a job, furnished with that company's world."
       go: "Enter the tower"
+      url: "#floor-L"   # where going in leads: here the tower's lobby, on this page; the others' pages, from the site's root
     - key: "library"
       name: "The Library"
       title: "%d posts on the shelves."
       text: "Kotlin, Spring Boot and system design."
       go: "Browse the shelves"
+      url: "blog/"
     - key: "workshop"
       name: "Workshop Row"
       title: "%d projects on the benches."
       text: "Open-source libraries, apps, games and contributions."
       go: "Walk the workshops"
+      url: "projects/"
     - key: "radio"
       name: "Radio Mast"
       title: "117 episodes on the shelf."   # the show is resting; the count is written here, as nothing on the site counts them
       go: "Tune in"
+      url: "podcast/"
     - key: "post"
       name: "Post Office"
       title: "Write to me."
       go: "Send a letter"
+      url: "contact/"
 
 tower:   # the Career Tower's lift and floors (layouts/index.html); each role's own words are in content/experience/
   floors: "Lift"   # the lift's buttons and its way out to the city, for screen readers

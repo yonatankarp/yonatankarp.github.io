@@ -4,9 +4,11 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
-const { rootDir, publicDir, fail, walk, collectAttribute, zoneTable } = require("./lib");
+const { rootDir, publicDir, fail, walk, collectAttribute, splitFrontMatter, frontMatterValue, zoneTable } = require("./lib");
 
 const failures = [];
+// A failure on a page, collected; lib's fail() is the one that exits.
+const flag = (route, message) => failures.push(`${route}: ${message}`);
 const placeholderPattern = /\b(?:TODO|FIXME|Lorem ipsum|Coming soon)\b/i;
 
 function stripTags(value) {
@@ -23,40 +25,42 @@ function countMatches(html, pattern) {
 
 const projectsDir = path.join(rootDir, "content", "projects");
 
-function frontMatter(file) {
-  const block = fs.readFileSync(path.join(projectsDir, file), "utf8").match(/^---\n([\s\S]*?)\n---/)[1];
-  const scalar = (key) => block.match(new RegExp(`^\\s*${key}:\\s*"?([^"\\n]*)"?\\s*$`, "m"))?.[1];
+function projectField(slug, key) {
+  return frontMatterValue(splitFrontMatter(fs.readFileSync(path.join(projectsDir, `${slug}.md`), "utf8")).frontMatter, key) ?? "";
+}
 
-  return { slug: file.replace(/\.md$/, ""), caseStudy: scalar("caseStudy") === "true", btnText: scalar("btnText") || "View", archived: scalar("archived") === "true" };
+function project(file) {
+  const slug = file.replace(/\.md$/, "");
+  return { slug, caseStudy: projectField(slug, "caseStudy") === "true", btnText: projectField(slug, "btnText"), archived: projectField(slug, "archived") === "true" };
 }
 
 function decodeEntities(value) {
   return value.replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, "&").replace(/&quot;/g, '"');
 }
 
-// Workshop Row (layouts/projects/list.html): a workshop per group, apps first, each listing its projects once.
+// Workshop Row (layouts/projects/list.html): a workshop per group, in data/rooms.yaml's order, each with its label, chip,
+// heading and list, the first picked, and each project listed once. Matched by its hooks, never its words, so a copy edit
+// cannot fail it.
 function checkProjectsPage(route, html) {
-  const headings = Array.from(html.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)).map((match) => stripTags(match[1]));
+  const workshops = Array.from(html.matchAll(/<div\b[^>]*\bdata-district=["']?([^"'\s>]+)[^>]*>\s*<h2\b[^>]*>([\s\S]*?)<\/h2>/g)).map((match) => ({ key: match[1], name: stripTags(match[2]) }));
+  const keys = workshops.map(({ key }) => key).join(" ");
 
-  if (headings.join("|") !== "Apps|Libraries|Games|Open-source contributions") {
-    failures.push(`${route}: h2s are [${headings.join(", ")}], expected [Apps, Libraries, Games, Open-source contributions]`);
-  }
-
-  const picks = Array.from(html.matchAll(/<button\b[^>]*\bdata-pick=[^>]*>/g)).map((match) => match[0]);
-  const isLabel = (tag) => /\bcity-tag\b/.test(collectAttribute(tag, "class") ?? "");
-  for (const [what, buttons] of [["label", picks.filter(isLabel)], ["chip", picks.filter((tag) => !isLabel(tag))]]) {
-    const pressed = buttons.filter((tag) => collectAttribute(tag, "aria-pressed") === "true").map((tag) => collectAttribute(tag, "data-pick"));
-    if (buttons.length !== 4 || pressed.join() !== "app" || buttons.some((tag) => collectAttribute(tag, "data-goatcounter-click") !== null)) {
-      failures.push(`${route}: expected four workshop ${what}s, Apps pressed, and no data-goatcounter-click (workshop.js counts workshop-<group>)`);
+  const picks = Array.from(html.matchAll(/<button\b[^>]*\bdata-pick=[^>]*>([\s\S]*?)<\/button>/g)).map((match) => ({ tag: match[0].slice(0, match[0].indexOf(">") + 1), name: stripTags(match[1]) }));
+  const isLabel = ({ tag }) => /\bcity-tag\b/.test(collectAttribute(tag, "class") ?? "");
+  for (const [what, buttons] of [["label", picks.filter(isLabel)], ["chip", picks.filter((pick) => !isLabel(pick))]]) {
+    const pressed = buttons.filter(({ tag }) => collectAttribute(tag, "aria-pressed") === "true").map(({ tag }) => collectAttribute(tag, "data-pick"));
+    if (!workshops.length || buttons.map(({ tag }) => collectAttribute(tag, "data-pick")).join(" ") !== keys || buttons.map(({ name }) => name).join("|") !== workshops.map(({ name }) => name).join("|")
+      || pressed.join() !== workshops[0].key || buttons.some(({ tag }) => collectAttribute(tag, "data-goatcounter-click") !== null)) {
+      flag(route, `expected a workshop ${what} per workshop [${keys}], named as its heading, the first pressed, and no data-goatcounter-click (workshop.js counts workshop-<group>)`);
     }
   }
 
-  const projects = fs.readdirSync(projectsDir).filter((file) => file.endsWith(".md") && file !== "_index.md").map(frontMatter);
+  const projects = fs.readdirSync(projectsDir).filter((file) => file.endsWith(".md") && file !== "_index.md").map(project);
   const lists = Array.from(html.matchAll(/<ol\b[^>]*class=["']?workshop-projects["']?[\s>]([\s\S]*?)<\/ol>/g)).map((match) => match[1]);
   const cards = lists.flatMap((list) => list.split(/<li\b[^>]*>/).slice(1));
 
-  if (lists.length !== 4 || cards.length !== projects.length) {
-    failures.push(`${route}: expected ${projects.length} projects in four workshops, got ${cards.length} in ${lists.length}`);
+  if (lists.length !== workshops.length || cards.length !== projects.length) {
+    flag(route, `expected ${projects.length} projects in ${workshops.length} workshops, got ${cards.length} in ${lists.length}`);
     return;
   }
 
@@ -72,19 +76,20 @@ function checkProjectsPage(route, html) {
 
     const link = card.match(/<h3\b[^>]*>\s*(<a\b[^>]*>)/)[1];
     const cta = card.match(/<span\b[^>]*class=["']?workshop-cta[\s"'>][^>]*>([\s\S]*?)<\/span>/);
+    const arrow = cta ? stripTags(cta[1]).match(/(?:&#8594;|&#8599;|[\u2192\u2197])$/)?.[0] : null;
     const ctaText = cta ? stripTags(cta[1]).replace(/\s*(?:&#8594;|&#8599;|[\u2192\u2197])$/, "") : null;
     const href = collectAttribute(link, "href");
 
     if (project.caseStudy) {
-      if (ctaText !== "Case study" || !href?.startsWith("/")) {
-        failures.push(`${route}: ${title} should link internally with a "Case study" workshop-cta, got "${ctaText}" ${href}`);
+      if (!["&#8594;", "\u2192"].includes(arrow) || !href?.startsWith("/") || collectAttribute(link, "target") !== null) {
+        flag(route, `${title} should link internally, in this tab, with a workshop-cta ending in an arrow →, got "${stripTags(cta?.[1] ?? "")}" ${href}`);
       }
     } else {
       if (collectAttribute(link, "target") !== "_blank" || !/\bnoopener\b/.test(collectAttribute(link, "rel") ?? "")) {
         failures.push(`${route}: ${title} should open in a new tab with rel=noopener`);
       }
 
-      if (ctaText !== project.btnText) {
+      if (project.btnText && ctaText !== project.btnText) {
         failures.push(`${route}: ${title} workshop-cta reads "${ctaText}", expected "${project.btnText}"`);
       }
     }
@@ -103,85 +108,78 @@ function checkProjectsPage(route, html) {
   }
 }
 
-function projectField(slug, key) {
-  const block = fs.readFileSync(path.join(projectsDir, `${slug}.md`), "utf8").match(/^---\n([\s\S]*?)\n---/)[1];
-  return block.match(new RegExp(`^${key}:\\s*"?([^"\\n]*)"?\\s*$`, "m"))?.[1] ?? "";
-}
-
 function checkCaseStudyPage(route, html, slug) {
   const body = html.match(/<body\b[^>]*>/)?.[0] ?? "";
   const title = projectField(slug, "title").replace(/\s*\(contributor\)$/, "");
-  const fail = (message) => failures.push(`${route}: ${message}`);
 
   if (!/class=["']?[^"'>]*\bpx-skin\b[^"'>]*\bpx-page\b/.test(body)) {
-    fail("body should have px-skin px-page");
+    flag(route, "body should have px-skin px-page");
   }
 
   const h1s = Array.from(html.matchAll(/<h1\b[^>]*>([\s\S]*?)<\/h1>/g)).map((match) => decodeEntities(stripTags(match[1])));
 
   if (h1s.length !== 1 || h1s[0] !== title) {
-    fail(`h1s are [${h1s.join(", ")}], expected [${title}]`);
+    flag(route, `h1s are [${h1s.join(", ")}], expected [${title}]`);
   }
 
   const kicker = html.match(/<p\b[^>]*class=["']?px-kicker["']?[^>]*>([\s\S]*?)<\/p>/);
 
   if (!kicker || decodeEntities(stripTags(kicker[1])) !== projectField(slug, "projectKind")) {
-    fail(`px-kicker should read "${projectField(slug, "projectKind")}"`);
+    flag(route, `px-kicker should read "${projectField(slug, "projectKind")}"`);
   }
 
   const chips = Array.from(html.matchAll(/<(?:li|span)\b[^>]*class=["']?px-chip["']?[^>]*>([\s\S]*?)<\/(?:li|span)>/g)).map((match) => decodeEntities(stripTags(match[1])));
   const years = projectField(slug, "years");
-  const tech = Array.from(fs.readFileSync(path.join(projectsDir, `${slug}.md`), "utf8").match(/^tech:\s*\[(.*)\]/m)?.[1].matchAll(/"([^"]*)"/g) ?? []).map((match) => match[1]);
+  const tech = Array.from(projectField(slug, "tech").matchAll(/"([^"]*)"/g)).map((match) => match[1]);
 
   if (chips.join("|") !== [years, ...tech].join("|")) {
-    fail(`px-chips are [${chips.join(", ")}], expected [${[years, ...tech].join(", ")}]`);
+    flag(route, `px-chips are [${chips.join(", ")}], expected [${[years, ...tech].join(", ")}]`);
   }
 
   const open = Array.from(html.matchAll(/<a\b[^>]*>(?:(?!<\/a>)[\s\S])*Open project[\s\S]*?<\/a>/g)).map((match) => match[0]);
 
   if (open.length !== 1 || collectAttribute(open[0], "href") !== projectField(slug, "link") || !/\bnoopener\b/.test(collectAttribute(open[0], "rel") ?? "")) {
-    fail('expected one "Open project" link to the project link with rel=noopener');
+    flag(route, 'expected one "Open project" link to the project link with rel=noopener');
   }
 
   if (!/<div\b[^>]*class=["']?[^"'>]*\bpx-prose\b/.test(html) || !/\barticle__content\b/.test(html)) {
-    fail("content should sit in .article__content.px-prose");
+    flag(route, "content should sit in .article__content.px-prose");
   }
 
   if (/article__cover/.test(html) || /\bsrc=(?:""|''|(?=[\s>]))/.test(html)) {
-    fail("has article__cover or an empty src");
+    flag(route, "has article__cover or an empty src");
   }
 
   const footer = html.match(/<footer\b[^>]*class=["']?site-footer["']?[\s\S]*?<\/footer>/)?.[0] ?? "";
 
   for (const needle of ["github.com/yonatankarp", "linkedin.com/in/yonatankarp", "mailto:"]) {
     if (!footer.includes(needle)) {
-      fail(`footer is missing the ${needle} link`);
+      flag(route, `footer is missing the ${needle} link`);
     }
   }
 }
 
 function checkPlainPixelPage(route, html) {
   const body = html.match(/<body\b[^>]*>/)?.[0] ?? "";
-  const fail = (message) => failures.push(`${route}: ${message}`);
 
   if (!/class=["']?[^"'>]*\bpx-skin\b[^"'>]*\bpx-page\b/.test(body)) {
-    fail("body should have px-skin px-page");
+    flag(route, "body should have px-skin px-page");
   }
 
   const sheets = countMatches(html, /class=["']?[^"'>]*\bpx-sheet\b/g);
 
   if (sheets !== 1) {
-    fail(`expected one px-sheet, got ${sheets}`);
+    flag(route, `expected one px-sheet, got ${sheets}`);
   }
 
   if (/class=["']?[^"'>]*\breveal\b/.test(html)) {
-    fail("still has reveal classes");
+    flag(route, "still has reveal classes");
   }
 
   if (route === "/search/") {
     for (const id of ["site-search", "search-results"]) {
       if (!new RegExp(`\\bid=["']?${id}[\\s"'>]`).test(html)) {
-        fail(`missing #${id}`);
+        flag(route, `missing #${id}`);
       }
     }
   }
@@ -191,24 +189,24 @@ function checkPlainPixelPage(route, html) {
 
     for (const href of ["/", "/blog/"]) {
       if (!hrefs.includes(href)) {
-        fail(`should link to ${href}`);
+        flag(route, `should link to ${href}`);
       }
     }
 
     if (!/<form\b[^>]*action=["']?\/search\/[^>]*method=["']?get[^>]*>[\s\S]*?<input\b[^>]*name=["']?q\b/.test(html)) {
-      fail("needs a GET form to /search/ with an input named q");
+      flag(route, "needs a GET form to /search/ with an input named q");
     }
 
     if (hrefs.filter((href) => /^\/blog\/[^/]+\/$/.test(href)).length < 3) {
-      fail("should link to three recent posts");
+      flag(route, "should link to three recent posts");
     }
   }
 }
 
-const barTabs = [["/projects/", "Projects"], ["/blog/", "Blog"], ["/cv/", "CV"], ["/search/", "Search"]];
-const socialHrefs = Array.from(
-  fs.readFileSync(path.join(rootDir, "data", "home", "en.yaml"), "utf8").match(/^ {2}social:[^\n]*\n((?: {4}.*\n)+)/m)[1].matchAll(/url:\s*"([^"]+)"/g),
-).map((match) => match[1]);
+const barTabs = ["/projects/", "/blog/", "/cv/", "/search/"];
+// The bar's social row (data/home/en.yaml contact.social), as the homepage's bar has it: every page's must match.
+const socialRow = (bar) => Array.from(bar.match(/<nav\b[^>]*class=["']?(?:building-social|px-bar__social)["']?[^>]*>([\s\S]*?)<\/nav>/)?.[1].matchAll(/<a\b[^>]*>/g) ?? []).map((match) => collectAttribute(match[0], "href"));
+const socialHrefs = socialRow(fs.existsSync(publicDir) ? fs.readFileSync(path.join(publicDir, "index.html"), "utf8").match(/<header\b[^>]*class=["']?building-top["']?[\s>][\s\S]*?<\/header>/)?.[0] ?? "" : "");
 
 function currentTab(route) {
   if (route.startsWith("/projects/")) return "/projects/";
@@ -230,12 +228,12 @@ function checkTopBar(route, html) {
   }
 
   const bar = bars[0];
-  const tabs = bar.match(/<nav\b[^>]*aria-label=["']?Site["']?[^>]*>([\s\S]*?)<\/nav>/);
+  const tabs = bar.match(/<nav\b[^>]*>([\s\S]*?)<\/nav>/);   // the bar's first nav: its tabs
   const links = tabs ? Array.from(tabs[1].matchAll(/<a\b[^>]*>/g)).map((match) => match[0]) : [];
   const hrefs = links.map((tag) => collectAttribute(tag, "href"));
 
-  if (hrefs.join(" ") !== barTabs.map(([href]) => href).join(" ")) {
-    failures.push(`${route}: top bar tabs are [${hrefs.join(", ")}], expected [${barTabs.map(([href]) => href).join(", ")}]`);
+  if (hrefs.join(" ") !== barTabs.join(" ")) {
+    failures.push(`${route}: top bar tabs are [${hrefs.join(", ")}], expected [${barTabs.join(", ")}]`);
   } else {
     const expected = currentTab(route);
     const current = links.map((tag, index) => (collectAttribute(tag, "aria-current") === "page" ? hrefs[index] : null)).filter(Boolean);
@@ -252,8 +250,7 @@ function checkTopBar(route, html) {
     failures.push(`${route}: expected one ${downloadClass} linking to /yonatan-karp-rudin-cv.pdf`);
   }
 
-  const social = bar.match(/<nav\b[^>]*aria-label=["']?Find me elsewhere["']?[^>]*>([\s\S]*?)<\/nav>/);
-  const socialLinks = social ? Array.from(social[1].matchAll(/<a\b[^>]*>/g)).map((match) => collectAttribute(match[0], "href")) : [];
+  const socialLinks = socialRow(bar);
 
   if (socialHrefs.length === 0 || socialLinks.join(" ") !== socialHrefs.join(" ")) {
     failures.push(`${route}: top bar social row is [${socialLinks.join(", ")}], expected [${socialHrefs.join(", ")}]`);
@@ -273,8 +270,8 @@ function checkTopBar(route, html) {
     }
   }
 
-  // The Pause, on the pages a script animates (scene-fx.js, pixel.js), and only there.
-  const animated = ["/", "/projects/", "/blog/", "/podcast/", "/contact/"].includes(route);
+  // The Pause, on the pages a scene's script animates (scene-fx.js, pixel.js: a bundle in /building/), and only there.
+  const animated = /<script\b[^>]*\btype=["']?module\b[^>]*\bsrc=["']?\/building\/[a-z]+\.[0-9a-f]+\.js/.test(html);
   if (/data-building-pause-label[\s>]/.test(bar) !== animated) {
     failures.push(`${route}: top bar ${animated ? "is missing" : "should not have"} the Pause`);
   }
@@ -364,18 +361,19 @@ for (const filePath of htmlFiles) {
   }
 }
 
-// One current location, contact.location in data/home/en.yaml: the roof's "Based in", the CV's role line and the
-// homepage description (hugo.toml, by hand) must all say it (#115).
+// One current location, contact.location in data/home/en.yaml: the CV's role line, the roof's facts, the Person JSON-LD's
+// address and the homepage description (hugo.toml, by hand) must all say it (#115).
 {
   const home = fs.readFileSync(path.join(publicDir, "index.html"), "utf8");
   const cv = fs.readFileSync(path.join(publicDir, "cv", "index.html"), "utf8");
-  const basedIn = home.match(/<dt>Based in<\/dt>\s*<dd>([\s\S]*?)<\/dd>/)?.[1];
+  const facts = Array.from(home.matchAll(/<dl\b[^>]*class=["']?panel-facts["']?[^>]*>([\s\S]*?)<\/dl>/g)).flatMap((dl) => Array.from(dl[1].matchAll(/<dd>([\s\S]*?)<\/dd>/g)).map((dd) => decodeEntities(stripTags(dd[1]))));
+  const address = Array.from(home.matchAll(/<script\b[^>]*type=["']?application\/ld\+json["']?[^>]*>([\s\S]*?)<\/script>/g)).map((match) => JSON.parse(match[1])).find((item) => item["@type"] === "Person")?.address;
   const role = cv.match(/<p\b[^>]*class=["']?cv-role(?=["'\s>])[^>]*>([\s\S]*?)<\/p>/)?.[1];
   const cvLocation = role && decodeEntities(stripTags(role)).match(/·\s*(.+?)\s*$/)?.[1];
   const description = collectAttribute(home.match(/<meta\b[^>]*name=["']?description["'\s>][^>]*>/)?.[0] ?? "", "content");
 
-  if (!basedIn || !cvLocation || decodeEntities(stripTags(basedIn)) !== cvLocation) {
-    failures.push(`location: the homepage roof says "${basedIn}" and the CV says "${cvLocation}"; both should read contact.location`);
+  if (!cvLocation || !facts.includes(cvLocation) || `${address?.addressLocality}, ${address?.addressCountry}` !== cvLocation) {
+    failures.push(`location: the CV says "${cvLocation}", the homepage's Person is in "${address?.addressLocality}, ${address?.addressCountry}", and the roof's facts are [${facts.join(", ")}]; all should read contact.location`);
   } else if (!description?.includes(cvLocation)) {
     failures.push(`location: the homepage description "${description}" does not say "${cvLocation}"; update description in hugo.toml`);
   }
@@ -396,7 +394,6 @@ for (const filePath of htmlFiles) {
       return [];
     }
   });
-  const fail = (route, message) => failures.push(`${route}: ${message}`);
 
   for (const filePath of htmlFiles) {
     const route = `/${path.relative(publicDir, filePath).replace(/index\.html$/, "")}`;
@@ -409,86 +406,86 @@ for (const filePath of htmlFiles) {
 
     jsonLd(route, html);
 
-    if ([...description].length > 160) fail(route, `description is ${[...description].length} characters, over 160`);
+    if ([...description].length > 160) flag(route, `description is ${[...description].length} characters, over 160`);
     // A long title drops the site name; only a post title that is long on its own may stay over 65 (seoTitle shortens it).
-    if ([...title].length > 65 && title.endsWith("| Yonatan Karp-Rudin")) fail(route, `title "${title}" is over 65 characters with the site name`);
-    if (meta(html, "og:type").join() !== (/^\/blog\/[^/]+\/$/.test(route) ? "article" : "website")) fail(route, `og:type is ${meta(html, "og:type")}`);
-    if (!/^\/tags\//.test(route) && link(html, "alternate").filter((href) => href?.endsWith(".xml")).join() !== `${origin}/blog/index.xml`) fail(route, "should advertise the blog's RSS feed");
+    if ([...title].length > 65 && title.endsWith("| Yonatan Karp-Rudin")) flag(route, `title "${title}" is over 65 characters with the site name`);
+    if (meta(html, "og:type").join() !== (/^\/blog\/[^/]+\/$/.test(route) ? "article" : "website")) flag(route, `og:type is ${meta(html, "og:type")}`);
+    if (!/^\/tags\//.test(route) && link(html, "alternate").filter((href) => href?.endsWith(".xml")).join() !== `${origin}/blog/index.xml`) flag(route, "should advertise the blog's RSS feed");
   }
 
   // The Radio Mast and the Post Office (layouts/_default/radio.html, post.html), and the city's labels that go in to them.
-  const homeYaml = fs.readFileSync(path.join(rootDir, "data", "home", "en.yaml"), "utf8");
-  const emailAddress = homeYaml.match(/^ {4}address:\s*"([^"]+)"/m)[1], podcastUrl = homeYaml.match(/^ {2}podcast:[\s\S]*?^ {4}url:\s*"([^"]+)"/m)[1];
   const hrefs = (html) => tags(html, "a").map((tag) => [collectAttribute(tag, "href"), collectAttribute(tag, "data-goatcounter-click")]);
   const has = (html, href, event) => hrefs(html).some(([h, e]) => h === href && (event === undefined || e === event));
   const radio = read("podcast/index.html"), office = read("contact/index.html");
-  if (!has(radio, podcastUrl, "podcast-radio") || !has(radio, "/blog/") || !has(radio, "/")) fail("/podcast/", "needs the show's link (podcast-radio), the Library and the way back to the city");
-  if (!has(office, `mailto:${emailAddress}`, "email") || !/data-copy-email=/.test(office) || !has(office, "/podcast/") || !has(office, "/")) fail("/contact/", "needs the email (email), its Copy chip, the podcast and the way back to the city");
-  if (!hrefs(office).some(([h, e]) => /^\/(yonatan-karp-rudin-cv\.pdf|cv\/)$/.test(h ?? "") && e === "cv-download")) fail("/contact/", "needs the CV parcel (cv-download)");
+  // The show's link is the bar's podcast icon's (contact.social), the address the Copy chip's (contact.email).
+  const podcastUrl = hrefs(radio).find(([, e]) => e === "social-podcast")?.[0], emailAddress = collectAttribute(office.match(/<[^>]*\bdata-copy-email=[^>]*>/)?.[0] ?? "", "data-copy-email");
+  if (!podcastUrl || !has(radio, podcastUrl, "podcast-radio") || !has(radio, "/blog/") || !has(radio, "/")) flag("/podcast/", "needs the show's link (podcast-radio), the Library and the way back to the city");
+  if (!emailAddress || !has(office, `mailto:${emailAddress}`, "email") || !has(office, "/podcast/") || !has(office, "/")) flag("/contact/", "needs the email (email), its Copy chip, the podcast and the way back to the city");
+  if (!hrefs(office).some(([h, e]) => /^\/(yonatan-karp-rudin-cv\.pdf|cv\/)$/.test(h ?? "") && e === "cv-download")) flag("/contact/", "needs the CV parcel (cv-download)");
   for (const [key, href] of [["radio", "/podcast/"], ["post", "/contact/"]]) {
     const label = tags(read("index.html"), "a").find((tag) => /\bcity-tag\b/.test(collectAttribute(tag, "class") ?? "") && collectAttribute(tag, "data-pick") === key);
-    if (collectAttribute(label ?? "", "href") !== href || collectAttribute(label ?? "", "data-goatcounter-click") !== `district-${key}`) fail("/", `the city's ${key} label should go in to ${href} (district-${key})`);
+    if (collectAttribute(label ?? "", "href") !== href || collectAttribute(label ?? "", "data-goatcounter-click") !== `district-${key}`) flag("/", `the city's ${key} label should go in to ${href} (district-${key})`);
   }
 
   const blog = read("blog/index.html");
-  if (!tags(blog, "a").some((tag) => collectAttribute(tag, "href") === "/blog/index.xml")) fail("/blog/", "missing the RSS link to /blog/index.xml");
+  if (!tags(blog, "a").some((tag) => collectAttribute(tag, "href") === "/blog/index.xml")) flag("/blog/", "missing the RSS link to /blog/index.xml");
 
   // Every post on one page, as a card, with the Library's search and topics before the list so phones get them near the
   // top (#185), and a topic link (a chip, without a script) for every tag a post carries; the old /blog/page/N/ URLs
   // redirect, below.
   const postCount = JSON.parse(read("index.json")).filter((page) => page.type === "Post").length;
-  if (countMatches(blog, /<article\b[^>]*\bpost-row\b/g) !== postCount || /\bpagination\b|rel=["']?next\b/.test(blog)) fail("/blog/", `should list all ${postCount} posts on one page, with no pager`);
-  if (!(blog.indexOf("library-tools") < blog.indexOf("library-list"))) fail("/blog/", "the search and topics should come before the list");
+  if (countMatches(blog, /<article\b[^>]*\bpost-row\b/g) !== postCount || /\bpagination\b|rel=["']?next\b/.test(blog)) flag("/blog/", `should list all ${postCount} posts on one page, with no pager`);
+  if (!(blog.indexOf("library-tools") < blog.indexOf("library-list"))) flag("/blog/", "the search and topics should come before the list");
   const topicLinks = new Set(tags(blog, "a").filter((tag) => collectAttribute(tag, "data-topic")).map((tag) => collectAttribute(tag, "href")));
   for (const href of new Set(Array.from(blog.matchAll(/data-tags=["']?([^"'>]*)/g)).flatMap((m) => m[1].trim().split(/\s+/)).filter(Boolean).map((t) => `/tags/${t}/`))) {
-    if (!topicLinks.has(href)) fail("/blog/", `no topic chip links to ${href}`);
+    if (!topicLinks.has(href)) flag("/blog/", `no topic chip links to ${href}`);
   }
 
   const home = read("index.html");
   const homeLd = jsonLd("/", home);
   const person = homeLd.find((item) => item["@type"] === "Person");
-  if (!person?.image || !person.sameAs?.includes("https://x.com/yonvata") || !person.address?.addressLocality) fail("/", "Person JSON-LD needs image, address and the X profile in sameAs");
-  if (!person?.alternateName || !person.description || !person.alumniOf?.name || !person.knowsAbout?.length) fail("/", "Person JSON-LD needs alternateName, description, alumniOf and knowsAbout");
+  if (!person?.image || !person.sameAs?.some((url) => url === "https://x.com/yonvata") || !person.address?.addressLocality) flag("/", "Person JSON-LD needs image, address and the X profile in sameAs");
+  if (!person?.alternateName || !person.description || !person.alumniOf?.name || !person.knowsAbout?.length) flag("/", "Person JSON-LD needs alternateName, description, alumniOf and knowsAbout");
   const profile = homeLd.find((item) => item["@type"] === "ProfilePage");
-  if (!profile || profile.mainEntity?.["@id"] !== person?.["@id"]) fail("/", "needs a ProfilePage whose mainEntity is the Person");
-  if (!homeLd.some((item) => item["@type"] === "WebSite")) fail("/", "needs a WebSite JSON-LD");
+  if (!profile || profile.mainEntity?.["@id"] !== person?.["@id"]) flag("/", "needs a ProfilePage whose mainEntity is the Person");
+  if (!homeLd.some((item) => item["@type"] === "WebSite")) flag("/", "needs a WebSite JSON-LD");
 
   const post = read("blog/build-twitter-bot-kotlin/index.html");
   const types = jsonLd("post", post);
   const posting = types.find((item) => item["@type"] === "BlogPosting");
   for (const key of ["headline", "image", "description", "datePublished", "dateModified"]) {
-    if (!posting?.[key]) fail("post", `BlogPosting is missing ${key}`);
+    if (!posting?.[key]) flag("post", `BlogPosting is missing ${key}`);
   }
-  if (!posting?.author?.url) fail("post", "BlogPosting author needs a url");
-  if (posting?.description?.endsWith("…")) fail("post", "BlogPosting description should not be truncated");
-  if (types.find((item) => item["@type"] === "BreadcrumbList")?.itemListElement?.length !== 3) fail("post", "needs a three-step BreadcrumbList");
+  if (!posting?.author?.url) flag("post", "BlogPosting author needs a url");
+  if (posting?.description?.endsWith("…")) flag("post", "BlogPosting description should not be truncated");
+  if (types.find((item) => item["@type"] === "BreadcrumbList")?.itemListElement?.length !== 3) flag("post", "needs a three-step BreadcrumbList");
   const authorLinks = tags(post.match(/<aside\b[^>]*\barticle-author\b[\s\S]*?<\/aside>/)?.[0] ?? "", "a").map((tag) => collectAttribute(tag, "href"));
-  if (authorLinks.join() !== "/cv/,/#floor-R") fail("post", `author card should link the CV and the roof, links are [${authorLinks}]`);
+  if (authorLinks.join() !== "/cv/,/#floor-R") flag("post", `author card should link the CV and the roof, links are [${authorLinks}]`);
   for (const key of ["og:site_name", "og:locale", "og:image:width", "og:image:height", "og:image:alt", "article:published_time", "twitter:site"]) {
-    if (meta(post, key).length !== 1) fail("post", `needs one ${key}`);
+    if (meta(post, key).length !== 1) flag("post", `needs one ${key}`);
   }
 
   for (const [route, file] of [["/tags/kotlin/", "tags/kotlin/index.html"], ["/tags/", "tags/index.html"], ["/search/", "search/index.html"], ["/404.html", "404.html"]]) {
-    if (meta(read(file), "robots").join() !== "noindex") fail(route, "should be noindex");
+    if (meta(read(file), "robots").join() !== "noindex") flag(route, "should be noindex");
   }
-  if (!/^Posts tagged /.test(read("tags/kotlin/index.html").match(/<title>([^<]*)/)?.[1] ?? "")) fail("/tags/kotlin/", 'title should start "Posts tagged"');
+  if (!/^Posts tagged /.test(read("tags/kotlin/index.html").match(/<title>([^<]*)/)?.[1] ?? "")) flag("/tags/kotlin/", 'title should start "Posts tagged"');
   for (const route of ["/", "/blog/", "/cv/"]) {
-    if (meta(read(`${route.slice(1)}index.html`), "robots").length) fail(route, "should not be noindex");
+    if (meta(read(`${route.slice(1)}index.html`), "robots").length) flag(route, "should not be noindex");
   }
 
   const notFound = read("404.html");
-  if (link(notFound, "canonical").length || meta(notFound, "og:url").length || !/<script\b[^>]*src=["']?\/js\/goatcounter-404\.[^>]*>[\s\S]*?<script\b[^>]*gc\.zgo\.at\/count\.v\d+\.js[^>]*\bintegrity=/.test(notFound)) fail("/404.html", "needs no canonical or og:url, and GoatCounter should count it under 404/<path>");
+  if (link(notFound, "canonical").length || meta(notFound, "og:url").length || !/<script\b[^>]*src=["']?\/js\/goatcounter-404\.[^>]*>[\s\S]*?<script\b[^>]*gc\.zgo\.at\/count\.v\d+\.js[^>]*\bintegrity=/.test(notFound)) flag("/404.html", "needs no canonical or og:url, and GoatCounter should count it under 404/<path>");
 
-  if (!/<title>[^<]*\bCV\b/.test(read("cv/index.html"))) fail("/cv/", 'title should say "CV"');
+  if (!/<title>[^<]*\bCV\b/.test(read("cv/index.html"))) flag("/cv/", 'title should say "CV"');
 
   const sitemap = read("sitemap.xml");
   for (const excluded of ["/tags/", "/search/"]) {
-    if (sitemap.includes(`<loc>${origin}${excluded}`)) fail("sitemap.xml", `lists ${excluded}`);
+    if (sitemap.includes(`<loc>${origin}${excluded}`)) flag("sitemap.xml", `lists ${excluded}`);
   }
 
   const feedLinks = (file) => Array.from(read(file).matchAll(/<item>[\s\S]*?<link>([^<]+)<\/link>/g)).map((match) => match[1]);
   const homeFeed = feedLinks("index.xml");
-  if (homeFeed.length === 0 || homeFeed.some((url) => !url.startsWith(`${origin}/blog/`)) || homeFeed.join() !== feedLinks("blog/index.xml").join()) fail("index.xml", "should list the blog posts only, as /blog/index.xml does");
+  if (homeFeed.length === 0 || homeFeed.some((url) => !url.startsWith(`${origin}/blog/`)) || homeFeed.join() !== feedLinks("blog/index.xml").join()) flag("index.xml", "should list the blog posts only, as /blog/index.xml does");
 }
 
 // Post media (#137, #138, #139) and the search page and index (#134).
@@ -633,6 +630,16 @@ for (const filePath of htmlFiles) {
   const about = fs.existsSync(path.join(publicDir, "about", "index.html")) ? fs.readFileSync(path.join(publicDir, "about", "index.html"), "utf8") : "";
   if (!isRedirectPage(about) || !/content=["']?noindex/.test(about) || !about.includes('url=https://yonatankarp.com/#floor-L"') || !/id=["']?floor-L["'\s>]/.test(home)) failures.push("/about/: should be a noindex redirect to /#floor-L");
   if (sitemap.includes("<loc>https://yonatankarp.com/about/<")) failures.push("sitemap.xml: lists /about/");
+}
+// A testimonial's pullQuote, the lobby's card, is an exact excerpt of its full quote (layouts/index.html checks it is there).
+{
+  const dir = path.join(rootDir, "content", "testimonial");
+  const words = (text) => text.replace(/\s+/g, " ").trim();
+  for (const file of fs.readdirSync(dir).filter((name) => name.endsWith(".md") && name !== "_index.md")) {
+    const { frontMatter, body } = splitFrontMatter(fs.readFileSync(path.join(dir, file), "utf8"));
+    const quote = frontMatterValue(frontMatter, "pullQuote");
+    if (quote && !words(body).includes(words(quote))) failures.push(`content/testimonial/${file}: pullQuote "${quote}" is not an exact excerpt of the quote below the front matter`);
+  }
 }
 // The time pick's zone table, as layouts/partials/time-pick.html builds it, places every zone and link (scripts/lib.js).
 {

@@ -8,8 +8,7 @@
      folder ("Europe/": "... Berlin53,13 ..."): about 8 KB, 4.5 KB gzipped. */ -}}
 {{- $tz := hugo.Data.timezones }}
 {{- $z := newScratch }}
-{{- /* The links skip a retired alias the site leaves out (as scripts/lib.js's zoneTable() does). */}}
-{{- range $name, $to := $tz.links }}{{ if ne $name "Asia/Tel_Aviv" }}{{ $z.SetInMap "at" $name (index $tz.zones $to) }}{{ end }}{{ end }}
+{{- range $name, $to := $tz.links }}{{ $z.SetInMap "at" $name (index $tz.zones $to) }}{{ end }}
 {{- range $name, $at := merge ($z.Get "at") $tz.zones }}
   {{- $p := path.Split $name }}
   {{- $z.Set $p.Dir (trim (printf "%s %s%d,%d" ($z.Get $p.Dir | default "") $p.File (int (math.Round (index $at 0))) (int (math.Round (index $at 1)))) " ") }}

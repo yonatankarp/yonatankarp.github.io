@@ -3,43 +3,13 @@
 const fs = require("fs");
 const path = require("path");
 
-const { rootDir, walk } = require("./lib");
+const { rootDir, walk, escapeRegex, splitFrontMatter } = require("./lib");
 
 const blogDir = path.join(rootDir, "content", "blog");
 const staticDir = path.join(rootDir, "static");
 
 function normalizeAssetRef(ref) {
   return ref.split(/[?#]/, 1)[0];
-}
-
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function splitFrontMatter(content) {
-  const normalizedContent = content.replace(/^\uFEFF/, "");
-  const openerMatch = normalizedContent.match(/^(---|\+\+\+)[^\r\n]*(?:\r?\n|$)/);
-
-  if (!openerMatch) {
-    return { frontMatter: "", body: content };
-  }
-
-  const marker = openerMatch[1];
-  const bodyStart = openerMatch[0].length;
-  const closingPattern = new RegExp(`(?:^|\\r?\\n)${escapeRegex(marker)}\\s*(?:\\r?\\n|$)`);
-  const closingMatch = normalizedContent.slice(bodyStart).match(closingPattern);
-
-  if (!closingMatch || closingMatch.index === undefined) {
-    return { frontMatter: "", body: content };
-  }
-
-  const frontMatterEnd = bodyStart + closingMatch.index;
-  const bodyOffset = frontMatterEnd + closingMatch[0].length;
-
-  return {
-    frontMatter: normalizedContent.slice(bodyStart, frontMatterEnd),
-    body: normalizedContent.slice(bodyOffset),
-  };
 }
 
 function stripFencedCodeBlocks(markdown) {

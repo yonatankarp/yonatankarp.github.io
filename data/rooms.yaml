@@ -14,11 +14,15 @@ workshop:
   title: "Workshop Row"
   pick: "Pick a workshop."   # after the page's lead line
   chips: "Workshops"   # the chips' label, for screen readers
-  groups:   # each workshop's name, by the projects' `group`
-    app: "Apps"
-    library: "Libraries"
-    game: "Games"
-    contribution: "Open-source contributions"
+  groups:   # the workshops, left to right, the first picked on arrival: a project's `group` is a key; change only the names
+    - key: "app"
+      name: "Apps"
+    - key: "library"
+      name: "Libraries"
+    - key: "game"
+      name: "Games"
+    - key: "contribution"
+      name: "Open-source contributions"
   project: "project"   # "1 project."
   projects: "projects"   # "3 projects."
   say: "%s, %s."   # read out on a pick, in place of its whole list: "Apps, 3 projects."; %s is the workshop, then the count

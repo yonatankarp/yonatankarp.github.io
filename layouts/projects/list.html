@@ -4,12 +4,12 @@
      without a script they all show, one under the other. A standalone page (no baseof), so the script that picks the
      painting's hour can be allowed by its hash in head.html's CSP. */ -}}
 {{ $pages := .Pages.ByWeight }}
-{{ range $pages }}{{ if not .Params.link }}{{ errorf "%s: add `link`, where /projects/ sends the reader." .File.Path }}{{ end }}{{ if not (in (slice "app" "library" "game" "contribution") .Params.group) }}{{ errorf "%s: set `group` to app, library, game or contribution, its workshop on /projects/." .File.Path }}{{ end }}{{ end }}
+{{ partial "check-projects.html" $pages }}
 {{ $art := os.ReadFile "static/building/pixel/workshop.json" | transform.Unmarshal }}{{/* written by gen_workshop.py */}}
 {{ $t := hugo.Data.rooms.workshop }}
 {{ $workshops := slice }}
-{{ range $i, $g := slice (slice "app" $t.groups.app) (slice "library" $t.groups.library) (slice "game" $t.groups.game) (slice "contribution" $t.groups.contribution) }}
-  {{ $workshops = $workshops | append (dict "key" (index $g 0) "name" (index $g 1) "pages" (where $pages "Params.group" (index $g 0)) "at" (index $art.labels (printf "bay-%d" (add $i 1)))) }}
+{{ range $i, $g := $t.groups }}
+  {{ $workshops = $workshops | append (dict "key" $g.key "name" $g.name "first" (eq $i 0) "pages" (where $pages "Params.group" $g.key) "at" (index $art.labels (printf "bay-%d" (add $i 1)))) }}
 {{ end }}
 {{ $css := resources.Get "building/workshop.css" }}
 {{ $js := resources.Get "building/workshop.js" }}
@@ -53,7 +53,7 @@
         <script>{{ $hour.Content | safeJS }}</script>
         <canvas class="city-fx" width="{{ index $art.size 0 }}" height="{{ index $art.size 1 }}" aria-hidden="true"></canvas>{{/* the row's life: workshop-fx.js */}}
         {{ range $workshops }}
-        <button class="city-tag{{ if eq .key "app" }} on{{ end }}" type="button" data-pick="{{ .key }}" aria-pressed="{{ eq .key "app" }}" style="--x:{{ index .at 0 }}%;--y:{{ index .at 1 }}%">{{ .name }}</button>
+        <button class="city-tag{{ if .first }} on{{ end }}" type="button" data-pick="{{ .key }}" aria-pressed="{{ .first }}" style="--x:{{ index .at 0 }}%;--y:{{ index .at 1 }}%">{{ .name }}</button>
         {{ end }}
       </div>
     </div>
@@ -61,12 +61,12 @@
       <a class="workshop-back" href="{{ "" | relURL }}#workshop">{{ hugo.Data.ui.back_to_city }}</a>
       <h1 class="city-kicker">{{ $t.title }}</h1>
       <p class="city-lede">{{ .Content | plainify }} {{ $t.pick }}</p>
-      <div class="city-chips" role="group" aria-label="{{ $t.chips }}">{{ range $workshops }}<button type="button" data-pick="{{ .key }}" aria-pressed="{{ eq .key "app" }}">{{ .name }}</button>{{ end }}</div>
+      <div class="city-chips" role="group" aria-label="{{ $t.chips }}">{{ range $workshops }}<button type="button" data-pick="{{ .key }}" aria-pressed="{{ .first }}">{{ .name }}</button>{{ end }}</div>
       <div class="sr-only" aria-live="polite" data-said></div>{{/* a pick's short line, not its whole list (workshop.js) */}}
       <div class="city-say">
         {{ range $workshops }}
         {{ $count := printf "%d %s" (len .pages) (cond (eq (len .pages) 1) $t.project $t.projects) }}
-        <div data-district="{{ .key }}" data-say="{{ printf $t.say .name $count }}"{{ if ne .key "app" }} hidden{{ end }}>
+        <div data-district="{{ .key }}" data-say="{{ printf $t.say .name $count }}"{{ if not .first }} hidden{{ end }}>
           <h2>{{ .name }}</h2>
           <p>{{ $count }}.</p>
           <ol class="workshop-projects">

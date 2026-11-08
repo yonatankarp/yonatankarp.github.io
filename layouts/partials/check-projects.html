@@ -1,0 +1,7 @@
+{{- /* Every project's `link` and `group`, checked once for the homepage and Workshop Row, so a slip names its file instead
+     of failing deep in the page. Takes the project pages; renders nothing. The groups are data/rooms.yaml's workshop.groups. */ -}}
+{{- $groups := slice -}}{{- range hugo.Data.rooms.workshop.groups -}}{{- $groups = $groups | append .key -}}{{- end -}}
+{{- range . -}}
+  {{- if not .Params.link -}}{{- errorf "%s: add `link`, where /projects/ sends the reader." .File.Path -}}{{- end -}}
+  {{- if not (in $groups .Params.group) -}}{{- errorf "%s: set `group` to %s, its workshop on /projects/ (workshop.groups in data/rooms.yaml)." .File.Path (delimit $groups ", " " or ") -}}{{- end -}}
+{{- end -}}

@@ -1,5 +1,7 @@
 ---
 title: "Blog"
+scene: true   # a script animates the page (scene-fx.js): the top bar gets its Pause
+backdrop: false   # its room hides the city's backdrop, so the head skips the time pick (head.html)
 aliases:
   - /archive
   - /archive/2

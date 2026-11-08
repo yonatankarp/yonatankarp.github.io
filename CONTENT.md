@@ -24,7 +24,7 @@ the build fails, and nothing is published, when one is broken.
 | --- | --- |
 | The site's name, the homepage's title and description in search results | `hugo.toml`: `title`, `params.title`, `params.description` |
 | The city's panel: kicker, hint, the "Ride the career tower" link, the map's alt text | `data/home/en.yaml`: `city` |
-| A district's name, title, text and link | `data/home/en.yaml`: `city.districts` (the Radio Mast and the Post Office take their text from `contact`) |
+| A district's name, title, text and link | `data/home/en.yaml`: `city.districts` (the Radio Mast and the Post Office take their text from `contact`; `url` is where its link goes) |
 | "← Whole city", "Download the CV (PDF)", the map's and chips' labels, a picked label's hint for screen readers | `data/home/en.yaml`: `city.out`, `city.pdf`, `city.label`, `city.chips`, `city.again` |
 | The role line in the panel, the hero title and availability | `data/home/en.yaml`: `hero` |
 
@@ -68,11 +68,11 @@ and the skills instead of the focus boxes. Put the bullets that matter most firs
 | --- | --- |
 | The Library's title, search box, chips and count | `data/rooms.yaml`: `library`; its lead line is the body of `content/blog/_index.md` |
 | The Library's topic chips and their order | `data/library.yaml` |
-| Workshop Row's title, the workshops' names, "Case study", "View" | `data/rooms.yaml`: `workshop`; its lead line is the body of `content/projects/_index.md` |
+| Workshop Row's title, the workshops' names, "Case study", "View" | `data/rooms.yaml`: `workshop` (a workshop's `name`; its `key` stays); its lead line is the body of `content/projects/_index.md` |
 | The Radio Mast's labels and the "Rather read?" line | `data/rooms.yaml`: `radio` |
 | The show's name, text, platform and link | `data/home/en.yaml`: `contact.podcast` |
 | The Post Office's labels and stamps | `data/rooms.yaml`: `post` |
-| The letter: title, text, priorities, "Best for" | `data/home/en.yaml`: `contact` (keep the label "Best for": the letter picks that fact by it) |
+| The letter: title, text, priorities, "Best for" | `data/home/en.yaml`: `contact` (the letter's fact is the one whose `key` is `best_for`) |
 | A page's title and description in search results | the front matter of `content/podcast.md`, `content/contact.md`, `content/blog/_index.md`, `content/projects/_index.md` |
 
 ### Buttons, labels, alt texts, the footer, social links, `llms.txt`

@@ -5,7 +5,11 @@
 // the browser. Each fence's source, with its title and description as accTitle and accDescr, is drawn by the mermaid
 // package in Playwright's Chromium, in Outfit, and written to assets/diagrams/<sha256 of that source>.svg (gitignored).
 // layouts/_default/_markup/render-codeblock-mermaid.html builds the same source, hashes it and inlines the file, and
-// fails the build when it is missing, so a diagram edited since this ran is never shipped stale.
+// fails the build when it is missing, so a diagram edited since this ran is never shipped stale. A file is named by what
+// it draws, so one already there is kept and only the missing are drawn (Playwright is needed only then); a file no fence
+// names any more is removed. A change to how they are drawn names no new file, so a stamp beside them, of the config,
+// Mermaid's version and the fonts, redraws them all when it changes (shortcut: not head.html's unicode-ranges; delete
+// assets/diagrams/ after changing those).
 
 const fs = require("fs");
 const path = require("path");
@@ -14,6 +18,10 @@ const { rootDir, fail, walk, loadPlaywright } = require("./lib");
 
 const outDir = path.join(rootDir, "assets", "diagrams");
 const fontsDir = path.join(rootDir, "static", "fonts");
+
+// The skin's colours: custom.css's .px-skin tokens, the page's own palette.
+const skin = fs.readFileSync(path.join(rootDir, "assets", "css", "custom.css"), "utf8").match(/^\.px-skin \{([\s\S]*?)^\}/m)?.[1] ?? "";
+const token = (name) => skin.match(new RegExp(`--${name}:\\s*(#[0-9a-f]+);`))?.[1] ?? fail(`render-diagrams.js: no --${name} colour in custom.css's .px-skin`);
 
 // The look the diagrams were drawn with in the browser, before #250. Natural size: custom.css shrinks the svg to the
 // column, and the zoom dialog shows it at this size.
@@ -26,17 +34,17 @@ const config = {
     fontFamily: "Outfit, system-ui, sans-serif",
     fontSize: "15px",
     background: "transparent",
-    primaryColor: "#2b3344",
-    primaryTextColor: "#f2ece0",
-    primaryBorderColor: "#0a0b10",
-    secondaryColor: "#151923",
-    tertiaryColor: "#151923",
-    lineColor: "#ffb547",
-    signalColor: "#ffb547",
-    textColor: "#f2ece0",
-    edgeLabelBackground: "#151923",
+    primaryColor: token("panel-hi"),
+    primaryTextColor: token("text"),
+    primaryBorderColor: token("ink"),
+    secondaryColor: token("panel"),
+    tertiaryColor: token("panel"),
+    lineColor: token("amber"),
+    signalColor: token("amber"),
+    textColor: token("text"),
+    edgeLabelBackground: token("panel"),
     clusterBkg: "transparent",
-    clusterBorder: "#2b3344",
+    clusterBorder: token("panel-hi"),
   },
 };
 
@@ -65,6 +73,12 @@ function findDiagrams(markdown) {
 }
 
 const fontFace = (file, range) => `@font-face { font-family: 'Outfit'; font-style: normal; font-weight: 400 800; src: url(data:font/woff2;base64,${fs.readFileSync(path.join(fontsDir, file)).toString("base64")}) format('woff2'); unicode-range: ${range}; }`;
+
+// What a run does, from the diagrams the fences name and the files in assets/diagrams/: which to draw, which files to remove.
+function plan(diagrams, files) {
+  const wanted = new Set(diagrams.map(({ key }) => `${key}.svg`));
+  return { draw: diagrams.filter(({ key }) => !files.includes(`${key}.svg`)), remove: files.filter((file) => file.endsWith(".svg") && !wanted.has(file)) };
+}
 
 async function render(diagrams) {
   const { chromium } = loadPlaywright("Drawing the Mermaid diagrams");
@@ -101,12 +115,17 @@ if (require.main === module) {
         if (!diagrams.some((d) => d.key === diagram.key)) diagrams.push(diagram);
       }
     }
-    await render(diagrams);
-    fs.rmSync(outDir, { recursive: true, force: true });
+    const stampFile = path.join(outDir, "stamp");
+    const stamp = diagramKey(JSON.stringify([config, require("mermaid/package.json").version, ...["outfit-latin.woff2", "outfit-latin-ext.woff2"].map((file) => diagramKey(fs.readFileSync(path.join(fontsDir, file))))]));
+    if (fs.existsSync(stampFile) && fs.readFileSync(stampFile, "utf8") !== stamp) fs.rmSync(outDir, { recursive: true, force: true });
     fs.mkdirSync(outDir, { recursive: true });
-    for (const { key, svg } of diagrams) fs.writeFileSync(path.join(outDir, `${key}.svg`), svg);
-    console.log(`Drew ${diagrams.length} Mermaid diagrams into ${path.relative(rootDir, outDir)}/`);
+    const { draw, remove } = plan(diagrams, fs.readdirSync(outDir));
+    if (draw.length) await render(draw);
+    for (const { key, svg } of draw) fs.writeFileSync(path.join(outDir, `${key}.svg`), svg);
+    for (const file of remove) fs.rmSync(path.join(outDir, file));
+    fs.writeFileSync(stampFile, stamp);
+    console.log(`Mermaid diagrams in ${path.relative(rootDir, outDir)}/: drew ${draw.length}, kept ${diagrams.length - draw.length}, removed ${remove.length}`);
   })().catch((error) => fail(`render-diagrams.js: ${error.message}`));
 }
 
-module.exports = { diagramSource, diagramKey, findDiagrams };
+module.exports = { diagramSource, diagramKey, findDiagrams, plan };

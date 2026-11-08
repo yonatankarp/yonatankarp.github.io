@@ -106,7 +106,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
-{{ range $projects }}{{ if not .Params.link }}{{ errorf "%s: add `link`, where /projects/ sends the reader." .File.Path }}{{ end }}{{ if not (in (slice "app" "library" "game" "contribution") .Params.group) }}{{ errorf "%s: set `group` to app, library, game or contribution, the sections of /projects/." .File.Path }}{{ end }}{{ end }}
+{{ partial "check-projects.html" $projects }}
 <!DOCTYPE html>
 <html lang="{{ .Site.Language.Lang }}">
 <head>
@@ -141,8 +141,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   {{- /* The city: shown only where html has at-city (the pre-paint script above), else the building is the page. Its
        labels sit where gen_city.py's city.json puts them; JS zooms the map into the picked district and shows its text. */}}
   {{ $role := split $home.hero.eyebrow " · " }}
-  {{ $pdf := cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}
-  {{ $go := dict "tower" "#floor-L" "library" ("blog/" | relURL) "workshop" ("projects/" | relURL) "radio" ("podcast/" | relURL) "post" ("contact/" | relURL) }}
+  {{ $pdf := partial "cv-href.html" }}
+  {{ $go := dict }}{{ range $city.districts }}{{ $go = merge $go (dict .key (cond (hasPrefix .url "#") .url (relURL .url))) }}{{ end }}
   {{ $counts := dict "tower" (len $experience) "library" (len $posts) "workshop" (len $projects) }}
   {{ $texts := dict "radio" $home.contact.podcast.text "post" $home.contact.title }}
   <section class="city" id="city" aria-label="{{ $city.label }}" data-city>
@@ -178,7 +178,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
           <h2>{{ with index $counts .key }}{{ printf $title . }}{{ else }}{{ $title }}{{ end }}</h2>
           <p>{{ .text | default (index $texts .key) }}</p>
           {{ if eq .key "post" }}<p class="with-copy"><a href="mailto:{{ $home.contact.email.address }}" data-goatcounter-click="email">{{ $home.contact.email.address }}</a> {{ partial "copy-email.html" $home.contact.email.address }}</p>{{ end }}
-          <p><a class="city-go" href="{{ index $go .key }}" data-go="{{ .key }}" data-goatcounter-click="district-{{ .key }}">{{ .go }} →</a>{{ if eq .key "post" }} <a class="city-pdf" href="{{ $pdf }}"{{ if not hugo.IsServer }} download{{ end }} data-goatcounter-click="cv-download">{{ $city.pdf }}</a>{{ end }}</p>
+          <p><a class="city-go" href="{{ index $go .key }}" data-go="{{ .key }}" data-goatcounter-click="district-{{ .key }}">{{ .go }} →</a>{{ if eq .key "post" }} <a class="city-pdf" {{ $pdf }} data-goatcounter-click="cv-download">{{ $city.pdf }}</a>{{ end }}</p>
         </div>
         {{ end }}
       </div>

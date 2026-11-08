@@ -27,8 +27,8 @@ export function cityFx(canvas, img) {
 function setup(ctx, fx, dfill, footAt, sprite, plaza, spooks, show, windowsUrl, winter) {
   const W = ctx.canvas.width, time = root.dataset.time, night = time === 'night', lamps = night || time === 'dusk';
   const snow = winter && snowfall(ctx, night);
-  let dressing = [];
-  plaza.then((items) => { dressing = items; });
+  let plazaItems = [];
+  plaza.then((items) => { plazaItems = items; });
   // Halloween's ghosts, half see-through, each drifting to and fro along its path (x0, x1, its bottom row y, the depth f
   // it hides behind nearer things from) at 2-5 px a second, bobbing, its body swaying through its frames; and its bats.
   let ghosts = [], bats = null;
@@ -79,7 +79,7 @@ function setup(ctx, fx, dfill, footAt, sprite, plaza, spooks, show, windowsUrl, 
   }).filter((_, i) => !night || i % 2);
   // Drawn by their feet's row among the plaza's props, farther first, so nobody walks through one.
   const drawPeople = (now, dt) => {
-    const order = dressing.map((p) => [p.y, () => p.draw(ctx, now / 1000)]);
+    const order = plazaItems.map((p) => [p.y, () => p.draw(ctx, now / 1000)]);
     for (const g of ghosts) {
       g.x += g.v * dt / 1000;
       if (g.x > g.x1 || g.x < g.x0) { g.v = -g.v; g.x = Math.min(g.x1, Math.max(g.x0, g.x)); }

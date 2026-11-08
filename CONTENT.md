@@ -25,7 +25,7 @@ the build fails, and nothing is published, when one is broken.
 | The site's name, the homepage's title and description in search results | `hugo.toml`: `title`, `params.title`, `params.description` |
 | The city's panel: kicker, hint, the "Ride the career tower" link, the map's alt text | `data/home/en.yaml`: `city` |
 | A district's name, title, text and link | `data/home/en.yaml`: `city.districts` (the Radio Mast and the Post Office take their text from `contact`) |
-| "← Whole city", "Download the CV (PDF)", the map's and chips' labels | `data/home/en.yaml`: `city.out`, `city.pdf`, `city.label`, `city.chips` |
+| "← Whole city", "Download the CV (PDF)", the map's and chips' labels, a picked label's hint for screen readers | `data/home/en.yaml`: `city.out`, `city.pdf`, `city.label`, `city.chips`, `city.again` |
 | The role line in the panel, the hero title and availability | `data/home/en.yaml`: `hero` |
 
 ### The Career Tower

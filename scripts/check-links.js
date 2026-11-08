@@ -53,8 +53,12 @@ function idsIn(filePath) {
       const id = collectAttribute(tagMatch[0], "id");
       const name = /^<a\b/i.test(tagMatch[0]) ? collectAttribute(tagMatch[0], "name") : null;
 
+      // A city label's key is a target too: the homepage's pre-paint reads /#KEY as "back from that district" (#305).
+      const pick = /\bcity-tag\b/.test(collectAttribute(tagMatch[0], "class") ?? "") ? collectAttribute(tagMatch[0], "data-pick") : null;
+
       if (id) ids.add(decodeHtml(id));
       if (name) ids.add(decodeHtml(name));
+      if (pick) ids.add(decodeHtml(pick));
     }
 
     idCache.set(filePath, ids);

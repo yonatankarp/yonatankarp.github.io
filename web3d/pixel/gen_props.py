@@ -111,18 +111,19 @@ BURST_FRAMES = [(.3, 1, 0, 0), (.55, 1, 0, 0), (.78, 1, 0, 0), (.93, 1, 0, 0), (
                 (1.04, .8, 6, .15), (1.07, .6, 14, .3), (1.09, .42, 26, .5), (1.1, .26, 40, .7)]
 GROW = 5
 LIT, GAIN = 0.4, 1.6
-# x0, y0, x1, y1: where a burst's middle may fall, the sky over the middle of the map round the tower (x 720), which
-# both a desktop's opening view (x 314-869) and a phone's (x 621-879) show. The tower and the crane stand in it: what the
-# depth map has nearer than the sky at the top of its column (14-22 there, not 0) hides a burst and its spark, which
-# climbs RISE px (props.js's SPARK.rise). A burst's middle keeps CORE px off the crane's two lights (LIGHTS' blinks).
-SKY = [610, 24, 870, 38]
+# x0, y0, x1, y1: where a burst's middle may fall, the sky just left of the tower (x 713), clear of the top bar at the
+# opening view: a burst is whole below a phone's bar (art rows 0-28, x 653-848 shown at 390 px), and left of a desktop's
+# Download CV and social row (from x 737 at 1440 px; 690 at 1280 x 720 reaches a burst's top corner). What the depth map
+# has nearer than the sky at the top of its column (14-22 here, not 0), the tower and the crane, hides a burst and its
+# spark, which climbs RISE px (props.js's SPARK.rise). A burst's middle keeps CORE px off the crane's two lights.
+SKY = [640, 46, 712, 56]
 RISE = 30
 CORE = 6
 
 # Halloween's ghosts, name: (seed, how it looks), GHOST art px tall (the city's walkers are 4), and their four sway
 # frames, facing right (the page mirrors them). Each drifts along a path: x0, x1, its bottom row and the row whose depth
 # it hides from (the street or the roofs under it). Seeds to try: 2300 2317 2334 (ghost-a), 2351 2368 2385 (ghost-b).
-GHOST, GHOST_FRAMES = 8, 4
+GHOST, GHOST_FRAMES = 10, 4
 GHOSTS = {
     "ghost-a": (2300, "a small round friendly ghost with a soft rounded head"),
     "ghost-b": (2351, "a slimmer ghost with a long wispy tail trailing behind it"),
@@ -133,7 +134,7 @@ GHOST_PROMPT = ("Edit this picture. Repaint the shape as {look}, floating in the
                 "painterly video game art, cool moonlight, soft shading. Keep the exact shape, position and size. Keep the "
                 "background perfectly flat solid magenta. One ghost only, no text, no shadow.")
 # The bat that stands in for the birds on Halloween nights: BAT art px across, four wingbeat frames. Seeds: 2400 2417 2434.
-BAT, BAT_FRAMES, BAT_SEED = 7, 4, 2400
+BAT, BAT_FRAMES, BAT_SEED = 9, 4, 2400
 BAT_WINGS = ["its wings raised high above its body", "its wings spread level", "its wings swept down below its body",
              "its wings spread level"]
 BAT_PROMPT = ("Edit this picture. Repaint the shape as one small bat flying toward the viewer, {wings}, dark brown-black "
@@ -440,7 +441,7 @@ def fireworks(out):
     x0, y0, x1, y1 = box
     sky = depth[0, x0:x1 + 1] + 5   # the depth map's sky, each column's top row, and its tolerance as scene-fx.js's TOL
     front = depth[y0:y1 + 1, x0:x1 + 1] > sky
-    assert x1 < depth.shape[1] and not front[0].any(), "the fireworks' box must start in open sky"
+    assert x1 < depth.shape[1], "the fireworks' box must be in the art"
     assert front.mean() < 0.25, "the tower and the crane would hide most bursts: move SKY into more open sky"
     fronts = []   # rows of [y, x0, x1], what stands in front of the sky
     for y, row in enumerate(front):

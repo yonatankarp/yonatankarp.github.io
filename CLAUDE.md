@@ -149,12 +149,15 @@ season's strips. The city's windows and bay are found again in the winter art (`
 
 `web3d/src/outside.js` works out the holidays from `calendar.js` (tested in `scripts/test/calendar.test.js`), with the
 season and the visitor's place (`html[data-place]`, for sunset) from the head's pick; the city imports it for the props
-below. Every visitor gets the same holidays, his: Christmas, the new year, Easter, and the
+below. Every visitor gets the same holidays, his: Christmas, the new year (`new-year`, day 0 on 31 December, 1 on
+1 January), Easter, Halloween (`halloween`, 24 to 31 October), and the
 Jewish holidays by their Hebrew date (Rosh Hashanah, Sukkot, Hanukkah, Purim, Passover, Independence Day with the law's
 moves, Lag BaOmer, Shavuot; not the solemn days). The Hebrew ones (`sunset: true`) begin at sunset:
 `holidaysOn`'s `evening` flag reads the next day for them, which outside.js sets once the sun is below -0.833° at the
 visitor's city after noon (`isEvening` in calendar.js), from `assets/js/sun.js`, the elevation the time-of-day pick uses too (`time-pick.html` and
-`scripts/lib.js` put it after `time-pick.js`, without its `export`). `?holiday=` pins them (`fromQuery` in calendar.js).
+`scripts/lib.js` put it after `time-pick.js`, without its `export`). `?holiday=` pins them (`fromQuery` in calendar.js), by
+those names (`?holiday=halloween`, `?holiday=new-year:1`); a pin also counts as that night's evening, so the fireworks
+show at any real hour (`OUTSIDE.evening` and `afternoon`, which `dressing` reads).
 
 The tower's art is 928x308 a room (painted at 2304x768, box-reduced and median-cut to 64 colours, no dither, like the
 city), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an edit of the lobby carried across, so the
@@ -223,10 +226,28 @@ night only, the props are darkened with the hour (`TINT`; which go up, which can
 nobody walks through one. `?holiday=hanukkah:3,christmas` (or `none`) pins them. They are `props.webp` and `props.json`,
 baked by `web3d/pixel/gen_props.py` (`pose`, `paint`, `unflame`, `key`, `bake`) from `picks/props/`: hanukkiah 11 with its
 painted flames erased (the cup tops in `hanukkiah.json`), tree 11 and `tree-plain`, tree 11 with its snow painted off,
-each box-reduced to ~30 and 34 art px on 32 colours with a hard edge. Nothing moves under reduced
-motion or with `?fx=off`, but the props still stand there, steady (`animate`'s `poster`);
+each box-reduced to ~30 and 34 art px on 32 colours with a hard edge. Through Halloween's last week (24 to 31 October)
+four jack-o'-lanterns stand right of the tower's door, clear of its open-door crop (`DOOR_OPEN`), the plazas and the other
+props (`HALLOWEEN`, which the bake checks): pumpkin-tall 13, pumpkin-round 14 and pumpkin-small 11, painted unlit, 9, 8 and
+6 art px; the bake finds each carved face and paints it dark (`face()`), and the page lights its pixels with a flicker at
+dusk and night (`halloween.webp`, `halloween.json`). At its dusk and night a few ghosts drift over the main street and the
+roofs, half see-through, swaying through four painted frames and hiding behind what is nearer than the depth each path
+gives (`ghosts.webp`, `ghosts.json`: ghost-a 2300 and ghost-b 2368, `GHOST` 10 art px tall, `GHOST_PATHS`), and the birds
+are bats, the same flocks with the painted bat's four wingbeat frames (`bats.webp`, `bats.json`: bat 2400, `BAT` 9 px
+across, dimmed at night as the birds are). On the night of 31 December, from sunset where the visitor is through the
+small hours of 1 January (not 1 January's own evening), fireworks go up just left of the tower: a spark climbs `RISE`
+(30) px at 30 px a second, then a painted burst grows over 5 frames of 70 ms and fades over 4 of 240 ms (`BURST` in
+props.js), up to three at once. Their middles fall in `SKY` (art x 640-712, rows 46-56: below a phone's top bar and left
+of a desktop's Download CV), off the crane's lights by `CORE`; what the depth map has nearer than the sky at the top of
+its column (the tower and the crane) is cut out of them (`fronts`). Each burst is painted once on black (burst-gold,
+-red, -green and -blue, seed 13 each) and grown and faded from it in `BURST_FRAMES`, a pixel lit where its light passes
+`LIT` of its full bloom's (`fireworks.webp`, `fireworks.json`). gen_props.py's `pose`, `paint`, `key` and `bake` do these
+too (`key NAME SEED` keys every frame of a ghost or the bat), and the bake skips a set until all its picks are in.
+Nothing moves under reduced motion or with `?fx=off`, but the props still stand there, steady (`animate`'s `poster`),
+without the ghosts, bats and fireworks (a burst held still reads as a stain on the sky);
 the loop stops while the tab is hidden, the city is off screen or the tower is entered, and draws on every k-th screen
-frame, as often as keeps its fastest mover (the snow, a car) to an art pixel a frame (a draw's `fps`, at most 60). A
+frame, as often as keeps its fastest mover (the snow, a car; on the new year's night the fireworks' spark, 30) to an art
+pixel a frame (a draw's `fps`, at most 60). A
 painted sprite is drawn from its frame, made once, cut by the depth map only where something nearer is in its box. The top bar's Pause
 (`data-building-pause`, rendered by `pixel-bar.html` on those five pages only, which `check-generated-html.js` checks,
 and shown once the page's script animates it) holds the tower and all five scenes (a scene loaded paused shows one still

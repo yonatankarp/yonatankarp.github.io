@@ -40,19 +40,14 @@ web3d/pixel/paintings/candidates/*
 !web3d/pixel/paintings/candidates/roof_1100-night_1017.png
 # winter: each hour's pick under snow (paint_rooms.py winter), and the holidays' props' paintings (gen_props.py: the
 # snowy tree is tree-plain's input, the hanukkiah's the one unflame erases the flames from)
-!web3d/pixel/paintings/candidates/reception_1117-winter_717.png
-!web3d/pixel/paintings/candidates/reception_1117-dawn_1000-winter_700.png
-!web3d/pixel/paintings/candidates/reception_1117-day_1000-winter_700.png
-!web3d/pixel/paintings/candidates/reception_1117-night_1000-winter_717.png
 !web3d/pixel/paintings/candidates/roof_1100-winter_717.png
 !web3d/pixel/paintings/candidates/roof_1100-dawn_1000-winter_700.png
 !web3d/pixel/paintings/candidates/roof_1100-day_1000-winter_700.png
 !web3d/pixel/paintings/candidates/roof_1100-night_1017-winter_700.png
 !web3d/pixel/paintings/candidates/tree_11.png
 !web3d/pixel/paintings/candidates/hanukkiah_11.png
+# the lobby's dawn as the room was first retimed: install_picks.BLANK takes its unlettered papers
 !web3d/pixel/paintings/candidates/reception_1117-dawn_1000.png
-!web3d/pixel/paintings/candidates/reception_1117-day_1000.png
-!web3d/pixel/paintings/candidates/reception_1117-night_1000.png
 # install_picks.py also saves each crop beside its pixel art; only the -px.png files are read
 web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/*-px.png
@@ -73,6 +68,9 @@ web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/reception/
 # the holidays' props, keyed off their magenta, and the hanukkiah's candle tops (gen_props.py bakes them)
 !web3d/pixel/paintings/picks/props/
+# the lobby's view through its glass door at the other hours and in winter, a crop round the door (paint_rooms.py door;
+# install_picks.py takes its glass)
+!web3d/pixel/paintings/picks/reception-door*.png
 # the lobby's glass entrance standing open at each hour, its doorway's crop (paint_rooms.py entrance; gen_floors.py bakes it)
 !web3d/pixel/paintings/picks/reception-open*.png
 # mends pasted over a pick (patch_picks.py): the roof's night jib, floor 2's ghost pendant, the studio's on-air lamp unlit

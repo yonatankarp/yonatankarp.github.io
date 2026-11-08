@@ -2,7 +2,7 @@
 // number of device pixels per art pixel so every pixel stays square. The lift rides between floors.
 // Reads its stops from the page (<section data-floor="KEY">) and emits the building:* events guide.js listens to.
 // The art's numbers come from art.js. The city (city.js) leads in at the lobby.
-import { guide, roomy } from './guide.js';
+import { guide, roomy, PANEL_MS } from './guide.js';
 import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, ENTRANCE, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, FOCUS, lay, clamp01, colourAt, shade, darken, bayer } from './art.js';
 import { capsuleAt } from './capsule.js';
 import { reception } from './reception.js';
@@ -312,6 +312,21 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', pauseBut
   addEventListener('resize', wake);
   for (const q of [reduceMotion, roomy]) q.addEventListener('change', () => { label(); wake(); });
 
+  // A floor's panel (guide.js) open over the room's left: the room slides right, at the same scale, until it covers the
+  // view beside the panel, so the runs do not fill it (#302). Eased with the panel's own motion; held or paused, at once, as the panel is.
+  let aside = null, slide = { from: 0, to: 0, at: -Infinity };
+  const slideAt = (now) => slide.from + (slide.to - slide.from) * (1 - (1 - clamp01((now - slide.at) / PANEL_MS)) ** 3);
+  const besidePanel = (now, wide, w, s, x0, dpr) => {
+    let to = 0;
+    if (wide && aside) {
+      let edge = aside.offsetWidth;   // its laid-out right edge, CSS px, not where its opening transform has it now
+      for (let el = aside; el; el = el.offsetParent) edge += el.offsetLeft;
+      to = Math.max(w - ROOM_X1 * s, Math.min(Math.round(edge * dpr) - ROOM_X0 * s, x0)) - x0;
+    }
+    if (to !== slide.to) slide = { from: slideAt(now), to, at: held() || paused ? -Infinity : now };
+    return Math.round(slideAt(now));
+  };
+
   let passing = -1, arrived = -1, last = performance.now(), cardTop = 0;
   function frame(now) {
     raf = requestAnimationFrame(frame);   // first, so a frame that throws cannot stop the loop
@@ -323,7 +338,8 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', pauseBut
       canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); drawn = '';
       cardTop = parseFloat(getComputedStyle(canvas).getPropertyValue('--card-top')) || 0;   // CSS px; 0 where it is unset
     }
-    const { wide, w, h, s, x0, ry } = lay(W, H, dpr, cardTop, focusAt(now));   // ry: the top of the floor in view
+    const { wide, w, h, s, x0: mid, ry } = lay(W, H, dpr, cardTop, focusAt(now));   // ry: the top of the floor in view
+    const x0 = mid + besidePanel(now, wide, w, s, mid, dpr);
     ctx.imageSmoothingEnabled = false;
     const still = held(), loopMs = (FRAMES * 1000) / FPS;
 
@@ -359,7 +375,7 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', pauseBut
       open.set(key, clamp01((open.get(key) ?? 0) + (here ? dt : -dt) * (still ? 99 : DOORS)));
       lit.set(key, clamp01((lit.get(key) ?? 0) + (here ? dt : -dt) * (still || paused ? 99 : DOORS)));   // in step with the doors; paused, they just switch
     }
-    const sig = [f, camY, s, x0, ry, still, Math.round(ajar(now) * 16), loads, now < fading && now, ...open.values(), ...lit.values()].join(), sprites = [pay.at, poses, catSig].join(';');
+    const sig = [f, camY, s, x0, ry, still, Math.round(ajar(now) * 16), loads, now < fading && now, now < slide.at + PANEL_MS && now, ...open.values(), ...lit.values()].join(), sprites = [pay.at, poses, catSig].join(';');
     if (sig === drawn && sprites === drawnSprites) {
       if (u === 1) {   // still: sleep until the loop's next frame, or until woken
         cancelAnimationFrame(raf); raf = 0;
@@ -477,7 +493,7 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', pauseBut
     if (i >= 0 ? !go(i) : floorShaped(location.hash)) history.replaceState(null, '', `#floor-${keys[ride.to]}`);
   });
   if (import.meta.env?.DEV) window.__held = () => [...strips.values()].filter(Boolean).reduce((n, img) => n + img.width * img.height * 4 + Object.values(img.shades ?? {}).reduce((m, c) => m + c.width * c.height * 4, 0), 0);
-  return { go, index: () => ride.to, moving: () => arrived !== ride.to };
+  return { go, index: () => ride.to, moving: () => arrived !== ride.to, aside: (panel) => { aside = panel; wake(); } };
 }
 
 // A strip let go: its pixels freed now (a bitmap's close(), an image's empty src), and its lights-off pictures with it.

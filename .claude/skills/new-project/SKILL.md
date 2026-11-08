@@ -101,30 +101,30 @@ A plain project needs no tools beyond a text editor.
    - `layouts/partials/project-title.html` strips ` (contributor)` everywhere the title is shown.
 
 ## B. A new group (a fifth workshop)
-This happens rarely and takes a lot of work. The groups are spelled out in about 9 places (until #340 lands).
+This happens rarely and takes a lot of work. The groups are one list, `workshop.groups` in `data/rooms.yaml`; the art
+and a few defaults still spell them out.
 1. **Hugo and data:**
-   - Add the key to the group list in **both** validations: `layouts/projects/list.html:7` and
-     `layouts/index.html:109`.
-   - Add a `(slice "<key>" $t.groups.<key>)` pair, in the row's order, to the slice in `layouts/projects/list.html:11`.
-     - It reads `$art.labels "bay-N"` by position, so `workshop.json` needs a `bay-5` (step B7). Without it, the
-       label most likely renders with no position rather than failing. Look at it.
-   - Add the workshop's name under `groups` in `data/rooms.yaml` `workshop`.
+   - Add `{key, name}` to `workshop.groups` in `data/rooms.yaml`, in the row's order (the first is picked on arrival).
+     `layouts/partials/check-projects.html`, which the homepage and `layouts/projects/list.html` both call, validates
+     every project's `group` against it, and `list.html:11` builds the workshops from it.
+     - `list.html:12` reads `$art.labels "bay-N"` by position, so `workshop.json` needs a `bay-5` (step B7). Without
+       it, the label most likely renders with no position rather than failing. Look at it.
    - Update the copy that lists the groups:
      - `data/home/en.yaml`, the `workshop` district's `text`;
      - `content/projects/_index.md`'s `description` and body;
      - `data/art.yaml` `workshop`, the alt text, which says "four" workshops.
    - Search (`index.json.json:26`) types every group but `contribution` as "Project". Add a type to `data/ui.yaml`
      `search.types` only if the new group needs its own.
-2. **Checks, written for four groups:** `scripts/check-generated-html.js`.
-   - `:41` lists the h2 names in order.
-   - `:49` and `:58` expect exactly four labels, chips and lists.
-3. **JS, only if Apps stops being first:**
+2. **Checks:** nothing to edit. `checkProjectsPage` in `scripts/check-generated-html.js` reads the workshops from the
+   page's headings and expects a label, a chip and a list for each, the first pressed.
+3. **Only if Apps stops being first:**
    - `web3d/src/workshop.js:30`: the `'app'` opening pick.
-   - `layouts/projects/list.html`: the `"app"` `on`/`aria-pressed`/unhidden defaults.
-   - `web3d/src/city.js:138`: the push-in's `bay-1`.
-   - `DOOR`/`SHUTTER` in `gen_workshop.py`: the Apps door's position.
+   - `web3d/src/city.js:141` lands the push-in on `bay-1`, the first workshop's label: no edit, but its door must be the
+     first workshop's.
+   - `DOOR`/`SHUTTER` in `gen_workshop.py` (`:238`): the Apps door's position.
+   - `scripts/check-csp.js:217-219` clicks `game` and expects `app` hidden.
 4. **The painting (Draw Things):** `web3d/pixel/gen_workshop.py`.
-   1. Add a centre to `BAYS`. The street is `PW` = 3456 wide (from `gen_city.py`), and four bays at `HALF` 260
+   1. Add a centre to `BAYS` (`:44`). The street is `PW` = 3456 wide (from `gen_city.py`), and four bays at `HALF` 260
       already span 640–2900 with the van at 2960–3350. So the bays, the van and the alleys all have to move or
       shrink in `blockout()`.
    2. Change "four" in the `DUSK` prompt and in the docstring.
@@ -142,29 +142,30 @@ This happens rarely and takes a lot of work. The groups are spelled out in about
    - `FX`: pavement, edge, lanes, wall, street, weld, screens, lamps;
    - `DOOR`/`SHUTTER`;
    - `relight`'s lamp at x 245;
-   - `PATCHES`: the winter tree at (1515, 0), and the van at (2869, 500). Repaint these with `patch_picks.py` and
-     copy the printed offsets by hand (until #339 lands).
+   - the winter patches: the tree at dusk and dawn, and the van at every hour (`gen_workshop.py` `PATCHES` lists a
+     van per phase by itself). Their boxes are `TREE_BOX` and `VAN_BOX` in `patch_picks.py`; repaint them with
+     `patch_picks.py paint NAME`, and `pick NAME` writes each one's place into its PNG (its "at" text).
 7. **Build the row's art:** `uv run web3d/pixel/gen_workshop.py build static/building/pixel`. It writes
    `workshop[-winter][-PHASE].webp`, `workshop.json` (labels `bay-1`…`bay-5`), `workshop-fx.json` and
    `workshop-depth.png`. Commit them.
 8. **Docs:**
    - In CLAUDE.md:
      - the "New project" group list;
-     - the Workshop Row paragraph ("a street of four brick workshops… in that order");
+     - the "Workshop Row" section ("a street of four brick workshops… in that order");
      - the Analytics `workshop-<group>` events list.
    - The "four" in the comment at `layouts/projects/list.html:1`.
-   - The "four" in the failure message at `check-generated-html.js:59`.
 
 ## What catches mistakes
-- The build fails, naming the file, when `link` is missing or `group` is not a known key. Both `projects/list.html`
-  and `index.html` check this.
+- The build fails, naming the file, when `link` is missing or `group` is not a key in `workshop.groups`
+  (`partials/check-projects.html`, from both `projects/list.html` and `index.html`).
 - `check-generated-html.js` (`checkProjectsPage`) fails when:
   - a card's title doesn't match the front matter `title`, minus ` (contributor)`;
   - a case study's CTA isn't "Case study" or its link isn't internal. This catches `caseStudy: true` with
     `render: never`, which leaves an empty link.
   - an external card doesn't open in a new tab with `noopener`, or its CTA isn't `btnText`;
   - the Archived label doesn't match `archived`;
-  - the counts of projects and workshops are wrong, or the h2s aren't the four names.
+  - the counts of projects and workshops are wrong, or the labels and chips don't match the workshops' headings, in
+    order, with the first pressed.
 - `check:csp` clicks the `game` workshop and expects it to show.
 - CI's art rebuild fails when the committed workshop WebPs or JSON don't match `gen_workshop.py build`.
 - `check:phases` fails until every phase has its workshop art, winter too.

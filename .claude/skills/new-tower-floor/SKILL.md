@@ -72,8 +72,7 @@ Draw Things runs on Yonatan's machine, and only he runs it or approves its jobs.
      <room>_<seed>.png --band X,Y`, as floors 1 and 3 were.
    - If a fault needs patching, use `patch_picks.py` and `install_picks.PATCHES`.
 3. **Commit the candidate.** Add `!web3d/pixel/paintings/candidates/<room>_<seed>.png` (and `-wall.png`) to the
-   allowlist in `.gitignore`, beside the other rooms. Its comment there is wrong; leave it (until #339 lands).
-   `picks/*-px.png` is already allowed.
+   allowlist in `.gitignore`, beside the other rooms. `picks/*-px.png` is already allowed.
 4. **The pick.** Add `"<room>": "<room>_<seed>.png",` to `PICKS` in `web3d/pixel/install_picks.py`. Then run `uv run
    web3d/pixel/install_picks.py <room>`, which writes `paintings/picks/<room>-px.png` (928x308, with the lobby's lift
    pasted in). No model is needed.
@@ -83,25 +82,29 @@ Draw Things runs on Yonatan's machine, and only he runs it or approves its jobs.
    - Frames 1 to 11 together must change at least one pixel. Otherwise `build()`'s `min()` raises `ValueError`.
    - Keep everything that moves within pick x 69..904 (strip x 85..920), or `build()` asserts "moves over what its runs
      are read from".
-6. **`FLOORS`.** Add `"8": ("<room>", "<ramp>", <room>, [lamp x, …]),` **between `"7"` and `"R"`**. `FLOORS` is bottom to
-   top, and `floors.json` `order` (`ORDER` in `web3d/src/art.js`) is `list(FLOORS)`. Placed after `"R"`, floor 8 goes
-   above the roof, and no check catches it. The lamps are the hanging lamps' x in the pick; `LOBBY_X` is added for you.
-7. **`RIGHT_SKIRTING`.** Add `"8": <row>`. The value is the skirting's top row at the room's right edge, in **strip** rows:
-   the row in `picks/<room>-px.png`'s right columns (x ~920..927) plus `CEIL` (28). For comparison, floor 7's is 330.
+6. **`FLOORS`.** Add `"8": ("<room>", "<ramp>", <room>, [lamp x, …], <skirting row>),` **between `"7"` and `"R"`**.
+   `FLOORS` is bottom to top, and `floors.json` `order` (`ORDER` in `web3d/src/art.js`) is `list(FLOORS)`. Placed after
+   `"R"`, floor 8 goes above the roof, and no check catches it. The lamps are the hanging lamps' x in the pick; `LOBBY_X`
+   is added for you.
+7. **The skirting row**, `FLOORS`' fifth element (`None` only for the roof). It is the skirting's top row at the room's
+   right edge, in **strip** rows: the row in `picks/<room>-px.png`'s right columns (x ~920..927) plus `CEIL` (28). For
+   comparison, floor 7's is 330.
    - To read it, crop and enlarge that edge: `uv run --with pillow==12.1.0 python -c "from PIL import Image as I;
      I.open('web3d/pixel/paintings/picks/<room>-px.png').crop((880,240,928,308)).resize((192,272),0).save('<scratchpad>/edge.png')"`.
      Then Read the image. Its row is 240 plus the pixel row divided by 4.
-   - A missing key raises `KeyError` in `runs()` (until #339 folds it into `FLOORS`).
-8. **Bake.** Run `uv run web3d/pixel/gen_floors.py static/building/pixel` with **no KEY**. Only a full run writes
-   `floors.json`, and with no folder the script writes into `.`. The run also rewrites `data/floor_accents.yaml` and
+   - Without it, `runs()` raises `IndexError` on `FLOORS[key][4]`.
+8. **Bake.** Run `uv run web3d/pixel/gen_floors.py` with **no KEY** (its folder defaults to `static/building/pixel`).
+   Only a full run writes `floors.json`. The run also rewrites `data/floor_accents.yaml` and
    checks `data/phases.json`. Never hand-edit `floors.json` or `floor_accents.yaml`. Commit everything it changed: the new
    `floor-8.webp`, `floors.json` and `floor_accents.yaml`.
-9. **Only if the room shows outside** (follow the lobby, `reception`):
+9. **Only if the room shows outside** (follow the roof, or the lobby's door crop, `reception`):
    - **Each hour (Draw Things).** `uv run web3d/pixel/paint_rooms.py retime --src <room>_<seed>.png --time dawn|day|night`,
      then `winter --src <that hour's pick>.png --start 700` for dusk and each hour.
-   - **The dicts.** Add `WINDOWS` and `SNOW` (`paint_rooms.py`); `VIEW` and `SNOWED` (`install_picks.py`); and the
-     `PICKS` entries `<room>-<hour>`, `<room>-winter` and `<room>-winter-<hour>`, with their candidates in the
-     `.gitignore` allowlist.
+   - **The dicts.** Add `SNOW` (`paint_rooms.py`, for a whole-room winter edit like the roof's) and `SNOWED`
+     (`install_picks.py`). A room seen only through a window is painted as the lobby's door is instead: a crop round it
+     (`DOOR` in `install_picks.py`, `paint_rooms.py door`, whose prompts name what is outside). Then the `PICKS` entries
+     `<room>-<hour>`, `<room>-winter` and `<room>-winter-<hour>`, with their candidates or picks in the `.gitignore`
+     allowlist.
    - **`data/phases.json`.** Add `8` to each phase's `baked` and `winter.baked`, in `FLOORS` order (`"L8R"`).
 10. **The entry.** Write it as in Case A, steps 1 to 4, with `floor: "8"`.
 11. **The docs.** In `CLAUDE.md`'s "New experience", "Floors 2 to 7 are the roles" becomes 2 to 8. If the tower's count
@@ -113,25 +116,26 @@ Draw Things runs on Yonatan's machine, and only he runs it or approves its jobs.
 
 ### Testimonials (either case)
 Create `content/testimonial/<name>.md` like `blake-irvin.md`: `name`, `position`, `source`, `date`, a photo in
-`assets/images/testimonials/`, and `pullQuote`. The `pullQuote` must be an **exact** excerpt of the body. The build only
-checks that it is present (`layouts/index.html:108`, #340), so compare it with the body by hand.
+`assets/images/testimonials/`, and `pullQuote`. The `pullQuote` must be an **exact** excerpt of the body: the build
+checks that it is present (`layouts/index.html:58`), and `check-generated-html.js` that the body has it, word for word.
 
 ## What catches mistakes
 - **`floor` unquoted, taken, or `R`/`1`/`L`/`P`, or `highlights` missing:** `layouts/partials/check-floors.html` fails
   the Hugo build and names the file.
 - **An entry on a storey with no room** (the `.md` written before step 8): the same partial says "has no colour in
   data/floor_accents.yaml". This is the intended catch, because only `gen_floors.py` writes that file.
-- **A missing `pullQuote`:** a Hugo `errorf`. A paraphrase or wrong wording is caught by nothing.
+- **A missing `pullQuote`:** a Hugo `errorf`. A paraphrase or wrong wording: `check-generated-html.js`.
 - **Art not rebuilt or not committed:** CI's "Rebuild the art and compare it" fails when `floors.json` or a committed
   picture differs, and when `floor_accents.yaml` changes (`git diff --exit-code -- data`).
   - A `floor-8.webp` that was never committed passes that compare, which only walks committed files. `check:csp` then
     fails on its 404.
-  - CI never runs `install_picks.py`, so a `-px.png` left un-reinstalled after a `PICKS` change passes (until #339).
+  - CI reruns `install_picks.py` and compares its picks, so a `-px.png` left un-reinstalled after a `PICKS` change fails
+    there too.
 - **The wrong `baked` in `phases.json`:** the `phases()` assert in `gen_floors.py`, and `npm run check:phases`.
 - **An accent too dark as link text:** axe in `check:csp`, probably.
 - **Caught by nothing:**
   - `FLOORS` order;
-  - a wrong `RIGHT_SKIRTING` row (the wall's grain is misaligned past the strip on a wide screen);
+  - a wrong skirting row in `FLOORS` (the wall's grain is misaligned past the strip on a wide screen);
   - lamp x;
   - the old role's `duration`;
   - copy that names the employers;

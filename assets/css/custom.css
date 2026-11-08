@@ -204,12 +204,15 @@ h4 a,
 .library-art { position: absolute; inset: 0; }
 .library-hero :is(img, .library-fx) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; image-rendering: pixelated; }
 /* An art pixel a whole number of device px (--dpr: assets/js/dpr.js), the fewest that cover the head, as on the city
-   (city.css), placed as object-position puts it. Its box is .library-art, as the head's own height is its title's. */
+   (city.css), placed as object-position puts it. Its box is .library-art, as the head's own height is its title's. The
+   room is 720x173 (gen_library.py), and the head is at least as tall as it shows at the screen's width, to 52vh, so a
+   1440 screen shows the whole room at 2 device px an art px; a taller title, or a phone's 38vh, crops it. */
 @supports (width: round(up, 1cqw, 1px)) {
+  .library-hero { min-height: min(52vh, 173 * round(up, 100vw / 720, 1px / var(--dpr, 1)) + 3px); }   /* and its border */
   .library-art { container-type: size; }
   .library-hero :is(img, .library-fx) {
-    --u: round(up, max(100cqw / 1440, 100cqh / 347), 1px / var(--dpr, 1)); width: calc(1440 * var(--u)); height: calc(347 * var(--u)); max-width: none;
-    left: round((100cqw - 1440 * var(--u)) / 2, 1px / var(--dpr, 1)); top: round((100cqh - 347 * var(--u)) * 0.62, 1px / var(--dpr, 1));
+    --u: round(up, max(100cqw / 720, 100cqh / 173), 1px / var(--dpr, 1)); width: calc(720 * var(--u)); height: calc(173 * var(--u)); max-width: none;
+    left: round((100cqw - 720 * var(--u)) / 2, 1px / var(--dpr, 1)); top: round((100cqh - 173 * var(--u)) * 0.62, 1px / var(--dpr, 1));
   }
 }
 .library-fx { pointer-events: none; }   /* the room's animations (library-fx.js), cropped as the picture is */

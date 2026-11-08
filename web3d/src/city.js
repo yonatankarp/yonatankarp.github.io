@@ -139,7 +139,7 @@ if (city && root.classList.contains('at-city')) {
       return { x: x * k - left, y: y * k, w: w * k };
     },
     // The room headers' middles (custom.css: .library-hero, .room-map), at the top of their pages.
-    library: () => ({ x: innerWidth / 2, y: (innerWidth <= 760 ? innerHeight * 0.38 : Math.min(innerHeight * 0.52, 470)) / 2 }),
+    library: () => ({ x: innerWidth / 2, y: (innerWidth <= 760 ? innerHeight * 0.38 : Math.min(innerHeight * 0.52, 173 * Math.ceil(devicePixelRatio * innerWidth / 720) / devicePixelRatio + 3)) / 2 }),
     radio: () => ({ x: innerWidth / 2, y: Math.min(480, Math.max(230, innerWidth * 347 / 1440)) / 2 }),
   };
   next.post = next.radio;

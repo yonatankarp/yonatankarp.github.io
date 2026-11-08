@@ -46,7 +46,8 @@ one; the dusk pick carries one more edit, the tower's glass entrance doors, from
 edited from it with the door), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
 middle in % of the art, and how far to zoom: `ZOOM`), times the whole city's device px an art px, to the nearest
 whole number, capped where an art pixel would pass `MAX_PX` (4) screen px, so a big screen zooms less than a phone, and
-never under the whole city (where that is the nearest, a pick only pans). Going in (a district's go link, or its label's second
+never under the whole city (where that is the nearest, a pick only pans). The tower's crane is the roof's yellow at every hour:
+`gen_city.py`'s bake recolours it (`yellow_crane`, its shape kept for the depth map) on 4 colours past the city's 64. Going in (a district's go link, or its label's second
 click) the map pushes on, ease-in over 450 ms, and the next view opens from it in a dithered iris (`web3d/src/iris.js`)
 while it settles from 1.18 to 1; every other link keeps the wipe. The tower and Workshop Row have doors (`doors` in
 `city.json`, `DOORS` in `gen_city.py`): the city's lands on the next view's door at its size, to 14 screen px a city art
@@ -106,7 +107,10 @@ package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitigno
 `render-codeblock-mermaid.html` inlines, so posts ship no Mermaid JS; `assets/js/diagram-zoom.js` adds the Zoom in. The
 hook fails the build when a diagram changed since it was drawn: rerun `node scripts/render-diagrams.js` (also during
 `npm run serve`). The art is in `static/building/pixel/`, made by the Python pipeline in
-`web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Its data that is bundled into the JS
+`web3d/pixel/` (Draw Things paintings, pixelated and animated in code). A fault in a pick is mended, not repainted:
+`web3d/pixel/patch_picks.py` has the model edit a crop round it and keeps only the fault, as an RGBA crop in `picks/`
+(its alpha the feathered mask) that the bakes paste over the painting (`PATCHES` in `install_picks.py`, `gen_rooms.py`
+and `gen_workshop.py`); a thin stray line is filled in code instead (`FILLS` in `install_picks.py`). Its data that is bundled into the JS
 (`floors.json`, `cats-lobby.json`) or read while building (`city.json`, `workshop.json`) is kept out of `public/` by the
 `static` mount's `files` in `hugo.toml`: a new such file goes there too. Each experience entry's `floor`
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.

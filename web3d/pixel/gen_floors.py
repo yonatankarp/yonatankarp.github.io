@@ -349,7 +349,7 @@ def largest(alpha):
 
 def receptionists(out):
     """receptionists.webp: each pick with its magenta (and the model's lamp-lit pinks) keyed out, cut at the desk's top and
-    above the hair, scaled premultiplied (no halo) so the head is HEAD art px, on 32 colours of its own, only its largest
+    above the hair, scaled premultiplied (no halo) so the head is HEAD art px, on its person's 32 colours, only its largest
     shape kept. Returns RECEPTION for floors.json, in strip pixels, with the frame's size and its row on the desk's edge."""
     import numpy as np  # here, not at the top: gen_icons and pixelate import this module with pillow alone
 
@@ -358,7 +358,7 @@ def receptionists(out):
     (W0, H0), s = DESK_SIZE, HEAD / (7.2 * DESK_U)
     rows = []
     for name in RECEPTIONISTS:
-        row = []
+        smalls = []
         for kind in DESK_POSES:
             a = np.asarray(Image.open(PICKS / "reception" / f"{name}_{kind}.png").convert("RGB").resize((W0, H0))).astype(int)
             r, g, b = a[..., 0], a[..., 1], a[..., 2]
@@ -368,9 +368,18 @@ def receptionists(out):
             alpha = Image.fromarray(np.where(bg, 0, 255).astype(np.uint8)).filter(ImageFilter.MinFilter(5))
             im = Image.fromarray(a.astype(np.uint8), "RGB")
             im.putalpha(alpha)
-            small = im.convert("RGBa").resize((round(W0 * s), round(H0 * s)), Image.BOX).convert("RGBA")
-            rgb = small.convert("RGB").quantize(32, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
-            rgb.putalpha(largest(small.getchannel("A").point(lambda v: 255 if v > 140 else 0)))
+            smalls.append(im.convert("RGBa").resize((round(W0 * s), round(H0 * s)), Image.BOX).convert("RGBA"))
+        # one cut of 32 colours over the person's opaque pixels in every pose, so they keep their clothes' colours from
+        # pose to pose (cut apart, ben's light blue shirt went cream at rest)
+        opaque = [p for sm in smalls for p, al in zip(sm.convert("RGB").get_flattened_data(), sm.getchannel("A").get_flattened_data(), strict=True) if al > 140]
+        side = math.isqrt(len(opaque)) + 1
+        sample = Image.new("RGB", (side, side))
+        sample.putdata(opaque + opaque[:1] * (side * side - len(opaque)))
+        cut = sample.quantize(32, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+        row = []
+        for sm in smalls:
+            rgb = sm.convert("RGB").quantize(palette=cut, dither=Image.Dither.NONE).convert("RGB")
+            rgb.putalpha(largest(sm.getchannel("A").point(lambda v: 255 if v > 140 else 0)))
             row.append(rgb)
         rows.append(row)
     fw, fh = rows[0][0].size
@@ -431,7 +440,7 @@ FLOORS = {  # key: (painting, accent ramp, animation, its hanging lamps' x in th
     "1": ("reichman", "mint", reichman, [442, 620, 740]),
     "2": ("inuitive", "mint", inuitive, [334, 515, 570, 648, 719, 775]),
     "3": ("nice", "blue", nice, [396, 565, 676, 761]),
-    "4": ("sumup", "amber", sumup, [516, 591, 677, 742, 813]),
+    "4": ("sumup", "amber", sumup, [516, 591, 677, 742, 813, 832]),
     "5": ("billie_risk", "cyan", billie_risk, [662, 710]),
     "6": ("billie_orchestrator", "violet", billie_orchestrator, [363, 515, 599, 678]),
     "7": ("billie_payments", "coral", billie_payments, [565, 660, 780]),

@@ -40,6 +40,7 @@ picks/city-depth.png, is made by depth_map.py (it needs torch) and copied here w
 """
 import argparse
 import base64
+import functools
 import io
 import json
 import math
@@ -209,14 +210,20 @@ HOURS = {
 }
 
 
-# Winter: the hour's own pick under snow, its light kept (dusk's named, dawn's and day's kept), at night its windows and
-# lamps kept too; each followed by KEEP. These made WINTER_PICKS.
+# Winter: the hour's own pick under snow, its light kept and named (LIGHT; asked only to keep "the light", or for a "cold"
+# dusk, the model painted an overcast grey day, #304), at night its windows and lamps kept too; each followed by KEEP.
+# These made WINTER_PICKS.
 SNOW = ("fresh white snow lying on every roof, on the parks, the plaza and the hills, snow banked along the roads and "
         "pavements, the trees bare and dusted with snow")
-ANY = f"Edit this picture. Keep the time of day and the light exactly as they are and change only the season to deep winter: {SNOW}, a cold blue-grey sea. "
-WINTER = {"dusk": f"Edit this picture. Change only the season to deep winter: {SNOW}, a cold grey-blue sea, a cold clear dusk "
-                  "sky with soft golden light low on the horizon. ",
-          "dawn": ANY, "day": ANY,
+LIGHT = {
+    "dawn": "early dawn, just before sunrise: a cool pale blue and soft pink sky, the first pale light on the hills and the "
+            "sea, soft long shadows, a few windows and street lamps still lit",
+    "day": "a bright clear midday: a clear blue sky, strong high sunlight, crisp short shadows, the blue sea",
+    "dusk": "golden dusk: a purple-to-peach sunset sky, warm golden sunset light, long soft shadows, the sea glowing at the "
+            "horizon, warm street lamps coming on",
+}
+WINTER = {**{ph: f"Edit this picture. Keep the time of day exactly as it is, {light}, with the same sky and the same light, "
+                 f"and change only the season to deep winter: {SNOW}. " for ph, light in LIGHT.items()},
           "night": f"Edit this picture. Keep it night and change only the season to deep winter: {SNOW}, the snow lit warm "
                    "under the street lamps and blue in the moonlight. Keep every lit window and lamp. "}
 
@@ -318,12 +325,68 @@ DOOR_OPEN = (710, 196, 756, 240)
 DOORWAY = (1725, 516, 1797, 568)
 
 
+def shrunk(phase, winter=False):
+    return Image.open(pick(phase, winter)).convert("RGB").crop((0, 0, PW, PH)).resize(SIZE, Image.BOX)
+
+
 def bake(phase, winter=False):
-    """The painting box-reduced to the art's size, on its own COLOURS colours: the pixel look, with no dither to shimmer.
-    Paletted, so the open doors can be baked on the same colours."""
-    im = Image.open(pick(phase, winter)).convert("RGB").crop((0, 0, PW, PH))
-    small = im.resize(SIZE, Image.BOX)
-    return small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+    """The painting box-reduced to the art's size, on its own COLOURS colours: the pixel look, with no dither to shimmer;
+    then the crane in one yellow (yellow_crane). Paletted, so the open doors can be baked on the same colours."""
+    im = shrunk(phase, winter)
+    return yellow_crane(im, im.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE))
+
+
+# The tower's crane, which each hour's edit painted its own colour (olive by day, orange at dusk, grey-pink in winter) and
+# the cut folded into the sky's and the brick's, is one yellow at every hour, the roof's (gen_floors), keeping its shape
+# (city-depth.png is shared): its pixels, found in the plain dusk art, take CRANE_HUE at their own brightness, on
+# CRANE_COLOURS colours of their own past the city's COLOURS, so every other pixel stays as the cut has it. In art px.
+CRANE = (700, 6, 822, 62)
+CRANE_HUE, CRANE_SAT, CRANE_LIFT, CRANE_COLOURS = 0.115, 0.8, 1.12, 4
+CRANE_OUT = [(15, 10, 27, 31)]                    # in the box: the white counterweight
+CRANE_TREES, CRANE_MAST = 44, (55, 63)            # the roof's trees from this row down, but for the lattice mast between them
+
+
+@functools.cache
+def crane_mask():
+    """How much each pixel of CRANE is crane, 0 to 1: yellow in the plain dusk art (where it is plainly a yellow crane on
+    a pink sky) and apart from the sky round it (a 9 px median), softly for the thin lattice."""
+    import colorsys
+    d = shrunk("dusk").crop(CRANE)
+    sky, px, (w, h) = d.filter(ImageFilter.MedianFilter(9)).load(), d.load(), d.size
+    m = {}
+    for y in range(h):
+        for x in range(w):
+            hue, sat, _ = colorsys.rgb_to_hsv(*(v / 255 for v in px[x, y]))
+            diff = sum(abs(a - b) for a, b in zip(px[x, y], sky[x, y], strict=True)) / 255
+            out = (y >= CRANE_TREES and not CRANE_MAST[0] <= x < CRANE_MAST[1]) or any(
+                x0 <= x < x1 and y0 <= y < y1 for x0, y0, x1, y1 in CRANE_OUT)
+            m[x, y] = 0 if out or not (0.07 < hue < 0.17 and sat > 0.2) else min(1, max(0, (diff - 0.03) / 0.12))
+    return m
+
+
+def yellow_crane(im, cut):
+    """The cut with the crane's pixels (crane_mask() over half) recoloured from im, on CRANE_COLOURS colours appended."""
+    import colorsys
+    mask = crane_mask()
+    px, x0, y0 = im.load(), CRANE[0], CRANE[1]
+    crane = {}
+    for (x, y), k in mask.items():
+        if k > 0.5:
+            hue, sat, val = colorsys.rgb_to_hsv(*(v / 255 for v in px[x0 + x, y0 + y]))
+            new = colorsys.hsv_to_rgb(CRANE_HUE, max(sat, CRANE_SAT), min(1, val * CRANE_LIFT))
+            crane[x0 + x, y0 + y] = tuple(round(255 * (o / 255 * (1 - k) + n * k)) for o, n in zip(px[x0 + x, y0 + y], new, strict=True))
+    side = math.isqrt(len(crane)) + 1
+    sample = Image.new("RGB", (side, side))
+    cols = [crane[q] for q in sorted(crane, key=lambda q: (q[1], q[0]))]
+    sample.putdata(cols + cols[:1] * (side * side - len(cols)))
+    ramp = sample.quantize(CRANE_COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).getpalette()[:3 * CRANE_COLOURS]
+    ramp = [tuple(ramp[i:i + 3]) for i in range(0, len(ramp), 3)]
+    out = cut.copy()
+    out.putpalette(cut.getpalette()[:3 * COLOURS] + [v for c in ramp for v in c])
+    q = out.load()
+    for xy, col in crane.items():
+        q[xy] = COLOURS + min(range(CRANE_COLOURS), key=lambda i: sum((a - b) ** 2 for a, b in zip(col, ramp[i], strict=True)))
+    return out
 
 
 def open_crop(phase, winter=False):
@@ -369,7 +432,9 @@ def bake_open(phase, art, winter=False):
         sys.exit(f"no {open_crop(phase, winter)}: make it (gen_city.py {how})")
     im = Image.open(pick(phase, winter)).convert("RGB").crop((0, 0, PW, PH))
     im.paste(Image.open(open_crop(phase, winter)).convert("RGB"), DOOR[:2])
-    opened = im.resize(SIZE, Image.BOX).quantize(palette=art, dither=Image.Dither.NONE).convert("RGB").crop(DOOR_OPEN)
+    city = Image.new("P", (1, 1))
+    city.putpalette(art.getpalette()[:3 * COLOURS])   # the city's colours, not the crane's
+    opened = im.resize(SIZE, Image.BOX).quantize(palette=city, dither=Image.Dither.NONE).convert("RGB").crop(DOOR_OPEN)
     if not winter:
         return opened
     # In winter only the doorway changes: round it the shut art's own pixels, which the palette's nearest colours would

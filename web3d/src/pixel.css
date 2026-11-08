@@ -198,9 +198,9 @@ html:not(.building--guided) .building-hint { display: none; }
 }
 .pixel .building-hint { left: calc(50% + 12px + min(200px, 15vw)); white-space: nowrap; background: var(--panel); box-shadow: inset 0 0 0 4px var(--ink); padding: 10px 16px; font-size: 15px; }
 
-/* Registered as a length so pixel.js reads it in pixels: the room's floor sits behind the elevator, above the card. */
+/* Registered as a length so pixel.js reads it in pixels: the room's floor ends where the elevator starts, above the card. */
 @property --card-top { syntax: '<length>'; inherits: true; initial-value: 0px; }
-/* Phones, and portrait tablets (the same query as pixel.js, #46), stack the room (its floor behind the elevator),
+/* Phones, and portrait tablets (the same query as pixel.js, #46), stack the room (its floor ending where the elevator starts),
    the elevator, then the card, which scrolls inside itself before the lift moves. */
 @media (max-width: 760px), (max-aspect-ratio: 6/5) {
   /* The card keeps 400px, enough for any floor's title, summary and Step inside without scrolling (#127), rising
@@ -213,8 +213,8 @@ html:not(.building--guided) .building-hint { display: none; }
   @media (max-height: 340px) { .pixel .elevator { visibility: hidden; } }
   .pixel .building-floor-btn { width: 36px; height: 36px; }
   .pixel .elevator-display { display: none; }
-  /* Over the room's floor, just above the elevator (#45 made it 56px tall). */
-  .pixel .building-hint { left: 50%; white-space: normal; top: calc(var(--card-top) - 72px); bottom: auto; transform: translate(-50%, -100%); width: max-content; max-width: calc(100% - 24px); box-sizing: border-box; margin: 0; padding: 8px 12px; font-size: 14px; }
+  /* Under the top bar (64px tall here), over the room's ceiling: the floor above the elevator is where the lobby's cats are. */
+  .pixel .building-hint { left: 50%; white-space: normal; top: 72px; bottom: auto; transform: translateX(-50%); width: max-content; max-width: calc(100% - 24px); box-sizing: border-box; margin: 0; padding: 8px 12px; font-size: 14px; }
   .pixel .building-scrim { background: linear-gradient(0deg, rgba(10, 11, 16, 0.75) 0, rgba(10, 11, 16, 0.5) 40%, rgba(10, 11, 16, 0) 52%); }
 }
 /* By daylight that dimming is a dark smear on a pale sky, and nothing needs it: the cards and the bar have their own panels. */

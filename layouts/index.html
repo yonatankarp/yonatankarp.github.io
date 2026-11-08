@@ -78,8 +78,9 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   i.src = i.dataset.base + (d.dataset.season === 'winter' ? '-winter' : '') + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
   i.loading = 'eager';
   if (b) {
-    var key = b.dataset.pick, z = JSON.parse(m.dataset.zoom)[key], mh = m.offsetHeight, chip = c.querySelector('.city-chips [data-pick=' + key + ']');
-    k = Math.max(1, Math.min(z[2], m.dataset.maxPx / (mh / s.querySelector('.city-fx').height)));
+    var key = b.dataset.pick, z = JSON.parse(m.dataset.zoom)[key], mh = m.getBoundingClientRect().height, chip = c.querySelector('.city-chips [data-pick=' + key + ']');
+    var dpr = devicePixelRatio || 1, n = dpr * mh / s.querySelector('.city-fx').height;   /* whole device px an art px, as city.js's view() */
+    k = Math.max(Math.round(n), Math.min(Math.round(n * z[2]), Math.floor(m.dataset.maxPx * dpr))) / n;
     x = fx - z[0] / 100 * m.offsetWidth * k;
     y = Math.min(0, Math.max(s.clientHeight - mh * k, s.clientHeight * (f ? 0.46 : 0.5) - z[1] / 100 * mh * k));
     m.style.setProperty('--inv', 1 / k);
@@ -100,7 +101,8 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   m.style.transform = 'translate(' + Math.min(0, Math.max(s.clientWidth - m.offsetWidth * k, x)) + 'px, ' + y + 'px) scale(' + k + ')';
 })();` | minify }}
 {{ $cityStart = resources.FromString "js/home-city.js" $cityStart.Content | minify | fingerprint "sha256" }}
-{{ .Store.Set "inlineScripts" (slice $time $guided $lobby $cityStart) }}
+{{ $dpr := resources.Get "js/dpr.js" | minify | fingerprint "sha256" }}{{/* the scenes' device px, for city.css */}}
+{{ .Store.Set "inlineScripts" (slice $time $dpr $guided $lobby $cityStart) }}
 {{- /* Every entry the building draws, checked here so a slip names its file instead of failing deep in the page (#58, #63). */}}
 {{ partial "check-floors.html" $experience }}
 {{ range $testimonials }}{{ if not .Params.pullQuote }}{{ errorf "%s: add `pullQuote`, an exact excerpt for the lobby card." .File.Path }}{{ end }}{{ end }}
@@ -110,6 +112,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
 <head>
   {{ partial "head.html" . }}
   <script>{{ $time.Content | safeJS }}</script>
+  <script>{{ $dpr.Content | safeJS }}</script>
   <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
   {{- /* A CSP with hash sources stops Chrome's preload scanner from fetching the module early: it then waited for the
        parser, 1717 ms in, and the first picture drew 400 ms later (Fast 3G, #149). So the module is preloaded by hand. */}}

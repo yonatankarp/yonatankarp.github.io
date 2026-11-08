@@ -34,8 +34,8 @@ export function readers(cfg, count, random = Math.random) {
     const what = weighted(Object.entries(cfg.choose)), open = free(r).map((i) => [i, at(r, i)]).filter(([, x]) => x != null);
     if (what === 'pass' || !open.length) {   // a stroll far across, without stopping, now and then out of the room for a while
       if (random() < cfg.leave) return [{ walk: r.x < mid ? room[1] : room[0], shelf: null }, { away: time(r, cfg.away) }];
-      const far = rnd(room[0] + 80, room[1] - 80);
-      return [{ walk: Math.abs(far - r.x) > (room[1] - room[0]) / 3 ? far : r.x < mid ? room[1] - 80 : room[0] + 80, shelf: null }];
+      const far = rnd(room[0] + 40, room[1] - 40);
+      return [{ walk: Math.abs(far - r.x) > (room[1] - room[0]) / 3 ? far : r.x < mid ? room[1] - 40 : room[0] + 40, shelf: null }];
     }
     const pick = open[random() * open.length | 0];
     const steps = what === 'look' ? [{ walk: pick[1], shelf: pick[0] }, { pose: 0, ms: time(r, cfg.look) }] : browse(r, pick);
@@ -59,7 +59,7 @@ export function readers(cfg, count, random = Math.random) {
   }
   for (const r of all) {   // somewhere along a fresh plan, part way through its step, the gap from those placed before it
     for (let tries = 0; ; tries++) {
-      Object.assign(r, { x: rnd(shelves[0] - 60, shelves.at(-1) + 60), left: random() < 0.5, shown: true, shelf: null, until: 0, changed: 0 });
+      Object.assign(r, { x: rnd(shelves[0] - 30, shelves.at(-1) + 30), left: random() < 0.5, shown: true, shelf: null, until: 0, changed: 0 });
       const steps = plan(r), k = random() * steps.length | 0, walked = steps.slice(0, k).filter((s) => 'walk' in s).at(-1);
       r.steps = steps.slice(k);
       if (walked) { r.x = walked.walk; r.shelf = walked.shelf; }

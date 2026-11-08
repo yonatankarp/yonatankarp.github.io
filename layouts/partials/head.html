@@ -50,11 +50,12 @@
 {{- /* Every other page's backdrop follows the hour too (custom.css, .px-skin): the same pick, before the first paint. The
      Library (/blog/), the Radio Mast and the Post Office hide the backdrop behind their room and read neither the hour nor
      the season, so they skip it (check-generated-html.js reads the pick's zone table from /cv/). Every page but the
-     homepage catches the city's push-in (assets/js/push-in.js) before its first paint, on the district it went into. */}}
+     homepage catches the city's push-in (assets/js/push-in.js) before its first paint, on the district it went into, and
+     sets --dpr (assets/js/dpr.js), by which the scenes snap their art to whole device px. */}}
 {{ if not .IsHome }}
   {{ $inline := slice }}
   {{ if not (or (in (slice "radio" "post") .Layout) (and (eq .Kind "section") (eq .Section "blog"))) }}{{ $inline = $inline | append (resources.FromString "js/page-time.js" (printf "(function(){%s})();" (partial "time-pick.html" .)) | minify | fingerprint "sha256") }}{{ end }}
-  {{ .Store.Set "inlineScripts" ($inline | append (resources.Get "js/push-in.js" | minify | fingerprint "sha256")) }}
+  {{ .Store.Set "inlineScripts" ($inline | append (resources.Get "js/push-in.js" | minify | fingerprint "sha256") (resources.Get "js/dpr.js" | minify | fingerprint "sha256")) }}
 {{ end }}
 {{- /* A standalone page's template may also put scripts it writes itself in .Store "headScripts", run here after the
      time pick and before the stylesheets, and in the body in .Store "bodyScripts", before this partial (layouts/projects/list.html

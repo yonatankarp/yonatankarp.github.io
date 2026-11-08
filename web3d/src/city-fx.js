@@ -1,10 +1,13 @@
 // The city's life (city.js): walkers, cars, windows going dark, glints on the bay, the mast's and the crane's lights and
 // flocks of birds, over the picture (scene-fx.js), and in winter falling snow. Where they go is city-fx.json (in winter
 // city-winter-fx.json, its bay found in the winter art), the night's windows are city[-winter]-windows.json, fetched only
-// at night, and what hides them is city-depth.png, all written by web3d/pixel/gen_city.py. The holidays' props on the plaza (props.js) stand among the walkers, and stay when nothing moves.
+// at night, and what hides them is city-depth.png, all written by web3d/pixel/gen_city.py. The holidays' props on the plaza (props.js) stand among the walkers, and stay when nothing moves;
+// the new year's fireworks go up over the bay. On Halloween's dusk and night a few ghosts drift over the streets and roofs
+// (ghosts.json: each one's path and the depth it hides from) and the birds are bats, both painted frames from
+// web3d/pixel/gen_props.py; neither is in a still frame.
 import { OUTSIDE } from './outside.js';
-import { props } from './props.js';
-import { animate, asset, rnd, snowfall } from './scene-fx.js';
+import { dressing, props, BURST } from './props.js';
+import { animate, asset, people, rnd, snowfall } from './scene-fx.js';
 
 const root = document.documentElement;
 
@@ -12,18 +15,27 @@ export function cityFx(canvas, img) {
   const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`, winter = root.dataset.season === 'winter';
   const season = winter ? 'winter-' : '';
   const dir = new URL('.', new URL(img.dataset.base, location.href)).pathname;   // the art's folder: props.webp sits beside the city
-  const plaza = props((ext) => `${dir}props.${ext}?v=${img.dataset.version}`, { ...OUTSIDE, time: root.dataset.time });
+  const sheet = (name) => (ext) => `${dir}${name}.${ext}?v=${img.dataset.version}`, options = { ...OUTSIDE, time: root.dataset.time };
+  const plaza = props(sheet, options), show = dressing(options);
+  const spooks = Promise.all([show.ghosts && people(sheet('ghosts'), false), show.bats && people(sheet('bats'), false)]);
   const poster = (ctx) => plaza.then((items) => { ctx.clearRect(0, 0, canvas.width, canvas.height); for (const p of items) p.draw(ctx, null); });
   // Not once the tower is entered, which hides the city for good.
   animate(canvas, { data: art(`${season}fx.json`), depth: art('depth.png'), live: () => root.classList.contains('at-city'), poster },
-    (ctx, fx, { dfill, footAt }) => setup(ctx, fx, dfill, footAt, plaza, art(`${season}windows.json`), winter));
+    (ctx, fx, { dfill, footAt, sprite }) => setup(ctx, fx, dfill, footAt, sprite, plaza, spooks, show, art(`${season}windows.json`), winter));
 }
 
-function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
+function setup(ctx, fx, dfill, footAt, sprite, plaza, spooks, show, windowsUrl, winter) {
   const W = ctx.canvas.width, time = root.dataset.time, night = time === 'night', lamps = night || time === 'dusk';
   const snow = winter && snowfall(ctx, night);
   let dressing = [];
   plaza.then((items) => { dressing = items; });
+  // Halloween's ghosts, half see-through, each drifting to and fro along its path (x0, x1, its bottom row y, the depth f
+  // it hides behind nearer things from) at 2-5 px a second, bobbing, its body swaying through its frames; and its bats.
+  let ghosts = [], bats = null;
+  spooks.then(([G, B]) => {
+    bats = B || null;
+    if (G) ghosts = G.paths.map(([x0, x1, y, f], j) => ({ G, row: j % G.people.length, x0, x1, y, f, x: rnd(x0, x1), v: rnd(2, 5) * (Math.random() < 0.5 ? 1 : -1), ph: rnd(0, 6.3) }));
+  });
 
   // Windows: at night each lit one switches off and on, slowly, in its own wall's colour, its whole pane at once. They are
   // drawn first, on a layer made again only when one switches.
@@ -68,6 +80,12 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
   // Drawn by their feet's row among the plaza's props, farther first, so nobody walks through one.
   const drawPeople = (now, dt) => {
     const order = dressing.map((p) => [p.y, () => p.draw(ctx, now / 1000)]);
+    for (const g of ghosts) {
+      g.x += g.v * dt / 1000;
+      if (g.x > g.x1 || g.x < g.x0) { g.v = -g.v; g.x = Math.min(g.x1, Math.max(g.x0, g.x)); }
+      const y = g.y + Math.round(Math.sin(now / 1500 + g.ph) * 1.5), row = g.G.frames[g.row], k = ((now / 450 + g.ph * 3) | 0) % row.length;
+      order.push([g.y, () => { ctx.globalAlpha = 0.5; sprite(g.G, row[k], g.x, y, g.v < 0, g.f); ctx.globalAlpha = 1; }]);
+    }
     for (const w of people) {
       let x, y;
       if (w.seg) {
@@ -139,7 +157,9 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
     for (const f of flocks) {
       f.x += f.v * dt / 1000;
       for (const b of f.birds) {
-        const x = Math.round(f.x + b.dx), y = Math.round(f.y + b.dy + Math.sin(now / 1600 + b.ph) * 2), up = ((now / b.beat + b.ph) | 0) % 2;
+        const x = Math.round(f.x + b.dx), y = Math.round(f.y + b.dy + Math.sin(now / 1600 + b.ph) * 2);
+        if (bats) { sprite(bats, bats.frames[0][((2.5 * now / b.beat + b.ph) | 0) % bats.frames[0].length], x, y, false, 255); continue; }   // a bat beats its wings faster; nothing hides the sky
+        const up = ((now / b.beat + b.ph) | 0) % 2;
         ctx.fillRect(x, y, 1, 1); ctx.fillRect(x - 1, y - up, 1, 1); ctx.fillRect(x + 1, y - up, 1, 1);
       }
     }
@@ -147,7 +167,8 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
   };
 
   // The fastest mover, in art pixels a second, sets how often a frame is drawn (scene-fx.js): the snow, a bird (up to 15),
-  // a car or a walker.
-  const fps = Math.max(snow ? snow.fps : 0, 15, ...cars.map((c) => c.v * c.lane.total), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * Math.hypot(w.seg[2] - w.seg[0], w.seg[3] - w.seg[1])));
-  return Object.assign((now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); }, { fps, ready: Promise.all([plaza, lit]) });
+  // a car or a walker; on the new year's night, a burst's quickest frame too (props.js's BURST). A ghost (5 at most) and a
+  // bat's wingbeat (a frame every 88 ms or more) stay under the birds' 15.
+  const fps = Math.max(snow ? snow.fps : 0, 15, show.fireworks ? 1000 / BURST.grow : 0, ...cars.map((c) => c.v * c.lane.total), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * Math.hypot(w.seg[2] - w.seg[0], w.seg[3] - w.seg[1])));
+  return Object.assign((now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); }, { fps, ready: Promise.all([plaza, lit, spooks]) });
 }

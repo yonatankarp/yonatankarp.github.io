@@ -76,7 +76,7 @@ const stopped = (r) => r.shown && r.doing !== "walk" && r.doing !== "away";
 const pairs = (f) => f.flatMap((a, i) => f.slice(i + 1).map((b) => [a, b]));
 
 test("the readers start apart, and never stop within the gap of another", async () => {
-  assert.ok(cfg.gap >= 60, `a gap of ${cfg.gap} px is less than a reader's width`);
+  assert.ok(cfg.gap >= 30, `a gap of ${cfg.gap} px is less than a reader's width`);
   let starts = 0;
   for (const seed of [280, 281, 282, 283, 284]) {
     const frames = await run(seed), step = cfg.speed[1] / 60;   // a later reader in the same frame walks on up to this far

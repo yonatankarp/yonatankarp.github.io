@@ -201,7 +201,20 @@ h4 a,
   position: relative; display: flex; flex-direction: column; justify-content: flex-end; min-height: min(52vh, 470px); padding-top: 156px;
   overflow: hidden; border-bottom: 3px solid var(--ink);
 }
+.library-art { position: absolute; inset: 0; }
 .library-hero :is(img, .library-fx) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; image-rendering: pixelated; }
+/* An art pixel a whole number of device px (--dpr: assets/js/dpr.js), the fewest that cover the head, as on the city
+   (city.css), placed as object-position puts it. Its box is .library-art, as the head's own height is its title's. The
+   room is 720x173 (gen_library.py), and the head is at least as tall as it shows at the screen's width, to 52vh, so a
+   1440 screen shows the whole room at 2 device px an art px; a taller title, or a phone's 38vh, crops it. */
+@supports (width: round(up, 1cqw, 1px)) {
+  .library-hero { min-height: min(52vh, 173 * round(up, 100vw / 720, 1px / var(--dpr, 1)) + 3px); }   /* and its border */
+  .library-art { container-type: size; }
+  .library-hero :is(img, .library-fx) {
+    --u: round(up, max(100cqw / 720, 100cqh / 173), 1px / var(--dpr, 1)); width: calc(720 * var(--u)); height: calc(173 * var(--u)); max-width: none;
+    left: round((100cqw - 720 * var(--u)) / 2, 1px / var(--dpr, 1)); top: round((100cqh - 173 * var(--u)) * 0.62, 1px / var(--dpr, 1));
+  }
+}
 .library-fx { pointer-events: none; }   /* the room's animations (library-fx.js), cropped as the picture is */
 .library-hero::after { content: ''; position: absolute; inset: auto 0 0; height: 45%; background: linear-gradient(transparent, rgba(42, 29, 20, 0.92)); }
 .library-title { position: relative; z-index: 1; width: 100%; max-width: 1080px; margin: 0 auto 22px; padding: 0 24px; }
@@ -236,11 +249,17 @@ h4 a,
 /* The Radio Mast (/podcast/, layouts/_default/radio.html) and the Post Office (/contact/, post.html): the room across the
    head at its own 1440:347 shape (partials/room-hero.html), a phone panning it, then a panel lifted over its foot. */
 .room { --panel: #3a2616; --ink: #1b1410; --edge: #9a7148; --cream: #f1e6cf; }
-.room-hero { position: relative; overflow: auto hidden; scrollbar-width: none; border-bottom: 3px solid var(--ink); }
+.room-hero { position: relative; height: calc(clamp(230px, 100vw * 347 / 1440, 480px) + 3px); overflow: auto hidden; scrollbar-width: none; border-bottom: 3px solid var(--ink); }   /* the room, and its border */
 .room-hero::-webkit-scrollbar { display: none; }
 .room-hero:focus-visible { outline: 3px solid var(--px-text); outline-offset: -3px; }
-.room-map { position: relative; height: clamp(230px, 24.1vw, 480px); aspect-ratio: 1440 / 347; min-width: 100%; }
+.room-map { position: relative; height: 100%; aspect-ratio: 1440 / 347; min-width: 100%; }
 .room-map :is(img, canvas) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
+/* An art pixel a whole number of device px (--dpr: assets/js/dpr.js), the fewest that cover the head, as on the city
+   (city.css): the head keeps its height, and the room's foot is cropped. */
+@supports (width: round(up, 1cqw, 1px)) {
+  .room-hero { container-type: size; }
+  .room-map { --u: round(up, max(100cqw / 1440, 100cqh / 347), 1px / var(--dpr, 1)); width: calc(1440 * var(--u)); height: calc(347 * var(--u)); min-width: 0; }
+}
 .room-fx { pointer-events: none; }   /* the room's animations (rooms-fx.js), over the picture */
 .room-sheet { position: relative; max-width: 1080px; margin: -64px auto 0; padding: 0 24px; }
 .room-back { display: inline-block; margin: 0 0 10px; padding: 4px 8px; font-size: 14px; color: var(--px-soft); background: rgba(27, 20, 16, 0.85); border: 2px solid var(--ink); }

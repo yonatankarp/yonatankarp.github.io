@@ -23,7 +23,7 @@ if (hero) {
   arrive(img, () => {
     open();
     const r = hero.getBoundingClientRect(), map = img.parentElement;
-    return { at: [r.left + hero.clientWidth / 2, r.top + r.height / 2], settle: [[map, hero.scrollLeft + hero.clientWidth / 2, map.offsetHeight / 2]] };
+    return { at: [r.left + hero.clientWidth / 2, r.top + r.height / 2], settle: [[map, hero.scrollLeft + hero.clientWidth / 2, hero.clientHeight / 2]] };   // the head's middle: the room's foot is cropped
   });
 }
 

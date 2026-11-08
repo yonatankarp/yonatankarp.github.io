@@ -28,7 +28,11 @@ that zooms into five districts, picked from a label or a chip in its panel: the 
 Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (`/podcast/`) and the Post Office (`/contact/`). The
 map moves by one transform (translate and scale, never scrolling), clamped so no edge of the art shows; a wheel, a
 trackpad or a finger pans it sideways at any zoom, and a pinch is the browser's zoom. A resize keeps the pan, re-clamped, and
-re-centres only on a new width. The same chip again, or "Whole city", zooms back out ("Whole city" hands
+re-centres only on a new width. Every scene at rest, like the tower, shows an art pixel as a whole number of device px:
+the city, Workshop Row, the Library's head and the rooms' heads at the fewest that cover their box, rounded up, never
+under 1 (`round()` by `--dpr`, which `assets/js/dpr.js` sets on html before the first paint, in `city.css` and
+`custom.css`), so they crop a little more than the plain cover, at the foot (the Library's about its 50% 62%, though its head is as tall as its whole room shows), and the
+panning takes up the width; only a glide or a push-in passes through other scales. The same chip again, or "Whole city", zooms back out ("Whole city" hands
 focus to the chip that was picked; on a phone it sits at the panel's top right, beside the kicker, so it shows without a scroll). A label's first
 click zooms to its district; the picked label then shows "→", carries `aria-current` and the description `again` in
 `city` (`#city-again`), and its next click goes in. Enter or Space on a label goes straight in (a click with no pointer). A label stays whole on screen,
@@ -40,8 +44,9 @@ copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one; the dusk pick carries one more edit, the tower's glass entrance doors, from `gen_city.py door`, and the hours were
 edited from it with the door), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
-middle in % of the art, and how far to zoom: `ZOOM`), capped where an art pixel would pass `MAX_PX` (4) screen px,
-so a big screen zooms less than a phone, and never under 1. The tower's crane is the roof's yellow at every hour:
+middle in % of the art, and how far to zoom: `ZOOM`), times the whole city's device px an art px, to the nearest
+whole number, capped where an art pixel would pass `MAX_PX` (4) screen px, so a big screen zooms less than a phone, and
+never under the whole city (where that is the nearest, a pick only pans). The tower's crane is the roof's yellow at every hour:
 `gen_city.py`'s bake recolours it (`yellow_crane`, its shape kept for the depth map) on 4 colours past the city's 64. Going in (a district's go link, or its label's second
 click) the map pushes on, ease-in over 450 ms, and the next view opens from it in a dithered iris (`web3d/src/iris.js`)
 while it settles from 1.18 to 1; every other link keeps the wipe. The tower and Workshop Row have doors (`doors` in
@@ -80,7 +85,8 @@ so those links still land on it. At the city the city's section is the page's ma
 tower it is "Skip to the current floor" (`#building-stops`), and `city.css` shows the one that fits.
 
 The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library.webp`, baked
-by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk), then every listed
+by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk, at 720x173, half the
+city's width, so a 1440 screen shows the whole room at 2 device px an art px: the head is at least that tall, to 52vh), then every listed
 post as a card (`partials/blog-row.html`). A chip for every tag the listed posts carry filters the list, with the search
 box (`assets/js/library.js`): the curated topics and labels in `data/library.yaml` first (a tag no listed post carries is
 skipped, one with no tag page fails the build), then the rest, most posts first (ties by name). Without a script the
@@ -253,7 +259,7 @@ window's sky, from `library-fx.json`, which `gen_library.py build` writes from i
 Three readers walk its floor, each its own way (`web3d/src/readers.js`, tested on a seed in `scripts/test/readers.test.js`):
 walking past and out of the room, stopping to look, or taking a book to read, facing either way, never two at one shelf, and none stopping within `gap` of another (they start that far apart too).
 The floor line (on the lit parquet, behind the reading tables), the shelves, the gap, their speed, pace, weights and times are `FX["readers"]`. They are `readers.webp` and `readers.json`, which `gen_walkers.py bake` makes from
-the walkers' frames and four browse poses (`browse` paints them; picks `NAME_browse_KIND.png`), 135 px tall, each on a soft
+the walkers' frames and four browse poses (`browse` paints them; picks `NAME_browse_KIND.png`), 68 px tall, each on a soft
 contact shadow. Only the reading lamps, the tables, the armchairs and the globe in front hide them: `gen_library.py`
 pushes everything else in `depth_map.py library`'s map back to 0 down to the shadows' rows (`backdrop`), as the model reads
 books and the wall's seams as nearer than the floor, so `library-fx.js` tests them from depth 0.
@@ -278,8 +284,9 @@ flange's half-width and half-height, its turn and its plain hub's reach, in `FX`
 - `content/skills/_index.md` — skills page
 - `content/cv.md` — printable CV page
 - `content/podcast.md` and `content/contact.md` — the Radio Mast (`/podcast/`, `layouts/_default/radio.html`) and the Post
-  Office (`/contact/`, `post.html`). Each opens on its room, painted across the head at its own 1440:347 shape
-  (`partials/room-hero.html`; a phone pans it): `radio.webp` and `post.webp`, baked by `web3d/pixel/gen_rooms.py` from
+  Office (`/contact/`, `post.html`). Each opens on its room, painted across the head (`partials/room-hero.html`), the
+  head as tall as the painting's 1440:347 shape at the screen's width, between 230 and 480px, the room at whole device px
+  an art px covering it, its foot cropped, and a phone panning it: `radio.webp` and `post.webp`, baked by `web3d/pixel/gen_rooms.py` from
   `web3d/pixel/paintings/picks/{radio,post}.png` (one painting each, at dusk), with `ROOM-fx.json` for their animations
   (`web3d/src/rooms-fx.js`, its own bundle, `--mode rooms`). Their copy is `contact` in `data/home/en.yaml` and their labels
   `radio` and `post` in `data/rooms.yaml`. The Post

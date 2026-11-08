@@ -60,7 +60,7 @@ a **later** item is missing, do the steps that don't need it and list what is le
      the site's root). List order is the chips' order.
    - Update `city.alt`, which names the five buildings.
    - The page's labels under a new key in `data/rooms.yaml`, the painting's alt in `data/art.yaml`, the page in
-     `data/llms.yaml` `pages`, and a `CONTENT.md` row per piece of text. No English in templates.
+     `data/llms.yaml` `key_pages`, and a `CONTENT.md` row per piece of text. No English in templates.
 3. **`layouts/index.html`.**
    - Nothing for the link: `$go` is built from each district's `url`.
    - If the title has `%d`, add the count to `$counts`. If its text comes from elsewhere, add it to `$texts`.

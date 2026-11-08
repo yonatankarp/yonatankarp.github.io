@@ -97,7 +97,7 @@ Draw Things runs on Yonatan's machine, and only he runs it or approves its jobs.
    Only a full run writes `floors.json`. The run also rewrites `data/floor_accents.yaml` and
    checks `data/phases.json`. Never hand-edit `floors.json` or `floor_accents.yaml`. Commit everything it changed: the new
    `floor-8.webp`, `floors.json` and `floor_accents.yaml`.
-9. **Only if the room shows outside** (follow the lobby, `reception`):
+9. **Only if the room shows outside** (follow the roof, or the lobby's door crop, `reception`):
    - **Each hour (Draw Things).** `uv run web3d/pixel/paint_rooms.py retime --src <room>_<seed>.png --time dawn|day|night`,
      then `winter --src <that hour's pick>.png --start 700` for dusk and each hour.
    - **The dicts.** Add `SNOW` (`paint_rooms.py`, for a whole-room winter edit like the roof's) and `SNOWED`

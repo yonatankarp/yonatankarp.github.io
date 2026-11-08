@@ -25,8 +25,8 @@ const PHASE = PHASES[TIME];
 // In winter (html[data-season], picked with the hour) the rooms that show outside have a picture of their own at every
 // hour, even dusk: only that season's strips are ever fetched, so winter's and the rest's are never decoded together.
 const SEASON = document.documentElement.dataset.season === 'winter' ? PHASE?.winter : null;
-export const BAKED = (SEASON ?? PHASE)?.baked;                  // the rooms with their own picture at this hour (the roof, the lobby's door); none at dusk
-export const HOUR = document.documentElement.dataset.art ?? ''; // the file name's suffix for those, [-winter][-PHASE]: time-pick.js's
+const BAKED = (SEASON ?? PHASE)?.baked;                         // the rooms with their own picture at this hour (the roof, the lobby's door); none at dusk
+const HOUR = document.documentElement.dataset.art ?? '';        // the file name's suffix for those, [-winter][-PHASE]: time-pick.js's
 // A storey's strip, floor-KEY, or one of its other pictures (floor-L-open: kind '-open'), at this hour if it has one.
 export const strip = (key, kind = '') => `floor-${key}${kind}${BAKED?.includes(key) ? HOUR : ''}`;
 export const STARRY = !!PHASE?.starry;                          // the night's stars above the roof (phases.json)

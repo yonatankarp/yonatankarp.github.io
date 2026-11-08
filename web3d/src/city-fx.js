@@ -17,7 +17,7 @@ export function cityFx(canvas, img) {
   const dir = new URL('.', new URL(img.dataset.base, location.href)).pathname;   // the art's folder: props.webp sits beside the city
   const sheet = (name) => (ext) => `${dir}${name}.${ext}?v=${img.dataset.version}`, options = { ...OUTSIDE, time: root.dataset.time };
   const plaza = props(sheet, options), show = dressing(options);
-  const spooks = Promise.all([show.ghosts && people(sheet('ghosts'), false), show.bats && people(sheet('bats'), false)]);
+  const spooks = Promise.all([show.ghosts && people(sheet('ghosts'), false), show.bats && people(sheet('bats'), show.night)]);
   const poster = (ctx) => plaza.then((items) => { ctx.clearRect(0, 0, canvas.width, canvas.height); for (const p of items) p.draw(ctx, null); });
   // Not once the tower is entered, which hides the city for good.
   animate(canvas, { data: art(`${season}fx.json`), depth: art('depth.png'), live: () => root.classList.contains('at-city'), poster },

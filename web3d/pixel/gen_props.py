@@ -110,6 +110,7 @@ BURST_PROMPT = ("Edit this picture. Repaint the shape as one single firework bur
 BURST_FRAMES = [(.3, 1, 0, 0), (.55, 1, 0, 0), (.78, 1, 0, 0), (.93, 1, 0, 0), (1, 1, 0, 0),
                 (1.04, .8, 6, .15), (1.07, .6, 14, .3), (1.09, .42, 26, .5), (1.1, .26, 40, .7)]
 GROW = 5
+LIT, GAIN = 0.4, 1.6
 # x0, y0, x1, y1: where a burst's middle may fall, the sky over the middle of the map round the tower (x 720), which
 # both a desktop's opening view (x 314-869) and a phone's (x 621-879) show. The tower and the crane stand in it: what the
 # depth map has nearer than the sky at the top of its column (14-22 there, not 0) hides a burst and its spark, which
@@ -450,18 +451,22 @@ def fireworks(out):
     assert room > 0.8 * (SKY[2] - SKY[0] + 1) * (SKY[3] - SKY[1] + 1), "the crane's lights leave the bursts too little room"
     rows = []
     for name, (size, _, _) in BURSTS.items():
-        src = Image.open(PICKED / f"{name}.png").convert("RGBA")
-        frames = []
-        for k, (scale, bright, droop, gone) in enumerate(BURST_FRAMES):
+        src = Image.open(PICKED / f"{name}.png").convert("RGB")   # light on black: its brightness is its coverage
+        light = []
+        for scale, _, droop, _ in BURST_FRAMES:
             c = W / 2   # the pose's middle: x, y = c + (x', y' - c - droop) / scale
             f = src.transform(src.size, Image.AFFINE, (1 / scale, 0, c - c / scale, 0, 1 / scale, c - (c + droop) / scale), Image.BILINEAR)
-            f = reduce(f.crop((16, 16, W - 16, H - 16)), (size, size), cut=40)
-            px, rnd = f.load(), random.Random(f"{name}{k}")
-            for y in range(size):
-                for x in range(size):
-                    p = px[x, y]
-                    px[x, y] = (0, 0, 0, 0) if p[3] == 0 or rnd.random() < gone else (*(round(v * bright) for v in p[:3]), 255)
-            frames.append(f)
+            light.append(np.asarray(f.crop((16, 16, W - 16, H - 16)).resize((size, size), Image.BOX)).astype(float))
+        # A pixel is lit where the box-reduced light passes LIT of the full bloom's brightest (its 95th percentile), so a
+        # burst's own streaks decide, not one cut for all; kept at GAIN, as a reduced streak is dimmer than the spark.
+        ref = np.percentile(light[BURST_FRAMES.index(next(f for f in BURST_FRAMES if f[0] == 1))].max(axis=2), 95)
+        frames = []
+        for k, ((_, bright, _, gone), a) in enumerate(zip(BURST_FRAMES, light, strict=True)):
+            rnd = random.Random(f"{name}{k}")
+            keep = (a.max(axis=2) > LIT * ref) & np.array([[rnd.random() >= gone for _ in range(size)] for _ in range(size)])
+            rgb = Image.fromarray(np.clip(a * GAIN * bright, 0, 255).astype(np.uint8)).quantize(32, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
+            rgb.putalpha(Image.fromarray(keep.astype(np.uint8) * 255))
+            frames.append(rgb)
         rows.append(frames)
     sheet = Image.new("RGBA", (sum(len(r) * r[0].width for r in rows), max(r[0].height for r in rows)))
     data, x = [], 0

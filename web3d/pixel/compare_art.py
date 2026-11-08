@@ -51,7 +51,7 @@ def main(new, old):
             olds, news = frames(committed), frames(rebuilt)
             if [a.size for a in olds] != [b.size for b in news]:
                 problems.append(f"{path.name}: {[b.size for b in news]} rebuilt, {[a.size for a in olds]} committed")
-            for a, b in zip(olds, news):
+            for a, b in zip(olds, news, strict=False):   # a frame count mismatch is reported above
                 if a.size == b.size and (box := differ(a, b)):
                     pixels = sum(map(any, ImageChops.difference(a, b).get_flattened_data()))
                     problems.append(f"{path.name}: {pixels} pixels differ in {box} at {a.size}")

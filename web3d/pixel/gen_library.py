@@ -33,7 +33,7 @@ from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gen_city import ART_W, COLOURS, PH, PW, SIZE, H  # noqa: E402
-from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
+from paint_rooms import OUT as CANDIDATES, call, patched  # noqa: E402
 
 PICK = 900                       # the seed of the pick, for the record
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks" / "library.png"
@@ -143,13 +143,13 @@ def paint(count, start, host):
         print("painted", path.name, flush=True)
 
 
-def bake(path=PICKED):
+def bake(path=PICKED, patches=()):
     """The painting box-reduced to the art's size, on its own COLOURS colours: the city's pixel look, undithered. A few
     k-means passes after the median cut, as plain median cut spends no colour on the small green lamps. gen_rooms.py
     bakes its rooms with it too."""
     if not path.exists():
         sys.exit(f"no {path}: paint (gen_library.py paint), copy the chosen candidate there and note its seed in PICK")
-    im = Image.open(path).convert("RGB").crop((0, 0, PW, PH))
+    im = patched(Image.open(path).convert("RGB"), patches).crop((0, 0, PW, PH))
     return im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
 
 

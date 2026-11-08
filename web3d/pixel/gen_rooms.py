@@ -33,6 +33,8 @@ from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
 
 PICKS = {"radio": 1500, "post": 1500}   # the seed of each room's pick, for the record
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks"
+# Mends over a room's pick (patch_picks.py): the studio's on-air lamp unlit, as the show is off air (data/rooms.yaml).
+PATCHES = {"radio": [("radio-off-air.png", (437, 35))]}
 STYLE = ("Wide panoramic interior of one room, seen straight on from the middle of the room, highly detailed painterly "
          "pixel-art-ready video game background, warm golden dusk light through the windows, soft lamp light, rich warm "
          "palette, cosy. No people, no text, no letters, no logos, no writing anywhere. ")
@@ -51,7 +53,7 @@ PROMPTS = {
 # Where each room's animations go, in art pixels (rooms-fx.js).
 FX = {
     "radio": {
-        "lamp": [238, 70],                                       # the red on-air lamp (no glow while the show is off air)
+        "lamp": [238, 70],                                       # the on-air lamp, painted unlit (PATCHES): no glow while off air
         # The tape decks' reels, left deck then right: the hub's x, y, the painted flange's half-width and half-height (a
         # disc seen at a slant), its turn (1 clockwise), and how far out its plain painted hub goes, which need not turn: on
         # the left deck the hub's ring of holes turns. Their cutouts turn about the hub over the bare metal (reels()).
@@ -137,7 +139,7 @@ def paint(count, start, host):
 
 def build(out):
     for room, seed in PICKS.items():
-        art = library_bake(pick(room))
+        art = library_bake(pick(room), PATCHES.get(room, ()))
         art.save(out / f"{room}.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
         if "reels" in FX[room]:
             reels(art, FX[room]["reels"]).save(out / f"{room}-reels.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)

@@ -377,6 +377,15 @@ def magenta(a, also=False):
     return ((g < 0.55 * np.minimum(r, b)) | also) & (r > 60) & (b > 60)
 
 
+def patched(im, patches):
+    """im with each patch (patch_picks.py) pasted: (its file in picks/, where its top left goes), an RGBA crop whose
+    alpha is its feathered mask."""
+    for name, at in patches:
+        crop = Image.open(HERE / "picks" / name).convert("RGBA")
+        im.paste(crop, at, crop)
+    return im
+
+
 def band(size, x1, y1, feather=40):
     """The mask of the wall next to the lift: full from the lobby's edge to x1 - 40 and down to y1 - 20, fading out
     over 40 px to the right and 20 below, and in over `feather` px of the lobby's wall on the left."""

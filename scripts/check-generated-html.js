@@ -444,7 +444,7 @@ for (const filePath of htmlFiles) {
   const home = read("index.html");
   const homeLd = jsonLd("/", home);
   const person = homeLd.find((item) => item["@type"] === "Person");
-  if (!person?.image || !person.sameAs?.includes("https://x.com/yonvata") || !person.address?.addressLocality) flag("/", "Person JSON-LD needs image, address and the X profile in sameAs");
+  if (!person?.image || !person.sameAs?.some((url) => url === "https://x.com/yonvata") || !person.address?.addressLocality) flag("/", "Person JSON-LD needs image, address and the X profile in sameAs");
   if (!person?.alternateName || !person.description || !person.alumniOf?.name || !person.knowsAbout?.length) flag("/", "Person JSON-LD needs alternateName, description, alumniOf and knowsAbout");
   const profile = homeLd.find((item) => item["@type"] === "ProfilePage");
   if (!profile || profile.mainEntity?.["@id"] !== person?.["@id"]) flag("/", "needs a ProfilePage whose mainEntity is the Person");

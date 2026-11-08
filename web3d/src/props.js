@@ -1,6 +1,6 @@
 // The holidays' props on the city's tower plaza (city-fx.js): a hanukkiah through Hanukkah, a Christmas tree through
 // Advent and jack-o'-lanterns through Halloween's last week, from the visitor's calendar (outside.js); and the new year's
-// fireworks over the bay. Painted and baked by web3d/pixel/gen_props.py into props.webp (with props.json: where each
+// fireworks over the city. Painted and baked by web3d/pixel/gen_props.py into props.webp (with props.json: where each
 // stands, its candle tops, bulbs and star), halloween.webp and fireworks.webp (each with its .json). The candles, the
 // tree's lights and the lanterns' faces burn at dusk and night only, drawn here: flickering and twinkling in the loop,
 // steady in a still frame (draw's t null), which has no fireworks: a burst held still reads as a stain on the sky.
@@ -13,6 +13,10 @@ const COLOURS = ['#ffe9a8', '#ff5a4a', '#ffd04a', '#7fc2ff', '#fff6dc'];
 // How long each of a burst's frames shows, in ms: the growing ones (fireworks.json's `grow`), then the fading ones. The
 // city draws at least 15 times a second (city-fx.js), so a frame of 67 ms or more is never skipped.
 export const BURST = { grow: 70, fade: 240 };
+// Each burst's rising spark: it climbs `rise` art px to the burst at `speed` px a second (gen_props.py's RISE checks its
+// sky). The city draws at least fireworksFps that night: a pixel of the spark a frame, and every burst frame.
+export const SPARK = { rise: 30, speed: 30 };
+export const fireworksFps = Math.max(1000 / BURST.grow, SPARK.speed);
 
 // The cups lit on day `day` of Hanukkah (from 0), as indexes into flames (its nine candle tops, left to right as you face
 // it): the shamash, and day + 1 candles, which are added from the right.
@@ -122,22 +126,44 @@ export function props(url, options) {
           } });
         }
       }
-      if (F && bursts) {   // a few at a time over the bay, each where fireworks.json's sky box puts it, now and then two close together
-        const [sx0, sy0, sx1, sy1] = F.sky, live = [];
+      if (F && bursts) {   // a few at a time, each in fireworks.json's sky box after its spark climbs, now and then two close together
+        // Drawn on a layer over their box, from which the tower and the crane, nearer than the sky (fronts), are cut out,
+        // then added to the sky's light. A burst's middle keeps `core` px off the crane's lights (avoid).
+        const [sx0, sy0, sx1, sy1] = F.sky, [bx, by, bx1, by1] = F.box, live = [];
+        const layer = new OffscreenCanvas(bx1 - bx + 1, by1 - by + 1).getContext('2d'), fronts = new OffscreenCanvas(bx1 - bx + 1, by1 - by + 1);
+        const fg = fronts.getContext('2d');
+        for (const [y, x0, x1] of F.fronts) fg.fillRect(x0 - bx, y - by, x1 - x0 + 1, 1);
+        const clear = (x, y) => F.avoid.every(([ax, ay]) => Math.hypot(x - ax, y - ay) > F.core);
         let next = null;
         out.push({ y: -1, draw(ctx, t) {
           if (t === null) return;
           next ??= t + rnd(0.3, 1.5);
           if (t >= next && live.length < 3) {
-            live.push({ S: F.bursts[Math.random() * F.bursts.length | 0], x: Math.round(rnd(sx0, sx1)), y: Math.round(rnd(sy0, sy1)), t0: t });
+            for (let n = 0; n < 20; n++) {
+              const x = Math.round(rnd(sx0, sx1)), y = Math.round(rnd(sy0, sy1));
+              if (clear(x, y)) { live.push({ S: F.bursts[Math.random() * F.bursts.length | 0], x, y, t0: t + SPARK.rise / SPARK.speed }); break; }
+            }
             next = t + (Math.random() < 0.2 ? rnd(0.12, 0.3) : rnd(0.7, 2.4));
           }
-          ctx.globalCompositeOperation = 'lighter';   // light, added to the sky's
+          if (!live.length) return;
+          layer.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+          layer.globalCompositeOperation = 'lighter';
           for (let i = live.length - 1; i >= 0; i--) {
-            const { S, x, y, t0 } = live[i], k = burstFrame((t - t0) * 1000, F.grow, F.frames);
+            const { S, x, y, t0 } = live[i];
+            if (t < t0) {   // the spark, a pixel with a fading two-pixel tail
+              const sy = y + Math.round((t0 - t) * SPARK.speed);
+              layer.fillStyle = 'rgba(255,230,170,.35)'; layer.fillRect(x - bx, sy + 1 - by, 1, 2);
+              layer.fillStyle = '#fff1c8'; layer.fillRect(x - bx, sy - by, 1, 1);
+              continue;
+            }
+            const k = burstFrame((t - t0) * 1000, F.grow, F.frames);
             if (k < 0) { live.splice(i, 1); continue; }
-            ctx.drawImage(bursts, S.sx + k * S.w, 0, S.w, S.h, x - (S.w >> 1), y - (S.h >> 1), S.w, S.h);
+            layer.drawImage(bursts, S.sx + k * S.w, 0, S.w, S.h, x - (S.w >> 1) - bx, y - (S.h >> 1) - by, S.w, S.h);
           }
+          layer.globalCompositeOperation = 'destination-out';
+          layer.drawImage(fronts, 0, 0);
+          ctx.globalCompositeOperation = 'lighter';   // light, added to the sky's
+          ctx.drawImage(layer.canvas, bx, by);
           ctx.globalCompositeOperation = 'source-over';
         } });
       }

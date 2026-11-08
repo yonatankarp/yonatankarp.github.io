@@ -3,7 +3,7 @@
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """The holidays' art in the city (web3d/src/props.js, city-fx.js): on the tower plaza a hanukkiah, a Christmas tree and
-Halloween's jack-o'-lanterns; Halloween's ghosts and bats; and the new year's fireworks over the bay. Painted on magenta
+Halloween's jack-o'-lanterns; Halloween's ghosts and bats; and the new year's fireworks over the city. Painted on magenta
 (the bursts on black, as light is, and as magenta keying would eat a red one), keyed, and baked the city's way.
 
 Run: uv run web3d/pixel/gen_props.py pose                     # the shapes the model paints over, on magenta (bursts on black)
@@ -29,8 +29,8 @@ has each one's box, its face's pixels (glow) and where each stands. The ghosts (
 (BAT art px across) are painted frames, every frame of one with the same seed, and baked as the walkers are (a row each,
 a frame per column, scene-fx.js's people()); ghosts.json has each ghost's path and the depth it hides from. The bursts
 (BURSTS) are each painted once and grown and faded in BURST_FRAMES from that one painting, so every frame is on the
-same art pixels; fireworks.json has their boxes and the sky box their middles fall in (SKY), clear of the mast's beacon
-and the crane's lights. Each of those four is baked only once all its picks are in, so the bake keeps the committed art.
+same art pixels; fireworks.json has their boxes, the sky box their middles fall in (SKY), what stands in front of
+the sky there (the tower and the crane, which hide them) and the crane's lights their middles keep off. Each of those four is baked only once all its picks are in, so the bake keeps the committed art.
 """
 import base64
 import io
@@ -45,7 +45,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from gen_city import LIGHTS  # noqa: E402
+from gen_city import DOOR_OPEN, LIGHTS, PLAZAS  # noqa: E402
 from paint_rooms import OUT as CANDIDATES, call, magenta  # noqa: E402
 
 PICKED = Path(os.environ.get("PROPS_PICKS") or Path(__file__).resolve().parent / "paintings" / "picks" / "props")   # PROPS_PICKS: a mock's
@@ -83,10 +83,10 @@ PUMPKINS = {
     "pumpkin-round": (8, (96, 190, 416, 452), "a big round pumpkin with broad ribs"),
     "pumpkin-small": (6, (126, 262, 386, 452), "a small squat pumpkin"),
 }
-# Where each stands, its foot's middle in the city's art px: a loose row on the paving in front of the tower's right face,
-# right of its door, clear of the walkers' plazas (gen_city.py's PLAZAS), the hanukkiah's and the tree's boxes, and of
-# the tree in front of the door (depth 160 and nearer below row 241).
-HALLOWEEN = [("pumpkin-tall", 744, 239), ("pumpkin-small", 750, 241), ("pumpkin-round", 757, 240), ("pumpkin-small", 765, 241)]
+# Where each stands, its foot's middle in the city's art px: a loose row on the paving right of the tower, clear of the
+# open door's crop (gen_city.py's DOOR_OPEN, which the push-in lays over the city), the walkers' plazas (PLAZAS, with
+# their heads) and the hanukkiah's and the tree's boxes; halloween() checks it against the baked sprites.
+HALLOWEEN = [("pumpkin-tall", 762, 240), ("pumpkin-small", 768, 241), ("pumpkin-round", 775, 243), ("pumpkin-small", 782, 242)]
 PUMPKIN_PROMPT = ("Edit this picture. Repaint the shape as one carved Halloween jack-o'-lantern standing on a city square, "
                   "{look}, deep orange skin, a short curled green-brown stem, a carved face with two triangle eyes, a "
                   "triangle nose and a wide toothy grin, the carved holes dark and hollow, unlit, highly detailed painterly "
@@ -110,8 +110,13 @@ BURST_PROMPT = ("Edit this picture. Repaint the shape as one single firework bur
 BURST_FRAMES = [(.3, 1, 0, 0), (.55, 1, 0, 0), (.78, 1, 0, 0), (.93, 1, 0, 0), (1, 1, 0, 0),
                 (1.04, .8, 6, .15), (1.07, .6, 14, .3), (1.09, .42, 26, .5), (1.1, .26, 40, .7)]
 GROW = 5
-SKY = [26, 22, 176, 44]   # x0, y0, x1, y1: where a burst's middle may fall, the sky over the bay (depth 0 out to its edge)
-CLEAR = 120               # art px a burst keeps from the mast's beacon and the crane's lights (LIGHTS)
+# x0, y0, x1, y1: where a burst's middle may fall, the sky over the middle of the map round the tower (x 720), which
+# both a desktop's opening view (x 314-869) and a phone's (x 621-879) show. The tower and the crane stand in it: what the
+# depth map has nearer than the sky at the top of its column (14-22 there, not 0) hides a burst and its spark, which
+# climbs RISE px (props.js's SPARK.rise). A burst's middle keeps CORE px off the crane's two lights (LIGHTS' blinks).
+SKY = [610, 24, 870, 38]
+RISE = 30
+CORE = 6
 
 # Halloween's ghosts, name: (seed, how it looks), GHOST art px tall (the city's walkers are 4), and their four sway
 # frames, facing right (the page mirrors them). Each drifts along a path: x0, x1, its bottom row and the row whose depth
@@ -405,6 +410,15 @@ def face(name, sprite, box):
 def halloween(out):
     """halloween.webp, the lanterns side by side, and halloween.json: each one's box and face, and where each stands."""
     sprites = {n: small(n, h) for n, (h, _, _) in PUMPKINS.items()}
+    keep_out = [DOOR_OPEN, *[(x0, y0 - 4, x1, y1) for x0, y0, x1, y1 in PLAZAS]]   # a walker stands 4 px tall
+    for name, (x, y, h) in PLACE.items():
+        w = small(name, h)[0].width
+        keep_out.append((x - w // 2, y - h, x - w // 2 + w - 1, y))
+    for name, x, y in HALLOWEEN:
+        sp = sprites[name][0]
+        box = (x - sp.width // 2, y - sp.height, x - sp.width // 2 + sp.width - 1, y - 1)
+        hit = [k for k in keep_out if box[0] <= k[2] and k[0] <= box[2] and box[1] <= k[3] and k[1] <= box[3]]
+        assert not hit, f"{name} at {x, y} overlaps {hit}: move it in HALLOWEEN"
     sheet = Image.new("RGBA", (sum(s.width for s, _, _ in sprites.values()), max(s.height for s, _, _ in sprites.values())))
     data, x = {}, 0
     for n, (sprite, box, _) in sprites.items():
@@ -420,11 +434,20 @@ def halloween(out):
 def fireworks(out):
     """fireworks.webp, each burst's frames side by side (BURST_FRAMES from its one painting), and fireworks.json."""
     big = max(d for d, _, _ in BURSTS.values()) // 2
-    depth = Image.open(DEPTH).convert("L")
-    x0, y0, x1, y1 = SKY[0] - big, SKY[1] - big, SKY[2] + big, SKY[3] + big
-    assert np.asarray(depth.crop((x0, y0, x1 + 1, y1 + 1))).max() <= 5, "a burst would go behind something: keep SKY in the open sky"
-    for lx, ly in [LIGHTS["beacon"], *LIGHTS["blinks"]]:
-        assert math.dist((lx, ly), (min(max(lx, x0), x1), min(max(ly, y0), y1))) >= CLEAR, f"a burst within {CLEAR} px of the light at {lx, ly}"
+    depth = np.asarray(Image.open(DEPTH).convert("L")).astype(int)
+    box = [SKY[0] - big, max(0, SKY[1] - big), SKY[2] + big, max(SKY[3] + big, SKY[3] + RISE)]   # every burst and spark
+    x0, y0, x1, y1 = box
+    sky = depth[0, x0:x1 + 1] + 5   # the depth map's sky, each column's top row, and its tolerance as scene-fx.js's TOL
+    front = depth[y0:y1 + 1, x0:x1 + 1] > sky
+    assert x1 < depth.shape[1] and not front[0].any(), "the fireworks' box must start in open sky"
+    assert front.mean() < 0.25, "the tower and the crane would hide most bursts: move SKY into more open sky"
+    fronts = []   # rows of [y, x0, x1], what stands in front of the sky
+    for y, row in enumerate(front):
+        xs = np.flatnonzero(row)
+        for run in np.split(xs, np.flatnonzero(np.diff(xs) > 1) + 1) if len(xs) else []:
+            fronts.append([y0 + y, x0 + int(run[0]), x0 + int(run[-1])])
+    room = sum(all(math.dist((x, y), b) > CORE for b in LIGHTS["blinks"]) for x in range(SKY[0], SKY[2] + 1) for y in range(SKY[1], SKY[3] + 1))
+    assert room > 0.8 * (SKY[2] - SKY[0] + 1) * (SKY[3] - SKY[1] + 1), "the crane's lights leave the bursts too little room"
     rows = []
     for name, (size, _, _) in BURSTS.items():
         src = Image.open(PICKED / f"{name}.png").convert("RGBA")
@@ -448,7 +471,8 @@ def fireworks(out):
             sheet.alpha_composite(f, (x, 0))
             x += f.width
     sheet.save(out / "fireworks.webp", "WEBP", lossless=True, quality=100, method=6, exact=True)
-    (out / "fireworks.json").write_text(json.dumps({"bursts": data, "frames": len(BURST_FRAMES), "grow": GROW, "sky": SKY}, separators=(",", ":")))
+    (out / "fireworks.json").write_text(json.dumps({"bursts": data, "frames": len(BURST_FRAMES), "grow": GROW, "sky": SKY, "box": box,
+                                                    "fronts": fronts, "avoid": LIGHTS["blinks"], "core": CORE}, separators=(",", ":")))
     print("drew fireworks.webp", sheet.size)
 
 

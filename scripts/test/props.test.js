@@ -121,27 +121,50 @@ test("Missing art leaves the plaza bare, and art that is there but broken is a p
   await assert.rejects(props(url, at("day", { halloween: 2 })), SyntaxError);
 });
 
-test("The fireworks: none in a still frame, then bursts whose middles keep to the sky box, each gone after its frames", async (t) => {
-  const { props, BURST } = await load();
-  const F = { bursts: [{ sx: 0, w: 30, h: 30 }, { sx: 270, w: 26, h: 26 }], frames: 9, grow: 5, sky: [26, 22, 176, 44] };
+test("The fireworks: none in a still frame, then sparks that climb a pixel a draw and bursts in the sky box, off the crane's lights, cut where the tower stands", async (t) => {
+  const { props, BURST, SPARK, fireworksFps } = await load();
+  const F = { bursts: [{ sx: 0, w: 30, h: 30 }, { sx: 270, w: 26, h: 26 }], frames: 9, grow: 5, sky: [610, 24, 870, 38],
+    box: [593, 7, 887, 68], fronts: [[40, 720, 760]], avoid: [[746, 18], [800, 37]], core: 6 };
+  const sheet = {}, layers = [];
   t.mock.method(globalThis, "fetch", async (u) => (u === "fireworks.json" ? Response.json(F) : u === "fireworks.webp" ? new Response("x") : new Response("", { status: 404 })));
-  globalThis.createImageBitmap = async () => ({});
-  t.after(() => delete globalThis.createImageBitmap);
+  globalThis.createImageBitmap = async () => sheet;
+  globalThis.OffscreenCanvas = class {   // records what is drawn on each layer
+    constructor(w, h) { Object.assign(this, { width: w, height: h, calls: [] }); layers.push(this); }
+    getContext() { const c = this; return { canvas: c, clearRect() {}, fillRect: (...a) => c.calls.push(["fill", ...a]), drawImage: (...a) => c.calls.push(["image", ...a]) }; }
+  };
+  let seed = 7;
+  t.mock.method(Math, "random", () => (seed = (seed * 16807) % 2147483647) / 2147483647);   // the same show every run
+  t.after(() => { delete globalThis.createImageBitmap; delete globalThis.OffscreenCanvas; });
   const items = await props((name) => (ext) => `${name}.${ext}`, at("night", { "new-year": 0 }, "winter", { evening: true, afternoon: true }));
   assert.equal(items.length, 1);
-  const calls = [], ctx = { drawImage: (...a) => calls.push(a), set globalCompositeOperation(v) { this.op = v; } };
+  const [layer, fronts] = layers;
+  assert.deepEqual([layer.width, layer.height], [295, 62]);
+  assert.deepEqual(fronts.calls, [["fill", 127, 33, 41, 1]], "the tower's row, in the layer's own pixels");
+  const out = [], ctx = { drawImage: (...a) => out.push(a), set globalCompositeOperation(v) { this.op = v; } };
   items[0].draw(ctx, null);
-  assert.equal(calls.length, 0, "a still frame has no fireworks");
-  const life = (F.grow * BURST.grow + (F.frames - F.grow) * BURST.fade) / 1000;
-  for (let s = 0; s < 60; s += 0.05) items[0].draw(ctx, s);
-  assert.ok(calls.length > 100, "bursts went up");
-  for (const [, sx, , w, h, x, y] of calls) {
-    const k = (sx % 270) / w;
-    assert.ok(Number.isInteger(k) && k < F.frames, `frame ${k}`);
-    assert.ok(x + (w >> 1) >= 26 && x + (w >> 1) <= 176 && y + (h >> 1) >= 22 && y + (h >> 1) <= 44, `a burst at ${x}, ${y}`);
+  assert.equal(layer.calls.length + out.length, 0, "a still frame has no fireworks");
+  const step = 1 / fireworksFps;   // the city's draws that night: the spark climbs a pixel at most between two
+  let last = new Map(), bursts = 0;
+  for (let s = 0; s < 60; s += step) {
+    layer.calls.length = 0;
+    items[0].draw(ctx, s);
+    const sparks = layer.calls.filter(([kind, , , , h]) => kind === "fill" && h === 1).map(([, x, y]) => [x + 593, y + 7]), now = new Map(sparks);
+    for (const [x, y] of now) if (last.has(x)) assert.ok(last.get(x) - y <= 1 && last.get(x) >= y, `a spark at x ${x} jumped from ${last.get(x)} to ${y}`);
+    for (const [x, y] of sparks) assert.ok(x >= 610 && x <= 870 && y >= 24 && y <= 38 + SPARK.rise, `a spark at ${x}, ${y}`);
+    last = now;
+    for (const [kind, src, sx, , w, h, x, y] of layer.calls) {
+      if (kind !== "image") continue;
+      if (src === fronts) continue;
+      bursts++;
+      const k = (sx % 270) / w, cx = x + 593 + (w >> 1), cy = y + 7 + (h >> 1);
+      assert.ok(Number.isInteger(k) && k < F.frames, `frame ${k}`);
+      assert.ok(cx >= 610 && cx <= 870 && cy >= 24 && cy <= 38, `a burst at ${cx}, ${cy}`);
+      assert.ok(F.avoid.every(([ax, ay]) => Math.hypot(cx - ax, cy - ay) > F.core), `a burst's core on a crane light at ${cx}, ${cy}`);
+    }
+    if (layer.calls.length) assert.deepEqual(layer.calls.at(-1), ["image", fronts, 0, 0], "the tower and the crane cut out last");
   }
-  calls.length = 0;
-  items[0].draw(ctx, 60 + life + 0.01);   // long after: only a new one, on its first frame, can show
-  assert.ok(calls.every(([, sx, , w]) => (sx % 270) / w === 0));
-  assert.equal(ctx.op, "source-over");
+  assert.ok(bursts > 100, "bursts went up");
+  assert.ok(out.every(([src, x, y]) => src === layer && x === 593 && y === 7) && ctx.op === "source-over");
+  assert.ok(1000 / fireworksFps <= BURST.grow, "no burst frame is shorter than the city's draws that night");
+  assert.ok(SPARK.speed <= fireworksFps, "the spark climbs at most a pixel a draw");
 });

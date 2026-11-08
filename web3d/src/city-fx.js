@@ -2,11 +2,11 @@
 // flocks of birds, over the picture (scene-fx.js), and in winter falling snow. Where they go is city-fx.json (in winter
 // city-winter-fx.json, its bay found in the winter art), the night's windows are city[-winter]-windows.json, fetched only
 // at night, and what hides them is city-depth.png, all written by web3d/pixel/gen_city.py. The holidays' props on the plaza (props.js) stand among the walkers, and stay when nothing moves;
-// the new year's fireworks go up over the bay. On Halloween's dusk and night a few ghosts drift over the streets and roofs
+// the new year's fireworks go up over its middle, behind the tower and the crane. On Halloween's dusk and night a few ghosts drift over the streets and roofs
 // (ghosts.json: each one's path and the depth it hides from) and the birds are bats, both painted frames from
 // web3d/pixel/gen_props.py; neither is in a still frame.
 import { OUTSIDE } from './outside.js';
-import { dressing, props, BURST } from './props.js';
+import { dressing, fireworksFps, props } from './props.js';
 import { animate, asset, people, rnd, snowfall } from './scene-fx.js';
 
 const root = document.documentElement;
@@ -167,8 +167,8 @@ function setup(ctx, fx, dfill, footAt, sprite, plaza, spooks, show, windowsUrl, 
   };
 
   // The fastest mover, in art pixels a second, sets how often a frame is drawn (scene-fx.js): the snow, a bird (up to 15),
-  // a car or a walker; on the new year's night, a burst's quickest frame too (props.js's BURST). A ghost (5 at most) and a
+  // a car or a walker; on the new year's night, a burst's rising spark and its quickest frame (props.js). A ghost (5 at most) and a
   // bat's wingbeat (a frame every 88 ms or more) stay under the birds' 15.
-  const fps = Math.max(snow ? snow.fps : 0, 15, show.fireworks ? 1000 / BURST.grow : 0, ...cars.map((c) => c.v * c.lane.total), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * Math.hypot(w.seg[2] - w.seg[0], w.seg[3] - w.seg[1])));
+  const fps = Math.max(snow ? snow.fps : 0, 15, show.fireworks ? fireworksFps : 0, ...cars.map((c) => c.v * c.lane.total), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * Math.hypot(w.seg[2] - w.seg[0], w.seg[3] - w.seg[1])));
   return Object.assign((now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); }, { fps, ready: Promise.all([plaza, lit, spooks]) });
 }

@@ -7,7 +7,7 @@ between encoder runs while every pixel is the same, so a byte compare would fail
 
 Run: uv run web3d/pixel/compare_art.py NEW [OLD]   # OLD defaults to static/building/pixel
 
-Fails when a picture in OLD (WebP, or the city's depth map, a PNG) is missing from NEW or differs in size or in any pixel,
+Fails when a picture in OLD (WebP, the city's depth map, a PNG, or every frame of an .ico) is missing from NEW or differs in size or in any pixel,
 or when one of its JSON files is missing from NEW or differs. OLD can be any folder of baked art (CI compares the blog
 covers' and the icons' this way too); one with no JSON compares only its pictures.
 """
@@ -24,24 +24,37 @@ def differ(a, b):
     return ImageChops.difference(a, b).getbbox(alpha_only=False)
 
 
+def frames(im):
+    """Every frame of an .ico (its 16 and 32), else the one picture, as RGBA."""
+    if im.format != "ICO":
+        return [im.convert("RGBA")]
+    out = []
+    for size in sorted(im.info["sizes"]):
+        im.size = size
+        im.load()
+        out.append(im.convert("RGBA"))
+    return out
+
+
 def main(new, old):
     a = Image.new("RGBA", (3, 3), (10, 20, 30, 255))
     b = a.copy()
     b.putpixel((1, 1), (11, 20, 30, 255))
     assert differ(a, b) == (1, 1, 2, 2) and differ(a, a) is None, "the compare misses a one-pixel change of colour"
     problems, count = [], 0
-    for path in sorted([*old.glob("*.webp"), *old.glob("*.png")]):
+    for path in sorted([*old.glob("*.webp"), *old.glob("*.png"), *old.glob("*.ico")]):
         fresh = new / path.name
         if not fresh.exists():
             problems.append(f"{path.name}: not rebuilt")
             continue
         with Image.open(path) as committed, Image.open(fresh) as rebuilt:
-            a, b = committed.convert("RGBA"), rebuilt.convert("RGBA")
-            if a.size != b.size:
-                problems.append(f"{path.name}: {b.size} rebuilt, {a.size} committed")
-            elif box := differ(a, b):
-                pixels = sum(map(any, ImageChops.difference(a, b).get_flattened_data()))
-                problems.append(f"{path.name}: {pixels} pixels differ in {box}")
+            olds, news = frames(committed), frames(rebuilt)
+            if [a.size for a in olds] != [b.size for b in news]:
+                problems.append(f"{path.name}: {[b.size for b in news]} rebuilt, {[a.size for a in olds]} committed")
+            for a, b in zip(olds, news):
+                if a.size == b.size and (box := differ(a, b)):
+                    pixels = sum(map(any, ImageChops.difference(a, b).get_flattened_data()))
+                    problems.append(f"{path.name}: {pixels} pixels differ in {box} at {a.size}")
         count += 1
     jsons = sorted(path.name for path in old.glob("*.json"))
     for name in jsons:

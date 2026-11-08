@@ -53,20 +53,6 @@ web3d/pixel/paintings/candidates/*
 !web3d/pixel/paintings/candidates/reception_1117-dawn_1000.png
 !web3d/pixel/paintings/candidates/reception_1117-day_1000.png
 !web3d/pixel/paintings/candidates/reception_1117-night_1000.png
-# the art inside a post, the picks of paint_covers.py's INLINE (--install-inline bakes them; the two concurrency ones are lost,
-# so their WebPs are their source)
-!web3d/pixel/paintings/candidates/inline-break-hashmap-fixed-stone_11.png
-!web3d/pixel/paintings/candidates/inline-gateway-digging_55.png
-!web3d/pixel/paintings/candidates/inline-hashmap-same-cell_11.png
-!web3d/pixel/paintings/candidates/inline-hashmap-straight-to-cell_11.png
-!web3d/pixel/paintings/candidates/inline-hashset-one-per-cell_33.png
-!web3d/pixel/paintings/candidates/inline-openapi-first-catch_55.png
-!web3d/pixel/paintings/candidates/inline-openapi-mismatched-webs_66.png
-!web3d/pixel/paintings/candidates/inline-openapi-spinning-spiral_22.png
-!web3d/pixel/paintings/candidates/inline-real-life-grounded-crane_33.png
-!web3d/pixel/paintings/candidates/inline-real-life-new-route_44.png
-!web3d/pixel/paintings/candidates/inline-real-life-preening_66.png
-!web3d/pixel/paintings/candidates/inline-real-life-retro_11.png
 # install_picks.py also saves each crop beside its pixel art; only the -px.png files are read
 web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/*-px.png

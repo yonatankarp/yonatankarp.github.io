@@ -59,10 +59,22 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
   // Walkers: pacing the street and the avenue, or strolling the plaza with pauses. Fewer, and dark, at night.
   const SHIRTS = ['#c0392b', '#2e86c1', '#f1c40f', '#ecf0f1', '#27ae60', '#8e44ad', '#e67e22', '#34495e'];
   const inBox = (b) => [rnd(b[0], b[2]), rnd(b[1], b[3])];
+  // A walk is a run of points, x0, y0, x1, y1, ..., so it can follow a kerb that bends.
+  const walks = fx.walks.map((s) => {
+    const lens = [];
+    for (let i = 2; i < s.length; i += 2) lens.push(Math.hypot(s[i] - s[i - 2], s[i + 1] - s[i - 1]));
+    return { s, lens, total: lens.reduce((a, b) => a + b) };
+  });
+  const walkAt = ({ s, lens, total }, t) => {   // the point t of the way along a walk
+    let d = t * total, i = 0;
+    while (i < lens.length - 1 && d > lens[i]) d -= lens[i++];
+    const f = d / lens[i], [x0, y0, x1, y1] = s.slice(2 * i, 2 * i + 4);
+    return [Math.round(x0 + (x1 - x0) * f), Math.round(y0 + (y1 - y0) * f)];
+  };
   const people = Array.from({ length: 24 }, (_, i) => {
     const shirt = SHIRTS[i % SHIRTS.length], step = Math.random() * 10;
     if (i % 3 === 0) { const box = fx.plazas[i % fx.plazas.length], [x, y] = inBox(box); return { box, x, y, to: inBox(box), shirt, step, pause: 0 }; }
-    const avenue = i % 5 === 1, seg = fx.walks[avenue ? 1 : 0];
+    const avenue = i % 5 === 1, seg = walks[avenue ? 1 : 0];
     return { seg, t: Math.random(), v: rnd(0.006, 0.014) * (Math.random() < 0.5 ? 1 : -1) * (avenue ? 4 : 1), shirt, step };
   }).filter((_, i) => !night || i % 2);
   // Drawn by their feet's row among the plaza's props, farther first, so nobody walks through one.
@@ -73,7 +85,7 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
       if (w.seg) {
         w.t += w.v * dt / 1000;
         if (w.t > 1 || w.t < 0) { w.v = -w.v; w.t = Math.min(1, Math.max(0, w.t)); }   // the end of the open stretch: turn back
-        x = Math.round(w.seg[0] + (w.seg[2] - w.seg[0]) * w.t); y = Math.round(w.seg[1] + (w.seg[3] - w.seg[1]) * w.t);
+        [x, y] = walkAt(w.seg, w.t);
       } else {
         const dx = w.to[0] - w.x, dy = w.to[1] - w.y, d = Math.hypot(dx, dy);
         if (w.pause > now) { /* standing a moment */ } else if (d < 0.5) { w.to = inBox(w.box); w.pause = now + rnd(500, 3000); }
@@ -91,23 +103,36 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
     for (const [, draw] of order) draw();
   };
 
-  // Cars: the main street's lanes and the ring road's curve, fading in and out where the road leaves the open stretch.
+  // Cars: each lane runs, one way, from where its road comes out from behind something (or in off the art) to where it
+  // goes behind something again, fading in and out over its last 8 px. A car per 200 px of lane, all at one speed, slower
+  // up the picture (`far`), where things are smaller: routes share stretches of road, and one car must not pass through
+  // another there.
+  // A lane point's ground is footAt there (its ends, hidden by design, take the next point's). Between points it goes
+  // linearly from one to the next, and caps footAt, which alone would see only the greenhouses where they stand over
+  // the whole road, and put the car on top of them.
   const lanes = fx.lanes.map((pts) => {
-    const lens = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]));
-    return { pts, lens, total: lens.reduce((a, b) => a + b) };
+    const lens = pts.slice(1).map((p, i) => Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1])), feet = pts.map(([x, y]) => footAt(x, y + 1));
+    feet[0] = feet[1]; feet[feet.length - 1] = feet[feet.length - 2];
+    return { pts, lens, feet, total: lens.reduce((a, b) => a + b) };
   });
-  const along = ({ pts, lens, total }, t) => {   // a point t of the way along the lane, and which way it heads
-    let d = t * total, i = 0;
+  const along = ({ pts, lens, feet }, d) => {   // the point d px along the lane, which way it heads, and the ground there
+    let i = 0;
     while (i < lens.length - 1 && d > lens[i]) d -= lens[i++];
     const f = d / lens[i], a = pts[i], b = pts[i + 1];
-    return [Math.round(a[0] + (b[0] - a[0]) * f), Math.round(a[1] + (b[1] - a[1]) * f), Math.sign(b[0] - a[0]) || 1];
+    return [Math.round(a[0] + (b[0] - a[0]) * f), Math.round(a[1] + (b[1] - a[1]) * f), Math.sign(b[0] - a[0]) || 1, feet[i] + (feet[i + 1] - feet[i]) * f];
   };
-  const cars = Array.from({ length: 8 }, (_, i) => ({ lane: lanes[i % 3], t: Math.random(), v: rnd(0.025, 0.04) * (i % 3 === 2 ? 2.5 : 1),
-    body: ['60,70,90', '150,40,30', '200,190,170', '40,90,60'][i % 4] }));
+  const far = (y) => Math.min(1, Math.max(0.35, (y - 120) / 180));
+  const v = rnd(13, 21), cars = lanes.flatMap((lane, l) => {
+    const n = Math.max(1, Math.round(lane.total / 200));
+    return Array.from({ length: n }, (_, i) => ({ lane, v, k: 1, d: (i + Math.random() * 0.6) / n * lane.total,
+      body: ['60,70,90', '150,40,30', '200,190,170', '40,90,60'][(l + i) % 4] }));
+  });
   const drawCars = (dt) => {
     for (const c of cars) {
-      c.t = (c.t + c.v * dt / 1000) % 1;
-      const [x, y, dir] = along(c.lane, c.t), f = footAt(x, y + 1), a = Math.min(1, Math.min(c.t, 1 - c.t) * 10);
+      c.d = (c.d + c.v * c.k * dt / 1000) % c.lane.total;
+      const [x, y, dir, ground] = along(c.lane, c.d), f = Math.min(footAt(x, y + 1), ground + 2);
+      const a = Math.min(1, c.d / 8, (c.lane.total - c.d) / 8);
+      c.k = far(y);
       if (!night) { ctx.fillStyle = `rgba(${c.body},${a})`; dfill(x - 2, y - 1, 4, 2, f); }
       if (lamps) {   // headlights, their soft beam ahead and a red tail light
         ctx.fillStyle = `rgba(255,240,190,${a})`; dfill(x, y, 2, 1, f);
@@ -148,6 +173,6 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
 
   // The fastest mover, in art pixels a second, sets how often a frame is drawn (scene-fx.js): the snow, a bird (up to 15),
   // a car or a walker.
-  const fps = Math.max(snow ? snow.fps : 0, 15, ...cars.map((c) => c.v * c.lane.total), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * Math.hypot(w.seg[2] - w.seg[0], w.seg[3] - w.seg[1])));
+  const fps = Math.max(snow ? snow.fps : 0, 15, ...cars.map((c) => c.v), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * w.seg.total));
   return Object.assign((now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); }, { fps, ready: Promise.all([plaza, lit]) });
 }

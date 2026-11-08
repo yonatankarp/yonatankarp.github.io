@@ -198,13 +198,15 @@ open lift's doors; paused they hold their pose, held one loafs on the bench and 
 
 The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
 laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the
-main street and the ring road (headlights at dusk and night), windows going dark at night, glints on the bay, the radio
+main street, the ring road and its branches and the roads on the left (headlights at dusk and night; each lane in `LANES`
+a one-way route between two hidden ends, offset to the right of its road's middle, the ground under its points capping
+`footAt` so the greenhouses hide the road behind them), windows going dark at night, glints on the bay, the radio
 mast's beacon and the crane's lights, and flocks of birds. Movers hide behind what is nearer in `city-depth.png`
 (brighter = nearer). `gen_city.py build` writes `city-fx.json` (the bay found in the baked art, only the water the day
 art's blue reaches from `BAY_SEED`, so no glint lands on the far shore; and the walks, plazas, lanes and lights in its
 `WALKS`, `PLAZAS`, `LANES` and `LIGHTS`), `city-windows.json` (the lit windows, each a whole window grown from its warm
 rim, so it goes dark as one; fetched only at night) and copies `city-depth.png` from
-`web3d/pixel/paintings/picks/`, which `uv run web3d/pixel/depth_map.py city` makes from the dusk pick (it needs torch, so
+`web3d/pixel/paintings/picks/` with the lamp posts and the tree crowns in front of a lane or the walk stood up (`POSTS`, `TREES`, `upright`: a crown as near as its trunk's foot), which `uv run web3d/pixel/depth_map.py city` makes from the dusk pick (it needs torch, so
 it is not part of the build: rerun it, and commit its output, when the dusk pick changes). In winter snow falls over the whole art (`snowfall` in `scene-fx.js`: 520 flakes, 1 px and some 2 px, 7-23 px a second
 with a drift, bluish and dimmer at night), on Workshop Row too; not on the roof, whose canvas redraws only when it moves.
 On the plaza either side of the tower stand the holidays' props (`web3d/src/props.js`, tested in

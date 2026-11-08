@@ -260,7 +260,8 @@ def install():
         candidate, jpg = CANDIDATES / f"cover-{slug}_{seed}.png", COVERS_DIR / f"{slug}.jpg"
         if candidate.exists():                                                 # touched up once, into the .jpg, the source after
             TOUCH_UPS.get(slug, lambda i: i)(Image.open(candidate).convert("RGB")).save(jpg, quality=90)
-        P.G.save_lossless(P.bake(Image.open(jpg), SIZE), COVERS_DIR / "pixel" / f"{slug}.webp")   # from the .jpg, as the hint does
+    for jpg in sorted(COVERS_DIR.glob("*.jpg")):                               # every committed cover, whatever COVERS lists
+        P.G.save_lossless(P.bake(Image.open(jpg), SIZE), COVERS_DIR / "pixel" / f"{jpg.stem}.webp")   # as the hint does
 
 
 def fill(a, mask, passes=400):

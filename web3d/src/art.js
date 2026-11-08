@@ -40,16 +40,17 @@ export const FOCUS = 600;   // on narrow screens, the art x kept mid-screen
 
 // Where pixel.js lays a storey out on a W x H CSS px canvas, in device pixels: s of them an art pixel, the largest whole
 // number at which the floor fits (wide) or fills its share (phones), the strip's left x0, and ry, the top of the storey
-// in view. Phones keep the room's floor behind the elevator, above the card (pixel.css --card-top, CSS px); on a short
-// phone the room is drawn smaller, down to 2/3 CSS px an art pixel, still a whole number of device pixels (#127). focus:
-// the art x a phone keeps mid-screen. The city (city.js) lands its push-in on the lobby's entrance by it too.
+// in view. Phones end the room's floor where the elevator starts, above the card (pixel.css --card-top, CSS px), so the
+// lobby's cats on the floor and the bench stay in view; on a short phone the room is drawn smaller, down to 2/3 CSS px
+// an art pixel, still a whole number of device pixels (#127). focus: the art x a phone keeps mid-screen. The city (city.js) lands its push-in on the lobby's entrance by it too.
 export function lay(W, H, dpr, cardTop, focus = FOCUS) {
   const wide = !narrow.matches, w = Math.round(W * dpr), h = Math.round(H * dpr);
   let s = Math.max(1, Math.floor(dpr * (wide ? Math.min(W / FW, H / (FH * 1.15)) : H / (FH * 2.2))));
   const floorAt = cardTop - 28;
   if (!wide && cardTop) s = Math.min(s, Math.max(Math.ceil(dpr * 2 / 3), Math.floor(dpr * floorAt / FH)));
   const x0 = wide ? Math.round((w - FW * s) / 2) : Math.min(0, Math.max(w - FW * s, Math.round(w / 2 - focus * s)));
-  const cy = wide ? h / 2 : cardTop ? floorAt * dpr - FH * s / 2 : h * 0.3;
+  // Strip row 336 is the rooms' floor line (a 28 px slab, then the 308 px room); cardTop - 64 is .elevator's top in pixel.css.
+  const cy = wide ? h / 2 : cardTop ? (cardTop - 64) * dpr - (336 - FH / 2) * s : h * 0.3;
   return { wide, w, h, s, x0, ry: Math.round(cy - FH * s / 2) };
 }
 

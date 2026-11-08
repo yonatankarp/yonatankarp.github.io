@@ -80,14 +80,12 @@ function depthTest(ctx, bitmap) {
   // One frame of a painted person (people()) with its sole on (x, y), mirrored when facing left, depth-tested from its feet
   // (the ground under them, or the depth f): its picture, made once, drawn whole, or without the pixels something nearer
   // hides where anything in its box is.
-  const cut = new OffscreenCanvas(1, 1).getContext('2d');
   const sprite = (sheet, frame, x, y, left, f = footAt(Math.round(x), y)) => {
     const { w, h } = sheet, x0 = Math.round(x) - (w >> 1), y0 = y - frame.foot, k = left ? 1 : 0;
     const px = (frame.px[k] ??= mirror(frame.px[0], w)), hid = hidden(px, w, h, x0, y0, depth, W, H, f + TOL);
-    if (!hid) { ctx.drawImage(frame.baked[k] ??= baked(px, w, h), x0, y0); return; }
-    if (cut.canvas.width !== w || cut.canvas.height !== h) { cut.canvas.width = w; cut.canvas.height = h; }
-    cut.putImageData(new ImageData(hid, w, h), 0, 0);
-    ctx.drawImage(cut.canvas, x0, y0);
+    // A fresh canvas for each cut, never one reused: WebKit reads a drawImage source when it paints, not when called, so
+    // every sprite drawn from a shared one showed whatever was put in it last (another person, frame or side).
+    ctx.drawImage(hid ? baked(hid, w, h) : (frame.baked[k] ??= baked(px, w, h)), x0, y0);
   };
   return { dfill, footAt, sprite };
 }

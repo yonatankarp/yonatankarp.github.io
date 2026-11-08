@@ -38,14 +38,14 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import gen_city  # noqa: E402
 from gen_city import ART_W, COLOURS, PH, PW, ROOT, SIZE, H  # noqa: E402
-from paint_rooms import OUT as CANDIDATES, call  # noqa: E402
+from paint_rooms import OUT as CANDIDATES, call, patched  # noqa: E402
 
 PICKS = {"dusk": 1000, "dawn": 1000, "day": 1000, "night": 1000}   # the seed of each hour's pick, for the record
 WINTER_PICKS = {"dusk": 700, "dawn": 700, "day": 700, "night": 700}   # ... and of each hour's winter
 PICKED = Path(__file__).resolve().parent / "paintings" / "picks"   # picks/workshop[-PHASE].png
 BAYS = [900, 1480, 2060, 2640]   # each workshop's centre, all pannable to the middle of the view
 HALF, EAVE, GROUND = 260, 330, 660   # half a workshop's width, its eaves, the pavement's edge
-BRICK, MORTAR, GLASS, LIGHT = (150, 62, 45), (120, 50, 38), (170, 200, 215), (255, 190, 100)
+BRICK, MORTAR, GLASS, LAMP = (150, 62, 45), (120, 50, 38), (170, 200, 215), (255, 190, 100)
 
 
 def workshop(d, x):
@@ -69,10 +69,10 @@ def workshop(d, x):
     d.rectangle([x - 34, 506, x + 24, 549], (120, 200, 230))
     d.rectangle([x - 130, 460, x - 60, 480], (90, 90, 100))                    # a shelf of parts on the back wall
     d.rectangle([x + 60, 460, x + 130, 480], (90, 90, 100))
-    d.ellipse([x - 10, 440, x + 10, 456], LIGHT)                               # a hanging lamp
+    d.ellipse([x - 10, 440, x + 10, 456], LAMP)                               # a hanging lamp
     for wx in (x0 + 30, x1 - 80):                                              # a tall window either side
         d.rectangle([wx, 400, wx + 50, 560], (60, 45, 40))
-        d.rectangle([wx + 6, 406, wx + 44, 554], LIGHT)
+        d.rectangle([wx + 6, 406, wx + 44, 554], LAMP)
 
 
 def blockout():
@@ -93,7 +93,7 @@ def blockout():
     d.rectangle([0, 726, PW, H], (80, 75, 80))
     for x in (300, 1190, 1770, 2350, 3150):                                    # street lamps
         d.line([(x, 420), (x, 720)], (40, 40, 45), 8)
-        d.ellipse([x - 16, 400, x + 16, 432], LIGHT)
+        d.ellipse([x - 16, 400, x + 16, 432], LAMP)
     d.ellipse([60, 380, 300, 640], (60, 100, 55))                              # left: trees and a brick wall
     d.rectangle([0, 520, 620, GROUND], BRICK)
     d.rectangle([2960, 540, 3260, 690], (190, 190, 180))                       # right: a parked van, crates, a tree
@@ -176,18 +176,29 @@ def paint(count, start, host, phase, winter=False):
         print("painted", path.name, flush=True)
 
 
+# Mends over a winter pick (patch_picks.py): the snowy tree its edit stood in the sky at dusk and dawn, and the van, which
+# it painted longer than the shared depth map has it, the hour's own van under snow.
+PATCHES = {**{name(ph, True): [(f"{name(ph, True)}-tree.png", (1515, 0))] for ph in ("dusk", "dawn")}}
+for _ph in ("dusk", "dawn", "day", "night"):
+    PATCHES.setdefault(name(_ph, True), []).append((f"{name(_ph, True)}-van.png", (2869, 500)))
+
+
 def bake(phase, winter=False):
     """The painting box-reduced to the art's size on its own COLOURS colours, undithered, with the Library's k-means
     passes after the median cut so the small lamps keep a colour of their own."""
-    im = Image.open(pick(phase, winter)).convert("RGB").crop((0, 0, PW, PH))
+    im = patched(Image.open(pick(phase, winter)).convert("RGB"), PATCHES.get(name(phase, winter), ())).crop((0, 0, PW, PH))
     im = im.resize(SIZE, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
     return im if phase == "day" else relight(im)
 
 
 def relight(im, cx=245, cy=151, glass=(239, 146, 252, 157)):
-    """Lights the kerb lamp at x 245, which every hour's painting left dark: its glass glows and five flat warm rings
-    spread round it to ~32 px, as the median cut leaves the other lamps' halos, over all but the dark iron."""
+    """Lights the kerb lamp at x 245, which every hour's plain painting left dark: its glass glows and five flat warm rings
+    spread round it to ~32 px, as the median cut leaves the other lamps' halos, over all but the dark iron. Winter's
+    paintings lit it themselves, and lit again it is a flat glowing square: a lamp already bright is left as it is."""
     px = im.load()
+    pane = [px[x, y] for x in range(glass[0], glass[2] + 1) for y in range(glass[1], glass[3] + 1)]
+    if sum(map(sum, pane)) / len(pane) > 520:   # winter's paintings lit it themselves: lit again, it is a flat square
+        return im
     for y in range(cy - 36, cy + 36):
         for x in range(cx - 36, cx + 36):
             r, g, b = px[x, y]

@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pillow==12.1.0"]
+# dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """Install the picked paintings: bake each to the art standard (the city's: box-reduced, a median cut to 64 colours, no
 dither, no palette), with the one lift pasted in.
@@ -19,7 +19,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from paint_rooms import LOBBY  # noqa: E402
+from paint_rooms import LOBBY, patched  # noqa: E402
 
 HERE = Path(__file__).resolve().parent / "paintings"
 LOBBY_PX, FLOOR_PX, CAB_PX, COLOURS = (264, 308), (928, 308), (96, 168), 64   # the cab: gen_floors.DOOR's size
@@ -156,13 +156,63 @@ def unletter(*boxes):
     return fix
 
 
-TOUCHUPS = {"billie_risk": unneedle, "reception": plaques, "roof-day": unletter((136, 278, 164, 286))}   # a room, or one hour of it
+def night_lights(px, box=(380, 176, 760, 202)):
+    """The roof at winter night: its snow edit painted the far city's windows dark, and its colours have none that the
+    night's twinkle (gen_floors.roof) lights. The plain night's lit pixels there are put on it as they are (a few colours
+    past the 64, as the twinkle's own dimmed ones are): roof-night-px.png must be installed first."""
+    night = Image.open(HERE / "picks" / "roof-night-px.png").convert("RGB").load()
+    out = px.load()
+    for y in range(box[1], box[3]):
+        for x in range(box[0], box[2]):
+            c = night[x, y]
+            if c[0] > 200 and c[1] > 150 and c[2] < 140:   # gen_floors.roof's test
+                out[x, y] = c
+    return px
+
+
+TOUCHUPS = {"billie_risk": unneedle, "reception": plaques, "roof-day": unletter((136, 278, 164, 286)),   # a room, or one hour of it
+            "roof-winter-night": night_lights}
+# Mends over a candidate (patch_picks.py): the roof's floating second jib at night, floor 2's ghost second pendant.
+PATCHES = {"roof-night": [("roof-night-jib.png", (1012, 248))], "inuitive": [("inuitive-pendant.png", (805, 0))]}
+
+
+def carried(im, box, across):
+    """The box filled in code, each row carried across from the pixels just left of it to just right (`across`), or each
+    column down from just above it to just below, its edge softened a pixel: a thin line the model drew is gone, and a
+    line crossing it the other way (a cable, a pole) runs on."""
+    import numpy as np   # here only, as in paint_rooms
+    a = np.asarray(im).astype(float).copy()
+    x0, y0, x1, y1 = box
+    if across:
+        t = np.linspace(0, 1, x1 - x0)[None, :, None]
+        a[y0:y1, x0:x1] = a[y0:y1, x0 - 3:x0].mean(1)[:, None] * (1 - t) + a[y0:y1, x1:x1 + 3].mean(1)[:, None] * t
+        soft = (x0, y0, x1, y1)
+    else:
+        t = np.linspace(0, 1, y1 - y0)[:, None, None]
+        a[y0:y1, x0:x1] = a[y0 - 4:y0, x0:x1].mean(0)[None] * (1 - t) + a[y1:y1 + 4, x0:x1].mean(0)[None] * t
+        soft = (x0 + 2, y0 + 2, x1 - 2, y1 - 2)
+    mask = Image.new("L", im.size)
+    ImageDraw.Draw(mask).rectangle(soft, fill=255)
+    return Image.composite(Image.fromarray(a.round().astype(np.uint8)), im, mask if across else mask.filter(ImageFilter.GaussianBlur(2)))
+
+
+# Lines filled in code (carried()), in painting px: floor 4's two extra lamp cords, down to the shades; and, on the winter
+# night's snow edit, the floating jib right of the scaffolding (through it, the columns would drag its icicles down).
+FILLS = {"sumup": [((1481, 0, 1492, 170), True), ((1865, 0, 1876, 178), True)],
+         "roof-winter-night": [((1150, 256, 1755, 304), False)]}
+
+
+def mended(name, src):
+    src = patched(src, PATCHES.get(name, ()))
+    for box, across in FILLS.get(name, ()):
+        src = carried(src, box, across)
+    return src
 
 
 def painting(name):
     """What a pick is baked from: its candidate; an hour of a room, its view pasted on the dusk room; winter, the hour's
     own picture with what may be snowy (snowed()) from its edit."""
-    src = Image.open(HERE / "candidates" / PICKS[name]).convert("RGB")
+    src = mended(name, Image.open(HERE / "candidates" / PICKS[name]).convert("RGB"))
     room = name.split("-")[0]
     if "-winter" in name:
         hour = painting(name.replace("-winter", ""))

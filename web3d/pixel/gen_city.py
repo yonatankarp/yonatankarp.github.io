@@ -35,8 +35,8 @@ to web3d/pixel/paintings/picks/city[-winter][-PHASE].png, the build's input, and
 
 The city's animations (web3d/src/city-fx.js) draw from city-fx.json: the bay found in the baked art, and the walks,
 lanes and lights below; and at night from city-windows.json, the lit windows found in it. Their depth map,
-picks/city-depth.png, is made by depth_map.py (it needs torch) and copied here with its lamp posts stood up (POSTS), so
-this script never needs torch.
+picks/city-depth.png, is made by depth_map.py (it needs torch) and copied here with its lamp posts and trees stood up
+(POSTS, TREES), so this script never needs torch.
 """
 import argparse
 import base64
@@ -382,24 +382,25 @@ def bake_open(phase, art, winter=False):
 # Where the city's animations go, in art pixels (city-fx.js). Only open ground, so nothing that stands in front of a
 # mover is drawn behind it; city-depth.png hides them behind trees and lamp posts on the way.
 WALKS = [[452, 301, 540, 301, 600, 302, 630, 305, 660, 305, 690, 307, 735, 308, 765, 309, 800, 309, 840, 307,   # x0, y0,
-          880, 306, 900, 305, 995, 305],   # x1, y1, ...: the main street's near pavement, along its kerb, and the apron
+          880, 306, 900, 305, 935, 305],   # x1, y1, ...: the main street's near pavement, along its kerb, onto the apron
          [737, 307, 739, 346]]             # the avenue toward the viewer, walked faster
 PLAZAS = [[670, 208, 708, 220], [774, 215, 816, 232]]   # x0, y0, x1, y1: the open paving either side of the tower
 # The roads the cars take, each as its middle in art px, traced on the painted tarmac. The main street runs from behind
 # the tree by the Library to behind the round tree on Workshop Row's apron (its tarmac ends at the apron by the fir, too
 # thin to hide a car). The ring road comes out from behind the sheds and curves up to a junction: on up past the
-# library's side to behind the houses there (UP), or right along the greenhouses to the edge (RIGHT), from which the
-# diagonal street turns off down to the bottom edge (DIAG). On the left, a road from behind a tree (LEFT) meets the curve
+# library's side to behind the houses there (UP), or right along the greenhouses to the edge (RIGHT). The diagonal street
+# runs from behind the house where it meets that road down to the bottom edge (DIAG): its corner is hidden, between the
+# house and the hedge. On the left, a road from behind a tree (LEFT) meets the curve
 # that runs from behind the trees above the Library up to behind the brick block (CURVE).
 MAIN = [[500, 294.5], [540, 295], [580, 296.5], [640, 299.5], [720, 302], [760, 302.5], [840, 301], [880, 300.5], [958, 300.5]]
 RING = [[1031, 270], [1045, 268.5], [1063, 262.5], [1073, 258], [1080, 254], [1086, 247], [1088, 243]]
-UP = [[1088, 238], [1088, 230], [1082, 221], [1074.5, 214], [1068.5, 207], [1063.5, 200], [1061, 193], [1062.5, 183],
-      [1066, 176], [1071, 171], [1078, 168]]
+UP = [[1088, 238], [1088, 230], [1082, 221], [1073.5, 214], [1067.5, 207], [1062.5, 200], [1063, 193], [1064.5, 183],
+      [1068, 176], [1073, 171], [1078, 168]]
 RIGHT = [[1092, 240.5], [1100, 240.5], [1430, 247.3], [1446, 247.6]]
-DIAG = [[1134, 241.3], [1141, 249], [1145, 257], [1150, 266], [1156, 274], [1162, 282], [1169, 289], [1176, 295],
-        [1184, 306], [1193, 315], [1201, 322], [1209, 330], [1217, 339], [1225, 347], [1230, 353]]
+DIAG = [[1132, 252], [1138, 261], [1142, 266], [1149, 274], [1156, 281], [1169, 289], [1176, 295], [1184, 306],
+        [1193, 315], [1201, 322], [1209, 330], [1217, 339], [1225, 347], [1230, 353]]
 LEFT = [[246, 243.5], [280, 243.5], [330, 242], [366, 242]]
-CURVE = [[420, 196], [407, 201.7], [395, 208], [382, 215], [373, 223], [371, 233], [372.5, 243], [378, 253], [390, 265]]
+CURVE = [[420, 197.5], [408, 202.8], [396, 209], [383, 216], [374, 224], [372, 234], [372.5, 243], [378, 253], [390, 265]]
 
 
 def lane(road, off=2.0):
@@ -419,16 +420,31 @@ def lane(road, off=2.0):
 # something again: city-fx.js fades a car in and out over a lane's last 8 px, and reads the ground under each point but
 # the ends from the depth map, so every other point must be on open road.
 LANES = [lane(MAIN, 1.75), lane(MAIN[::-1], 1.75),
-         lane(RING + UP), lane(UP[::-1] + RING[::-1]),                                  # the sheds and the top
+         lane(RING + UP, 1.5), lane(UP[::-1] + RING[::-1], 1.5),                        # the sheds and the top (narrow)
          lane(RING + RIGHT), lane(RIGHT[::-1] + RING[::-1]),                            # the sheds and the right edge
-         lane(UP[::-1] + RIGHT), lane(RIGHT[::-1] + UP),                                # the top and the right edge
-         lane(RING + RIGHT[:2] + DIAG), lane(DIAG[::-1] + RIGHT[1::-1] + RING[::-1]),   # the sheds and the bottom edge
+         lane(UP[::-1] + RIGHT, 1.5), lane(RIGHT[::-1] + UP, 1.5),                      # the top and the right edge
+         lane(DIAG), lane(DIAG[::-1]),                                                  # behind the house and the bottom edge
          lane(LEFT + CURVE[5::-1], 1.5), lane(CURVE[:6] + LEFT[::-1], 1.5),             # the left road and the brick block
          lane(CURVE[::-1]), lane(CURVE)]                                                # the curve's two ends
 # Lamp posts in front of a lane, a column each, as x, top (the lamp) and foot, in art px: the depth model fades a thin
 # post into the road behind it, so a car would show over it. Where a post is two pixels wide, both columns.
 POSTS = [(648, 286, 305), (716, 287, 307), (730, 302, 308), (731, 293, 308), (1077, 253, 266), (1169, 290, 301),
          (1170, 290, 301)]
+# Trees standing nearer than a lane or the walk, whose crowns reach over it, as their crown's box (x0, y0, x1, y1) and
+# their trunk's foot (x, y), in art px. The depth model gives such a crown the road's depth, so a car would drive over
+# it: the crown (what is foliage in the day art, in its box) goes at least as near as the ground at the foot. A tree
+# behind the road keeps its foot's lesser depth, so it hides nothing on the road.
+TREES = [(238, 239, 264, 258, 251, 259),     # by the left road's west end
+         (343, 238, 367, 256, 355, 257),     # on the left road, before the curve
+         (376, 244, 404, 266, 392, 267),     # at the curve's foot
+         (393, 206, 416, 236, 404, 234),     # inside the curve, by its top
+         (499, 282, 522, 302, 512, 306),     # the round tree by the Library, where the main street's lanes start
+         (523, 290, 536, 315, 530, 316),     # the fir beside it
+         (578, 300, 588, 306, 583, 312),     # a crown over the main street's near pavement, by x 583
+         (590, 298, 609, 313, 600, 318),     # on the main street's near side, by x 600
+         (819, 305, 829, 314, 824, 318),     # a crown over the near pavement, by x 824
+         (862, 293, 881, 330, 871, 332),     # the fir by Workshop Row's apron
+         (916, 284, 937, 316, 952, 318)]     # the left of the round tree on the apron (its middle is near enough)
 LIGHTS = {"beacon": [457, 39], "blinks": [[800, 37], [746, 18]]}   # the radio mast's top, the crane's tips
 
 
@@ -551,14 +567,24 @@ def write_fx(out, night, day, dusk, plain=None):
     stem = name("dusk", bool(plain))
     (out / f"{stem}-fx.json").write_text(json.dumps(fx, separators=(",", ":")))
     (out / f"{stem}-windows.json").write_text(json.dumps(found, separators=(",", ":")))
-    upright(Image.open(PICKED / "city-depth.png").convert("L")).save(out / "city-depth.png")   # at every season
+    if not plain:   # one map for every season, its trees found in the plain day art
+        upright(Image.open(PICKED / "city-depth.png").convert("L"), day).save(out / "city-depth.png")
     return found, dusk, water
 
 
-def upright(depth):
+def upright(depth, day):
     """depth_map.py's map with each of POSTS stood up: all of a post as near as its nearest pixel, and 2 nearer still, so
-    a car passing a few rows behind it, which TOL (scene-fx.js) would count as level with it, goes behind."""
-    px = depth.load()
+    a car passing a few rows behind it, which TOL (scene-fx.js) would count as level with it, goes behind. And each of
+    TREES stood up: its crown's foliage (greener than red and blue in the day art) as near as the ground at its foot
+    (the farthest within 3 px of it), unless it already is nearer."""
+    px, art = depth.load(), day.load()
+    for x0, y0, x1, y1, fx, fy in TREES:
+        foot = min(px[x, fy] for x in range(fx - 3, fx + 4))
+        for x in range(x0, x1 + 1):
+            for y in range(y0, y1 + 1):
+                r, g, b = art[x, y]
+                if g > r + 6 and g > b + 8:
+                    px[x, y] = max(px[x, y], foot)
     for x, top, foot in POSTS:
         near = max(px[x, y] for y in range(top, foot + 1)) + 2
         for y in range(top, foot + 1):

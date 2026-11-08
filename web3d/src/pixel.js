@@ -14,7 +14,7 @@
 // - storage: localStorage building-paused, the Pause (scene-fx.js); sessionStorage push-in, the city's last frame
 //   (city.js), which assets/js/push-in.js reads on the next page into window.pushIn for iris.js.
 import { guide, roomy, PANEL_MS } from './guide.js';
-import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, ENTRANCE, LAMPS, TIME, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, FOCUS, lay, clamp01, colourAt, shade, darken, bayer } from './art.js';
+import { FW, FH, FRAMES, EDGE, ROOM_X0, ROOM_X1, ORDER, ANIM, CAB, BOXES, DOOR, ENTRANCE, LAMPS, STARRY, BAKED, HOUR, SKY_AT_LOAD, SHADES, CAPSULE, RECEPTION, CATS, CAT_SHEET, DARK, FOCUS, lay, clamp01, colourAt, shade, darken, bayer } from './art.js';
 import { capsuleAt } from './capsule.js';
 import { rideU, pos, sunk, motion, plan } from './ride.js';
 import { reception } from './reception.js';
@@ -397,7 +397,7 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
         // At night its stars too: a patch of the roof's own top rows right of the crane, plain sky and stars, each course
         // shifted so no column of them lines up.
         const [sx, sw] = STARS;
-        if (TIME === 'night' && img) for (let r = 1, gy = y - 32 * s; gy + 32 * s > 0; r++, gy -= 32 * s) for (let gx = -(r * 97 % sw) * s; gx < w; gx += sw * s) ctx.drawImage(img, sx, 0, sw, 32, gx, gy, sw * s, 32 * s);
+        if (STARRY && img) for (let r = 1, gy = y - 32 * s; gy + 32 * s > 0; r++, gy -= 32 * s) for (let gx = -(r * 97 % sw) * s; gx < w; gx += sw * s) ctx.drawImage(img, sx, 0, sw, 32, gx, gy, sw * s, 32 * s);
       }
       if (key === ORDER[0] && y + FH * s < h) {                                           // and the ground under the lobby
         ctx.fillStyle = GROUND[1]; ctx.fillRect(0, y + FH * s, w, h);

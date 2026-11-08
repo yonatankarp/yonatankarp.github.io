@@ -4,11 +4,14 @@
 
 // The page's minifier must leave this script as it is, or its CSP hash breaks: if check-generated-html says so, reshape
 // these vars and functions, not the table.
-var Z = ZONES, a = new URLSearchParams(location.search), q = a.get('time'), s = a.get('season'), at = place();   // eslint-disable-line no-undef
-document.documentElement.dataset.time = /^(dawn|day|dusk|night)$/.test(q) ? q : sunPhase(Date.now(), ...at);
+var Z = ZONES, d = document.documentElement.dataset, a = new URLSearchParams(location.search), q = a.get('time'), s = a.get('season'), at = place();   // eslint-disable-line no-undef
+d.time = /^(dawn|day|dusk|night)$/.test(q) ? q : sunPhase(Date.now(), ...at);
 // seasonOn, from assets/js/season.js, which follows this script with sun.js. Only winter has art of its own.
-document.documentElement.dataset.season = /^(spring|summer|autumn|winter)$/.test(s) ? s : seasonOn(new Date(), at[0]);   // eslint-disable-line no-undef
-document.documentElement.dataset.place = at;   // "lat,lon", for the holidays' sunset (web3d/src/outside.js)
+d.season = /^(spring|summer|autumn|winter)$/.test(s) ? s : seasonOn(new Date(), at[0]);   // eslint-disable-line no-undef
+d.place = at;   // "lat,lon", for the holidays' sunset (web3d/src/outside.js)
+// The art's file names at this hour and season, [-winter][-PHASE] (city-winter-night.webp; dusk is the plain files), read
+// wherever a picture is picked by them (web3d/src/art.js, city.js, the pre-paints). check-phases.js checks it.
+d.art = (d.season === 'winter' ? '-winter' : '') + (d.time === 'dusk' ? '' : '-' + d.time);
 
 // Where the visitor is, roughly: their time zone's main city in Z, which groups "City<lat>,<lon>" by the zone's folder.
 function place() {

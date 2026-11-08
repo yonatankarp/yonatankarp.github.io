@@ -32,7 +32,7 @@ test("The baked hanukkiah has nine candle tops, left to right, the shamash's the
 });
 
 const phases = require("../../data/phases.json");
-const at = (time, holidays, season = "winter", more = {}) => ({ holidays, time, season, ...more });
+const at = (time, holidays, season = "winter", more = {}) => ({ holidays, time, lit: phases[time].lit, season, ...more });   // as city-fx.js passes them
 
 test("No holiday, nothing up", async () => {
   const { dressing } = await load();
@@ -101,6 +101,14 @@ test("A burst grows fast, then fades slowly, then is gone; and no frame is too s
   assert.equal(burstFrame(350 + 4 * BURST.fade - 1, 5, 9), 8);
   assert.equal(burstFrame(350 + 4 * BURST.fade, 5, 9), -1);
   assert.ok(Math.min(BURST.grow, BURST.fade) >= 1000 / 15, "a frame shorter than the city's 15 draws a second would be skipped");
+});
+
+test("Each painted prop is on a sheet, and each sheet names props dressing() puts up", async () => {
+  const { dressing, SHEETS } = await load();
+  const up = dressing(at("night", { hanukkah: 0, christmas: 0, halloween: 0, "new-year": 0 }, "winter", { evening: true }));
+  const onSheets = Object.values(SHEETS).flat();
+  for (const key of ["hanukkiah", "tree", "pumpkins", "fireworks"]) assert.ok(up[key] && onSheets.includes(key), key);
+  assert.deepEqual(onSheets.filter((key) => !(key in up)), [], "a sheet names a prop dressing() does not put up");
 });
 
 test("Every phase has a tint, the props painted in dusk's light", async () => {

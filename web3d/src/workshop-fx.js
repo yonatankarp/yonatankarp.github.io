@@ -1,9 +1,10 @@
 // Workshop Row's life (workshop.js): painted walkers on the pavement, two cats on the wall and the street, a welder's
-// sparks, code scrolling on the screens, moths round the street lamps and in winter falling snow, over the picture (scene-fx.js). Where they go is
+// sparks, code scrolling on the screens, moths round the street lamps after dark and in winter falling snow, over the picture (scene-fx.js). Where they go is
 // workshop-fx.json and what hides them is workshop-depth.png, both written by web3d/pixel/gen_workshop.py; the walkers
 // and the cats are walkers.webp and cats.webp with their .json, written by web3d/pixel/gen_walkers.py.
 import { cats } from './cats.js';
 import { animate, people, rnd, snowfall } from './scene-fx.js';
+import PHASES from '../../data/phases.json';   // which hours the lamps are lit at
 
 export function workshopFx(canvas, img) {
   const art = (name) => `${img.dataset.base}-${name}?v=${img.dataset.version}`;
@@ -45,8 +46,8 @@ function setup(ctx, fx, { footAt, sprite }, sheet, catSheet) {
     }
   };
 
-  // Moths round the street lamps' heads, while the lamps are lit: not by day.
-  const moths = time === 'day' ? [] : fx.lamps.flatMap(([cx, cy]) => Array.from({ length: 3 }, () => ({ cx, cy, a: rnd(0, 6.3), r: rnd(3, 7), w: rnd(2, 5) * (Math.random() < 0.5 ? 1 : -1) })));
+  // Moths round the street lamps' heads, while the lamps are lit (phases.json's `lit`): at dusk and night.
+  const moths = !PHASES[time].lit ? [] : fx.lamps.flatMap(([cx, cy]) => Array.from({ length: 3 }, () => ({ cx, cy, a: rnd(0, 6.3), r: rnd(3, 7), w: rnd(2, 5) * (Math.random() < 0.5 ? 1 : -1) })));
   const drawMoths = (now, dt) => {
     ctx.fillStyle = night ? 'rgba(255,245,210,.9)' : 'rgba(255,240,200,.75)';
     for (const m of moths) {

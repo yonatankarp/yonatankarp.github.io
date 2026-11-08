@@ -46,3 +46,14 @@ test("the homepage's pre-paint test enters the tower for the hashes floorShaped 
     assert.equal(prePaint.test(hash), floorShaped(hash), hash);
   }
 });
+
+test("the homepage's pre-paint keeps the lobby's card for the bare address and every hash that opens the lobby (#336)", async () => {
+  const { floorKey, LEGACY } = await load();
+  const src = require("fs").readFileSync(require("path").join(__dirname, "../../layouts/index.html"), "utf8");
+  const [, body, flags] = src.match(/\$lobbyHash := `\/(.+)\/(\w*)`/);
+  const prePaint = new RegExp(body, flags);
+  const hashes = ["", "#city", "#library", "#building-stops", "#floor-5", "#FLOOR-l", "#floor-L", "#floor-", "#aboutx", "#xabout", "#floor-9"];
+  for (const hash of [...hashes, ...Object.keys(LEGACY).flatMap((k) => [`#${k}`, `#${k.toUpperCase()}`])]) {
+    assert.equal(prePaint.test(hash), hash === "" || floorKey(hash) === "L", hash);
+  }
+});

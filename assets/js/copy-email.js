@@ -5,6 +5,7 @@ if (navigator.clipboard?.writeText) {
   document.querySelectorAll('[data-copy-email]').forEach((button) => {
     // An open floor panel is a modal dialog: a live region outside it may go unheard, so it has its own.
     const status = button.closest('.floor-panel')?.querySelector('[data-copy-status]') ?? document.querySelector('[data-copy-status]');
+    const label = button.textContent;   // data/ui.yaml's, as rendered
     let timer = 0;
     button.hidden = false;
     button.addEventListener('click', async () => {
@@ -18,7 +19,7 @@ if (navigator.clipboard?.writeText) {
       if (status) status.textContent = said;
       clearTimeout(timer);
       timer = setTimeout(() => {
-        button.textContent = 'Copy';
+        button.textContent = label;
         if (status?.textContent === said) status.textContent = '';   // so the next copy is announced again
       }, 1500);
     });

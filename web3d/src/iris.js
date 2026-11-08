@@ -4,7 +4,7 @@
 // draws its frame itself; every other district is a page of its own, handed the frame by the head's pre-paint
 // (assets/js/push-in.js) as window.pushIn.
 const CELL = 12, BAND = 5 * CELL, STEPS = 18, OPEN_MS = 600, SETTLE_MS = 700;
-const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+export const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];   // floors.json's, which the lobby's dissolve opens in too: scripts/test/iris.test.js
 
 // A screen-sized canvas over the page at z, under the top bar, with paint's picture on it, in CSS px.
 export function cover(paint, z = 1) {

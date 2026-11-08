@@ -209,7 +209,7 @@ h4 a,
    room is 720x173 (gen_library.py), and the head is at least as tall as it shows at the screen's width, to 52vh, so a
    1440 screen shows the whole room at 2 device px an art px; a taller title, or a phone's 38vh, crops it. */
 @supports (width: round(up, 1cqw, 1px)) {
-  .library-hero { min-height: min(52vh, 173 * round(up, 100vw / 720, 1px / var(--dpr, 1)) + 3px); }   /* and its border */
+  .library-hero { min-height: min(52vh, 173 * round(up, 100vw / 720, 1px / var(--dpr, 1)) + 3px); }   /* and its border; web3d/src/city.js's push-in lands on its middle, by these numbers */
   .library-art { container-type: size; }
   .library-hero :is(img, .library-fx) {
     --u: round(up, max(100cqw / 720, 100cqh / 173), 1px / var(--dpr, 1)); width: calc(720 * var(--u)); height: calc(173 * var(--u)); max-width: none;
@@ -250,7 +250,7 @@ h4 a,
 /* The Radio Mast (/podcast/, layouts/_default/radio.html) and the Post Office (/contact/, post.html): the room across the
    head at its own 1440:347 shape (partials/room-hero.html), a phone panning it, then a panel lifted over its foot. */
 .room { --cream: #f1e6cf; }
-.room-hero { position: relative; height: calc(clamp(230px, 100vw * 347 / 1440, 480px) + 3px); overflow: auto hidden; scrollbar-width: none; border-bottom: 3px solid var(--ink); }   /* the room, and its border */
+.room-hero { position: relative; height: calc(clamp(230px, 100vw * 347 / 1440, 480px) + 3px); overflow: auto hidden; scrollbar-width: none; border-bottom: 3px solid var(--ink); }   /* the room, and its border; city.js's push-in lands on its middle */
 .room-hero::-webkit-scrollbar { display: none; }
 .room-hero:focus-visible { outline: 3px solid var(--text); outline-offset: -3px; }
 .room-map { position: relative; height: 100%; aspect-ratio: 1440 / 347; min-width: 100%; }
@@ -492,7 +492,7 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
   .blog-px .post-row__aside { display: none; }   /* a cover's thumbnail is 192px at the least (#123), too tall for a compact row */
   .library .post-row { grid-template-columns: 1fr; }
   .library .post-row__aside { display: grid; }   /* the Library's cards stack, the cover on top */
-  .library-hero { min-height: 38vh; }
+  .library-hero { min-height: 38vh; }   /* city.js's push-in too */
   .library-title h1 { font-size: 46px; }
   .library-title p { font-size: 14px; }
   .library-body { padding: 16px 12px 0; }

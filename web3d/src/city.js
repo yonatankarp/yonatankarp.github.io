@@ -4,11 +4,12 @@
 // the keyboard; back from one, the city opens zoomed on it (the pre-paint in layouts/index.html). Any #floor-X address enters the
 // building, which pixel.js mounts on city:enter; back at the bare address the page loads afresh on the city (guide.js).
 // Going in, the map pushes on through the district's door into the next view (iris.js).
-import { ENTRANCE, BAKED, HOUR, lay } from './art.js';
+import { ENTRANCE, lay, strip } from './art.js';
 import { cityFx } from './city-fx.js';
 import { roomy } from './guide.js';
 import { floorShaped } from './hash.js';
 import { cover, iris } from './iris.js';
+import { freeMid, cityView, districtView, clampView } from '../../assets/js/home-view.js';   // the pre-paint's too
 import CITY from '../../static/building/pixel/city.json';       // gen_city.py: the doors the push-in goes through
 import ROW from '../../static/building/pixel/workshop.json';    // gen_workshop.py: Workshop Row's Apps door, where it lands
 import './city.css';
@@ -30,7 +31,8 @@ if (city && root.classList.contains('at-city')) {
   // push: going in, the push-in's 450 ms, past the art's edges.
   const place = (x, y, s, smooth, push) => {
     const [w, h] = size();
-    at = push ? { x, y, s } : { x: Math.min(0, Math.max(scene.clientWidth - w * s, x)), y: Math.min(0, Math.max(scene.clientHeight - h * s, y)), s };
+    if (!push) [x, y] = clampView([x, y, s], scene.clientWidth, scene.clientHeight, w, h);
+    at = { x, y, s };
     map.style.setProperty('--glide', push ? '450ms' : smooth && !still.matches ? '1s' : '0s');
     map.style.setProperty('--inv', 1 / s);   // the labels keep their size on screen
     map.style.transform = `translate(${at.x}px, ${at.y}px) scale(${s})`;
@@ -41,14 +43,15 @@ if (city && root.classList.contains('at-city')) {
   // panel, is away (city.css), still in the tab order, and focusing it brings it into view.
   const tags = [...city.querySelectorAll('.city-tag')];
   function fit() {
-    const p = panel.getBoundingClientRect(), r = scene.clientWidth - 8;
+    const p = panel.getBoundingClientRect(), r = scene.clientWidth - 8, over = floats();
     for (const t of tags) {
-      const x = at.x + t.offsetLeft * at.s, half = t.offsetWidth / 2, l = floats() && at.y + t.offsetTop * at.s > p.top ? p.right + 8 : 8;
+      const x = at.x + t.offsetLeft * at.s, half = t.offsetWidth / 2, l = over && at.y + t.offsetTop * at.s > p.top ? p.right + 8 : 8;
       t.style.setProperty('--shift', `${Math.min(Math.max(x - half, l), r - 2 * half) - (x - half)}px`);
       t.classList.toggle('away', x < l || x > r);
     }
   }
-  const free = () => floats() ? (panel.getBoundingClientRect().right + scene.clientWidth) / 2 : scene.clientWidth / 2;
+  const panelRight = () => (floats() ? panel.getBoundingClientRect().right : null);   // null: the panel stacks under the map
+  const free = () => freeMid(scene.clientWidth, panelRight());
   city.addEventListener('focusin', (e) => {
     if (e.target.matches('.city-tag.away')) place(free() - e.target.offsetLeft * at.s, at.y, at.s, true);
   });
@@ -56,17 +59,16 @@ if (city && root.classList.contains('at-city')) {
   // high, or the scene's middle where the panel stacks under it. Its zoom, to the nearest whole number of device px an
   // art px as the whole city's is (city.css), stops where one would pass maxPx screen px, which a big screen reaches
   // first, and never goes under the whole city's. Unpicked, the whole city on the tower, as the page opens,
-  // moved right until the Library's label clears a floating panel, as far as the tower's stays whole (and home-city.js).
+  // moved right until the Library's label clears a floating panel, as far as the tower's stays whole. The maths is
+  // assets/js/home-view.js, which the pre-paint (home-city.js) places the first paint by.
   const view = (smooth) => {
-    const fx = free();
+    const r = panelRight(), mid = freeMid(scene.clientWidth, r);
     if (!current) {
       const tower = city.querySelector('.city-tag[data-pick=tower]'), lib = city.querySelector('.city-tag[data-pick=library]');
-      const clear = floats() ? panel.getBoundingClientRect().right + 8 + lib.offsetWidth / 2 - lib.offsetLeft : -Infinity;
-      return place(Math.min(Math.max(fx - tower.offsetLeft, clear), scene.clientWidth - 8 - tower.offsetWidth / 2 - tower.offsetLeft), 0, 1, smooth);
+      return place(...cityView(mid, scene.clientWidth, tower, lib, r), smooth);
     }
-    const [w, h] = size(), [x, y, z] = zoom[current], dpr = devicePixelRatio || 1, n = dpr * h / artH;   // n: device px an art px, whole city
-    const s = Math.max(Math.round(n), Math.min(Math.round(n * z), Math.floor(maxPx * dpr))) / n;
-    place(fx - x / 100 * w * s, scene.clientHeight * (floats() ? 0.46 : 0.5) - y / 100 * h * s, s, smooth);
+    const [w, h] = size();
+    place(...districtView(zoom[current], mid, scene.clientHeight, w, h, artH, devicePixelRatio || 1, maxPx, r !== null), smooth);
   };
   const pick = (key, { fromOut = false, smooth = true } = {}) => {
     // "Whole city" hides as it zooms out, so its focus goes to the chip that was picked (#301). Told by the click, not by
@@ -101,7 +103,7 @@ if (city && root.classList.contains('at-city')) {
   // ?fx=off (the visual captures), where the tower is the plain page, or for a click that opens a tab.
   const fxOff = new URLSearchParams(location.search).get('fx') === 'off';
   const canvas = document.querySelector('#pixel-canvas'), img = scene.querySelector('img'), fx = scene.querySelector('.city-fx');
-  const artW = CITY.size[0], hour = `${root.dataset.season === 'winter' ? '-winter' : ''}${root.dataset.time === 'dusk' ? '' : `-${root.dataset.time}`}`;   // as the city's picture is picked
+  const artW = CITY.size[0], hour = root.dataset.art;   // as the city's picture is picked (time-pick.js)
   const art = (name) => `${img.dataset.base.replace(/city$/, name)}.webp?v=${img.dataset.version}`;
   const [ox, oy, ow, oh] = CITY.doorOpen, door = new Image();
   Object.assign(door.style, { position: 'absolute', left: `${ox / artW * 100}%`, top: `${oy / artH * 100}%`, width: `${ow / artW * 100}%`,
@@ -116,7 +118,7 @@ if (city && root.classList.contains('at-city')) {
     if (key === 'tower') {
       door.src = art(`door-open${hour}`);
       img.after(door);   // under the city's life, so a walker in front stays in front
-      for (const name of ['floor-L', 'floor-L-open']) fetch(art(`${name}${BAKED?.includes('L') ? HOUR : ''}`)).then((r) => r.blob()).catch(() => {});
+      for (const kind of ['', '-open']) fetch(art(strip('L', kind))).then((r) => r.blob()).catch(() => {});
     } else document.head.append(Object.assign(document.createElement('link'), { rel: 'prefetch', href: city.querySelector(`[data-go="${key}"]`).href }));
   }
   for (const type of ['pointerover', 'focusin']) city.addEventListener(type, (e) => { const k = e.target.closest?.('[data-go]')?.dataset.go; if (k) ready(k); }, { passive: true });
@@ -135,10 +137,12 @@ if (city && root.classList.contains('at-city')) {
       const k = size()[1] / artH, mapW = ROW.size[0] * k, [x, y, w] = ROW.door;
       if (mapW < r.width) return null;   // a screen wider than the street stretches it: there is no door to land on
       const focus = floats() ? (panel.getBoundingClientRect().right + r.width) / 2 : r.width / 2;
+      // bay-1: the Apps workshop's label (layouts/projects/list.html), which workshop.js opens on.
       const left = Math.min(mapW - r.width, Math.max(0, Math.round(ROW.labels['bay-1'][0] / 100 * mapW) - focus));
       return { x: x * k - left, y: y * k, w: w * k };
     },
-    // The room headers' middles (custom.css: .library-hero, .room-map), at the top of their pages.
+    // The room headers' middles (custom.css: .library-hero, .room-hero), at the top of their pages: its numbers, which
+    // scripts/test/push-in.test.js holds to custom.css's.
     library: () => ({ x: innerWidth / 2, y: (innerWidth <= 760 ? innerHeight * 0.38 : Math.min(innerHeight * 0.52, 173 * Math.ceil(devicePixelRatio * innerWidth / 720) / devicePixelRatio + 3)) / 2 }),
     radio: () => ({ x: innerWidth / 2, y: Math.min(480, Math.max(230, innerWidth * 347 / 1440)) / 2 }),
   };
@@ -146,8 +150,8 @@ if (city && root.classList.contains('at-city')) {
   let entering = false;
   const through = (key, href) => {
     if (still.matches || fxOff || (key === 'tower' && !roomy.matches)) return false;
-    const r = scene.getBoundingClientRect(), to = next[key](r);
-    if (!to) return false;
+    const r = scene.getBoundingClientRect(), to = next[key]?.(r);
+    if (!to) return false;   // nothing to land on: the plain link's wipe
     ready(key);
     const [w, h] = size(), k = h / artH, d = CITY.doors[key];
     const [dx, dy] = d ?? [zoom[key][0] / 100 * artW, zoom[key][1] / 100 * artH];

@@ -78,7 +78,7 @@ document.documentElement.classList.contains('building--guided') && !matchMedia('
   i.src = i.dataset.base + (d.dataset.season === 'winter' ? '-winter' : '') + (d.dataset.time === 'dusk' ? '' : '-' + d.dataset.time) + '.webp?v=' + i.dataset.version;
   i.loading = 'eager';
   if (b) {
-    var key = b.dataset.pick, z = JSON.parse(m.dataset.zoom)[key], mh = m.offsetHeight, chip = c.querySelector('.city-chips [data-pick=' + key + ']');
+    var key = b.dataset.pick, z = JSON.parse(m.dataset.zoom)[key], mh = m.getBoundingClientRect().height, chip = c.querySelector('.city-chips [data-pick=' + key + ']');
     var dpr = devicePixelRatio || 1, n = dpr * mh / s.querySelector('.city-fx').height;   /* whole device px an art px, as city.js's view() */
     k = Math.max(Math.round(n), Math.min(Math.round(n * z[2]), Math.floor(m.dataset.maxPx * dpr))) / n;
     x = fx - z[0] / 100 * m.offsetWidth * k;

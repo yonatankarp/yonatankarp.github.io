@@ -1,6 +1,7 @@
 // The homepage's city (layouts/index.html): a wide panorama. Picking a district from a chip or a label zooms the map into
 // its building and shows its text in the panel; picking it again, or "Whole city", zooms back out. A label goes into its
-// district (the tower, the library, the workshops, the radio mast, the post office) on its second click. Any #floor-X address enters the
+// district (the tower, the library, the workshops, the radio mast, the post office) on its second click, or at once from
+// the keyboard; back from one, the city opens zoomed on it (the pre-paint in layouts/index.html). Any #floor-X address enters the
 // building, which pixel.js mounts on city:enter; back at the bare address the page loads afresh on the city (guide.js).
 // Going in, the map pushes on through the district's door into the next view (iris.js).
 import { ENTRANCE, BAKED, HOUR, lay } from './art.js';
@@ -17,7 +18,7 @@ const city = document.querySelector('[data-city]');
 if (city && root.classList.contains('at-city')) {
   city.setAttribute('role', 'main');   // the page's main while it shows (#305): the tower's <main> is hidden, and without a script the city is not the page
   const scene = city.querySelector('.city-scene'), map = scene.querySelector('.city-map'), panel = city.querySelector('.city-panel');
-  const kicker = city.querySelector('[data-city-kicker]'), out = city.querySelectorAll('[data-city-out]'), overview = kicker.textContent;
+  const kicker = city.querySelector('[data-city-kicker]'), out = city.querySelectorAll('[data-city-out]'), overview = kicker.dataset.cityKicker;   // the pre-paint may have set its text
   const zoom = JSON.parse(map.dataset.zoom), maxPx = Number(map.dataset.maxPx), artH = scene.querySelector('.city-fx').height;
   const still = matchMedia('(prefers-reduced-motion: reduce)');
   const floats = () => getComputedStyle(panel).position === 'fixed';
@@ -65,20 +66,27 @@ if (city && root.classList.contains('at-city')) {
     const [w, h] = size(), [x, y, z] = zoom[current], s = Math.max(1, Math.min(z, maxPx / (h / artH)));
     place(fx - x / 100 * w * s, scene.clientHeight * (floats() ? 0.46 : 0.5) - y / 100 * h * s, s, smooth);
   };
-  const pick = (key) => {
+  const pick = (key, smooth = true) => {
     // "Whole city" hides as it zooms out, so its focus goes to the chip that was picked (#301).
     if (!key && [...out].some((o) => o.contains(document.activeElement))) city.querySelector(`.city-chips [data-pick="${current}"]`).focus();
     current = key;
     city.classList.toggle('zoomed', !!key);
     for (const b of city.querySelectorAll('[data-pick]')) {
-      if (b.matches('.city-tag')) b.classList.toggle('on', b.dataset.pick === key);
+      if (b.matches('.city-tag')) {
+        const on = b.dataset.pick === key;
+        b.classList.toggle('on', on);
+        // A picked label says so to a screen reader, and that its next click goes in (#305).
+        if (on) { b.setAttribute('aria-current', 'true'); b.setAttribute('aria-describedby', 'city-again'); }
+        else { b.removeAttribute('aria-current'); b.removeAttribute('aria-describedby'); }
+      }
       if (b.hasAttribute('aria-pressed')) b.setAttribute('aria-pressed', b.dataset.pick === key);
     }
     for (const d of city.querySelectorAll('[data-district]')) d.hidden = d.dataset.district !== (key ?? '');
     kicker.textContent = key ? city.querySelector(`.city-chips [data-pick="${key}"]`).textContent : overview;
     for (const o of out) o.hidden = !key;
     if (key) ready(key);
-    view(true);
+    history.replaceState({ ...history.state, at: key }, '');   // so a Back that reloads opens on it again (the pre-paint)
+    view(smooth);
   };
 
   // ---- going in ----
@@ -190,7 +198,8 @@ if (city && root.classList.contains('at-city')) {
     view(false);
   });
 
-  view(false);
+  const back = history.state?.at;   // back from a district: the pre-paint opened on it
+  if (Object.hasOwn(zoom, back)) pick(back, false); else view(false);
   // Only a new width re-centres: iOS resizes as its toolbar collapses, and the visitor's pan stays, re-clamped (#301).
   const layoutWidth = () => root.clientWidth;   // not innerWidth, which a pinch changes in WebKit
   let wide = layoutWidth();
@@ -201,9 +210,13 @@ if (city && root.classList.contains('at-city')) {
     if (city.classList.contains('going')) return e.preventDefault();
     if (e.target.closest('[data-city-out]')) return pick(null);
     const b = e.target.closest('[data-pick]');
-    const go = e.target.closest('a[data-go]') ?? (b?.matches('a') && b.dataset.pick === current ? b : null);   // the picked label's second click goes in
+    // The picked label's second click goes in, and so does a label's Enter or Space at once (#305), a click with no pointer.
+    const go = e.target.closest('a[data-go]') ?? (b?.matches('a') && (b.dataset.pick === current || !e.detail) ? b : null);
     if (go) {
-      if (!e.button && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && through(go.dataset.go ?? go.dataset.pick, go.href)) e.preventDefault();
+      const key = go.dataset.go ?? go.dataset.pick;
+      if (e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (key !== current) pick(key);   // where Back comes back to
+      if (through(key, go.href)) e.preventDefault();
       return;
     }
     if (!b) return;
@@ -211,6 +224,12 @@ if (city && root.classList.contains('at-city')) {
     e.stopPropagation();
     pick(b.dataset.pick === current ? null : b.dataset.pick);
   }, true);
+  // Space on a label goes in as Enter does (a link's Space would scroll the page), through the click above and its count.
+  city.addEventListener('keydown', (e) => {
+    if (e.key !== ' ' || !e.target.matches('.city-tag')) return;
+    e.preventDefault();
+    e.target.click();
+  });
 
   // A wheel or a trackpad pans the map sideways, at any zoom. Where the panel stacks under the map, an up or down wheel
   // is the page's; a pinch stays the browser's. Instant, in step with the wheel, so no motion is added.

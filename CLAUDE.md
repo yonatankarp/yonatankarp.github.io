@@ -30,7 +30,8 @@ map moves by one transform (translate and scale, never scrolling), clamped so no
 trackpad or a finger pans it sideways at any zoom, and a pinch is the browser's zoom. A resize keeps the pan, re-clamped, and
 re-centres only on a new width. The same chip again, or "Whole city", zooms back out ("Whole city" hands
 focus to the chip that was picked; on a phone it sits at the panel's top right, beside the kicker, so it shows without a scroll). A label's first
-click zooms to its district; the picked label then shows "→" and its next click goes in. A label stays whole on screen,
+click zooms to its district; the picked label then shows "→", carries `aria-current` and the description `again` in
+`city` (`#city-again`), and its next click goes in. Enter or Space on a label goes straight in (a click with no pointer). A label stays whole on screen,
 slid inside the edges by `--shift` as on Workshop Row; one whose district is out of view, or that would sit under the
 floating panel, fades but keeps its place in the tab order, and focusing it pans the map to it. The whole city opens on
 the tower, moved right until the Library's label clears the panel, as far as the tower's stays whole (the pre-paint
@@ -59,10 +60,16 @@ Library, the Radio Mast and the Post Office push into the building's middle, end
 Those are pages of their own: the city leaves its last frame in sessionStorage, and their head's pre-paint
 (`assets/js/push-in.js`, allowed by its hash in `head.html`) holds the old page's view transition (`html.iris` in
 `custom.css`) until iris.js lays the frame over the page. A plain link under reduced motion, with `?fx=off`, where the
-tower is the plain page, or for a click that opens a tab; Back restores the city as it was (`pageshow`). The Career Tower is the pixel-art career
+tower is the plain page, or for a click that opens a tab; Back restores the city as it was (`pageshow`); where the
+browser reloads it instead, the city opens on the district it went into, from the entry's `history.state.at`, which
+`pick()` keeps. The four pages' "← Back to the city" link is `/#KEY`, which the pre-paint `home-city.js` moves into
+that state and off the address; it lays out the zoomed view, the picked label and the panel before the first paint, as
+`pick()` does (minified twice, as one pass is not stable under `minifyOutput`). A plain visit to `/`, the name plate
+included, opens on the whole city. The Career Tower is the pixel-art career
 building, entered at its lobby: any `#floor-X` address, or an old one-page anchor (`LEGACY` in `web3d/src/hash.js`, which the pre-paint
 `$floorHash` in `layouts/index.html` must match: `scripts/test/building-hash.test.js`), opens it directly, and pixel.js mounts it only then; back
-at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city. It is the career
+at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city: Back, zoomed on the
+tower (its entry keeps `history.state.at`), and `#city`, a new entry, on the whole city. It is the career
 only: every other topic has its building in the city. The old street's `#floor-E` lands in the lobby (`web3d/src/hash.js`),
 and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/`, query kept (the pre-paint script in `layouts/index.html`). The lift's plate starts with
 "← City" on every floor, a link to `#city` like the name plate and the lobby's sign. Without a script the city is its

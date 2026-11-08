@@ -114,6 +114,7 @@ city:   # the homepage's city (layouts/index.html): its arrival panel, then a di
   label: "City map"   # the map, for screen readers
   chips: "Districts"   # the chips, for screen readers
   out: "← Whole city"   # zooms back out of a district
+  again: "Pick it again to walk in."   # a picked label's description, for screen readers: its next click goes in
   pdf: "Download the CV (PDF)"   # beside the Post Office's link
   districts:   # %d in a title is its count, which the template computes; radio and post take their text from contact
     - key: "tower"

@@ -35,14 +35,14 @@ to web3d/pixel/paintings/picks/city[-winter][-PHASE].png, the build's input, and
 
 The city's animations (web3d/src/city-fx.js) draw from city-fx.json: the bay found in the baked art, and the walks,
 lanes and lights below; and at night from city-windows.json, the lit windows found in it. Their depth map,
-picks/city-depth.png, is made by depth_map.py (it needs torch) and copied here as it is, so this script never needs torch.
+picks/city-depth.png, is made by depth_map.py (it needs torch) and copied here with its lamp posts stood up (POSTS), so
+this script never needs torch.
 """
 import argparse
 import base64
 import io
 import json
 import math
-import shutil
 import sys
 from collections import Counter
 from pathlib import Path
@@ -384,8 +384,49 @@ def bake_open(phase, art, winter=False):
 WALKS = [[452, 299, 995, 299],    # x0, y0, x1, y1: the main street's near pavement
          [737, 302, 739, 346]]    # the avenue toward the viewer, walked faster
 PLAZAS = [[670, 208, 708, 220], [774, 215, 816, 232]]   # x0, y0, x1, y1: the open paving either side of the tower
-LANES = [[[455, 293], [995, 293]], [[995, 296], [455, 296]],   # the main street's two lanes, and the ring road's curve up past Workshop Row
-         [[1000, 290], [1030, 280], [1052, 262], [1066, 240], [1080, 218], [1096, 198]]]
+# The roads the cars take, each as its middle in art px, traced on the painted tarmac. The main street runs from behind
+# the tree by the Library to behind the round tree on Workshop Row's apron (its tarmac ends at the apron by the fir, too
+# thin to hide a car). The ring road comes out from behind the sheds and curves up to a junction: on up past the
+# library's side to behind the houses there (UP), or right along the greenhouses to the edge (RIGHT), from which the
+# diagonal street turns off down to the bottom edge (DIAG). On the left, a road from behind a tree (LEFT) meets the curve
+# that runs from behind the trees above the Library up to behind the brick block (CURVE).
+MAIN = [[500, 294.5], [540, 295], [580, 296.5], [640, 299.5], [720, 302], [760, 302.5], [840, 301], [880, 300.5], [958, 300.5]]
+RING = [[1031, 270], [1045, 268.5], [1063, 262.5], [1073, 258], [1080, 254], [1086, 247], [1088, 243]]
+UP = [[1088, 238], [1088, 230], [1082, 221], [1074.5, 214], [1068.5, 207], [1063.5, 200], [1061, 193], [1062.5, 183],
+      [1066, 176], [1071, 171], [1078, 168]]
+RIGHT = [[1092, 240.5], [1100, 240.5], [1430, 247.3], [1446, 247.6]]
+DIAG = [[1134, 241.3], [1141, 249], [1145, 257], [1150, 266], [1156, 274], [1162, 282], [1169, 289], [1176, 295],
+        [1184, 306], [1193, 315], [1201, 322], [1209, 330], [1217, 339], [1225, 347], [1230, 353]]
+LEFT = [[246, 243.5], [280, 243.5], [330, 242], [366, 242]]
+CURVE = [[420, 196], [407, 201.7], [395, 208], [382, 215], [373, 223], [371, 233], [372.5, 243], [378, 253], [390, 265]]
+
+
+def lane(road, off=2.0):
+    """A one-way lane along a road's middle (a list of points, in the way it runs): cars keep right, off px from the
+    middle. A car at a lane point (x, y) covers x-2..x+1 and y-1..y, so the point is half a pixel past its middle."""
+    out = []
+    for i, (x, y) in enumerate(road):
+        (ax, ay), (bx, by) = road[max(0, i - 1)], road[min(len(road) - 1, i + 1)]
+        n = math.hypot(bx - ax, by - ay)
+        p = [round(x - (by - ay) / n * off + 0.5), round(y + (bx - ax) / n * off + 0.5)]
+        if not out or p != out[-1]:
+            out.append(p)
+    return out
+
+
+# Each lane is a whole route, from where it comes out from behind something (or in off the art) to where it goes behind
+# something again: city-fx.js fades a car in and out over a lane's last 8 px, and reads the ground under each point but
+# the ends from the depth map, so every other point must be on open road.
+LANES = [lane(MAIN, 1.75), lane(MAIN[::-1], 1.75),
+         lane(RING + UP), lane(UP[::-1] + RING[::-1]),                                  # the sheds and the top
+         lane(RING + RIGHT), lane(RIGHT[::-1] + RING[::-1]),                            # the sheds and the right edge
+         lane(UP[::-1] + RIGHT), lane(RIGHT[::-1] + UP),                                # the top and the right edge
+         lane(RING + RIGHT[:2] + DIAG), lane(DIAG[::-1] + RIGHT[1::-1] + RING[::-1]),   # the sheds and the bottom edge
+         lane(LEFT + CURVE[5::-1], 1.5), lane(CURVE[:6] + LEFT[::-1], 1.5),             # the left road and the brick block
+         lane(CURVE[::-1]), lane(CURVE)]                                                # the curve's two ends
+# Lamp posts in front of a lane, as x, top (the lamp) and foot, in art px. The depth model fades a thin post into the
+# road behind it, so a car would show over it.
+POSTS = [(648, 286, 305), (716, 287, 307), (731, 293, 308), (1077, 253, 266), (1170, 290, 301)]
 LIGHTS = {"beacon": [457, 39], "blinks": [[800, 37], [746, 18]]}   # the radio mast's top, the crane's tips
 
 
@@ -508,8 +549,19 @@ def write_fx(out, night, day, dusk, plain=None):
     stem = name("dusk", bool(plain))
     (out / f"{stem}-fx.json").write_text(json.dumps(fx, separators=(",", ":")))
     (out / f"{stem}-windows.json").write_text(json.dumps(found, separators=(",", ":")))
-    shutil.copyfile(PICKED / "city-depth.png", out / "city-depth.png")   # depth_map.py's map, as it is, at every season
+    upright(Image.open(PICKED / "city-depth.png").convert("L")).save(out / "city-depth.png")   # at every season
     return found, dusk, water
+
+
+def upright(depth):
+    """depth_map.py's map with each of POSTS stood up: all of a post as near as its nearest pixel, and 2 nearer still, so
+    a car passing a few rows behind it, which TOL (scene-fx.js) would count as level with it, goes behind."""
+    px = depth.load()
+    for x, top, foot in POSTS:
+        near = max(px[x, y] for y in range(top, foot + 1)) + 2
+        for y in range(top, foot + 1):
+            px[x, y] = near
+    return depth
 
 
 # The doors going in pushes through (city.js): the tower's entrance and the Apps workshop's roller door, in art px (their

@@ -1,5 +1,6 @@
 // What the scripts in this folder share: the repository's folders, failing with a reason, walking a folder, reading an
-// attribute from a tag, loading Playwright, finding the Hugo to run, and running the page's time-of-day pick.
+// attribute from a tag and a Markdown file's front matter, loading Playwright, finding the Hugo to run, and running the
+// page's time-of-day pick.
 
 const fs = require("fs");
 const path = require("path");
@@ -73,6 +74,45 @@ function routeToPublicPath(pathname) {
   return path.join(directPath, "index.html");
 }
 
+function escapeRegex(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// A Markdown file's front matter (between --- or +++ lines, after an optional BOM) and its body. Without front matter: "" and
+// the whole file.
+function splitFrontMatter(content) {
+  const normalizedContent = content.replace(/^\uFEFF/, "");
+  const openerMatch = normalizedContent.match(/^(---|\+\+\+)[^\r\n]*(?:\r?\n|$)/);
+
+  if (!openerMatch) {
+    return { frontMatter: "", body: content };
+  }
+
+  const marker = openerMatch[1];
+  const bodyStart = openerMatch[0].length;
+  const closingPattern = new RegExp(`(?:^|\\r?\\n)${escapeRegex(marker)}\\s*(?:\\r?\\n|$)`);
+  const closingMatch = normalizedContent.slice(bodyStart).match(closingPattern);
+
+  if (!closingMatch || closingMatch.index === undefined) {
+    return { frontMatter: "", body: content };
+  }
+
+  const frontMatterEnd = bodyStart + closingMatch.index;
+  const bodyOffset = frontMatterEnd + closingMatch[0].length;
+
+  return {
+    frontMatter: normalizedContent.slice(bodyStart, frontMatterEnd),
+    body: normalizedContent.slice(bodyOffset),
+  };
+}
+
+// A one-line value from front matter: the first `key:` at any indent (so params.button's btnText is btnText), without its
+// quotes or a trailing # comment; undefined when no line sets it.
+function frontMatterValue(frontMatter, key) {
+  const match = frontMatter.match(new RegExp(`^[ \\t]*${escapeRegex(key)}:[ \\t]*(?:"([^"\\n]*)"|([^\\n]*?))(?:[ \\t]+#[^\\n]*)?[ \\t]*$`, "m"));
+  return match ? match[1] ?? match[2] : undefined;
+}
+
 // Playwright, or a failure that says how to install it; what names the script's job in that message.
 function loadPlaywright(what) {
   try {
@@ -88,11 +128,10 @@ function loadPlaywright(what) {
 // The zone table layouts/partials/time-pick.html builds from data/timezones.json: each zone and link's main city, to whole
 // degrees (halves away from zero, as Hugo rounds), grouped by the zone's folder ("Europe/": "... Berlin53,13 ...").
 function zoneTable() {
-  // The links skip a retired alias the site leaves out, as the partial does.
   const round = (x) => Math.sign(x) * Math.round(Math.abs(x)) || 0;
   const { zones, links } = require("../data/timezones.json");
   const table = {};
-  for (const [name, [lat, lon]] of Object.entries({ ...zones, ...Object.fromEntries(Object.entries(links).filter(([link]) => link !== "Asia/Tel_Aviv").map(([link, to]) => [link, zones[to]])) })) {
+  for (const [name, [lat, lon]] of Object.entries({ ...zones, ...Object.fromEntries(Object.entries(links).map(([link, to]) => [link, zones[to]])) })) {
     const i = name.lastIndexOf("/") + 1, dir = name.slice(0, i);
     table[dir] = `${table[dir] ? `${table[dir]} ` : ""}${name.slice(i)}${round(lat)},${round(lon)}`;
   }
@@ -118,4 +157,4 @@ function runTimePick({ zone, ms, query = "" }) {
   return { time: documentElement.dataset.time, season: documentElement.dataset.season, place: documentElement.dataset.place, sunPhase: context.sunPhase };
 }
 
-module.exports = { rootDir, publicDir, hugoBinary, fail, walk, collectAttribute, routeToPublicPath, loadPlaywright, zoneTable, runTimePick };
+module.exports = { rootDir, publicDir, hugoBinary, fail, walk, collectAttribute, routeToPublicPath, escapeRegex, splitFrontMatter, frontMatterValue, loadPlaywright, zoneTable, runTimePick };

@@ -122,7 +122,7 @@ jobs:
           rm static/images/blog/covers/pixel/*.webp
           uv run web3d/pixel/paint_covers.py --install
           uv run web3d/pixel/compare_art.py static/images/blog/covers/pixel "$out/covers-committed"
-          # The art inside a post, from its committed paintings (a WebP with none is kept as its own source).
+          # The art inside a post, from its committed paintings: none are (inline-*.png are gitignored), so each WebP is kept and compared with itself.
           cp -R static/images/blog/pixel "$out/inline-committed"
           uv run web3d/pixel/paint_covers.py --install-inline
           uv run web3d/pixel/compare_art.py static/images/blog/pixel "$out/inline-committed"

@@ -1,11 +1,11 @@
 {{- /* The one top bar of every page, the homepage included: name plate, the tabs, Download CV, then the social row
      under it. Takes the page. On the homepage it wears the building's classes (web3d/src/pixel.css places it over
      the canvas) and the name goes back to the city; elsewhere it is .px-bar (custom.css) and the current tab is
-     marked. The tags pages belong to the Blog tab. The pause joins the tabs on the pages that animate: the city, Workshop
-     Row, the Library and the two rooms. On phones the links, pause and social row are a native popover under Menu; on
+     marked. The tags pages belong to the Blog tab. The pause joins the tabs on the pages that animate: the city, and every
+     page whose front matter says scene: true (Workshop Row, the Library and the two rooms). On phones the links, pause and social row are a native popover under Menu; on
      wider screens each stylesheet undoes the popover's UA styles. */ -}}
 {{ $home := .IsHome }}
-{{ $animated := or $home (in (slice "radio" "post") .Layout) (and .IsSection (in (slice "projects" "blog") .Section)) }}{{/* scene-fx.js */}}
+{{ $animated := or $home .Params.scene }}{{/* scene-fx.js: the pages whose front matter says scene: true */}}
 {{ $here := .RelPermalink }}
 {{ $t := hugo.Data.ui.bar }}
 <header class="{{ cond $home "building-top" "px-bar" }}">
@@ -37,8 +37,7 @@
       {{ range hugo.Data.home.en.contact.social }}<a href="{{ .url }}" aria-label="{{ .label }}" title="{{ .label }}" data-goatcounter-click="social-{{ .icon }}">{{ partial "pixel-icon.html" .icon }}</a>{{ end }}
     </nav>
   </div>
-  {{- /* `npm run serve` never makes the PDF (`npm run build` does), so the dev server links the web CV instead. */}}
-  <a class="{{ cond $home "building-download" "px-download" }}" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} aria-label="{{ $t.download_label }}" data-goatcounter-click="cv-download">
+  <a class="{{ cond $home "building-download" "px-download" }}" {{ partial "cv-href.html" }} aria-label="{{ $t.download_label }}" data-goatcounter-click="cv-download">
     <svg width="20" height="20" viewBox="0 0 10 10" aria-hidden="true"><path fill="currentColor" d="M4 0h2v5h2v1H7v1H6v1H4V7H3V6H2V5h2zM0 9h10v1H0z"/></svg>
     <span>{{ $t.download }}</span>
   </a>

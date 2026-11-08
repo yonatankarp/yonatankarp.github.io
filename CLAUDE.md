@@ -93,7 +93,7 @@ skipped, one with no tag page fails the build), then the rest, most posts first 
 chips are links to the tag pages and the search box a form to `/search/`.
 
 The projects' index (`layouts/projects/list.html`) is the city's Workshop Row: a street of four brick workshops, one per
-project `group` (apps, libraries, games, contributions, in that order), that pans sideways by scrolling
+project `group` (apps, libraries, games, contributions, in that order: `workshop.groups` in `data/rooms.yaml`), that pans sideways by scrolling
 (`web3d/src/pan.js`; an up or down wheel too, where the panel floats) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
 are a bundle of their own, `assets/building/workshop.*` (`vite build --mode workshop`). Each workshop lists its projects
 by `weight`; without a script every workshop's list shows. Its art follows the clock and the season like the city:
@@ -102,11 +102,11 @@ by `weight`; without a script every workshop's list shows. Its art follows the c
 inline script that preloads the hour's painting is in `.Store "headScripts"` (run in the head after the time pick, before the
 stylesheets) and the one that swaps it in is in `.Store "bodyScripts"`, both allowed by their hash in `head.html`. The homepage's script and styles live in
 `web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
-`npm run build:building` has run. That script also draws every Mermaid fence in `content/` to SVG with the `mermaid`
+`npm run build:building` has run (`scripts/build-building.js`, a build of each of `ENTRIES` in `web3d/vite.config.mjs`). That script also draws each Mermaid fence in `content/` that has no drawing yet to SVG with the `mermaid`
 package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitignored `assets/diagrams/<sha256>.svg`), which
 `render-codeblock-mermaid.html` inlines, so posts ship no Mermaid JS; `assets/js/diagram-zoom.js` adds the Zoom in. The
 hook fails the build when a diagram changed since it was drawn: rerun `node scripts/render-diagrams.js` (also during
-`npm run serve`). The art is in `static/building/pixel/`, made by the Python pipeline in
+`npm run serve`), which keeps the drawings it still needs and removes the rest. The art is in `static/building/pixel/`, made by the Python pipeline in
 `web3d/pixel/` (Draw Things paintings, pixelated and animated in code). A fault in a pick is mended, not repainted:
 `web3d/pixel/patch_picks.py` has the model edit a crop round it and keeps only the fault, as an RGBA crop in `picks/`
 (its alpha the feathered mask) that the bakes paste over the painting (`PATCHES` in `install_picks.py`, `gen_rooms.py`
@@ -130,7 +130,7 @@ model's royal blue toward a grey night blue before the colours are cut (`night_v
 `floor-{L,R}-NAME.webp`. The other pages' backdrop is a crop of the city at the hour (`backdrop[-NAME].webp`, written by
 `gen_city.py build`), behind the sheet: the pick is `layouts/partials/time-pick.html`, shared by the homepage and
 `head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop. The Library (`/blog/`), the Radio Mast and the
-Post Office hide the backdrop and skip the pick, so they have no `html[data-time]`, `data-season` or `data-place`: code there that
+Post Office (`backdrop: false` in their front matter) hide the backdrop and skip the pick, so they have no `html[data-time]`, `data-season` or `data-place`: code there that
 needs them adds the pick back in `head.html`.
 `data/phases.json` lists the phases (the sky above the roof, the baked rooms, how far a dark room falls), and
 `web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the backdrop rules in
@@ -256,8 +256,8 @@ the loop stops while the tab is hidden, the city is off screen or the tower is e
 frame, as often as keeps its fastest mover (the snow, a car; on the new year's night the fireworks' spark, 30) to an art
 pixel a frame (a draw's `fps`, at most 60). A
 painted sprite is drawn from its frame, made once, cut by the depth map only where something nearer is in its box. The top bar's Pause
-(`data-building-pause`, rendered by `pixel-bar.html` on those five pages only, which `check-generated-html.js` checks,
-and shown once the page's script animates it) holds the tower and all five scenes (a scene loaded paused shows one still
+(`data-building-pause`, rendered by `pixel-bar.html` on those five pages only, the homepage and those whose front matter
+says `scene: true`, which `check-generated-html.js` checks against the pages that load a scene's bundle, and shown once the page's script animates it) holds the tower and all five scenes (a scene loaded paused shows one still
 frame, its props and people standing there), and the Radio Mast's CSS EQ (its on-air lamp is unlit and still while
 the show is off air); reduced motion hides it. It is kept as the tower always kept
 it, per viewer in `localStorage` (`building-paused`), now across pages too: `scene-fx.js` keeps it, `pixel.js` shares its
@@ -327,8 +327,10 @@ The site is English-only. Do not create `.he.md` variants, translation keys, lan
 ## Layout Rules
 
 - Prefer editing the custom templates in `layouts/` directly instead of introducing third-party theme assumptions
-- Keep the design system centralized in `assets/css/custom.css`
-- Use `assets/js/site.js` for the small amount of client-side behavior
+- Keep the design system's tokens in `assets/css/custom.css` (`.px-skin`), and the homepage's, which skips that file, in
+  `web3d/src/pixel.css`, under the same names
+- Put a page's own behaviour in its own script in `assets/js/` (`site.js` is what every page shares), and a scene's in
+  `web3d/src/`, bundled by Vite
 - No words in a template, outside `{{ }}` or in a `printf` format: they go in `data/` (`CONTENT.md`), so Yonatan can
   change the text without the design. `npm run check:template-copy` (in `check:static`) fails on words outside `{{ }}`
   in `layouts/`; it allows arrows, `·`, punctuation, entities and one-character floor badges
@@ -373,7 +375,7 @@ Art inside a post goes in `static/images/blog/pixel/` as lossless WebP, painted 
 phone). It gets no resized sizes (`render-image.html`), which would smear it; its touch-ups work on the painting, before the bake.
 
 ### New project
-Create `content/projects/name.md` with a `link` and a `group` of `app`, `library`, `game` or `contribution`, which picks its workshop on `/projects/` (the build fails without either; a new group needs a workshop in the painting). Its place in the workshop is its `weight`, lowest first. The entry links to its case study with `caseStudy: true`, else to `link` under `params.button.btnText`. Set `archived: true` once the repository is archived: the project stays listed, with an "Archived" label on `/projects/` and its case study, and "(archived)" after its name in `llms.txt`.
+Create `content/projects/name.md` with a `link` and a `group` of `app`, `library`, `game` or `contribution`, which picks its workshop on `/projects/` (the build fails without either, in `partials/check-projects.html`; a new group needs a workshop in the painting and an entry in `workshop.groups` in `data/rooms.yaml`). Its place in the workshop is its `weight`, lowest first. The entry links to its case study with `caseStudy: true`, else to `link` under `params.button.btnText`. Set `archived: true` once the repository is archived: the project stays listed, with an "Archived" label on `/projects/` and its case study, and "(archived)" after its name in `llms.txt`.
 
 ### New experience
 Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `duration`, `summary`, and:

@@ -26,10 +26,12 @@ for (const line of read("zone.tab").split("\n")) {
   const [, lat, lon] = coords.match(/^([+-]\d+)([+-]\d+)$/);
   zones[zone] = [degrees(lat, 2), degrees(lon, 3)];
 }
+// Every link but a retired alias the site leaves out, so the time pick (time-pick.html, lib.js's zoneTable()) takes them all.
+const skipped = new Set(["Asia/Tel_Aviv"]);
 const links = {};
 for (const line of read("tzdata.zi").split("\n")) {
   const [kind, target, name] = line.split(" ");
-  if (kind === "L" && zones[target] && !zones[name]) links[name] = target;
+  if (kind === "L" && zones[target] && !zones[name] && !skipped.has(name)) links[name] = target;
 }
 const sorted = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
 const out = path.join(rootDir, "data", "timezones.json");

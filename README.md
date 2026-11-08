@@ -21,11 +21,12 @@ Node 22 or later (`.nvmrc`) and Hugo 0.169.0, the release pinned in `.github/hug
 it is another version. `npm run lint` and the art pipeline also need [uv](https://docs.astral.sh/uv/).
 
 `npm run serve` and `npm run build` first run `npm run build:building`, which bundles the scenes' scripts and styles
-(`web3d/src/`) with Vite into `assets/building/`, four bundles: the homepage's city and tower, Workshop Row
-(`--mode workshop`), the Library (`--mode library`) and the Radio Mast and Post Office (`--mode rooms`). It also draws
-the blog's Mermaid diagrams to SVG in `assets/diagrams/`
-(`scripts/render-diagrams.js`, in Playwright's Chromium). So both need Playwright's browser
-(`npx playwright install chromium`). A plain `hugo` fails until it has run, and again after a diagram changes.
+(`web3d/src/`) with Vite into `assets/building/`, one bundle per entry in `web3d/vite.config.mjs`'s `ENTRIES`: the
+homepage's city and tower, Workshop Row (`--mode workshop`), the Library (`--mode library`) and the Radio Mast and Post
+Office (`--mode rooms`). It also draws the blog's Mermaid diagrams to SVG in `assets/diagrams/`
+(`scripts/render-diagrams.js`, in Playwright's Chromium), only those not drawn yet. So the first run needs Playwright's
+browser (`npx playwright install chromium`), and so does a new or changed diagram. A plain `hugo` fails until it has
+run, and again after a diagram changes.
 
 ## Checks
 
@@ -72,8 +73,9 @@ by `paint_covers.py` and pixelated by `pixelate.py` (`paint_covers.py --install`
 the favicon. CLAUDE.md has each scene's steps.
 
 CI rebuilds the art above, the blog covers' pixel bakes and the icons on each pull request, and fails unless they match
-the committed files pixel for pixel and the data files come out unchanged. The art inside posts is not rebuilt: its
-paintings are not committed, so its PNGs are the source.
+the committed files pixel for pixel and the data files come out unchanged. The art inside posts runs through the same
+step, `paint_covers.py --install-inline` and the compare, but its paintings are not committed, so it keeps every WebP
+and compares it with itself: the WebPs are the source.
 
 ## Visual QA
 

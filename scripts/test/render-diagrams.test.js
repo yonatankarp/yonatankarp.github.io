@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("crypto");
-const { diagramSource, diagramKey, findDiagrams } = require("../render-diagrams");
+const { diagramSource, diagramKey, findDiagrams, plan } = require("../render-diagrams");
 
 const post = [
   "Some text.",
@@ -45,4 +45,12 @@ test("findDiagrams finds each mermaid fence, with its title, and nothing else", 
 
 test("findDiagrams leaves a fence without a title untitled, for the script to fail on", () => {
   assert.equal(findDiagrams("```mermaid\nflowchart LR\n  a --> b\n```\n")[0].title, undefined);
+});
+
+test("plan draws only the diagrams with no file yet, and removes the files no fence names", () => {
+  const diagrams = [{ key: "a" }, { key: "b" }];
+  const { draw, remove } = plan(diagrams, ["a.svg", "old.svg", "stamp"]);
+  assert.deepEqual(draw, [{ key: "b" }]);
+  assert.deepEqual(remove, ["old.svg"]);
+  assert.deepEqual(plan(diagrams, ["a.svg", "b.svg"]), { draw: [], remove: [] });
 });

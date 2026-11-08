@@ -18,7 +18,7 @@
       <h1>{{ $c.title }}</h1>
       <p>{{ $c.text }}</p>
       <ul>{{ range $c.priorities }}<li>{{ . }}</li>{{ end }}</ul>
-      {{ range where $c.facts "label" "Best for" }}<p><b>{{ .label }}:</b> {{ lower (substr .text 0 1) }}{{ substr .text 1 }}.</p>{{ end }}
+      {{ range where $c.facts "key" "best_for" }}<p><b>{{ .label }}:</b> {{ lower (substr .text 0 1) }}{{ substr .text 1 }}.</p>{{ end }}
     </article>
     <div class="post-stamps">
       <div class="post-stamp post-stamp--email">
@@ -30,8 +30,8 @@
       <a class="post-stamp" href="{{ .url }}" data-goatcounter-click="social-{{ .icon }}">{{ partial "pixel-icon.html" .icon }}<b>{{ $name }}</b><span>{{ cond (eq .icon "x") "@" "" }}{{ $handle }}</span></a>
       {{ end }}{{ end }}
       <a class="post-stamp" href="{{ "podcast/" | relURL }}">{{ partial "pixel-icon.html" "podcast" }}<b>{{ $r.podcast }}</b><span>{{ $c.podcast.title }}</span></a>
-      {{- /* The CV as the top bar's Download CV has it: `npm run serve` never makes the PDF, so the dev server links the web CV. */}}
-      <a class="post-stamp post-stamp--parcel" href="{{ cond hugo.IsServer ("cv/" | relURL) ("yonatan-karp-rudin-cv.pdf" | relURL) }}"{{ if not hugo.IsServer }} download{{ end }} data-goatcounter-click="cv-download"><span><b>{{ $r.parcel }}</b><span>{{ $r.parcel_text }}</span></span><span class="post-go" aria-hidden="true">↓</span></a>
+      {{- /* The CV as the top bar's Download CV has it. */}}
+      <a class="post-stamp post-stamp--parcel" {{ partial "cv-href.html" }} data-goatcounter-click="cv-download"><span><b>{{ $r.parcel }}</b><span>{{ $r.parcel_text }}</span></span><span class="post-go" aria-hidden="true">↓</span></a>
     </div>
   </div>
   <p class="sr-only" role="status" data-copy-status></p>

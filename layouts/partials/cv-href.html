@@ -1,0 +1,4 @@
+{{- /* The CV link's href, and download on the built site: `npm run serve` never makes the PDF (`npm run build` does), so
+     the dev server links the web CV instead. Takes nothing; returns attributes for the <a>. */ -}}
+{{- $attrs := cond hugo.IsServer (printf `href="%s"` ("cv/" | relURL)) (printf `href="%s" download` ("yonatan-karp-rudin-cv.pdf" | relURL)) -}}
+{{- return safeHTMLAttr $attrs -}}

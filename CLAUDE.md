@@ -10,6 +10,19 @@
 - Pixel skin is `.px-skin` in `assets/css/custom.css`; the top bar is `layouts/partials/pixel-bar.html`
 - Static images and icons in `static/images/`
 
+## To add something
+
+Each of these has a project skill in `.claude/skills/` that walks every file it touches, what checks it and what does not:
+
+| To add | Skill |
+|---|---|
+| A blog post, its cover and pixel cover, a tag or topic chip, a Mermaid diagram, inline art | `new-blog-post` |
+| A project on Workshop Row, an archived one, or a new project group (a fifth workshop) | `new-project` |
+| A job in the Career Tower, on a storey with a room or on a new storey (8, 9) | `new-tower-floor` |
+| A sixth district in the city, with its building, label, push-in and page | `new-city-district` |
+| A holiday, and its prop on the tower's plaza | `new-holiday` |
+| A time of day the art shows, or a second season with art of its own | `new-hour-phase` |
+
 ## Build & Run
 
 ```bash
@@ -24,37 +37,60 @@ npm run art              # rebuild all the art from the committed picks into sta
 Scripts share their helpers through `scripts/lib.js`. CI also rebuilds the art (`npm run art`, and `install_picks.py`'s
 picks) and fails unless it matches the committed files pixel for pixel (`web3d/pixel/compare_art.py`).
 
+The homepage's script and styles live in
+`web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
+`npm run build:building` has run (`scripts/build-building.js`, a build of each of `ENTRIES` in `web3d/vite.config.mjs`). That script also draws each Mermaid fence in `content/` that has no drawing yet to SVG with the `mermaid`
+package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitignored `assets/diagrams/<sha256>.svg`), which
+`render-codeblock-mermaid.html` inlines, so posts ship no Mermaid JS; `assets/js/diagram-zoom.js` adds the Zoom in. The
+hook fails the build when a diagram changed since it was drawn: rerun `node scripts/render-diagrams.js` (also during
+`npm run serve`), which keeps the drawings it still needs and removes the rest.
+
+The art is in `static/building/pixel/`, made by the Python pipeline in
+`web3d/pixel/` (Draw Things paintings, pixelated and animated in code). Its data that is bundled into the JS
+(`floors.json`, `cats-lobby.json`) or read while building (`city.json`, `workshop.json`) is kept out of `public/` by the
+`static` mount's `files` in `hugo.toml`: a new such file goes there too. How the pipeline paints, mends and bakes each
+picture is in `web3d/CLAUDE.md`, which Claude Code loads when a session works under `web3d/`.
+
+## The city
+
 The homepage (`layouts/index.html`) opens on the city: an aerial pixel-art panorama (`web3d/src/city.js`, `city.css`)
 that zooms into five districts, picked from a label or a chip in its panel: the Career Tower, the
 Library (`/blog/`), Workshop Row (`/projects/`), the Radio Mast (`/podcast/`) and the Post Office (`/contact/`). The
 map moves by one transform (translate and scale, never scrolling), clamped so no edge of the art shows; a wheel, a
 trackpad or a finger pans it sideways at any zoom, and a pinch is the browser's zoom. A resize keeps the pan, re-clamped, and
-re-centres only on a new width. Every scene at rest, like the tower, shows an art pixel as a whole number of device px:
-the city, Workshop Row, the Library's head and the rooms' heads at the fewest that cover their box, rounded up, never
-under 1 (`round()` by `--dpr`, which `assets/js/dpr.js` sets on html before the first paint, in `city.css` and
-`custom.css`), so they crop a little more than the plain cover, at the foot (the Library's about its 50% 62%, though its head is as tall as its whole room shows), and the
-panning takes up the width; only a glide or a push-in passes through other scales. The same chip again, or "Whole city", zooms back out ("Whole city" hands
+re-centres only on a new width. The same chip again, or "Whole city", zooms back out ("Whole city" hands
 focus to the chip that was picked; on a phone it sits at the panel's top right, beside the kicker, so it shows without a scroll). A label's first
 click zooms to its district; the picked label then shows "→", carries `aria-current` and the description `again` in
 `city` (`#city-again`), and its next click goes in. Enter or Space on a label goes straight in (a click with no pointer). A label stays whole on screen,
 slid inside the edges by `--shift` as on Workshop Row; one whose district is out of view, or that would sit under the
 floating panel, fades but keeps its place in the tab order, and focusing it pans the map to it. The whole city opens on
 the tower, moved right until the Library's label clears the panel, as far as the tower's stays whole (the pre-paint
-`assets/js/home-city.js`, inlined by `layouts/index.html`, does the same, by city.js's maths in `assets/js/home-view.js`). Its
+`assets/js/home-city.js`, inlined by `layouts/index.html`, does the same, by city.js's maths in `assets/js/home-view.js`).
+
+Its
 copy is `city` in `data/home/en.yaml`; the counts are Hugo's. Its art is `city[-PHASE].webp`, baked by
 `web3d/pixel/gen_city.py` from `web3d/pixel/paintings/picks/city[-PHASE].png` (Draw Things paintings, the other hours edited from the dusk
 one; the dusk pick carries one more edit, the tower's glass entrance doors, from `gen_city.py door`, and the hours were
 edited from it with the door), which also writes `city.json`, the labels' anchors the template reads and each district's zoom (its building's
 middle in % of the art, and how far to zoom: `ZOOM`), times the whole city's device px an art px, to the nearest
 whole number, capped where an art pixel would pass `MAX_PX` (4) screen px, so a big screen zooms less than a phone, and
-never under the whole city (where that is the nearest, a pick only pans). The tower's crane is the roof's yellow at every hour:
-`gen_city.py`'s bake recolours it (`yellow_crane`, its shape kept for the depth map) on 4 colours past the city's 64. Going in (a district's go link, or its label's second
+never under the whole city (where that is the nearest, a pick only pans).
+
+Without a script the city is its
+panel at the top of the page, every district's words and link in a column (the `<noscript>` style in `layouts/index.html`),
+so those links still land on it. At the city the city's section is the page's main landmark (`role="main"`, set by
+`city.js`: without a script the tower's `<main>` is the page) and the skip link is "Skip to the city" (`#city`); in the
+tower it is "Skip to the current floor" (`#building-stops`), and `city.css` shows the one that fits.
+
+## Going into a district
+
+Going in (a district's go link, or its label's second
 click) the map pushes on, ease-in over 450 ms, and the next view opens from it in a dithered iris (`web3d/src/iris.js`)
 while it settles from 1.18 to 1; every other link keeps the wipe. The tower and Workshop Row have doors (`doors` in
 `city.json`, `DOORS` in `gen_city.py`): the city's lands on the next view's door at its size, to 14 screen px a city art
 px. The tower's is the lobby's glass entrance, at the right of the lobby, where pixel.js lays it out (`lay` in
 `web3d/src/art.js`; a phone's lobby starts on it and pans to its usual focus, art x 600, as it settles). The lobby opens
-with that entrance standing open (`floor-L-open[-winter][-PHASE].webp`, below), which dissolves into the strip's shut doors 250 to
+with that entrance standing open (`floor-L-open[-winter][-PHASE].webp`, in `web3d/CLAUDE.md`), which dissolves into the strip's shut doors 250 to
 650 ms into the settle, whole art pixels at a time in the iris's 4x4 Bayer order. The city's entrance opens first: `door-open[-PHASE].webp`, the same hour's painting
 with the doors open, kept as its crop round the door (`picks/city-open[-PHASE].png`, from `gen_city.py door --open`),
 pasted on the pick, baked on the pick's own colours and cut at `DOOR_OPEN` (`doorOpen` in `city.json`); in winter,
@@ -62,7 +98,9 @@ pasted on the pick, baked on the pick's own colours and cut at `DOOR_OPEN` (`doo
 only the doorway (`DOORWAY`) goes on the winter pick's crop (`picks/city-open-winter[-PHASE].png`). Both pick their
 file by `html[data-season]` and the hour, as the shut art does. The tower is
 this page, so city.js lays the frame over it and enters `#floor-L`. Workshop Row's is the Apps door where `/projects/`
-pans it on load (`door` and `shutter` in `workshop.json`, from `gen_workshop.py`), whose shutter then rolls up. The
+pans it on load (`door` and `shutter` in `workshop.json`, from `gen_workshop.py`), whose shutter then rolls up.
+
+The
 Library, the Radio Mast and the Post Office push into the building's middle, ending on their room header's middle.
 Those are pages of their own: the city leaves its last frame in sessionStorage, and their head's pre-paint
 (`assets/js/push-in.js`, allowed by its hash in `head.html`) holds the old page's view transition (`html.iris` in
@@ -72,131 +110,43 @@ browser reloads it instead, the city opens on the district it went into, from th
 `pick()` keeps. The four pages' "← Back to the city" link is `/#KEY`, which the pre-paint `home-city.js` moves into
 that state and off the address; it lays out the zoomed view, the picked label and the panel before the first paint, as
 `pick()` does (minified twice, as one pass is not stable under `minifyOutput`). A plain visit to `/`, the name plate
-included, opens on the whole city. The Career Tower is the pixel-art career
+included, opens on the whole city.
+
+## The Career Tower
+
+The Career Tower is the pixel-art career
 building, entered at its lobby: any `#floor-X` address, or an old one-page anchor (`LEGACY` in `web3d/src/hash.js`, which the pre-paint
 `$floorHash` in `layouts/index.html` must match: `scripts/test/building-hash.test.js`), opens it directly, and pixel.js mounts it only then; back
 at the bare address (or `#city`, the name plate and the lobby's sign) the page reloads on the city: Back, zoomed on the
 tower (its entry keeps `history.state.at`), and `#city`, a new entry, on the whole city. It is the career
 only: every other topic has its building in the city. The old street's `#floor-E` lands in the lobby (`web3d/src/hash.js`),
-and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/`, query kept (the pre-paint script in `layouts/index.html`). The lift's plate starts with
-"← City" on every floor, a link to `#city` like the name plate and the lobby's sign. Without a script the city is its
-panel at the top of the page, every district's words and link in a column (the `<noscript>` style in `layouts/index.html`),
-so those links still land on it. At the city the city's section is the page's main landmark (`role="main"`, set by
-`city.js`: without a script the tower's `<main>` is the page) and the skip link is "Skip to the city" (`#city`); in the
-tower it is "Skip to the current floor" (`#building-stops`), and `city.css` shows the one that fits.
-
-The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library.webp`, baked
-by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk, at 720x173, half the
-city's width, so a 1440 screen shows the whole room at 2 device px an art px: the head is at least that tall, to 52vh), then every listed
-post as a card (`partials/blog-row.html`). A chip for every tag the listed posts carry filters the list, with the search
-box (`assets/js/library.js`): the curated topics and labels in `data/library.yaml` first (a tag no listed post carries is
-skipped, one with no tag page fails the build), then the rest, most posts first (ties by name). Without a script the
-chips are links to the tag pages and the search box a form to `/search/`.
-
-The projects' index (`layouts/projects/list.html`) is the city's Workshop Row: a street of four brick workshops, one per
-project `group` (apps, libraries, games, contributions, in that order: `workshop.groups` in `data/rooms.yaml`), that pans sideways by scrolling
-(`web3d/src/pan.js`; an up or down wheel too, where the panel floats) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
-are a bundle of their own, `assets/building/workshop.*` (`vite build --mode workshop`). Each workshop lists its projects
-by `weight`; without a script every workshop's list shows. Its art follows the clock and the season like the city:
-`workshop[-winter][-PHASE].webp`, baked by `web3d/pixel/gen_workshop.py` from `paintings/picks/workshop[-winter][-PHASE].png`
-(dusk painted, the other hours edited from it, and each hour's winter from that hour), with `workshop.json`, the labels' anchors. The page is standalone (no baseof) so the
-inline script that preloads the hour's painting is in `.Store "headScripts"` (run in the head after the time pick, before the
-stylesheets) and the one that swaps it in is in `.Store "bodyScripts"`, both allowed by their hash in `head.html`. The homepage's script and styles live in
-`web3d/src/` and are bundled by Vite into `assets/building/` (gitignored), so plain `hugo` fails until
-`npm run build:building` has run (`scripts/build-building.js`, a build of each of `ENTRIES` in `web3d/vite.config.mjs`). That script also draws each Mermaid fence in `content/` that has no drawing yet to SVG with the `mermaid`
-package in Playwright's Chromium (`scripts/render-diagrams.js`, into the gitignored `assets/diagrams/<sha256>.svg`), which
-`render-codeblock-mermaid.html` inlines, so posts ship no Mermaid JS; `assets/js/diagram-zoom.js` adds the Zoom in. The
-hook fails the build when a diagram changed since it was drawn: rerun `node scripts/render-diagrams.js` (also during
-`npm run serve`), which keeps the drawings it still needs and removes the rest. The art is in `static/building/pixel/`, made by the Python pipeline in
-`web3d/pixel/` (Draw Things paintings, pixelated and animated in code). A fault in a pick is mended, not repainted:
-`web3d/pixel/patch_picks.py` has the model edit a crop round it and keeps only the fault, as an RGBA crop in `picks/`
-(its alpha the feathered mask, the place it goes in its PNG) that the bakes paste over the painting (`PATCHES` in `install_picks.py`, `gen_rooms.py`
-and `gen_workshop.py`); a thin stray line is filled in code instead (`FILLS` in `install_picks.py`). Its data that is bundled into the JS
-(`floors.json`, `cats-lobby.json`) or read while building (`city.json`, `workshop.json`) is kept out of `public/` by the
-`static` mount's `files` in `hugo.toml`: a new such file goes there too. Each experience entry's `floor`
+and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/`, query kept (the pre-paint `assets/js/home-guided.js`, inlined by `layouts/index.html`). The lift's plate starts with
+"← City" on every floor, a link to `#city` like the name plate and the lobby's sign. Each experience entry's `floor`
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
-
-The building's art follows the real sun where the visitor is: their time zone's main city (`data/timezones.json`, Berlin
-when unknown; each zone's latitude and longitude from the tz database, written by `node scripts/gen-timezones.js`, rerun
-after a tzdata release that adds zones) gives the sun's elevation now, day above +6°, night at -8° or below, and dawn or dusk between, before or
-after noon. It is picked once at load by the inline script in `layouts/index.html` (`html[data-time]`), from
-`assets/js/time-pick.js` (tested in `scripts/test/time-pick.test.js`). `/?time=dawn|day|dusk|night` overrides it for
-testing; anything else means the sun. Never pick by the hour: read `html[data-time]`, and a file by `html[data-art]`,
-its `[-winter][-PHASE]` suffix (`strip()` in `web3d/src/art.js` for a storey). Dusk is the plain files. Which hours light
-the lamps (props, headlights, moths: `lit`) and show the stars over the roof (`starry`) is each phase's in `data/phases.json`. The rooms
-that show outside have a painting at each other hour that changes only the light: the roof an edit of its dusk pick,
-whole (`paint_rooms.py retime`); the lobby only through its glass door, one street at every hour, from an edit of a crop
-round the door alone that names the street to keep (`paint_rooms.py door`, `DOOR`, at strength 1.0: lower, this model
-hardly changes the picture; edited whole, the room got another street at every hour), kept as painted in
-`picks/reception-door[-PHASE].png`, of which `install_picks.py` takes only the glass (`DOOR`), its night dulled from the
-model's royal blue toward a grey night blue before the colours are cut (`night_view`, `NIGHT`). `gen_floors.py` bakes them into
-`floor-{L,R}-NAME.webp`. The other pages' backdrop is a crop of the city at the hour (`backdrop[-NAME].webp`, written by
-`gen_city.py build`), behind the sheet: the pick is `layouts/partials/time-pick.html`, shared by the homepage and
-`head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop. The Library (`/blog/`), the Radio Mast and the
-Post Office (`backdrop: false` in their front matter) hide the backdrop and skip the pick, so they have no `html[data-time]`, `data-season` or `data-place`: code there that
-needs them adds the pick back in `head.html`.
-`data/phases.json` lists the phases (the sky above the roof, the baked rooms, how far a dark room falls), and
-`web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the backdrop rules in
-`custom.css`, and paint the city, Workshop Row, the roof and the lobby's view at it: `npm run check:phases` (part of
-`npm run check`) fails until those agree with `phases.json`, and `gen_floors.py` checks its baked rooms (the paintings
-there are) and its sky (the roof strip's top row, which `sky_band` draws in it) on every run.
-
-The same script picks the visitor's season, `html[data-season]`, from the date and their zone's latitude (`seasonOn`,
-`assets/js/season.js`, which `time-pick.html` and `scripts/lib.js` append after `sun.js`, and `calendar.js` re-exports;
-summer within the tropics). `?season=spring|summer|autumn|winter` overrides it. Only winter has art of its own, at every
-hour: the city, Workshop Row and the roof, each the hour's pick edited to snow (`--winter` in `gen_city.py`
-and `gen_workshop.py`, `paint_rooms.py winter`, seed 700, which keeps the layout; prompts that name the hour's light, or the model paints an
-overcast day), the lobby's view, its dusk door crop under snow and each hour that winter crop retimed, so the street and
-its snow are the same at every hour (`paint_rooms.py door --winter [--time PHASE]`, `DOOR_WINTER`;
-`picks/reception-door-winter[-PHASE].png`), and the backdrop, its crop. The model snows on what is indoors too, so a winter room is its hour's
-picture with only `SNOWED` taken from its edit (`install_picks.py`): the roof but its lift housing, the lobby door's
-glass but its brass (`unsnow` refills the brass's rows behind the bars). The files
-put the season before the hour: `city-winter[-PHASE].webp`, `floor-R-winter[-PHASE].webp`, `backdrop-winter[-PHASE].webp`;
-each phase's `winter` in `phases.json` has its sky and baked rooms (`LR`, dusk too), and `art.js` fetches only the
-season's strips. The city's windows and bay are found again in the winter art (`city-winter-fx.json`,
-`city-winter-windows.json`); its depth map is shared. `check:phases` fails until every phase has its winter art.
-
-`web3d/src/outside.js` works out the holidays from `calendar.js` (tested in `scripts/test/calendar.test.js`), with the
-season and the visitor's place (`html[data-place]`, for sunset) from the head's pick; the city imports it for the props
-below. Every visitor gets the same holidays, his: Christmas, the new year (`new-year`, day 0 on 31 December, 1 on
-1 January), Easter, Halloween (`halloween`, 24 to 31 October), and the
-Jewish holidays by their Hebrew date (Rosh Hashanah, Sukkot, Hanukkah, Purim, Passover, Independence Day with the law's
-moves, Lag BaOmer, Shavuot; not the solemn days). The Hebrew ones (`sunset: true`) begin at sunset:
-`holidaysOn`'s `evening` flag reads the next day for them, which outside.js sets once the sun is below -0.833° at the
-visitor's city after noon (`isEvening` in calendar.js), from `assets/js/sun.js`, the elevation the time-of-day pick uses too (`time-pick.html` and
-`scripts/lib.js` put it after `time-pick.js`, without its `export`). `?holiday=` pins them (`fromQuery` in calendar.js), by
-those names (`?holiday=halloween`, `?holiday=new-year:1`); a pin also counts as that night's evening, so the fireworks
-show at any real hour (`OUTSIDE.evening` and `afternoon`, which `dressing` reads).
 
 The tower's art is 928x308 a room (painted at 2304x768, box-reduced and median-cut to 64 colours, no dither, like the
 city), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an edit of the lobby carried across, so the
 wall, skirting and floor run on from the lift), `install_picks.py` bakes the picks (`PICKS`) and pastes the lobby's one
 lift into each (on the roof, whose hours repainted it, its call panel too: `PANEL`, relit to the hour's wall), and
 `gen_floors.py` draws the slabs, the floor number and what moves (each room's animation, which only paints over what is
-there: lights, screens, a glint in the room's own colours). The roof has open sky for its top slab (`sky_band`): the
-painting's own sky at its top blended up, in its own colours and flat bands, into `phases.json`'s sky, its masts carried
-on up (mirrored: the one shape that still is, as a lattice reads the same either way) and, at night, its stars
-scattered over it. A strip is its rest frame, two runs pixel.js tiles past it on a
+there: lights, screens, a glint in the room's own colours). A strip is its rest frame, two runs pixel.js tiles past it on a
 wide screen (each row in the light the room's edge leaves it with, grained with the left wall's outer columns mirrored:
 `runs`), the lift's cab (`paint_rooms.py cab`, a painting of its own, which pixel.js shows behind the painted doors as
-they slide apart), and its moving box's other frames. The lobby has one more picture at each hour,
-`floor-L-open[-PHASE].webp`, its glass entrance standing open (cut at `ENTRANCE`), which the push-in from the city lands on:
-`paint_rooms.py entrance [--winter] --time PHASE` edits the crop round the doors of that hour's shut lobby (as
-`install_picks.painting()` makes it), asked to open the leaves and keep the street seen through them (`ENTRANCE_PROMPT`,
-which names it); `entrance [--winter] --time PHASE --pick SEED` puts the pick back under a tight mask on the doorway and
-keeps only its crop, `picks/reception-open[-winter][-PHASE].png`, picked only where the street through the opening is the
-shut view's; and `gen_floors.py` box-reduces that crop exactly as the whole painting is (the same filter at the same
-offset) and bakes it on that hour's lobby colours (`floor-L-open[-winter][-PHASE].webp`). The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
+they slide apart), and its moving box's other frames. The numbers `web3d/src/` draws by (strip size, runs, each strip's moving
 box, lift doors, the lobby's entrance, dither, each room's lamps, the floors' order, floor 7's capsule, the lobby's receptionists and cats) are written into `static/building/pixel/floors.json` by
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
-rerun it, never the copies. `pixel.js` is the lift and the floors, `ride.js` the lift's ride (tested in `scripts/test/ride.test.js`), `art.js` what it reads; it keeps only the storeys
+rerun it, never the copies.
+
+`pixel.js` is the lift and the floors, `ride.js` the lift's ride (tested in `scripts/test/ride.test.js`), `art.js` what it reads; it keeps only the storeys
 round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most, and loads the stop's strip
 before the storeys round it. When only the live sprites below change, it redraws just their boxes. With a floor's panel open on a wide screen it slides the
 room right, at the same scale, until the room covers the view beside the panel (`besidePanel`). One thing moves live, not in the
 strip's 12 frames: floor 7's payment, a painted pneumatic-post capsule (`picks/capsule.png`, on magenta, from
 `paint_rooms.py capsule`; `gen_floors.py` keys it into `capsule.webp` at 4x). pixel.js turns and smooths it into the room's
 own art pixels every frame, along `CAPSULE` (its path, size, ride and clip, in floors.json; the path and easing are
-`web3d/src/capsule.js`), from the start of each loop, darkened with the room, and not while paused or held. The lobby's
+`web3d/src/capsule.js`), from the start of each loop, darkened with the room, and not while paused or held.
+
+The lobby's
 receptionist is drawn live too: one of two painted upper bodies behind its desk (`picks/reception/NAME_POSE.png`, on
 magenta, from `paint_rooms.py receptionists`; `gen_floors.py` keys, cuts at the desk and bakes both into
 `receptionists.webp`, a row each and a column per pose, a 17 px head on 32 colours). Each visit picks one of them at even
@@ -214,29 +164,60 @@ starts, still poses and scale `k` against the Row's (which scales their speed, r
 in a small canvas on the Bayer grid, darkened with the room and clipped to it (never into the runs), and again over the
 open lift's doors; paused they hold their pose, held one loafs on the bench and one sits on the counter.
 
-The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
-laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the
-main street, the ring road and its branches and the roads on the left (headlights at dusk and night; each lane in `LANES`
-a one-way route between two hidden ends, offset to the right of its road's middle, the ground under its points capping
-`footAt` so the greenhouses hide the road behind them), windows going dark at night, glints on the bay, the radio
-mast's beacon and the crane's lights, and flocks of birds. Movers hide behind what is nearer in `city-depth.png`
-(brighter = nearer). `gen_city.py build` writes `city-fx.json` (the bay found in the baked art, only the water the day
-art's blue reaches from `BAY_SEED`, so no glint lands on the far shore; and the walks, plazas, lanes and lights in its
-`WALKS`, `PLAZAS`, `LANES` and `LIGHTS`), `city-windows.json` (the lit windows, each a whole window grown from its warm
-rim, so it goes dark as one; fetched only at night) and copies `city-depth.png` from
-`web3d/pixel/paintings/picks/` with the lamp posts and the tree crowns in front of a lane or the walk stood up (`POSTS`, `TREES`, `upright`: a crown as near as its trunk's foot), which `uv run web3d/pixel/depth_map.py city` makes from the dusk pick (it needs torch, so
-it is not part of the build: rerun it, and commit its output, when the dusk pick changes). In winter snow falls over the whole art (`snowfall` in `scene-fx.js`: 520 flakes, 1 px and some 2 px, 7-23 px a second
-with a drift, bluish and dimmer at night), on Workshop Row too; not on the roof, whose canvas redraws only when it moves.
+## Time of day and season
+
+The building's art follows the real sun where the visitor is: their time zone's main city (`data/timezones.json`, Berlin
+when unknown; each zone's latitude and longitude from the tz database, written by `node scripts/gen-timezones.js`, rerun
+after a tzdata release that adds zones) gives the sun's elevation now, day above +6°, night at -8° or below, and dawn or dusk between, before or
+after noon. It is picked once at load by the inline script in `layouts/index.html` (`html[data-time]`), from
+`assets/js/time-pick.js` (tested in `scripts/test/time-pick.test.js`). `/?time=dawn|day|dusk|night` overrides it for
+testing; anything else means the sun. Never pick by the hour: read `html[data-time]`, and a file by `html[data-art]`,
+its `[-winter][-PHASE]` suffix (`strip()` in `web3d/src/art.js` for a storey). Dusk is the plain files. Which hours light
+the lamps (props, headlights, moths: `lit`) and show the stars over the roof (`starry`) is each phase's in `data/phases.json`. The other pages' backdrop is a crop of the city at the hour (`backdrop[-NAME].webp`, written by
+`gen_city.py build`), behind the sheet: the pick is `layouts/partials/time-pick.html`, shared by the homepage and
+`head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop. The Library (`/blog/`), the Radio Mast and the
+Post Office (`backdrop: false` in their front matter) hide the backdrop and skip the pick, so they have no `html[data-time]`, `data-season` or `data-place`: code there that
+needs them adds the pick back in `head.html`.
+`data/phases.json` lists the phases (the sky above the roof, the baked rooms, how far a dark room falls), and
+`web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the backdrop rules in
+`custom.css`, and paint the city, Workshop Row, the roof and the lobby's view at it: `npm run check:phases` (part of
+`npm run check`) fails until those agree with `phases.json`, and `gen_floors.py` checks its baked rooms (the paintings
+there are) and its sky (the roof strip's top row, which `sky_band` draws in it) on every run.
+
+The same script picks the visitor's season, `html[data-season]`, from the date and their zone's latitude (`seasonOn`,
+`assets/js/season.js`, which `time-pick.html` and `scripts/lib.js` append after `sun.js`, and `calendar.js` re-exports;
+summer within the tropics). `?season=spring|summer|autumn|winter` overrides it. Only winter has art of its own, at every
+hour: the city, Workshop Row and the roof, each the hour's pick edited to snow (`--winter` in `gen_city.py`
+and `gen_workshop.py`, `paint_rooms.py winter`, seed 700, which keeps the layout; prompts that name the hour's light, or the model paints an
+overcast day), the lobby's view, its dusk door crop under snow and each hour that winter crop retimed, so the street and
+its snow are the same at every hour (`paint_rooms.py door --winter [--time PHASE]`, `DOOR_WINTER`;
+`picks/reception-door-winter[-PHASE].png`), and the backdrop, its crop. The files
+put the season before the hour: `city-winter[-PHASE].webp`, `floor-R-winter[-PHASE].webp`, `backdrop-winter[-PHASE].webp`;
+each phase's `winter` in `phases.json` has its sky and baked rooms (`LR`, dusk too), and `art.js` fetches only the
+season's strips. The city's windows and bay are found again in the winter art (`city-winter-fx.json`,
+`city-winter-windows.json`); its depth map is shared. `check:phases` fails until every phase has its winter art.
+
+## Holidays and props
+
+`web3d/src/outside.js` works out the holidays from `calendar.js` (tested in `scripts/test/calendar.test.js`), with the
+season and the visitor's place (`html[data-place]`, for sunset) from the head's pick; the city imports it for the props
+below. Every visitor gets the same holidays, his: Christmas, the new year (`new-year`, day 0 on 31 December, 1 on
+1 January), Easter, Halloween (`halloween`, 24 to 31 October), and the
+Jewish holidays by their Hebrew date (Rosh Hashanah, Sukkot, Hanukkah, Purim, Passover, Independence Day with the law's
+moves, Lag BaOmer, Shavuot; not the solemn days). The Hebrew ones (`sunset: true`) begin at sunset:
+`holidaysOn`'s `evening` flag reads the next day for them, which outside.js sets once the sun is below -0.833° at the
+visitor's city after noon (`isEvening` in calendar.js), from `assets/js/sun.js`, the elevation the time-of-day pick uses too (`time-pick.html` and
+`scripts/lib.js` put it after `time-pick.js`, without its `export`). `?holiday=` pins them (`fromQuery` in calendar.js), by
+those names (`?holiday=halloween`, `?holiday=new-year:1`); a pin also counts as that night's evening, so the fireworks
+show at any real hour (`OUTSIDE.evening` and `afternoon`, which `dressing` reads).
+
 On the plaza either side of the tower stand the holidays' props (`web3d/src/props.js`, tested in
 `scripts/test/props.test.js`): a hanukkiah through Hanukkah, foot at art (694, 233), lit on day N with the shamash and N+1
 candles from the right, and a Christmas tree from 1 to 26 December, foot at (800, 236), snowy in winter and plain in any
 other season (a southern Christmas), its 34 bulbs twinkling and its star glowing. Candles and lights burn at dusk and
 night only, the props are darkened with the hour (`TINT`; which go up, which candles burn, lit or not and the tint are
 `dressing`, tested apart from the drawing), and walkers and props are drawn by their feet's row, so
-nobody walks through one. `?holiday=hanukkah:3,christmas` (or `none`) pins them. They are `props.webp` and `props.json`,
-baked by `web3d/pixel/gen_props.py` (`pose`, `paint`, `unflame`, `key`, `bake`) from `picks/props/`: hanukkiah 11 with its
-painted flames erased (the cup tops in `hanukkiah.json`), tree 11 and `tree-plain`, tree 11 with its snow painted off,
-each box-reduced to ~30 and 34 art px on 32 colours with a hard edge. Through Halloween's last week (24 to 31 October)
+nobody walks through one. `?holiday=hanukkah:3,christmas` (or `none`) pins them. Through Halloween's last week (24 to 31 October)
 four jack-o'-lanterns stand right of the tower's door, clear of its open-door crop (`DOOR_OPEN`), the plazas and the other
 props (`HALLOWEEN`, which the bake checks): pumpkin-tall 13, pumpkin-round 14 and pumpkin-small 11, painted unlit, 9, 8 and
 6 art px; the bake finds each carved face and paints it dark (`face()`), and the page lights its pixels with a flicker at
@@ -249,10 +230,25 @@ small hours of 1 January (not 1 January's own evening), fireworks go up just lef
 (30) px at 30 px a second, then a painted burst grows over 5 frames of 70 ms and fades over 4 of 240 ms (`BURST` in
 props.js), up to three at once. Their middles fall in `SKY` (art x 640-712, rows 46-56: below a phone's top bar and left
 of a desktop's Download CV), off the crane's lights by `CORE`; what the depth map has nearer than the sky at the top of
-its column (the tower and the crane) is cut out of them (`fronts`). Each burst is painted once on black (burst-gold,
--red, -green and -blue, seed 13 each) and grown and faded from it in `BURST_FRAMES`, a pixel lit where its light passes
-`LIT` of its full bloom's (`fireworks.webp`, `fireworks.json`). gen_props.py's `pose`, `paint`, `key` and `bake` do these
-too (`key NAME SEED` keys every frame of a ghost or the bat), and the bake skips a set until all its picks are in.
+its column (the tower and the crane) is cut out of them (`fronts`).
+
+## Scenes and animation
+
+Every scene at rest, like the tower, shows an art pixel as a whole number of device px:
+the city, Workshop Row, the Library's head and the rooms' heads at the fewest that cover their box, rounded up, never
+under 1 (`round()` by `--dpr`, which `assets/js/dpr.js` sets on html before the first paint, in `city.css` and
+`custom.css`), so they crop a little more than the plain cover, at the foot (the Library's about its 50% 62%, though its head is as tall as its whole room shows), and the
+panning takes up the width; only a glide or a push-in passes through other scales.
+
+The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
+laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the
+main street, the ring road and its branches and the roads on the left (headlights at dusk and night; each lane in `LANES`
+a one-way route between two hidden ends, offset to the right of its road's middle, the ground under its points capping
+`footAt` so the greenhouses hide the road behind them), windows going dark at night, glints on the bay, the radio
+mast's beacon and the crane's lights, and flocks of birds. Movers hide behind what is nearer in `city-depth.png`
+(brighter = nearer). In winter snow falls over the whole art (`snowfall` in `scene-fx.js`: 520 flakes, 1 px and some 2 px, 7-23 px a second
+with a drift, bluish and dimmer at night), on Workshop Row too; not on the roof, whose canvas redraws only when it moves.
+
 Nothing moves under reduced motion or with `?fx=off`, but the props still stand there, steady (`animate`'s `poster`),
 without the ghosts, bats and fireworks (a burst held still reads as a stain on the sky);
 the loop stops while the tab is hidden, the city is off screen or the tower is entered, and draws on every k-th screen
@@ -267,24 +263,18 @@ it, per viewer in `localStorage` (`building-paused`), now across pages too: `sce
 (`holdPause`, which `pixel.js` and the scenes call), and on the city it is the tower's once the tower is entered.
 
 Workshop Row (`/projects/`) and the Library's header (`/blog/`) move the same way, sharing `web3d/src/scene-fx.js` (the
-canvas loop, its pauses and the depth test) with the city. `workshop-fx.js`: walkers on the pavement, two cats on the left
-wall, a welder's sparks, code on the screens and moths round the lamps (at dusk and night), from `workshop-fx.json` and
-`workshop-depth.png`, which `gen_workshop.py build` writes from its `FX` and the map `depth_map.py workshop` makes.
-Its walkers are painted people: `web3d/pixel/gen_walkers.py` draws 8 walk-cycle poses from a skeleton (`pose`), Draw Things
-repaints them as each of six people with one seed apiece (`paint`), and `bake` turns the picked frames in
-`web3d/pixel/paintings/picks/walkers/NAME_K.png` into `walkers.webp` (a row per person, a frame per column) and
-`walkers.json`, a person 60 art px tall (`PERSON`, against the street's ~100 px roller doors). A walker steps one frame
-per `stride` / 8 px of ground, so its feet do not slide, at 0.71-0.97 strides a second, and stands on each frame's own
-sole (`foot`, the lowest painted row the bake finds); 8 by day, 4 dimmed at night. They walk off either end of the
-art (`edge`) and, 1-9 s later, someone comes on from either end in either lane; past the pavement's end (`pavement`'s
-x1) their feet keep its depth, so they pass behind the parked van. Yonatan's two cats (`web3d/src/cats.js`, tested in
-`scripts/test/cats.test.js`) walk, sit and loaf on the wall's top (`wall`), turning back when they meet, and now and
-then leap down to the pavement (`street`), trot off either end and back, and leap up again; they are `cats.webp` and
-`cats.json`, which `gen_walkers.py bake` makes from `picks/cats/NAME_POSE.png` (`cats` paints them: a walk, sit, loaf,
-crouch and leap, `CAT` art px tall walking; the lobby's are `cats-lobby.webp`, above). The kerb lamp at x 245, painted dark at every hour, is lit by
-`gen_workshop.py` (`relight`) at every hour but day. The
-lamp posts in `workshop-depth.png` are stood up by `gen_workshop.py` (`upright`): the model fades their thin poles into the
-wall as they rise, and a whole post must hide a walker passing behind it.
+canvas loop, its pauses and the depth test) with the city.
+
+## The Library
+
+The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library.webp`, baked
+by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk, at 720x173, half the
+city's width, so a 1440 screen shows the whole room at 2 device px an art px: the head is at least that tall, to 52vh), then every listed
+post as a card (`partials/blog-row.html`). A chip for every tag the listed posts carry filters the list, with the search
+box (`assets/js/library.js`): the curated topics and labels in `data/library.yaml` first (a tag no listed post carries is
+skipped, one with no tag page fails the build), then the rest, most posts first (ties by name). Without a script the
+chips are links to the tag pages and the search box a form to `/search/`.
+
 `library-fx.js`, its own bundle (`--mode library`): the fire, dust in the window's light and clouds only over the
 window's sky, from `library-fx.json`, which `gen_library.py build` writes from its `FX` and the sky it reads off the art.
 Three readers walk its floor, each its own way (`web3d/src/readers.js`, tested on a seed in `scripts/test/readers.test.js`):
@@ -294,11 +284,40 @@ the walkers' frames and four browse poses (`browse` paints them; picks `NAME_bro
 contact shadow. Only the reading lamps, the tables, the armchairs and the globe in front hide them: `gen_library.py`
 pushes everything else in `depth_map.py library`'s map back to 0 down to the shadows' rows (`backdrop`), as the model reads
 books and the wall's seams as nearer than the floor, so `library-fx.js` tests them from depth 0.
+
+## Workshop Row
+
+The projects' index (`layouts/projects/list.html`) is the city's Workshop Row: a street of four brick workshops, one per
+project `group` (apps, libraries, games, contributions, in that order: `workshop.groups` in `data/rooms.yaml`), that pans sideways by scrolling
+(`web3d/src/pan.js`; an up or down wheel too, where the panel floats) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
+are a bundle of their own, `assets/building/workshop.*` (`vite build --mode workshop`). Each workshop lists its projects
+by `weight`; without a script every workshop's list shows. Its art follows the clock and the season like the city:
+`workshop[-winter][-PHASE].webp`, baked by `web3d/pixel/gen_workshop.py` from `paintings/picks/workshop[-winter][-PHASE].png`
+(dusk painted, the other hours edited from it, and each hour's winter from that hour), with `workshop.json`, the labels' anchors. The page is standalone (no baseof) so the
+inline script that preloads the hour's painting is in `.Store "headScripts"` (run in the head after the time pick, before the
+stylesheets) and the one that swaps it in is in `.Store "bodyScripts"`, both allowed by their hash in `head.html`.
+
+`workshop-fx.js`: walkers on the pavement, two cats on the left
+wall, a welder's sparks, code on the screens and moths round the lamps (at dusk and night), from `workshop-fx.json` and
+`workshop-depth.png`, which `gen_workshop.py build` writes from its `FX` and the map `depth_map.py workshop` makes.
+A walker steps one frame
+per `stride` / 8 px of ground, so its feet do not slide, at 0.71-0.97 strides a second, and stands on each frame's own
+sole (`foot`, the lowest painted row the bake finds); 8 by day, 4 dimmed at night. They walk off either end of the
+art (`edge`) and, 1-9 s later, someone comes on from either end in either lane; past the pavement's end (`pavement`'s
+x1) their feet keep its depth, so they pass behind the parked van. Yonatan's two cats (`web3d/src/cats.js`, tested in
+`scripts/test/cats.test.js`) walk, sit and loaf on the wall's top (`wall`), turning back when they meet, and now and
+then leap down to the pavement (`street`), trot off either end and back, and leap up again; they are `cats.webp` and
+`cats.json`, which `gen_walkers.py bake` makes from `picks/cats/NAME_POSE.png` (`cats` paints them: a walk, sit, loaf,
+crouch and leap, `CAT` art px tall walking; the lobby's are `cats-lobby.webp`, above).
+
+## The Radio Mast and the Post Office
+
 `rooms-fx.js`, its own bundle (`--mode rooms`): the Radio Mast's tape reels, VU needles and the mast's beacon (not its
 on-air lamp's glow while the show is off air), and the Post Office's clock (the visitor's real seconds), lamps and dust, from `radio-fx.json` and `post-fx.json`
 (`FX` in `gen_rooms.py`). The tape reels turn their painted cutouts: `gen_rooms.py` (`reels()`) bakes `radio-reels.webp`,
 each reel's bare metal over its cutouts, which rooms-fx.js turns about the hub on the slanted disc (a reel is its hub, its
-flange's half-width and half-height, its turn and its plain hub's reach, in `FX`).
+flange's half-width and half-height, its turn and its plain hub's reach, in `FX`). Their pages and paintings are under
+Content Structure.
 
 ## Content Structure
 

@@ -59,10 +59,22 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
   // Walkers: pacing the street and the avenue, or strolling the plaza with pauses. Fewer, and dark, at night.
   const SHIRTS = ['#c0392b', '#2e86c1', '#f1c40f', '#ecf0f1', '#27ae60', '#8e44ad', '#e67e22', '#34495e'];
   const inBox = (b) => [rnd(b[0], b[2]), rnd(b[1], b[3])];
+  // A walk is a run of points, x0, y0, x1, y1, ..., so it can follow a kerb that bends.
+  const walks = fx.walks.map((s) => {
+    const lens = [];
+    for (let i = 2; i < s.length; i += 2) lens.push(Math.hypot(s[i] - s[i - 2], s[i + 1] - s[i - 1]));
+    return { s, lens, total: lens.reduce((a, b) => a + b) };
+  });
+  const walkAt = ({ s, lens, total }, t) => {   // the point t of the way along a walk
+    let d = t * total, i = 0;
+    while (i < lens.length - 1 && d > lens[i]) d -= lens[i++];
+    const f = d / lens[i], [x0, y0, x1, y1] = s.slice(2 * i, 2 * i + 4);
+    return [Math.round(x0 + (x1 - x0) * f), Math.round(y0 + (y1 - y0) * f)];
+  };
   const people = Array.from({ length: 24 }, (_, i) => {
     const shirt = SHIRTS[i % SHIRTS.length], step = Math.random() * 10;
     if (i % 3 === 0) { const box = fx.plazas[i % fx.plazas.length], [x, y] = inBox(box); return { box, x, y, to: inBox(box), shirt, step, pause: 0 }; }
-    const avenue = i % 5 === 1, seg = fx.walks[avenue ? 1 : 0];
+    const avenue = i % 5 === 1, seg = walks[avenue ? 1 : 0];
     return { seg, t: Math.random(), v: rnd(0.006, 0.014) * (Math.random() < 0.5 ? 1 : -1) * (avenue ? 4 : 1), shirt, step };
   }).filter((_, i) => !night || i % 2);
   // Drawn by their feet's row among the plaza's props, farther first, so nobody walks through one.
@@ -73,7 +85,7 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
       if (w.seg) {
         w.t += w.v * dt / 1000;
         if (w.t > 1 || w.t < 0) { w.v = -w.v; w.t = Math.min(1, Math.max(0, w.t)); }   // the end of the open stretch: turn back
-        x = Math.round(w.seg[0] + (w.seg[2] - w.seg[0]) * w.t); y = Math.round(w.seg[1] + (w.seg[3] - w.seg[1]) * w.t);
+        [x, y] = walkAt(w.seg, w.t);
       } else {
         const dx = w.to[0] - w.x, dy = w.to[1] - w.y, d = Math.hypot(dx, dy);
         if (w.pause > now) { /* standing a moment */ } else if (d < 0.5) { w.to = inBox(w.box); w.pause = now + rnd(500, 3000); }
@@ -161,6 +173,6 @@ function setup(ctx, fx, dfill, footAt, plaza, windowsUrl, winter) {
 
   // The fastest mover, in art pixels a second, sets how often a frame is drawn (scene-fx.js): the snow, a bird (up to 15),
   // a car or a walker.
-  const fps = Math.max(snow ? snow.fps : 0, 15, ...cars.map((c) => c.v), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * Math.hypot(w.seg[2] - w.seg[0], w.seg[3] - w.seg[1])));
+  const fps = Math.max(snow ? snow.fps : 0, 15, ...cars.map((c) => c.v), ...people.filter((w) => w.seg).map((w) => Math.abs(w.v) * w.seg.total));
   return Object.assign((now, dt) => { drawWindows(now); drawSea(now); drawPeople(now, dt); drawCars(dt); drawLights(now); drawBirds(now, dt); if (snow) snow(now, dt); }, { fps, ready: Promise.all([plaza, lit]) });
 }

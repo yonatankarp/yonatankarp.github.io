@@ -381,8 +381,9 @@ def bake_open(phase, art, winter=False):
 
 # Where the city's animations go, in art pixels (city-fx.js). Only open ground, so nothing that stands in front of a
 # mover is drawn behind it; city-depth.png hides them behind trees and lamp posts on the way.
-WALKS = [[452, 299, 995, 299],    # x0, y0, x1, y1: the main street's near pavement
-         [737, 302, 739, 346]]    # the avenue toward the viewer, walked faster
+WALKS = [[452, 301, 540, 301, 600, 302, 630, 305, 660, 305, 690, 307, 735, 308, 765, 309, 800, 309, 840, 307,   # x0, y0,
+          880, 306, 900, 305, 995, 305],   # x1, y1, ...: the main street's near pavement, along its kerb, and the apron
+         [737, 307, 739, 346]]             # the avenue toward the viewer, walked faster
 PLAZAS = [[670, 208, 708, 220], [774, 215, 816, 232]]   # x0, y0, x1, y1: the open paving either side of the tower
 # The roads the cars take, each as its middle in art px, traced on the painted tarmac. The main street runs from behind
 # the tree by the Library to behind the round tree on Workshop Row's apron (its tarmac ends at the apron by the fir, too

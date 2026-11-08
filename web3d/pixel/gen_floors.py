@@ -28,6 +28,7 @@ from collections import Counter
 from pathlib import Path
 from random import Random
 
+import numpy as np
 from PIL import Image, ImageChops, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -38,6 +39,8 @@ CEIL, SLAB = 28, 24           # the slab above the room (rows 0..CEIL), and belo
 LOBBY_X = 16                  # the painting spans 16..944, between the facade posts
 FRAMES = 12                   # 12 frames at 8 fps, then the room rests (pixel.js)
 EDGE, BLOCK = 240, 24         # each run's columns; on the roof, a BLOCK of its sky's edge mirrored for its stars
+GRAIN, SIGMA, CLIP = 60, 3, 8  # runs(): the wall's outer columns its grain is from (the lift's frame starts at ~85), its blur, its depth
+SKIRTING = 297                # the skirting's top row at every room's left edge
 DOOR = dict(x0=102, x1=198, mid=150, y0=138, y1=306)   # the lift's door panels in strip pixels; pixel.js slides them
 SCREEN = (122, 83, 146, 95)   # the floor display over the lift, in the painting's pixels (install_picks.SIGN)
 HOUSING = 265                 # on the roof, the lift housing ends here, in the painting's pixels: open sky right of it
@@ -446,6 +449,9 @@ FLOORS = {  # key: (painting, accent ramp, animation, its hanging lamps' x in th
     "7": ("billie_payments", "coral", billie_payments, [565, 660, 780]),
     "R": ("roof", "amber", roof, []),
 }
+# The skirting's top row at each room's right edge, where the runs' grain is lined up (runs()): a return wall's, in
+# perspective, is lower than the back wall's (SKIRTING). The roof's right run is its sky.
+RIGHT_SKIRTING = {"L": 318, "1": 311, "2": 305, "3": 309, "4": 305, "5": 316, "6": 301, "7": 330}
 
 
 MASTS = [(280, 285), (346, 383)]   # the lightning rod and the crane's mast, where they leave the roof's painting at its top
@@ -527,14 +533,52 @@ def frame_base(key, painting, accent, variant="dusk"):
     return img
 
 
+def smooth(a, axis):
+    """A gaussian of SIGMA along one axis of an array, its ends mirrored, so nothing past them is read in."""
+    k = np.exp(-0.5 * (np.arange(-3 * SIGMA, 3 * SIGMA + 1) / SIGMA) ** 2)
+    return np.apply_along_axis(lambda v: np.convolve(np.pad(v, 3 * SIGMA, mode="symmetric"), k / k.sum(), "valid"), axis, a)
+
+
+def on_colours(img, colours):
+    """A picture put on a palette of its painting's colours, nearest, no dither."""
+    palette = Image.new("P", (1, 1))
+    palette.putpalette([v for c in (colours * 256)[:256] for v in c])
+    return img.quantize(palette=palette, dither=Image.Dither.NONE).convert("RGB")
+
+
 def runs(rest, key):
-    """The two runs pixel.js tiles past the strip on a wide screen, EDGE columns each: every row goes on as the room's edge
-    leaves it, so the run meets the strip, and the next run, with no seam and no pattern (a mirrored block of a painterly
-    wall repeated its light in arches). The roof's sky keeps its stars, scattered afresh (scatter)."""
-    out = Image.new("RGB", (2 * EDGE, H))
-    for y in range(H):
-        out.paste(rest.getpixel((LOBBY_X, y)), (0, y, EDGE, y + 1))
-        out.paste(rest.getpixel((W - LOBBY_X - 1, y)), (EDGE, y, 2 * EDGE, y + 1))
+    """The two runs pixel.js tiles past the strip on a wide screen, EDGE columns each. Each row keeps the light the room's
+    edge leaves it with (the wall's median and smoothed down the edge, so a crack that crosses it is no stripe), and takes the grain
+    of real wall: the room's outer GRAIN columns on the left, plain wall, skirting and floor in every room, less their
+    light, mirrored outward and back (period 2 * GRAIN, which divides EDGE, so a run meets the strip and the next run with
+    no seam). The right edge is a return wall's few columns, mostly in perspective or behind something, so its run takes
+    the same left grain, its skirting and floor lined up with that edge's (RIGHT_SKIRTING). Smeared, the edge's pixel
+    made streaks (#302); mirrored with its light, a block of painterly wall repeated it in arches. On the room's colours.
+    The roof's right run is its sky, which keeps its stars, scattered afresh (scatter)."""
+    strip = np.asarray(rest, dtype=float)
+    run = np.concatenate([strip[:, [LOBBY_X]].repeat(EDGE, 1), strip[:, [W - LOBBY_X - 1]].repeat(EDGE, 1)], axis=1)
+    room = strip[CEIL:H - SLAB, LOBBY_X:W - LOBBY_X]
+    light = smooth(room, 1)
+    grain = np.clip(room[:, :GRAIN] - light[:, :GRAIN], -CLIP, CLIP)
+    mirror = [m if (m := d % (2 * GRAIN)) < GRAIN else 2 * GRAIN - 1 - m for d in range(EDGE)]   # d columns out: its grain column
+    top = SKIRTING - CEIL
+    for edge, skirting, left in ((light[:, 0], SKIRTING, True), (light[:, -1], None if key == "R" else RIGHT_SKIRTING[key], False)):
+        if skirting is None:
+            continue
+        sk = skirting - CEIL
+        wall = edge.copy()
+        rise = np.pad(edge[:sk - 2], ((8, 8), (0, 0)), mode="symmetric")
+        wall[:sk - 2] = smooth(np.median(np.lib.stride_tricks.sliding_window_view(rise, 17, axis=0), axis=-1), 0)
+        rows = [y - (sk - top) if y >= sk else y if y < top else 2 * top - 1 - y for y in range(len(room))]
+        band = wall[:, None] + grain[rows][:, mirror]
+        if left:
+            run[CEIL:H - SLAB, :EDGE] = band[:, ::-1]
+        else:
+            run[CEIL:H - SLAB, EDGE:] = band
+    out = Image.fromarray(np.clip(np.rint(run), 0, 255).astype(np.uint8))
+    colours = rest.crop((LOBBY_X, CEIL, W - LOBBY_X, H - SLAB)).getcolors(256)
+    assert colours, (key, "has more colours than a palette holds")
+    out.paste(on_colours(out.crop((0, CEIL, 2 * EDGE, H - SLAB)), [c for _, c in colours]), (0, CEIL))
     if key == "R":   # the right run only: the left one is the lift housing's wall
         block = rest.crop((W - LOBBY_X - BLOCK, 0, W - LOBBY_X, H))
         for i in range(EDGE // BLOCK):
@@ -612,9 +656,7 @@ def entrance(out, hours):
         small = crop.resize((x1 - x0, y1 - y0), Image.BOX, box=(x0 * sx - kx, y0 * sy - ky, x1 * sx - kx, y1 * sy - ky))
         pick = PICKS / f"reception{tag}-px.png"
         colours = [c for _, c in Image.open(pick if pick.exists() else PICKS / "reception-px.png").convert("RGB").getcolors(4096)]
-        palette = Image.new("P", (1, 1))
-        palette.putpalette([v for c in (colours * 256)[:256] for v in c])
-        save_lossless(small.quantize(palette=palette, dither=Image.Dither.NONE).convert("RGB"), out / f"floor-L-open{tag}.webp")
+        save_lossless(on_colours(small, colours), out / f"floor-L-open{tag}.webp")
     print("drew the lobby's open entrance", *hours)
 
 
@@ -626,7 +668,7 @@ def build(key, out, hours):
     boxes = [b for b in boxes if b]
     x0, y0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
     x1, y1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
-    assert x0 >= LOBBY_X + BLOCK and x1 <= W - LOBBY_X - BLOCK, (key, "moves over what its runs are read from")
+    assert x0 >= LOBBY_X + GRAIN + 3 * SIGMA and x1 <= W - LOBBY_X - BLOCK, (key, "moves over what its runs are read from")
     for variant, fs in pictures.items():
         cab = Image.open(PICKS / "cab-px.png").convert("RGB")
         assert cab.size == (DOOR["x1"] - DOOR["x0"], DOOR["y1"] - DOOR["y0"]), "the cab is not the doorway's size"

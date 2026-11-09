@@ -1,5 +1,5 @@
 // The Radio Mast's studio (/podcast/) and the Post Office's hall (/contact/), their own bundle: the header's room is
-// opened on its middle where a phone pans it, and comes alive over its picture (scene-fx.js). The studio's tape reels
+// centred on its middle, and comes alive over its picture (scene-fx.js). The studio's tape reels
 // turn, its VU needles bounce and the mast's beacon blinks out of the window (its on-air lamp no longer glows: the show
 // is off air, data/rooms.yaml); the hall's clock ticks the real seconds, its lamps' warmth breathes and dust drifts in
 // the grille window's light (not at night, when no sun comes in). Where, from ROOM-fx.json, written by
@@ -13,19 +13,12 @@ const canvas = hero?.querySelector('.room-fx');
 const art = document.documentElement.dataset.art ?? '';
 const sheet = canvas?.dataset.sheet && Object.assign(new Image(), { src: `${canvas.dataset.sheet}${art}.webp?v=${canvas.dataset.version}` });   // the studio's reels
 if (hero) {
-  // Where the room is wider than the screen, it opens at its data-open (0 the left edge, 1 the right).
-  const open = () => { hero.scrollLeft = (hero.scrollWidth - hero.clientWidth) * Number(hero.dataset.open); stop(); };
-  // A tab stop (the markup's, for a page without this script) only while there is something to scroll (#305).
-  const stop = () => { hero.tabIndex = hero.scrollWidth > hero.clientWidth ? 0 : -1; };
-  addEventListener('resize', stop);
   const img = hero.querySelector('img');
-  if (img.complete) open(); else img.addEventListener('load', open);
   animate(canvas, { data: canvas.dataset.fx }, { radio, post }[canvas.dataset.room]);
   // In from the city's push-in: its frame opens from the header's middle, the room settling about it.
   arrive(img, () => {
-    open();
     const r = hero.getBoundingClientRect(), map = img.parentElement;
-    return { at: [r.left + hero.clientWidth / 2, r.top + r.height / 2], settle: [[map, hero.scrollLeft + hero.clientWidth / 2, hero.clientHeight / 2]] };   // the head's middle: the room's foot is cropped
+    return { at: [r.left + hero.clientWidth / 2, r.top + r.height / 2], settle: [[map, hero.clientWidth / 2 - map.offsetLeft, hero.clientHeight / 2]] };   // the head's middle: the room's foot is cropped
   });
 }
 

@@ -261,18 +261,19 @@ h4 a,
 .post-row__tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
 .post-row__tags li { padding: 4px 6px 3px; font: 15px/1 var(--display); color: var(--text-soft); box-shadow: inset 0 0 0 1px var(--panel-hi); }
 /* The Radio Mast (/podcast/, layouts/_default/radio.html) and the Post Office (/contact/, post.html): the room across the
-   head at its own 1440:347 shape (partials/room-hero.html), a phone panning it, then a panel lifted over its foot. */
+   head at its own 1440:347 shape (partials/room-hero.html), centred and never scrolled, then a panel lifted over its foot. */
 .room { --cream: #f1e6cf; }
-.room-hero { position: relative; height: calc(clamp(230px, 100vw * 347 / 1440, 480px) + 3px); overflow: auto hidden; scrollbar-width: none; border-bottom: 3px solid var(--ink); }   /* the room, and its border; city.js's push-in lands on its middle */
-.room-hero::-webkit-scrollbar { display: none; }
-.room-hero:focus-visible { outline: 3px solid var(--text); outline-offset: -3px; }
-.room-map { position: relative; height: 100%; aspect-ratio: 1440 / 347; min-width: 100%; }
+.room-hero { position: relative; display: flex; justify-content: center; height: calc(clamp(230px, 100vw * 347 / 1440, 480px) + 3px); overflow: hidden; border-bottom: 3px solid var(--ink); }   /* the room, and its border; city.js's push-in lands on its middle */
+.room-map { position: relative; flex: none; height: 100%; aspect-ratio: 1440 / 347; min-width: 100%; }
 .room-map :is(img, canvas) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
 /* An art pixel a whole number of device px (--dpr: assets/js/dpr.js), the fewest that cover the head, as on the city
-   (city.css): the head keeps its height, and the room's foot is cropped. */
+   (city.css): the head keeps its height, the room's middle at its middle, and the room's foot is cropped. */
 @supports (width: round(up, 1cqw, 1px)) {
-  .room-hero { container-type: size; }
-  .room-map { --u: round(up, max(100cqw / 1440, 100cqh / 347), 1px / var(--dpr, 1)); width: calc(1440 * var(--u)); height: calc(347 * var(--u)); min-width: 0; }
+  .room-hero { display: block; container-type: size; }
+  .room-map {
+    --u: round(up, max(100cqw / 1440, 100cqh / 347), 1px / var(--dpr, 1)); width: calc(1440 * var(--u)); height: calc(347 * var(--u)); min-width: 0;
+    left: round((100cqw - 1440 * var(--u)) / 2, 1px / var(--dpr, 1));
+  }
 }
 .room-fx { pointer-events: none; }   /* the room's animations (rooms-fx.js), over the picture */
 .room-sheet { position: relative; max-width: 1080px; margin: -64px auto 0; padding: 0 24px; }
@@ -375,29 +376,32 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
 .blog-px .article__header h1 { font-size: 60px; overflow-wrap: anywhere; hyphens: none; }
 .blog-px .article__summary { margin: 0; max-width: 68ch; font-size: 17px; line-height: 1.6; color: var(--text-soft); }
 .blog-px .article__header .chip-row { margin-top: 0; }
-/* The post's cover (960x540) across the page behind its head: an art pixel is ~1.5 screen px on a 1440 screen, as fine as
-   the paintings allow, and pixelated like the Library's header. The band above the panel is about 40 of its 108ths of
-   height on any wide screen, centred on --focus (coverFocus in the front matter, in 108ths, from the old 192x108 covers),
-   so the text still starts on the first screen (#185). A phone shows all of the picture, with ink at the sides. */
-.blog-px { --scene-w: 100vw; --scene-band: clamp(240px, 21vw, 420px); --scene-overlap: 24px; position: relative; }
-@supports (width: round(up, 1px, 1px)) {
-  .blog-px { --scene-w: max(960px, round(up, 100vw, 192px)); }   /* 960 at least: below that the band runs past the art */
-}
-.blog-px .post-scene {
-  position: absolute; inset: 0 0 auto; height: calc(var(--scene-band) + var(--scene-overlap));
-  overflow: clip; background: var(--ink); border-bottom: 4px solid var(--ink);
-}
+/* The post's cover (960x540) whole under the bar, centred over the city in the sheets' frame (an ink ring, then a
+   --panel-hi one, as shadows: a border would eat into the image), pixelated like the Library's header. Its size is the
+   most whole device px an art px (--dpr: assets/js/dpr.js) that fit the width and about 72% of the screen under the bar
+   (140px), never under 1, so a 1440x900 or 1744x976 2x screen shows it at 960x540 and a 1280x720 one at 480x270; a 1x
+   screen under 1010px, where 1 is too wide, shrinks it to fit. A phone shows it across its width, with ink at the sides. */
+.blog-px { position: relative; }
+.blog-px .post-scene { display: flex; justify-content: center; padding: 8px clamp(16px, 3vw, 36px) 0; overflow-x: clip; }
 .blog-px .article__cover {
-  position: absolute; left: 50%; top: calc(var(--scene-band) / 2 - var(--scene-w) * var(--focus) / 192); transform: translateX(-50%);
-  width: var(--scene-w); max-width: none; margin: 0; box-shadow: none;
+  flex: none; width: min(960px, 100% - 16px); max-width: none; margin: 0;
+  box-shadow: 0 0 0 4px var(--ink), 0 0 0 8px var(--panel-hi), 0 18px 40px rgb(0 0 0 / 0.5);
 }
-.blog-px .post-scene + .article-shell { position: relative; padding-top: var(--scene-band); }
+@supports (width: round(down, 1px, 1px)) {
+  .blog-px .article__cover { width: min(100% - 16px, max(960px / var(--dpr, 1), round(down, min(100% - 16px, (100vh - 140px) * 0.72 * 16 / 9), 960px / var(--dpr, 1)))); }
+}
+.blog-px .post-scene + .article-shell { padding-top: 40px; }   /* 32px under the frame */
 @media screen and (max-width: 760px) {
-  .blog-px { --scene-w: 384px; --scene-band: 216px; --scene-overlap: 0px; }
+  .blog-px { --scene-w: 384px; }
   @supports (width: round(up, 1px, 1px)) {
-    .blog-px { --scene-w: max(384px, round(down, 100vw, 192px)); --scene-band: calc(var(--scene-w) * 9 / 16); }
+    .blog-px { --scene-w: max(384px, round(down, 100vw, 192px)); }
   }
-  .blog-px .article__cover { top: 0; }
+  .blog-px .post-scene {
+    display: block; position: absolute; inset: 0 0 auto; height: calc(var(--scene-w) * 9 / 16); padding: 0;
+    overflow: clip; background: var(--ink); border-bottom: 4px solid var(--ink);
+  }
+  .blog-px .article__cover { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: var(--scene-w); box-shadow: none; }
+  .blog-px .post-scene + .article-shell { position: relative; padding-top: calc(var(--scene-w) * 9 / 16); }
 }
 /* Posts with 3 headings or more: closed above the text, and the old card, so code keeps its width; a sticky column beside
    the text once the card fits at 1144px (a code column of 800px: wider adds little, narrower scrolls many more blocks). */
@@ -540,7 +544,7 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
   }
   .blog-px :is(.page-head__copy, .post-row, .article, .related-card) { clip-path: none; box-shadow: none; }
   .blog-px .article { width: auto; padding: 0; }
-  .blog-px :is(.article-shell, .post-scene + .article-shell) { padding-top: 0; }   /* the second beats the screen's band under the cover */
+  .blog-px :is(.article-shell, .post-scene + .article-shell) { padding-top: 0; }   /* the second beats the screen's gap under the cover */
   .blog-px :is(.reading-progress, .article-toc, .article-share, .article-discuss, .article-author, .article__footer, .related-posts, .code-copy, .library-tools) { display: none; }
   .blog-px .px-prose a { text-decoration: underline; }
   .blog-px .px-prose h2::before { display: none; }   /* paper drops the square's fill and keeps its shadow: a stray corner */

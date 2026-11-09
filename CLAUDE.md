@@ -352,7 +352,7 @@ Library's bake keeps its lamps' greens where the snow would take them (`LAMP_SHA
 - `content/podcast.md` and `content/contact.md` — the Radio Mast (`/podcast/`, `layouts/_default/radio.html`) and the Post
   Office (`/contact/`, `post.html`). Each opens on its room, painted across the head (`partials/room-hero.html`), the
   head as tall as the painting's 1440:347 shape at the screen's width, between 230 and 480px, the room at whole device px
-  an art px covering it, its foot cropped, and a phone panning it: `radio[-winter][-PHASE].webp` and `post…`, baked by `web3d/pixel/gen_rooms.py` from
+  an art px covering it, centred, its foot cropped, and never scrolled: `radio[-winter][-PHASE].webp` and `post…`, baked by `web3d/pixel/gen_rooms.py` from
   `web3d/pixel/paintings/picks/{radio,post}.png` (each painted at dusk, at every hour as above), with `ROOM-fx.json` for their animations
   (`web3d/src/rooms-fx.js`, its own bundle, `--mode rooms`). Their copy is `contact` in `data/home/en.yaml` and their labels
   `radio` and `post` in `data/rooms.yaml`. The Post
@@ -386,7 +386,6 @@ type: "blog"
 tags: [kotlin, spring-boot]
 images:
   featured_image: "/images/blog/covers/post-slug.jpg"
-coverFocus: 54
 ---
 ```
 Optional `coverAlt: "…"` says what the cover shows, for its share card's `og:image:alt` and `twitter:image:alt`; without
@@ -408,8 +407,8 @@ downscale, 64 colours of its own by median cut, no dither), so an art pixel is a
 into the .jpg, so the bake never repeats it; one is written for its painting's pixels, so a repaint drops or redoes it. A pick can also be the model's
 img2img edit of a candidate (`EDITS`, painted with `--edit`; the real-life cover's stray crane taken out, and the spinning
 spiral's outer turns), named `<seed>-e<edit seed>` in `COVERS` or `INLINE`.
-The post shows it across the page behind its head, about 40 of its 108ths of height on a wide screen: `coverFocus`, from 25 to 78 in 108ths (default 54; the rows of the old covers),
-picks the height to centre on, and a phone shows all of it. The Library's list and a post's "Keep reading" show it at 192px, from the cover box-reduced by Hugo to lossless WebPs at 192, 384 and 576 for 1x to
+The post shows all of it under the bar, centred over the city in the sheets' frame, at the most whole device px an art px
+that fit the width and about 72% of the screen's height under the bar (`.article__cover` in `custom.css`, never under 1), and a phone across its width. The Library's list and a post's "Keep reading" show it at 192px, from the cover box-reduced by Hugo to lossless WebPs at 192, 384 and 576 for 1x to
 3x screens (`partials/blog-art.html`), so the browser never shrinks pixel art.
 
 Art inside a post goes in `static/images/blog/pixel/` as lossless WebP, painted from `INLINE` in `paint_covers.py` and baked by `--install-inline` at 576x324, the article column's width at 1:1 (192px on a

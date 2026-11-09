@@ -22,7 +22,7 @@ to provide it.
 - The content must pass the rules: no Billie vendor names, no Tel Aviv, nothing about his health or leave, no
   project that isn't on the site. If the text breaks one, stop and quote the line.
 - Optional (ask once, don't block):
-  - `coverAlt` and `coverFocus`;
+  - `coverAlt`;
   - the LinkedIn and X thread URLs for `discuss`;
   - inline art: an idea per image, each with alt text;
   - which diagrams to draw.
@@ -73,7 +73,6 @@ The machine is often busy. Painting, `npm run serve` and builds are his to run o
      - spring-boot
    images:
      featured_image: "/images/blog/covers/<slug>.jpg"
-   coverFocus: 54                            # 25 to 78; the height on the cover to centre on, in 108ths
    coverAlt: "What the cover shows"          # optional; the share card's alt. Default: data/art.yaml `cover`
    discuss:                                  # optional; default: his LinkedIn and X profiles
      linkedin: "https://www.linkedin.com/..."
@@ -157,7 +156,6 @@ The machine is often busy. Painting, `npm run serve` and builds are his to run o
 - The build fails, naming the fix, when:
   - **`featured_image` is missing, or there's no pixel cover:** the error is from `blog-art.html` and gives the
     `pixelate.py` command.
-  - **`coverFocus` is outside 25 to 78:** the error is from `blog/single.html`.
   - **A Mermaid fence has no `title` or `desc`**, has a semicolon or a newline in them, repeats a title, or wasn't
     drawn or changed since it was drawn: the errors are from `render-codeblock-mermaid.html`.
   - **A tag in `data/library.yaml` has no tag page:** the error is from `blog/list.html`.
@@ -182,7 +180,7 @@ The machine is often busy. Painting, `npm run serve` and builds are his to run o
 
 ## Verify
 - `npm run check:blog-assets` (fast, no build), and `node scripts/render-diagrams.js` if the post has diagrams.
-- Look at `/blog/<slug>/` and `/blog/` under `npm run serve`. Check: the cover band at your `coverFocus` on a wide
+- Look at `/blog/<slug>/` and `/blog/` under `npm run serve`. Check: the whole cover, framed and crisp, on a wide
   screen and on a phone, the chips, and the diagrams' Zoom.
 - Leave the full suite (`npm run check`, `npm test`) to CI. The machine is busy, so push and let GitHub run it.
 

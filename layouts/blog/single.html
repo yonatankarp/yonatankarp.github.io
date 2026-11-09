@@ -4,9 +4,7 @@
 <div id="reading-progress" class="reading-progress" aria-hidden="true"></div>
 {{ $art := partial "blog-art.html" . }}
 {{ $toc := ge (len (findRE "<a " .TableOfContents)) 3 }}
-{{ $focus := .Params.coverFocus | default 54 }}
-{{ if or (lt $focus 25) (gt $focus 78) }}{{ errorf "%s: coverFocus is the height on the cover to centre on, in 108ths (its rows when covers were 192x108), 25 to 78 so the art still fills the band; got %v" .File.Path $focus }}{{ end }}
-<div class="post-scene" style="--focus: {{ $focus }}">
+<div class="post-scene">
   <img class="px-cover article__cover" src="{{ $art.cover }}" alt="" width="960" height="540" fetchpriority="high" decoding="async">
 </div>
 <section class="shell article-shell">

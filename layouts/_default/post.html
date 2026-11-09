@@ -8,7 +8,7 @@
 {{ $r := hugo.Data.rooms.post }}
 {{ $names := $r.networks }}
 <div class="room">
-{{ partial "room-hero.html" (dict "room" "post" "open" 0.4 "label" $r.label "alt" hugo.Data.art.post) }}
+{{ partial "room-hero.html" (dict "room" "post" "alt" hugo.Data.art.post) }}
 <div class="room-sheet">
   <a class="room-back" href="{{ "" | relURL }}#post">{{ hugo.Data.ui.back_to_city }}</a>
   <div class="post-desk">

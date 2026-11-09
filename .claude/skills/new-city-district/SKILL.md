@@ -99,7 +99,7 @@ a **later** item is missing, do the steps that don't need it and list what is le
      hand-set `lastmod`, and the two flags in step 9.
    - Create `layouts/_default/<layout>.html` from `radio.html`:
      - wrap it in `<div class="room">`, which hides the backdrop (`custom.css:193`);
-     - add `partial "room-hero.html" (dict "room" "<key>" "open" 0.4 "label" … "alt" …)`;
+     - add `partial "room-hero.html" (dict "room" "<key>" "alt" …)`;
      - add a `.room-sheet` with `<a class="room-back" href="{{ "" | relURL }}#<key>">`, which reopens the city zoomed
        on the district.
    - Add the page's styles to `assets/css/custom.css`, beside `.radio-*`.

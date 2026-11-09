@@ -1,9 +1,9 @@
 {{- /* A district's room across the head of its page, the Radio Mast's (radio.html) and the Post Office's (post.html): the
-     painting at its own shape, which a phone pans sideways, and its animations over it (web3d/src/rooms-fx.js, from
+     painting at its own shape, centred and never scrolled, and its animations over it (web3d/src/rooms-fx.js, from
      ROOM-fx.json and the studio's reels from ROOM-reels[-winter][-PHASE].webp, all by web3d/pixel/gen_rooms.py). The
      painting is the visitor's hour's and season's, preloaded in the head (head.html, by the page's `art`) and set by the
      script right after it (assets/js/art-time.js); dusk without a script. No labels: the links are in the panel under it.
-     Takes room, alt, and open, where a phone opens the room (0 its left edge, 1 its right). */ -}}
+     Takes room and alt. */ -}}
 {{ $img := printf "building/pixel/%s.webp" .room }}{{ $fx := printf "building/pixel/%s-fx.json" .room }}
 {{ $sheet := printf "building/pixel/%s-reels" .room }}{{ if not (fileExists (printf "static/%s.webp" $sheet)) }}{{ $sheet = "" }}{{ end }}
 {{ $size := imageConfig (printf "static/%s" $img) }}
@@ -12,7 +12,7 @@
 {{ $js = $js | fingerprint }}
 {{ $v := partialCached "art-version.html" . }}{{/* the art's, on its URLs */}}
 {{ $hour := resources.Get "js/art-time.js" | minify | fingerprint "sha256" }}{{/* allowed by its hash in head.html */}}
-<div class="room-hero" data-open="{{ .open }}" tabindex="0" role="region" aria-label="{{ .label }}">
+<div class="room-hero">
   <div class="room-map">
     <img src="{{ $img | relURL }}?v={{ $v }}" alt="{{ .alt }}" width="{{ $size.Width }}" height="{{ $size.Height }}" loading="lazy" fetchpriority="high">
     <script>{{ $hour.Content | safeJS }}</script>

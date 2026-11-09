@@ -125,8 +125,9 @@ a **later** item is missing, do the steps that don't need it and list what is le
        3 s timeout.
 9. **The page's front matter flags**, as in `content/podcast.md`:
    - `scene: true`: `pixel-bar.html` gives the page the Pause;
-   - `backdrop: false`: `head.html` skips the time pick, as the room hides the backdrop (the page then has no
-     `data-time`).
+   - `art: <key>`: `head.html` preloads the room's painting at the visitor's hour (`<key>[-winter][-PHASE].webp`), and
+     `room-hero.html` swaps it in. The room needs a painting at every hour and in winter (`gen_rooms.py`'s `WINDOWS`,
+     `VIEW_PICKS`, `ROOM_PICKS`, and `paint --time PHASE [--winter] --room <key>`); `npm run check:phases` fails until it has.
 10. **Checks and captures.**
     - In `scripts/check-generated-html.js`, add `["<key>", "/<slug>/"]` to the label loop (~425). Add a content
       check like `/podcast/`'s if the page has a key link. The Pause needs no edit: the check finds it on every page
@@ -137,8 +138,7 @@ a **later** item is missing, do the steps that don't need it and list what is le
 11. **`CLAUDE.md`.**
     - "zooms into five districts" in "The city", and the list after it.
     - The GoatCounter list (`district-<key>`), and the new page's event, if any.
-    - "Content Structure", the pages with `backdrop: false` in "Time of day and season", and `head.html`'s note
-      about which pages skip the pick.
+    - "Content Structure", the rooms with an `art` in "Time of day and season" and "The Radio Mast and the Post Office".
 
 ## What catches mistakes
 - **A label without an anchor** (`LABELS` or `city.json` missing the key): Hugo fails at `index $at 0`.
@@ -155,7 +155,7 @@ a **later** item is missing, do the steps that don't need it and list what is le
 - **Words in a template:** `check:template-copy`.
 - **Caught by nothing:**
   - a missing `next.<key>` (the go link quietly gets the wipe, with no push-in);
-  - a missing `backdrop: false` (the city backdrop is picked behind the room);
+  - a missing `art:` (the room stays at dusk, its later hours never asked for);
   - movers walking through the new building;
   - a stale depth map;
   - CLAUDE.md, CONTENT.md and `llms.yaml`.

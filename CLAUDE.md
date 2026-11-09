@@ -176,8 +176,9 @@ its `[-winter][-PHASE]` suffix (`strip()` in `web3d/src/art.js` for a storey). D
 the lamps (props, headlights, moths: `lit`) and show the stars over the roof (`starry`) is each phase's in `data/phases.json`. The other pages' backdrop is a crop of the city at the hour (`backdrop[-NAME].webp`, written by
 `gen_city.py build`), behind the sheet: the pick is `layouts/partials/time-pick.html`, shared by the homepage and
 `head.html`, and `assets/css/custom.css` maps `html[data-time]` to the backdrop. The Library (`/blog/`), the Radio Mast and the
-Post Office (`backdrop: false` in their front matter) hide the backdrop and skip the pick, so they have no `html[data-time]`, `data-season` or `data-place`: code there that
-needs them adds the pick back in `head.html`.
+Post Office hide the backdrop behind their rooms, which follow the hour and the season too: their front matter's `art`
+(the room's file stem) has `head.html` preload `ART[-winter][-PHASE].webp` by `html[data-art]` (`assets/js/art-pick.js`,
+allowed by its hash), and `assets/js/art-time.js`, right after the room's picture, sets it, as Workshop Row's do.
 `data/phases.json` lists the phases (the sky above the roof, the baked rooms, how far a dark room falls), and
 `web3d/src/art.js` and the scripts read it. To show a new phase, add it there, to that pick, to the backdrop rules in
 `custom.css`, and paint the city, Workshop Row, the roof and the lobby's view at it: `npm run check:phases` (part of
@@ -267,16 +268,19 @@ canvas loop, its pauses and the depth test) with the city.
 
 ## The Library
 
-The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library.webp`, baked
-by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, one painting at dusk, at 720x173, half the
+The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library[-winter][-PHASE].webp`, baked
+by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, painted at dusk and shown at the visitor's
+hour and season as the Radio Mast and the Post Office are (below), at 720x173, half the
 city's width, so a 1440 screen shows the whole room at 2 device px an art px: the head is at least that tall, to 52vh), then every listed
 post as a card (`partials/blog-row.html`). A chip for every tag the listed posts carry filters the list, with the search
 box (`assets/js/library.js`): the curated topics and labels in `data/library.yaml` first (a tag no listed post carries is
 skipped, one with no tag page fails the build), then the rest, most posts first (ties by name), folded behind More topics (a `<details>`). Without a script the
 chips are links to the tag pages and the search box a form to `/search/`.
 
-`library-fx.js`, its own bundle (`--mode library`): the fire, dust in the window's light and clouds only over the
-window's sky, from `library-fx.json`, which `gen_library.py build` writes from its `FX` and the sky it reads off the art.
+`library-fx.js`, its own bundle (`--mode library`): the fire, dust in the window's light (not at night) and clouds only
+over the window's sky (in the hour's light: `CLOUDS`), from `library-fx.json`, which `gen_library.py build` writes from
+its `FX` and the sky, the window's glass above every hour's rooftops (`WINDOW`, `WINDOW_GLASS`). At night the readers are
+dimmed as Workshop Row's walkers are.
 Three readers walk its floor, each its own way (`web3d/src/readers.js`, tested on a seed in `scripts/test/readers.test.js`):
 walking past and out of the room, stopping to look, or taking a book to read, facing either way, never two at one shelf, and none stopping within `gap` of another (they start that far apart too).
 The floor line (on the lit parquet, behind the reading tables), the shelves, the gap, their speed, pace, weights and times are `FX["readers"]`. They are `readers.webp` and `readers.json`, which `gen_walkers.py bake` makes from
@@ -314,10 +318,22 @@ crouch and leap, `CAT` art px tall walking; the lobby's are `cats-lobby.webp`, a
 
 `rooms-fx.js`, its own bundle (`--mode rooms`): the Radio Mast's tape reels, VU needles and the mast's beacon (not its
 on-air lamp's glow while the show is off air), and the Post Office's clock (the visitor's real seconds), lamps and dust, from `radio-fx.json` and `post-fx.json`
-(`FX` in `gen_rooms.py`). The tape reels turn their painted cutouts: `gen_rooms.py` (`reels()`) bakes `radio-reels.webp`,
-each reel's bare metal over its cutouts, which rooms-fx.js turns about the hub on the slanted disc (a reel is its hub, its
-flange's half-width and half-height, its turn and its plain hub's reach, in `FX`). Their pages and paintings are under
-Content Structure.
+(`FX` in `gen_rooms.py`); the dust only while sun comes in, not at night. The tape reels turn their painted cutouts:
+`gen_rooms.py` (`reels()`) bakes `radio-reels[-winter][-PHASE].webp` from each hour's art, at the same boxes and with the
+cutouts found at dusk, each reel's bare metal over its cutouts, which rooms-fx.js (by `html[data-art]`) turns about the hub
+on the slanted disc (a reel is its hub, its flange's half-width and half-height, its turn and its plain hub's reach, in
+`FX`). Their pages and paintings are under Content Structure.
+
+The three rooms follow the hour and the season (`gen_rooms.hour()`, which `gen_library.py` shares). At another hour the
+dusk pick is relit in the light of the model's edit of the whole room to that hour (`art_common.relit`: the ratio of the
+two blurred, so the drawing, and every FX position, the depth map and the reels' boxes, stay the dusk pick's; the model
+moves shapes by up to 10 art px when it relights a room), and through its windows (`WINDOWS`, `WINDOW_GLASS`: the glass,
+`art_common.glass`) goes the hour's view, an edit of a crop round the windows that names the view to keep, at night dulled
+as the lobby's (`install_picks.night_view`). Winter is that view under snow (the Post Office's bay kept open water), the
+dusk one first and each hour that one retimed. Picks: `picks/ROOM-PHASE.png` and `picks/ROOM-view[-winter][-PHASE].png`
+(`gen_rooms.py paint --time PHASE [--winter] [--room R]`, `gen_library.py paint --time ...`; seeds in `VIEW_PICKS` and
+`ROOM_PICKS`). The Post Office's painted dusk sun shafts are taken out at dawn and night (`BEAMS`, `unbeam`), and the
+Library's bake keeps its lamps' greens where the snow would take them (`LAMP_SHADES`, `art_common.bake`'s `keep`).
 
 ## Content Structure
 
@@ -336,8 +352,8 @@ Content Structure.
 - `content/podcast.md` and `content/contact.md` — the Radio Mast (`/podcast/`, `layouts/_default/radio.html`) and the Post
   Office (`/contact/`, `post.html`). Each opens on its room, painted across the head (`partials/room-hero.html`), the
   head as tall as the painting's 1440:347 shape at the screen's width, between 230 and 480px, the room at whole device px
-  an art px covering it, its foot cropped, and a phone panning it: `radio.webp` and `post.webp`, baked by `web3d/pixel/gen_rooms.py` from
-  `web3d/pixel/paintings/picks/{radio,post}.png` (one painting each, at dusk), with `ROOM-fx.json` for their animations
+  an art px covering it, its foot cropped, and a phone panning it: `radio[-winter][-PHASE].webp` and `post…`, baked by `web3d/pixel/gen_rooms.py` from
+  `web3d/pixel/paintings/picks/{radio,post}.png` (each painted at dusk, at every hour as above), with `ROOM-fx.json` for their animations
   (`web3d/src/rooms-fx.js`, its own bundle, `--mode rooms`). Their copy is `contact` in `data/home/en.yaml` and their labels
   `radio` and `post` in `data/rooms.yaml`. The Post
   Office's letter is ruled: every line sits 21px into a 30px row, and the visual captures fail when one does not

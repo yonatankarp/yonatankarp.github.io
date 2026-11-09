@@ -19,9 +19,9 @@
 {{ $version := partialCached "art-version.html" . }}
 {{- /* The painting at the visitor's hour and, in winter, under snow (head.html's time pick), picked in the head, where
      the pick is preloaded before the stylesheets hold the body's scripts back (#300); the script after the picture sets
-     it from there (assets/js/workshop-pick.js and workshop-time.js). */}}
-{{ $pick := resources.FromString "inline/workshop-pick.js" (replace (replace (resources.Get "js/workshop-pick.js").Content "VERSION" ($version | jsonify)) "ART" ("building/pixel/workshop" | relURL | jsonify)) | minify | fingerprint "sha256" }}
-{{ $hour := resources.Get "js/workshop-time.js" | minify | fingerprint "sha256" }}
+     it from there (assets/js/art-pick.js and art-time.js, as the rooms' heads do: head.html). */}}
+{{ $pick := resources.FromString "inline/workshop-pick.js" (replace (replace (resources.Get "js/art-pick.js").Content "VERSION" ($version | jsonify)) "ART" ("building/pixel/workshop" | relURL | jsonify)) | minify | fingerprint "sha256" }}
+{{ $hour := resources.Get "js/art-time.js" | minify | fingerprint "sha256" }}
 {{ .Store.Set "headScripts" (slice $pick) }}
 {{ .Store.Set "bodyScripts" (slice $hour) }}
 <!DOCTYPE html>

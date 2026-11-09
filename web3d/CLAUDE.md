@@ -51,6 +51,17 @@ keeps only its crop, `picks/reception-open[-winter][-PHASE].png`, picked only wh
 shut view's; and `gen_floors.py` box-reduces that crop exactly as the whole painting is (the same filter at the same
 offset) and bakes it on that hour's lobby colours (`floor-L-open[-winter][-PHASE].webp`).
 
+## The district rooms
+
+The Library, the Radio Mast and the Post Office at another hour are their dusk picks relit (`art_common.relit`), not the
+model's edit as painted: asked to change only the light, the model moved the studio's window by 10 art px and the
+counter by 5, which would put every FX, the Library's depth map and the reels' boxes off. The edit gives only its light,
+blurred over 16 painting px (64 for the Post Office at dawn and night, whose dusk sun shafts `unbeam` takes out first),
+its gain capped as a whole so dark warm wood does not go orange by day, the lamps and the fire kept lit. The windows'
+glass (`art_common.glass`) takes the hour's view, painted as the lobby's door is: a crop round the windows, at strength
+1.0, the view named in the prompt so the model keeps it. Asked only for snow "on the ground", it froze the Post Office's
+bay over: its winter prompt keeps the water open.
+
 ## The holidays' props
 
 They are `props.webp` and `props.json`,

@@ -477,6 +477,9 @@ def main():
     elif args.room == "winter":   # the roof under snow: <src>-winter_<seed>.png
         init = Image.open(OUT / args.src).convert("RGB")
         kind, stem = args.src.split("_")[0], Path(args.src).stem
+        if kind not in SNOW:   # the lobby's winter is only what its glass door shows (#346)
+            raise SystemExit(f"winter: no snow for {kind} (SNOW has {', '.join(SNOW)}); the lobby's winter is its door's view: "
+                             "paint_rooms.py door --winter [--time PHASE]")
         hour = next((h for h in HOURS if f"-{h}_" in args.src), "dusk")
         prompt = (WINTER_NIGHT if hour == "night" else WINTER).format(SNOW[kind], LIGHT[hour])
         jobs = [(OUT / f"{stem}-winter_{args.start + 17 * k}.png", prompt, init.size, args.start + 17 * k, init)

@@ -2,14 +2,16 @@
 // opened on its middle where a phone pans it, and comes alive over its picture (scene-fx.js). The studio's tape reels
 // turn, its VU needles bounce and the mast's beacon blinks out of the window (its on-air lamp no longer glows: the show
 // is off air, data/rooms.yaml); the hall's clock ticks the real seconds, its lamps' warmth breathes and dust drifts in
-// the grille window's light. Where, from ROOM-fx.json, written by web3d/pixel/gen_rooms.py, with the studio's reels from
-// radio-reels.webp.
+// the grille window's light (not at night, when no sun comes in). Where, from ROOM-fx.json, written by
+// web3d/pixel/gen_rooms.py, with the studio's reels from radio-reels[-winter][-PHASE].webp, cut from the hour's painting
+// (html[data-art], head.html's time pick), as the room is.
 import { arrive } from './iris.js';
 import { animate, rnd } from './scene-fx.js';
 
 const hero = document.querySelector('.room-hero');
 const canvas = hero?.querySelector('.room-fx');
-const sheet = canvas?.dataset.sheet && Object.assign(new Image(), { src: canvas.dataset.sheet });   // the studio's reels
+const art = document.documentElement.dataset.art ?? '';
+const sheet = canvas?.dataset.sheet && Object.assign(new Image(), { src: `${canvas.dataset.sheet}${art}.webp?v=${canvas.dataset.version}` });   // the studio's reels
 if (hero) {
   // Where the room is wider than the screen, it opens at its data-open (0 the left edge, 1 the right).
   const open = () => { hero.scrollLeft = (hero.scrollWidth - hero.clientWidth) * Number(hero.dataset.open); stop(); };
@@ -62,7 +64,7 @@ function radio(ctx, fx) {
 
 function post(ctx, fx) {
   const [cx, cy] = fx.clock, [x0, y0, x1, y1] = fx.dust;
-  const dust = Array.from({ length: 30 }, () => ({ x: rnd(x0, x1), y: rnd(y0, y1), v: rnd(0.5, 1.5), ph: rnd(0, 6.3) }));
+  const dust = document.documentElement.dataset.time === 'night' ? [] : Array.from({ length: 30 }, () => ({ x: rnd(x0, x1), y: rnd(y0, y1), v: rnd(0.5, 1.5), ph: rnd(0, 6.3) }));
   return (now, dt) => {
     ctx.fillStyle = 'rgba(150,30,25,.95)';   // the second hand, at the visitor's own seconds
     ray(ctx, cx, cy, (Math.floor(Date.now() / 1000) % 60) / 60 * 2 * Math.PI - Math.PI / 2, -3, 21);

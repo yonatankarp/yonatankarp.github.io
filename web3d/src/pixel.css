@@ -456,6 +456,17 @@ html:not(.building--guided) .pixel .building-stops { padding-top: 56px; }   /* c
    collapses with the header's as theirs did. Its first box no longer shares its last margin with the step-in bar's. */
 .pixel .floor-top { display: flex; flex-direction: column-reverse; margin-top: 12px; }
 html.building--guided .pixel .floor-top .floor-quotes li:last-child { margin-bottom: 0; }
+/* The lobby's card carries the most (two signs, four quotes): on a wide screen its spacing tightens so it fits a
+   1440x900 or 1366x768 view without scrolling, the words all kept. */
+@media (min-width: 761px) and (min-aspect-ratio: 6/5) {
+  html.building--guided .pixel #floor-L { padding-bottom: 12px; }
+  html.building--guided .pixel #floor-L .floor-card { padding-top: 14px; padding-bottom: 12px; }
+  html.building--guided .pixel #floor-L .floor-card header { margin-bottom: 10px; }
+  html.building--guided .pixel #floor-L .floor-signs { gap: 6px; margin-bottom: 10px; }
+  html.building--guided .pixel #floor-L .floor-top { margin-top: 6px; }
+  html.building--guided .pixel #floor-L .floor-quotes li:not(:last-child) { margin-bottom: 8px; }
+  html.building--guided .pixel #floor-L .step-in-bar { margin-top: 10px; }
+}
 @media (max-width: 760px), (max-aspect-ratio: 6/5), (max-height: 499px) {
   .pixel .with-copy { display: flex; width: 100%; align-items: center; justify-content: space-between; }
   /* Tap areas of 44px over the 28px row. */

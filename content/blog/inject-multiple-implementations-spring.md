@@ -15,7 +15,7 @@ tags:
   - dependency-injection
 images:
   featured_image: "/images/blog/covers/inject-multiple-implementations-spring.jpg"
-coverFocus: 38
+coverFocus: 40
 ---
 
 <div class="editors-note">

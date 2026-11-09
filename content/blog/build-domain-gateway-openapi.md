@@ -13,7 +13,7 @@ tags:
   - openapi
 images:
   featured_image: "/images/blog/covers/build-domain-gateway-openapi.jpg"
-coverFocus: 78
+coverFocus: 52
 ---
 
 <div class="editors-note">

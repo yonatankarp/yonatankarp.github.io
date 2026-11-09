@@ -16,7 +16,7 @@ tags:
   - observability
 images:
   featured_image: "/images/blog/covers/observability-in-action-opentelemetry.jpg"
-coverFocus: 38
+coverFocus: 54
 ---
 
 

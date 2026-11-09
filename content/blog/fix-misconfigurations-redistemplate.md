@@ -13,7 +13,6 @@ tags:
   - databases
 images:
   featured_image: "/images/blog/covers/fix-misconfigurations-redistemplate.jpg"
-coverFocus: 63
 ---
 
 

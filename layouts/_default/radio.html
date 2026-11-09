@@ -5,7 +5,7 @@
 {{ $pod := hugo.Data.home.en.contact.podcast }}
 {{ $r := hugo.Data.rooms.radio }}
 <div class="room">
-{{ partial "room-hero.html" (dict "room" "radio" "open" 0.32 "label" $r.label "alt" hugo.Data.art.radio) }}
+{{ partial "room-hero.html" (dict "room" "radio" "alt" hugo.Data.art.radio) }}
 <div class="room-sheet">
   <a class="room-back" href="{{ "" | relURL }}#radio">{{ hugo.Data.ui.back_to_city }}</a>
   <section class="radio-player">

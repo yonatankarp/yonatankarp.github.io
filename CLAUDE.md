@@ -383,12 +383,15 @@ A Mermaid diagram needs a text alternative on its fence, ```` ```mermaid {title=
 They become the SVG's `<title>` and `<desc>`. The fence starts at the line's beginning (not indented in a list), so the
 diagram script finds it.
 
-Every post needs a cover, `images.featured_image` (the build fails without it): a 1024x576 painting in `static/images/blog/covers/`, made with `web3d/pixel/paint_covers.py`. It also needs its pixel-art version, a lossless WebP in
+Every post needs a cover, `images.featured_image` (the build fails without it): a 1024x576 painting in `static/images/blog/covers/`, made with `web3d/pixel/paint_covers.py` in the Library's painterly
+style (its `STYLE`: soft glowing light, deep cosy shadows, soft painted edges, wild nature with no buildings), on the rooms'
+model, pinned with every job (`PINNED` in `paint_rooms.py`). It also needs its pixel-art version, a lossless WebP in
 `static/images/blog/covers/pixel/<slug>.webp`, which the blog shows: 960x540, baked from the painting by `pixelate.py` the way the city and the Library are (a 3px median against the JPEG's noise, a BOX
 downscale, 64 colours of its own by median cut, no dither), so an art pixel is about 1.5 screen px across a 1440 screen, the finest the paintings allow. The build fails with the
-`pixelate.py` command to make it, and `paint_covers.py --install` rebakes them all. A touch-up in code (`TOUCH_UPS`, such as break-hashmap's moved stone) works on the painting and goes
-into the .jpg, so the bake never repeats it. A pick can also be the model's img2img edit of a candidate (`EDITS`, painted with `--edit`; redistemplate's
-heron looking down), named `<seed>-e<edit seed>` in `COVERS`.
+`pixelate.py` command to make it, and `paint_covers.py --install` rebakes them all. A touch-up in code (`TOUCH_UPS`, none now) works on the painting and goes
+into the .jpg, so the bake never repeats it; one is written for its painting's pixels, so a repaint drops or redoes it. A pick can also be the model's
+img2img edit of a candidate (`EDITS`, painted with `--edit`; the real-life cover's stray crane taken out, and the spinning
+spiral's outer turns), named `<seed>-e<edit seed>` in `COVERS` or `INLINE`.
 The post shows it across the page behind its head, about 40 of its 108ths of height on a wide screen: `coverFocus`, from 25 to 78 in 108ths (default 54; the rows of the old covers),
 picks the height to centre on, and a phone shows all of it. The Library's list and a post's "Keep reading" show it at 192px, from the cover box-reduced by Hugo to lossless WebPs at 192, 384 and 576 for 1x to
 3x screens (`partials/blog-art.html`), so the browser never shrinks pixel art.

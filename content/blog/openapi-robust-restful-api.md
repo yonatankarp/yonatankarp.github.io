@@ -166,7 +166,7 @@ In the `components` section, we define the API models. In our case, we define a 
 ## Step 2: Use OpenAPI Generator to Create the Code
 
 
-![A spider web with only bare spokes on its upper right, and a spider where the spiral stops](/images/blog/pixel/openapi-spinning-spiral.webp)
+![A spider web spun only at its centre, bare spokes running out from it, and a spider where the spiral stops](/images/blog/pixel/openapi-spinning-spiral.webp)
 
 
 ### Setting Up OpenAPI Spec to The Project

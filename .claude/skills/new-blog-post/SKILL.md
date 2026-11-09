@@ -102,15 +102,17 @@ The machine is often busy. Painting, `npm run serve` and builds are his to run o
    1. Add `"<slug>": (11, "what it shows", "the prompt")` to `COVERS` in `web3d/pixel/paint_covers.py`.
       - The key must equal the `featured_image` basename: `layouts/partials/blog-art.html` derives the pixel
         cover's path from that basename.
-      - `STYLE` and `NO_TEXT` are added to the prompt for you.
+      - `STYLE` (the Library's painterly look: soft glowing light, deep cosy shadows, no buildings) and `NO_TEXT`
+        are added to the prompt for you, and every job pins the rooms' model (`PINNED` from `paint_rooms.py`).
       - The script rejects a slug that isn't in `COVERS`.
    2. Paint: `uv run web3d/pixel/paint_covers.py <slug> [--count 3] [--start 11]`. This needs Draw Things.
       - Seeds are `start + 11k`, so 11, 22, 33 by default.
       - Each seed goes to `web3d/pixel/paintings/candidates/cover-<slug>_<seed>.png`, which is gitignored.
    3. When none of the seeds paints the idea, there are two fallbacks.
       - **An img2img edit of a candidate:** add `EDITS["<slug>"] = (<seed>, "Edit this picture. …")` and run
-        `uv run web3d/pixel/paint_covers.py <slug> --edit`. The pick is then named `"<seed>-e<edit seed>"` in `COVERS`.
-      - **A touch-up in code:** a function in `TOUCH_UPS` (see `moved_stone`).
+        `uv run web3d/pixel/paint_covers.py <slug> --edit`. The pick is then named `"<seed>-e<edit seed>"` in `COVERS` (or `INLINE`).
+      - **A touch-up in code:** a function in `TOUCH_UPS` (none now). It is written for that painting's pixels, so
+        a repaint drops it or redoes it.
    4. Yonatan picks a seed. Put it as the first item of the `COVERS` tuple.
 4. **Install the cover:** `uv run web3d/pixel/paint_covers.py --install`. It needs no model.
    - It writes `covers/<slug>.jpg` from the candidate (applying any touch-up) and rebakes every

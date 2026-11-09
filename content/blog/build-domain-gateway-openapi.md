@@ -121,7 +121,7 @@ I hope I have convinced you that a domain gateway is useful. If you have already
 ## How Do I Build a Domain Gateway?
 
 
-![Three ants carrying crumbs of soil along a half-dug tunnel](/images/blog/pixel/gateway-digging.webp)Time to dig
+![Two ants carrying crumbs of soil along a half-dug tunnel](/images/blog/pixel/gateway-digging.webp)Time to dig
 
 
 ### Tech Stack

@@ -167,23 +167,25 @@ INLINE = {
      "golden hexagon cells fills the right half of the picture. On the left, one big bee in clear side profile "
      "flies straight towards one big cell in the middle of the comb. At the far right edge of the comb, three "
      "tiny bees queue nose to tail at another cell."),
-    # Still the flat painting: in the painterly STYLE twelve seeds and two edits gave no clean comb (bees outside cells, empty or uneven cells, a comb tied on with cord).
-    "hashset-one-per-cell": (33, "HashSet: the value is the key, so each bucket holds one bee and no honey.",
-     "A warm late-summer evening, amber and rose light through oak leaves. Front view of a beehive comb, a tidy "
-     "wall of very large hexagon cells, four across and three high. Every cell is empty and dark amber with no "
-     "honey at all, and each cell holds exactly one big bee sitting in its centre, one bee per cell."),
+    "hashset-one-per-cell": (22, "HashSet: the value is the key, so each bucket holds one bee and no honey.",
+     "A warm late-summer evening, amber and rose light through oak leaves. Close front view of one small, simple "
+     "piece of wild honeycomb in the middle of the picture, only three cells across and three cells high, nine "
+     "big regular hexagon cells in all, every cell empty dark amber wax with no honey. Exactly four of the cells "
+     "each hold one big bee sitting inside it, one bee per cell; the other five cells are plainly empty. No "
+     "other bees anywhere."),
     "break-hashmap-fixed-stone": (11, "Immutable: a marker that cannot move, so the acorn is always under it.",
      "An autumn forest floor at dusk, violet and orange sky, falling orange leaves, shown as a cut-away with the"
      " soil below. In the middle a huge grey boulder sunk deep into the ground, thick tree roots gripping it and"
      " moss on top, far too big to ever move. A red squirrel sits on top of it looking pleased. Directly under "
      "the boulder, the cut-away soil shows one acorn safely in a small round burrow."),
-    # Still the flat painting: in the painterly STYLE twelve seeds gave no clean ants (crumbs doubled, an ant with two heads, an ant with no crumb).
-    "gateway-digging": (55, "How to build it: the ants dig the fork and the chambers behind the one door.",
+    "gateway-digging": (66, "How to build it: the ants dig the fork and the chambers behind the one door.",
      "Late afternoon, warm amber sky over a thin strip of tall grass at the very top. Close cut-away of an ant "
      "nest under construction, the dark soil filling almost all of the picture. One wide horizontal tunnel runs "
-     "across the middle, ending on the left in a finished round chamber and on the right in a rough unfinished "
-     "wall of crumbling soil. Three very big black ants in clear side profile walk in a row along the tunnel, "
-     "each ant as tall as the tunnel, each carrying one big crumb of soil on its back."),
+     "across the middle, smooth and finished on the left, ending on the right in a rough unfinished wall of "
+     "crumbling soil. Exactly two big black wingless worker ants in clear side profile walk along the tunnel "
+     "floor, both facing left, away from the rough wall, far apart with a wide empty stretch of tunnel between "
+     "them. Each ant carries exactly one round crumb of soil, held up in its jaws in front of its head, and "
+     "nothing else lies on the tunnel floor."),
     "openapi-mismatched-webs": (77, "No shared contract: two sides build towards each other and do not meet.",
      "A misty dawn in pale violet fog with soft layered hills, dark bare branches at both sides. Two separate "
      "half-finished spider webs of glistening silver silk that catches the dawn light. The left web hangs high in the "
@@ -239,14 +241,15 @@ INLINE = {
      "front crane looks ahead, calm, holding one wing half open out behind it. The crane behind stands still "
      "with its wings neatly folded against its body, bends its long neck down and its beak gently touches one "
      "feather on the front crane's open wing, checking it. Each crane has exactly two thin legs."),
-    # Still the flat painting: in the painterly STYLE twelve seeds and three edits gave no clean flock (cranes
-    # overlapping or flying backwards, six or nine of them, the edits merging the leaders into one).
-    "real-life-new-route": (44, "Requirements change: too hot here, so the flock turns for the cool highlands.",
-     "One wide continuous landscape with no dividing line, the sky fading smoothly across the picture from hot "
-     "orange on the left to cool pale blue on the right. On the far left a scorching sandy beach with wilted "
-     "palm trees under a blazing white sun. The land rises gradually to misty green highlands and blue mountains"
-     " on the far right. Seven large white cranes with long necks fly in a single curved line from over the "
-     "beach towards the mountains. Every crane is big and clearly separate."),
+    "real-life-new-route": (66, "Requirements change: too hot here, so the flock turns for the cool highlands.",
+     "One wide continuous landscape with no dividing line. The sky is painted in loose visible brushstrokes, "
+     "thick hot orange haze and drifting clouds over the left half, the sun only a bright glow lost in the haze,"
+     " turning to cool pale blue sky with soft white clouds over the right half. On the far left a scorching "
+     "sandy beach with wilted palm trees. The land rises gradually to misty green highlands and blue mountains on"
+     " the far right. Five white cranes with long necks fly towards the mountains, spread out across the whole "
+     "width of the sky in one gently rising line, each crane alone in its own patch of sky, a wide empty gap "
+     "between each crane and the next, all facing right, every crane seen whole in side profile with one neck,"
+     " one head and two wings."),
 }
 
 

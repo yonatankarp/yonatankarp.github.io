@@ -22,7 +22,7 @@ My employer announced a few months ago that any employee who works for three yea
 
 ## Principle 1: Eventually, Something Will Break in Production
 
-![A crane with a hurt wing on a sandbar in a tropical bay, with other cranes gathered around it](/images/blog/pixel/real-life-grounded-crane.webp)
+![A crane with a drooping wing on a beach in a tropical bay, a crane on each side of it and two more flying down](/images/blog/pixel/real-life-grounded-crane.webp)
 
 As the old saying goes, eventually, a production incident will occur. In our case, it happened sooner rather than later. Just a couple of hours after we landed in Thailand, we discovered a huge issue: both my wife's credit card and mine had expired on the day we arrived. This came as a big surprise to us since back home, credit card providers typically replace your card at least six months before its expiration date. However, living in Germany for almost four years taught us something new. Here, you need to request a new card from your bank if you want a replacement (lesson learned!). Fortunately, we had brought some cash with us for the vacation, so we were able to rely on that.
 

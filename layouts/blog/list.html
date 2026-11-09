@@ -5,7 +5,7 @@
 {{ $posts := sort .RegularPages "Date" "desc" }}
 {{ $t := hugo.Data.rooms.library }}
 {{- /* A chip for every tag the listed posts carry: the curated ones first (data/library.yaml), under their labels, then
-     the rest, most posts first (ties by name). */}}
+     the rest, most posts first (ties by name), behind More topics. */}}
 {{ $byTag := dict }}
 {{ range $posts }}{{ range .GetTerms "tags" }}
   {{ $count := 0 }}{{ with index $byTag .Data.Term }}{{ $count = .count }}{{ end }}
@@ -50,8 +50,14 @@
     <div class="library-topics" role="group" aria-label="{{ $t.topics }}">
       <span class="library-topics__label" aria-hidden="true">{{ $t.topics }}</span>
       <a class="library-chip" href="{{ .RelPermalink }}" data-topic="" data-name="">{{ $t.all }} <span>{{ len $posts }}</span></a>
-      {{ range $topics }}<a class="library-chip{{ if .track }} library-chip--track{{ end }}" href="{{ .term.RelPermalink }}" data-topic="{{ .term.Data.Term }}" data-name="{{ .name }}">{{ .name }} <span>{{ .count }}</span></a>
+      {{ range where $topics "track" true }}{{ partial "library-chip.html" . }}
       {{ end }}
+      {{- /* The rest, folded away: a native disclosure, so it opens without a script too. */}}
+      {{ with where $topics "track" "!=" true }}<details class="library-more">
+        <summary class="library-chip">{{ printf $t.more (len .) }}</summary>
+        <div class="library-more__chips">{{ range . }}{{ partial "library-chip.html" . }}
+        {{ end }}</div>
+      </details>{{ end }}
     </div>
   </div>
   <p class="library-count" aria-live="polite" data-library-count>{{ printf $t.count (len $posts) }}</p>

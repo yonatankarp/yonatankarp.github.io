@@ -1,9 +1,9 @@
 ---
 date: 2023-01-01T00:00:00+01:00
 title: "exekutor"
-weight: 80
+weight: 20
 group: "library"
-projectKind: "Architecture demo"
+projectKind: "Kotlin library"
 draft: false
 archived: true
 link: "https://github.com/yonatankarp/exekutor"

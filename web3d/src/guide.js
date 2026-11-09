@@ -220,14 +220,16 @@ export function guide(api, root = document) {
     // The lift's floors are links, for the plain page, but here they press like the buttons they look like.
     if (e.key === ' ' && e.target.closest?.('.building-floor-btn')) { e.preventDefault(); e.target.click(); return; }
     if (e.key === ' ' && e.target.closest?.('button, a, [role=button], summary')) return;   // Space presses the control
+    // A long card scrolls first, as with the wheel, the way the key points. Then the arrows and Page keys ride the way
+    // they point, up or down the building, as the lift's signs do; Space rides on up, as the wheel and a swipe do.
     const next = { ArrowDown: 1, PageDown: 1, ' ': e.shiftKey ? -1 : 1, ArrowUp: -1, PageUp: -1 }[e.key];
     if (next) {
       e.preventDefault();
-      if (scrollsInside(document.activeElement, next)) {   // a long card scrolls first, as with the wheel
+      if (scrollsInside(document.activeElement, next)) {
         // Scrolled here, not left to the browser: WebKit's key scroll skips the card when focus is on its heading.
         const box = document.activeElement.closest('.floor-card, .floor-panel');
         box.scrollBy({ top: next * (e.key.startsWith('Arrow') ? 40 : box.clientHeight * 0.875), behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
-      } else if (!(e.repeat && api.moving())) step(next);   // a held key rides floor by floor
+      } else if (!(e.repeat && api.moving())) step(e.key === ' ' ? next : -next);   // a held key rides floor by floor
     }
     if (e.key === 'Home') { e.preventDefault(); api.go(keys.indexOf(path[0])); }
     if (e.key === 'End') { e.preventDefault(); api.go(keys.indexOf(path.at(-1))); }

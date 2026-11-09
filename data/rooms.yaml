@@ -9,20 +9,21 @@ library:
   rss: "RSS"
   topics: "Topics"   # the topic chips' label
   all: "All"   # the first chip
+  more: "More topics (%d)"   # the fold for every tag past the curated ones (data/library.yaml); %d is how many
   count: "%d posts, newest first"   # until a chip or a search narrows the list, when assets/js/library.js words it
 workshop:
   title: "Workshop Row"
   pick: "Pick a workshop."   # after the page's lead line
   chips: "Workshops"   # the chips' label, for screen readers
-  groups:   # the workshops, left to right, the first picked on arrival: a project's `group` is a key; change only the names
-    - key: "app"
-      name: "Apps"
-    - key: "library"
-      name: "Libraries"
-    - key: "game"
-      name: "Games"
+  groups:   # the workshops, left to right, the first picked on arrival (the city's push-in lands on its door): a project's `group` is a key
     - key: "contribution"
       name: "Open-source contributions"
+    - key: "library"
+      name: "Kotlin & Spring toolkit"
+    - key: "app"
+      name: "Side projects"
+    - key: "game"
+      name: "Games"
   project: "project"   # "1 project."
   projects: "projects"   # "3 projects."
   say: "%s, %s."   # read out on a pick, in place of its whole list: "Apps, 3 projects."; %s is the workshop, then the count

@@ -200,7 +200,7 @@ async function exercise(page, route) {
 
   if (route === pushRoute) {
     // The push hands its last frame to /blog/, whose pre-paint (push-in.js) holds html.iris and whose library-fx.js
-    // opens it in the iris (html.iris-open), all within push-in.js's own 3 s fallback.
+    // opens it in the iris (html.iris-open), before push-in.js's own fallback (700 ms past DOMContentLoaded, 3 s at most).
     await page.click(".city-say a[data-go='library']");
     await page.waitForURL(/\/blog\/$/, { timeout: 5000 });
     const left = Date.now();
@@ -238,7 +238,7 @@ async function exercise(page, route) {
   }
 
   if (route === "/" || route.startsWith("/?time=") || route.startsWith("/#")) {
-    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("ArrowUp");   // up the tower from the lobby
     await page.waitForTimeout(800);
     await page.locator(".building-floor-btn").nth(3).click();
     await page.waitForTimeout(1500);

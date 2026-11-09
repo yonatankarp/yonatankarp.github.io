@@ -14,6 +14,10 @@
       z.vt = e.viewTransition;
       if (z.vt) ['ready', 'finished', 'updateCallbackDone'].forEach(function (p) { z.vt[p].catch(function () {}); });
     }, { once: true });
-    setTimeout(function () { d.classList.remove('iris', 'iris-open'); }, 3000);   // a script that never came: the page as it is
+    // A script or a picture slow to come: the page as it is, soon after it is here, and in any case by 3 s, rather than
+    // holding a page that is already readable behind the old one's snapshot.
+    // (No shared helper: minifyOutput would reshape it, and the CSP hash with it.)
+    setTimeout(function () { d.classList.remove('iris', 'iris-open'); }, 3000);
+    addEventListener('DOMContentLoaded', function () { setTimeout(function () { if (!d.classList.contains('iris-open')) d.classList.remove('iris'); }, 700); }, { once: true });
   } catch { /* no storage: a plain arrival */ }
 })();

@@ -111,6 +111,8 @@ contact:
 city:   # the homepage's city (layouts/index.html): its arrival panel, then a district per chip, in the chips' order
   kicker: "Arrival Plaza"
   hint: "Pick a district to walk in."
+  who: "%s at %s, %s · %d years writing software."   # the panel's first line: the current role's title, its company, the city (contact.location's first part) and the career's whole years (partials/career-years.html)
+  current: "Current role"   # beside the tower's link: straight to the newest role's floor
   alt: "A wide aerial view of a small coastal city: Yonatan's career tower in the centre, ringed by a library, workshops, a radio station and a post office, between a bay and solar farmland."
   enter: "Ride the career tower"
   label: "City map"   # the map, for screen readers
@@ -134,7 +136,7 @@ city:   # the homepage's city (layouts/index.html): its arrival panel, then a di
     - key: "workshop"
       name: "Workshop Row"
       title: "%d projects on the benches."
-      text: "Open-source libraries, apps, games and contributions."
+      text: "Open-source contributions, a Kotlin and Spring toolkit, side projects and games."
       go: "Walk the workshops"
       url: "projects/"
     - key: "radio"

@@ -15,6 +15,7 @@
       <p class="section-kicker">{{ $t.kicker }}</p>
       <h1>{{ .Title }}</h1>
       <div class="article__meta">
+        <span>{{ $t.by }} <a href="#author">{{ site.Title }}</a></span>
         <span>{{ .Date.Format "Jan 2, 2006" }}</span>
         <span>{{ partial "reading-time.html" . }} {{ $t.min_read }}</span>
       </div>
@@ -70,7 +71,7 @@
       <a href="{{ $x }}" target="_blank" rel="noopener" data-goatcounter-click="discuss-x">{{ $t.discuss_x }}</a>.</p>
 
     {{ $hero := hugo.Data.home.en.hero }}
-    <aside class="article-author px-well" aria-label="{{ $t.author }}">
+    <aside class="article-author px-well" id="author" aria-label="{{ $t.author }}">
       <p class="article-author__name">{{ $t.written_by }} {{ partial "nobreak.html" site.Title }}, {{ index (split $hero.eyebrow " · ") 0 }}</p>
       <p>{{ partial "nobreak.html" $hero.availability }}</p>
       <p>{{ $t.views }}</p>

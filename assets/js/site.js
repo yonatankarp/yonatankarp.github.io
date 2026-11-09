@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const start = articleBody.offsetTop;
       const end = start + articleBody.offsetHeight - window.innerHeight;
       const pct = end > start ? ((window.scrollY - start) / (end - start)) * 100 : 0;
-      progress.style.width = Math.min(100, Math.max(0, pct)) + '%';
+      progress.style.transform = `scaleX(${Math.min(100, Math.max(0, pct)) / 100})`;
     };
     update();
     window.addEventListener('scroll', update, { passive: true });

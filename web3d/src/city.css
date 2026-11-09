@@ -34,12 +34,12 @@ html:not(.at-city) :is(.city, .skip-link--city), html.at-city :is(.skip-link:not
 }
 .city .city-tag::after { left: calc(50% - var(--shift, 0px)); }
 .city .city-tag.away:not(:focus) { opacity: 0; pointer-events: none; }
-.city.zoomed .city-tag:not(.on) { opacity: 0; visibility: hidden; transition: transform var(--glide, 0s), opacity 0.4s, visibility 0s 0.4s; }
+.city.zoomed .city-tag:not(.on) { opacity: 0; visibility: hidden; transition: transform var(--glide, 0s) cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s, visibility 0s 0.4s; }
 .city-tag-in { display: none; }   /* the picked label's arrow: its next click goes in */
 /* Going in (city.js): the map pushes on into the district, gathering speed, as its labels and the panel step away. A
    phone's map, only the top of the page, grows out over the panel to fill the screen (city.js fixes it). Then the frame it ends on lies
    over the tower (iris.js) under the top bar. */
-.city.going .city-map { transition-timing-function: cubic-bezier(0.55, 0, 0.9, 0.4); }
+.city.going .city-map { transition-timing-function: cubic-bezier(0.45, 0, 0.75, 0.6); }   /* gathering speed, but no frame jumps a strobe's distance at the end */
 .city.going .city-tag { visibility: hidden; }
 .city .city-panel { transition: opacity 240ms steps(3); }
 .city.going .city-panel { opacity: 0; pointer-events: none; }
@@ -78,7 +78,8 @@ html:has(.px-iris) .pixel .building-top { z-index: 5; }
   display: inline-block; padding: 9px 14px 7px; background: var(--city-amber); color: var(--city-ink); font: 18px/1 var(--display);
   text-decoration: none; border: 2px solid var(--city-ink); box-shadow: 2px 2px 0 var(--city-ink);
 }
-.city-pdf { margin-left: 10px; }
+.city-pdf, .city-now { margin-left: 10px; }
+.city-now { white-space: nowrap; }
 .city-out {
   margin: 16px 0 0; padding: 8px 10px 6px; font: 18px/1 var(--display); color: var(--city-ink); background: var(--city-amber);
   border: 2px solid var(--city-ink); cursor: pointer;
@@ -88,6 +89,7 @@ html:has(.px-iris) .pixel .building-top { z-index: 5; }
 /* A phone, or a screen too short for the panel beside the map, pans the city in the top of the page and reads the panel under it. */
 @media (max-width: 700px), (max-height: 499px) {
   :is(.city, .workshop) { --bar-clear: 88px; }
+  .city { display: flow-root; }   /* going in, the panel's margin holds its place under the fixed map (city.js): kept inside, not moving the page */
   .city-scene { position: relative; height: 62vh; height: 62svh; }
   .city-panel { position: relative; left: auto; bottom: auto; width: auto; max-height: none; margin: -2px 0 0; border-width: 2px 0 0; box-shadow: none; }
   .city-say h2 { font-size: 30px; }

@@ -1,10 +1,10 @@
 ---
 date: 2026-01-01T00:00:00+01:00
 title: "sse-mcp-server"
-weight: 40
+weight: 60
 description: "A Spring Boot Kotlin MCP bridge that exposes typed tools over Server-Sent Events for Flowise-style agent workflows."
 group: "library"
-projectKind: "AI-agent infrastructure"
+projectKind: "Demo server"
 caseStudy: true
 draft: false
 link: "https://github.com/yonatankarp/sse-mcp-server"

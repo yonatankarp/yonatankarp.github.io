@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+  # Weekly, off the hour: the build counts the career's years (partials/career-years.html), which a deploy only on
+  # push would leave stale past an anniversary.
+  schedule:
+    - cron: "17 5 * * 1"
   workflow_dispatch:
 
 permissions:

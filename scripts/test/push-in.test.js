@@ -29,7 +29,7 @@ test("the Radio Mast's and the Post Office's room: 1440:347, from 230 to 480 px 
 });
 
 test("Workshop Row opens on the workshop whose label city.js lands by", () => {
-  const first = read("data/rooms.yaml").match(/^ {2}groups:.*\n {4}- key: "(\w+)"/m)[1];   // bay-1's (layouts/projects/list.html)
-  assert.equal(read("web3d/src/workshop.js").match(/panning\(row, '(\w+)'/)[1], first);
+  // The first chip is the first of data/rooms.yaml's groups, in bay-1 (layouts/projects/list.html).
+  assert.match(read("web3d/src/workshop.js"), /panning\(row, row\.querySelector\('\[data-pick\]'\)\.dataset\.pick,/);
   assert.match(city, /ROW\.labels\['bay-1'\]/);
 });

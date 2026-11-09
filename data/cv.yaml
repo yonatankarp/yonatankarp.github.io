@@ -5,6 +5,7 @@ site: "yonatankarp.com"   # the last contact chip, which links to the site
 headings:
   summary: "Summary"
   focus: "Staff+ focus"
+  recommendations: "What colleagues say"   # the testimonials' pull quotes; the web CV only, not the PDF
   skills: "Skills"
   experience: "Experience"
   open_source: "Open source, AI & writing"

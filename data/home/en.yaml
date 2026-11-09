@@ -158,6 +158,9 @@ tower:   # the Career Tower's lift and floors (layouts/index.html); each role's 
   degree_label: "Floor 1, %s"   # the degree's lift button; %s is the university
   roof_label: "R, Roof, what's next"
   lobby_label: "L, Lobby, recommendations and skills"
+  roof_cap: "Next"   # the small captions under the lift's digits; a role's is its company
+  degree_cap: "Uni"
+  lobby_cap: "Lobby"
   hint_fine: "Scroll, swipe or use the arrow keys to ride the lift"   # with a mouse or trackpad
   hint_coarse: "Swipe to ride the lift"   # on a touch screen
   back: "Back to the lift"   # the top of every open panel

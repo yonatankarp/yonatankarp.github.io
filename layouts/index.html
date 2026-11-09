@@ -146,13 +146,13 @@
     {{- /* The way out on every floor, as the name plate goes: #city, which reloads onto the city (guide.js, #302). */}}
     <a class="building-floor-btn building-city" href="#city" aria-label="{{ $home.tower.city_label }}" title="{{ $home.tower.city_label }}"><span aria-hidden="true">←</span> <span>{{ $home.tower.city }}</span></a>
     <div class="elevator-display" aria-hidden="true"><span class="elevator-arrow" data-elevator-arrow></span><span data-elevator-floor></span></div>
-    <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-keyshortcuts="R" aria-label="{{ $home.tower.roof_label }}" title="{{ $home.tower.roof_label }}">R</a>
+    <a class="building-floor-btn" href="#floor-R" data-goto="R" aria-keyshortcuts="R" aria-label="{{ $home.tower.roof_label }}" title="{{ $home.tower.roof_label }}">R<span class="lift-cap" aria-hidden="true">{{ $home.tower.roof_cap }}</span></a>
     {{ range $experience }}
     {{ $name := printf $home.tower.floor_label .Params.floor .Params.company (replace .Title " - " ", ") }}
-    <a class="building-floor-btn" href="#floor-{{ .Params.floor }}" data-goto="{{ .Params.floor }}" aria-keyshortcuts="{{ .Params.floor }}" aria-label="{{ $name }}" title="{{ $name }}">{{ .Params.floor }}</a>
+    <a class="building-floor-btn" href="#floor-{{ .Params.floor }}" data-goto="{{ .Params.floor }}" aria-keyshortcuts="{{ .Params.floor }}" aria-label="{{ $name }}" title="{{ $name }}">{{ .Params.floor }}<span class="lift-cap" aria-hidden="true">{{ .Params.company }}</span></a>
     {{ end }}
-    {{ with $degree }}<a class="building-floor-btn" href="#floor-1" data-goto="1" aria-keyshortcuts="1" aria-label="{{ printf $home.tower.degree_label .Params.university }}" title="{{ printf $home.tower.degree_label .Params.university }}">1</a>{{ end }}
-    <a class="building-floor-btn" href="#floor-L" data-goto="L" aria-keyshortcuts="L" aria-label="{{ $home.tower.lobby_label }}" title="{{ $home.tower.lobby_label }}">L</a>
+    {{ with $degree }}<a class="building-floor-btn" href="#floor-1" data-goto="1" aria-keyshortcuts="1" aria-label="{{ printf $home.tower.degree_label .Params.university }}" title="{{ printf $home.tower.degree_label .Params.university }}">1<span class="lift-cap" aria-hidden="true">{{ $home.tower.degree_cap }}</span></a>{{ end }}
+    <a class="building-floor-btn" href="#floor-L" data-goto="L" aria-keyshortcuts="L" aria-label="{{ $home.tower.lobby_label }}" title="{{ $home.tower.lobby_label }}">L<span class="lift-cap" aria-hidden="true">{{ $home.tower.lobby_cap }}</span></a>
   </nav>
 
   <main class="building-stops" id="building-stops">

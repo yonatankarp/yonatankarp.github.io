@@ -121,8 +121,8 @@ at the bare address (or `#city`, the name plate and the lobby's sign) the page r
 tower (its entry keeps `history.state.at`), and `#city`, a new entry, on the whole city. It is the career
 only: every other topic has its building in the city. The old street's `#floor-E` lands in the lobby (`web3d/src/hash.js`),
 and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/`, query kept (the pre-paint `assets/js/home-guided.js`, inlined by `layouts/index.html`). The lift's plate starts with
-"← City" on every floor, a link to `#city` like the name plate and the lobby's sign. Each experience entry's `floor`
-front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt.
+"← City" on every floor, a link to `#city` like the name plate and the lobby's sign. Each floor's button carries its company under the digit (`roof_cap`, `degree_cap` and `lobby_cap` in `tower` for the others), shown from 1340px wide and on phones and portrait screens, not on a tablet's plate or the plain page's row (`pixel.css`). Each experience entry's `floor`
+front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt, shown in the lobby and under What colleagues say on /cv/ (not in its PDF, which stays one page).
 
 The tower's art is 928x308 a room (painted at 2304x768, box-reduced and median-cut to 64 colours, no dither, like the
 city), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an edit of the lobby carried across, so the

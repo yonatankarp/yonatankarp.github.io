@@ -58,7 +58,7 @@ async function wholeCity(page, baseUrl) {
   if (!focused) throw new Error(`Whole city left the focus on ${await page.evaluate(() => document.activeElement?.outerHTML.slice(0, 80))}`);
 }
 
-// From floor 5, ArrowUp rides to 4, then ArrowDown scrolls a long card or rides back to 5: every press must do one.
+// From floor 5, ArrowDown rides down to 4, then ArrowUp scrolls a long card or rides back up to 5: every press must do one.
 async function arrows(page, baseUrl) {
   await load(page, `${baseUrl}/#floor-5`);
   const state = () => page.evaluate(() => [
@@ -74,10 +74,11 @@ async function arrows(page, baseUrl) {
     }
     await page.waitForTimeout(1500);   // the ride or the smooth scroll ends
   };
-  await press("ArrowUp");
-  if (await floor(page) !== "4") throw new Error(`ArrowUp from floor 5 went to ${await floor(page)}`);
-  for (let i = 0; i < 10 && await floor(page) !== "5"; i++) await press("ArrowDown");
-  if (await floor(page) !== "5") throw new Error(`ArrowDown never rode back from floor 4 to 5 (on ${await floor(page)})`);
+  await page.evaluate(() => document.activeElement?.blur());   // off the card, which would scroll down first
+  await press("ArrowDown");
+  if (await floor(page) !== "4") throw new Error(`ArrowDown from floor 5 went to ${await floor(page)}`);
+  for (let i = 0; i < 10 && await floor(page) !== "5"; i++) await press("ArrowUp");
+  if (await floor(page) !== "5") throw new Error(`ArrowUp never rode back from floor 4 to 5 (on ${await floor(page)})`);
 }
 
 // From the lobby, the lift's floor 5 button rides there.

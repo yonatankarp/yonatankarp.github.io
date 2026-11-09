@@ -1,0 +1,2 @@
+{{- /* A topic chip on the blog's index (layouts/blog/list.html): a link to its tag page, which library.js makes a filter. */ -}}
+<a class="library-chip{{ if .track }} library-chip--track{{ end }}" href="{{ .term.RelPermalink }}" data-topic="{{ .term.Data.Term }}" data-name="{{ .name }}">{{ .name }} <span>{{ .count }}</span></a>

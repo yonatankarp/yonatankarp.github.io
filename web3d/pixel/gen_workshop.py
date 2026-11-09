@@ -16,7 +16,7 @@ The Library's pipeline (gen_library.py) out on the street, so it follows the clo
 blockout fixes where every workshop sits, the model paints it at dusk, the other hours are that pick edited, and each is
 box-reduced and quantised undithered; the kerb lamp at x 245, which the model left dark at every hour, is lit after
 that but by day (relight). The workshops are numbered, not named: the projects' template
-(layouts/projects/list.html) puts the groups in them in order, apps first.
+(layouts/projects/list.html) puts the groups in them in order (data/rooms.yaml's workshop.groups), contributions first.
 Winter is each hour's pick edited to snow, its light kept (WINTER), at seed 700, the seed that held the city's layout.
 Paintings go to web3d/pixel/paintings/candidates/workshop[-winter][-PHASE]_SEED.png (not committed); the chosen one is
 copied to web3d/pixel/paintings/picks/workshop[-winter][-PHASE].png, the build's input, and its seed noted in PICKS.
@@ -233,7 +233,7 @@ def write_fx(out):
     upright(Image.open(PICKED / "workshop-depth.png").convert("L")).save(out / "workshop-depth.png")   # depth_map.py's map, posts stood up
 
 
-# The Apps workshop's roller door, where the city's push-in comes through (city.js, iris.js), in art px: its middle x, y
+# The first workshop's roller door, where the city's push-in comes through (city.js, iris.js), in art px: its middle x, y
 # and width, which the city's door lands on, and the box its shutter rolls up in.
 DOOR, SHUTTER = [374, 218, 125], [318, 180, 437, 265]
 

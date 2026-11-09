@@ -37,7 +37,8 @@ const DOORS = 3.3;                                              // the lift door
 const STARS = [760, 180];                                       // the roof strip's x and width of open night sky, tiled above it
 const KEEP = 2;                                                 // the storeys kept decoded either side of the lift's stop: the rest are let go
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read live: it can change after load
-const held = () => reduceMotion.matches || !roomy.matches;              // no motion to pause: asked for none, or the plain page, where the pause scrolls away
+const fxOff = new URLSearchParams(location.search).get('fx') === 'off';   // the visual captures, as in scene-fx.js
+const held = () => reduceMotion.matches || fxOff || !roomy.matches;     // no motion to pause: asked for none, ?fx=off, or the plain page, where the pause scrolls away
 const hashKey = () => floorKey(location.hash, ORDER);   // a floor that exists again (a new floor 8) wins over its old anchor
 const PAY = 36;                                                 // floor 7's capsule's canvas, in art pixels: it turned any way, on the 4-pixel Bayer grid
 const TRIES = 3, RETRY_MS = 2000;                                // a strip that failed to load is asked for again, this often and no sooner
@@ -250,7 +251,7 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
     const to = Math.max(0, Math.min(keys.length - 1, index));
     need(here, to);
     if (to === ride.to) return false;   // already on its way there
-    const still = held();
+    const still = held() || paused;   // on Pause the lift cuts to its floor, as with reduced motion
     Object.assign(ride, plan(ride, now, to, {
       still, paused, rise: Math.sign(level(keys[to]) - lerpAt(here, level)),
       closeMs: still ? 0 : ((open.get(keys[Math.round(here)]) ?? 0) / DOORS) * 1000,   // the doors shut, then it moves

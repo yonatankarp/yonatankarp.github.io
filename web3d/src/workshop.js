@@ -27,7 +27,7 @@ if (row) {
   // The list fades at the panel's foot while more of it is below (workshop.css).
   const cue = () => panel.classList.toggle('more', panel.scrollTop + panel.clientHeight < panel.scrollHeight - 2);
   const said = panel.querySelector('[data-said]');
-  panning(row, 'app', () => getComputedStyle(panel).position === 'absolute', (picked) => {
+  panning(row, row.querySelector('[data-pick]').dataset.pick, () => getComputedStyle(panel).position === 'absolute', (picked) => {
     // Counted here, as GoatCounter binds data-goatcounter-click when it loads, perhaps before these buttons exist (#307).
     window.goatcounter?.count?.({ path: `workshop-${picked.dataset.pick}`, title: picked.textContent.trim(), event: true });
     said.textContent = panel.querySelector(`[data-district="${picked.dataset.pick}"]`).dataset.say;   // its line, not its list

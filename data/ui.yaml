@@ -69,6 +69,7 @@ skills:   # /skills/; its title and lead line are content/skills/_index.md's
 
 article:   # a blog post's page (layouts/blog/single.html), and its row in the lists
   kicker: "Article"
+  by: "By"   # the byline under the title, then the name, linked to the author box at the post's end
   min_read: "min read"   # after the reading time
   toc: "On this page"
   share_label: "Share this article"   # the share buttons, for screen readers

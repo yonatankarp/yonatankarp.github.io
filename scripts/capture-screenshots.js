@@ -543,10 +543,10 @@ async function assertRide(page, route, viewport) {
 
   await arrive("R", ".building-floor-btn[data-goto='R']");
   await arrive("L", ".building-floor-btn[data-goto='L']");
-  await arrive("1", "ArrowDown");   // the ride runs up from the lobby (web3d/src/guide.js)
-  await arrive("L", "ArrowUp");
+  await arrive("1", "ArrowUp");   // the arrows ride the way they point (web3d/src/guide.js)
+  await arrive("L", "ArrowDown");
   await arrive("7", "#floor-L a[data-goto='7']");   // the lobby's sign up to the current role
-  await arrive("R", "ArrowDown");
+  await arrive("R", "ArrowUp");
 }
 
 async function assertPick(page, route, viewport) {

@@ -117,11 +117,11 @@ and a few defaults still spell them out.
      `search.types` only if the new group needs its own.
 2. **Checks:** nothing to edit. `checkProjectsPage` in `scripts/check-generated-html.js` reads the workshops from the
    page's headings and expects a label, a chip and a list for each, the first pressed.
-3. **Only if Apps stops being first:**
-   - `web3d/src/workshop.js:30`: the `'app'` opening pick.
+3. **Only if the first workshop changes** (contributions now):
+   - `web3d/src/workshop.js:30` opens on the first chip: no edit.
    - `web3d/src/city.js:141` lands the push-in on `bay-1`, the first workshop's label: no edit, but its door must be the
      first workshop's.
-   - `DOOR`/`SHUTTER` in `gen_workshop.py` (`:238`): the Apps door's position.
+   - `DOOR`/`SHUTTER` in `gen_workshop.py` (`:238`): the first workshop's door's position.
    - `scripts/check-csp.js:217-219` clicks `game` and expects `app` hidden.
 4. **The painting (Draw Things):** `web3d/pixel/gen_workshop.py`.
    1. Add a centre to `BAYS` (`:44`). The street is `PW` = 3456 wide (from `gen_city.py`), and four bays at `HALF` 260
@@ -183,7 +183,7 @@ and a few defaults still spell them out.
   place, its CTA and link, and the Archived label. For a case study, also check `/projects/<slug>/`.
 - For a new group, also check `/projects/?time=dawn`, `?time=night` and `?season=winter`. The labels should sit
   on the roofs, the walkers on the pavement, the moths on the lamps and the sparks on the second bench. Then come in
-  from the city's Workshop Row go link: it should land on the Apps door.
+  from the city's Workshop Row go link: it should land on the first workshop's door (contributions).
 - Leave the full suite to CI. The machine is busy, so push and let GitHub run `check:static`, `check:csp` and the
   art compare.
 

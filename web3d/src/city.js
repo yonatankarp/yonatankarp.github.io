@@ -11,7 +11,7 @@ import { floorShaped } from './hash.js';
 import { cover, iris } from './iris.js';
 import { freeMid, cityView, districtView, clampView } from '../../assets/js/home-view.js';   // the pre-paint's too
 import CITY from '../../static/building/pixel/city.json';       // gen_city.py: the doors the push-in goes through
-import ROW from '../../static/building/pixel/workshop.json';    // gen_workshop.py: Workshop Row's Apps door, where it lands
+import ROW from '../../static/building/pixel/workshop.json';    // gen_workshop.py: Workshop Row's first door, where it lands
 import './city.css';
 
 const root = document.documentElement;
@@ -22,6 +22,7 @@ if (city && root.classList.contains('at-city')) {
   const kicker = city.querySelector('[data-city-kicker]'), out = city.querySelectorAll('[data-city-out]'), overview = kicker.dataset.cityKicker;   // the pre-paint may have set its text
   const zoom = JSON.parse(map.dataset.zoom), maxPx = Number(map.dataset.maxPx), artH = scene.querySelector('.city-fx').height;
   const still = matchMedia('(prefers-reduced-motion: reduce)');
+  const fxOff = new URLSearchParams(location.search).get('fx') === 'off';   // the visual captures: no glide, no push-in
   const floats = () => getComputedStyle(panel).position === 'fixed';
   cityFx(scene.querySelector('.city-fx'), scene.querySelector('img'));
 
@@ -33,14 +34,15 @@ if (city && root.classList.contains('at-city')) {
     const [w, h] = size();
     if (!push) [x, y] = clampView([x, y, s], scene.clientWidth, scene.clientHeight, w, h);
     at = { x, y, s };
-    map.style.setProperty('--glide', push ? '450ms' : smooth && !still.matches ? '1s' : '0s');
+    map.style.setProperty('--glide', push ? '450ms' : smooth && !still.matches && !fxOff ? '600ms' : '0s');
     map.style.setProperty('--inv', 1 / s);   // the labels keep their size on screen
     map.style.transform = `translate(${at.x}px, ${at.y}px) scale(${s})`;
     fit();
   };
   // Every label whole in the free view (#295), from where the map is going: one whose district is in it slides inside its
   // edges by --shift, as on Workshop Row (workshop.js); one whose district is not, or that would sit under a floating
-  // panel, is away (city.css), still in the tab order, and focusing it brings it into view.
+  // panel, is away (city.css). Out of the Tab order (the chips are the keyboard's), but a screen reader may still focus it,
+  // which brings it into view.
   const tags = [...city.querySelectorAll('.city-tag')];
   function fit() {
     const p = panel.getBoundingClientRect(), r = scene.clientWidth - 8, over = floats();
@@ -101,7 +103,6 @@ if (city && root.classList.contains('at-city')) {
   // 14 screen px a city art px; the tower's opens first (door-open[-winter][-PHASE].webp, gen_city.py). The others push into the
   // building's middle, which ends on the middle of their page's room header. A plain link under reduced motion, with
   // ?fx=off (the visual captures), where the tower is the plain page, or for a click that opens a tab.
-  const fxOff = new URLSearchParams(location.search).get('fx') === 'off';
   const canvas = document.querySelector('#pixel-canvas'), img = scene.querySelector('img'), fx = scene.querySelector('.city-fx');
   const artW = CITY.size[0], hour = root.dataset.art;   // as the city's picture is picked (time-pick.js)
   const art = (name) => `${img.dataset.base.replace(/city$/, name)}.webp?v=${img.dataset.version}`;
@@ -119,7 +120,12 @@ if (city && root.classList.contains('at-city')) {
       door.src = art(`door-open${hour}`);
       img.after(door);   // under the city's life, so a walker in front stays in front
       for (const kind of ['', '-open']) fetch(art(strip('L', kind))).then((r) => r.blob()).catch(() => {});
-    } else document.head.append(Object.assign(document.createElement('link'), { rel: 'prefetch', href: city.querySelector(`[data-go="${key}"]`).href }));
+    } else {
+      document.head.append(Object.assign(document.createElement('link'), { rel: 'prefetch', href: city.querySelector(`[data-go="${key}"]`).href }));
+      // Its room's painting too, which the iris waits for there (iris.js): the same URL as the page asks for.
+      const room = { library: 'library', workshop: `workshop${hour}`, radio: 'radio', post: 'post' }[key];
+      if (room) fetch(art(room)).then((r) => r.blob()).catch(() => {});
+    }
   }
   for (const type of ['pointerover', 'focusin']) city.addEventListener(type, (e) => { const k = e.target.closest?.('[data-go]')?.dataset.go; if (k) ready(k); }, { passive: true });
   // Where the next view puts what the push-in goes into, on this screen: its middle x, y and, for a door, its width w.
@@ -130,14 +136,14 @@ if (city && root.classList.contains('at-city')) {
       const { s, x0, ry } = lay(innerWidth, innerHeight, dpr, cardTop, E.mid);
       return { x: (x0 + (E.x0 + E.x1) / 2 * s) / dpr, y: (ry + (E.y0 + E.y1) / 2 * s) / dpr, w: (E.x1 - E.x0) * s / dpr };
     },
-    // Workshop Row's Apps door, where /projects/ pans it as it loads (pan.js): its label mid-way across the free view. The
+    // Workshop Row's first door, where /projects/ pans it as it loads (pan.js): its label mid-way across the free view. The
     // street is laid out as the city is, the same size at the top of its page, its panel the city's, and its art pixels
     // are the city's (city.css).
     workshop(r) {
       const k = size()[1] / artH, mapW = ROW.size[0] * k, [x, y, w] = ROW.door;
       if (mapW < r.width) return null;   // a screen wider than the street stretches it: there is no door to land on
       const focus = floats() ? (panel.getBoundingClientRect().right + r.width) / 2 : r.width / 2;
-      // bay-1: the first workshop's label (data/rooms.yaml's groups, Apps), which workshop.js opens on.
+      // bay-1: the first workshop's label (data/rooms.yaml's groups, open-source contributions), which workshop.js opens on.
       const left = Math.min(mapW - r.width, Math.max(0, Math.round(ROW.labels['bay-1'][0] / 100 * mapW) - focus));
       return { x: x * k - left, y: y * k, w: w * k };
     },
@@ -184,7 +190,7 @@ if (city && root.classList.contains('at-city')) {
       location.hash = '#floor-L';
     };
     // The tower's doors open as it arrives, then in.
-    const doors = () => door.decode().then(() => setTimeout(() => { door.style.visibility = 'visible'; setTimeout(enter, 380); }, 140), enter);
+    const doors = () => door.decode().then(() => setTimeout(() => { door.style.visibility = 'visible'; setTimeout(enter, 140); }, 40), enter);
     let late = 0;
     const pushed = (e) => {
       if (e && (e.target !== map || e.propertyName !== 'transform')) return;   // the labels' own transitions bubble up here

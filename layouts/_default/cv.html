@@ -1,5 +1,5 @@
 {{- /* The CV: the building's pixel skin over a plain document. A standalone page (no baseof), like the homepage:
-     the shared top bar, no site footer. scripts/generate-cv-pdf.js prints it to the downloadable PDF,
+     the shared top bar and the site footer (hidden in print). scripts/generate-cv-pdf.js prints it to the downloadable PDF,
      where @media print in custom.css turns it into light paper with the same pixel accents. */ -}}
 {{ $education := sort (where (where .Site.RegularPages "Type" "education") "Params.cv" true) "Date" "desc" }}   {{- /* only entries with cv: true; short courses stay on the site */ -}}
 {{ $experience := sort (where .Site.RegularPages "Type" "experience") "Date" "desc" }}
@@ -100,6 +100,7 @@
       </div>
     </section>
   </main>
+  {{ partial "site-footer.html" . }}
   <p class="sr-only" role="status" data-copy-status></p>
   {{ with resources.Get "js/copy-email.js" | minify | fingerprint }}<script src="{{ .RelPermalink }}" integrity="{{ .Data.Integrity }}" defer></script>{{ end }}
 </body>

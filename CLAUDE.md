@@ -63,7 +63,7 @@ focus to the chip that was picked; on a phone it sits at the panel's top right, 
 click zooms to its district; the picked label then shows "→", carries `aria-current` and the description `again` in
 `city` (`#city-again`), and its next click goes in. Enter or Space on a label goes straight in (a click with no pointer). A label stays whole on screen,
 slid inside the edges by `--shift` as on Workshop Row; one whose district is out of view, or that would sit under the
-floating panel, fades but keeps its place in the tab order, and focusing it pans the map to it. The whole city opens on
+floating panel, fades. The labels are out of the Tab order (`tabindex=-1`): the panel's chips are the keyboard's, so a keyboard passes five districts, not ten; a screen reader focusing one still pans the map to it. The whole city opens on
 the tower, moved right until the Library's label clears the panel, as far as the tower's stays whole (the pre-paint
 `assets/js/home-city.js`, inlined by `layouts/index.html`, does the same, by city.js's maths in `assets/js/home-view.js`).
 
@@ -97,7 +97,7 @@ pasted on the pick, baked on the pick's own colours and cut at `DOOR_OPEN` (`doo
 `door-open-winter[-PHASE].webp`, that crop edited to snow as the winter picks are (`gen_city.py door --winter`), of which
 only the doorway (`DOORWAY`) goes on the winter pick's crop (`picks/city-open-winter[-PHASE].png`). Both pick their
 file by `html[data-season]` and the hour, as the shut art does. The tower is
-this page, so city.js lays the frame over it and enters `#floor-L`. Workshop Row's is the Apps door where `/projects/`
+this page, so city.js lays the frame over it and enters `#floor-L`. Workshop Row's is the first workshop's door where `/projects/`
 pans it on load (`door` and `shutter` in `workshop.json`, from `gen_workshop.py`), whose shutter then rolls up.
 
 The
@@ -272,7 +272,7 @@ by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, 
 city's width, so a 1440 screen shows the whole room at 2 device px an art px: the head is at least that tall, to 52vh), then every listed
 post as a card (`partials/blog-row.html`). A chip for every tag the listed posts carry filters the list, with the search
 box (`assets/js/library.js`): the curated topics and labels in `data/library.yaml` first (a tag no listed post carries is
-skipped, one with no tag page fails the build), then the rest, most posts first (ties by name). Without a script the
+skipped, one with no tag page fails the build), then the rest, most posts first (ties by name), folded behind More topics (a `<details>`). Without a script the
 chips are links to the tag pages and the search box a form to `/search/`.
 
 `library-fx.js`, its own bundle (`--mode library`): the fire, dust in the window's light and clouds only over the
@@ -288,8 +288,8 @@ books and the wall's seams as nearer than the floor, so `library-fx.js` tests th
 ## Workshop Row
 
 The projects' index (`layouts/projects/list.html`) is the city's Workshop Row: a street of four brick workshops, one per
-project `group` (apps, libraries, games, contributions, in that order: `workshop.groups` in `data/rooms.yaml`), that pans sideways by scrolling
-(`web3d/src/pan.js`; an up or down wheel too, where the panel floats) and opens on Apps; `workshop.js` slides each label to stay whole on screen. Its script and styles
+project `group` (contributions, libraries, apps, games, in that order: `workshop.groups` in `data/rooms.yaml`), that pans sideways by scrolling
+(`web3d/src/pan.js`; an up or down wheel too, where the panel floats) and opens on the first, the contributions; `workshop.js` slides each label to stay whole on screen. Its script and styles
 are a bundle of their own, `assets/building/workshop.*` (`vite build --mode workshop`). Each workshop lists its projects
 by `weight`; without a script every workshop's list shows. Its art follows the clock and the season like the city:
 `workshop[-winter][-PHASE].webp`, baked by `web3d/pixel/gen_workshop.py` from `paintings/picks/workshop[-winter][-PHASE].png`
@@ -431,7 +431,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
   `social-x`, `social-podcast`; the Post Office's stamps send the first three, its podcast stamp leads to `/podcast/`), `email` (a mailto on the homepage, the CV, the Post Office or the footer),
   `email-copy` (the Copy chip beside it), `discuss-linkedin` / `discuss-x` (a post's Discuss line), `author-cv` / `author-roof` (the author box's links under a post), `roof-post` (the roof's Get in touch, to `/contact/`), `podcast-radio` (the Radio Mast's Listen button),
   `district-<key>` (the city panel's go link, and a map label's second click, which leads in; its first only zooms: `district-tower`, `district-library`, `district-workshop`, `district-radio`,
-  `district-post`) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `workshop-<group>` (a workshop picked on Workshop Row, by its
+  `district-post`), `current-role` (the city panel's Current role, straight to the newest role's floor) — all `data-goatcounter-click`; `topic-<tag>` (a topic chip picked on the blog's index, `topic-all` for All, sent by `assets/js/library.js`); `workshop-<group>` (a workshop picked on Workshop Row, by its
   label or chip, sent by `web3d/src/workshop.js`, as count.js may bind before the buttons exist: `workshop-app`, `workshop-library`, `workshop-game`, `workshop-contribution`); `floor-<key>` (the first time a visit's ride
   reaches a floor, e.g. `floor-5`, `floor-R`; the load's own floor is not counted; there is no `floor-E` or `floor-P`:
   the way back out to the city is a page view of `/`)
@@ -439,7 +439,7 @@ Create `content/experience/name.md` with `jobTitle`, `company`, `location`, `dur
 
 ## Deployment
 
-Push to `main` triggers GitHub Actions workflow (`.github/workflows/deploy.yml`) which builds Hugo and deploys to GitHub Pages.
+Push to `main` triggers GitHub Actions workflow (`.github/workflows/deploy.yml`) which builds Hugo and deploys to GitHub Pages; it also runs weekly, so the career's years (`partials/career-years.html`, in the city's panel and the CV) never go stale.
 
 CI, the deploy and the weekly link check share `.github/actions/build-site`, which runs `npm run check:static`;
 CI and the deploy then run `npm run check:csp`, which also fails on axe's serious and critical findings, and on any of

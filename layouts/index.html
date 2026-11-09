@@ -12,7 +12,7 @@
 {{- /* The role he holds now, the one whose duration runs to the present: the lobby signs the way to it, as it is the last
      stop of the ride up (#189). The highest such floor, should two ever overlap. */}}
 {{ $now := false }}
-{{ range $experience }}{{ if and (not $now) (strings.HasSuffix .Params.duration "Present") }}{{ $now = dict "floor" .Params.floor "label" (printf "%s · %s" (replace .Title " - " ", ") .Params.company) "company" .Params.company }}{{ end }}{{ end }}
+{{ range $experience }}{{ if and (not $now) (strings.HasSuffix .Params.duration "Present") }}{{ $now = dict "floor" .Params.floor "title" .Params.jobTitle "label" (printf "%s · %s" (replace .Title " - " ", ") .Params.company) "company" .Params.company }}{{ end }}{{ end }}
 {{ $testimonials := sort (where .Site.RegularPages "Type" "testimonial") "Date" "desc" }}
 {{ $projects := (.Site.GetPage "/projects").RegularPages.ByWeight }}{{/* most are listed locally only, so not in .Site.RegularPages */}}
 {{ $skills := .Site.GetPage "/skills" }}
@@ -90,7 +90,8 @@
   {{ partial "pixel-bar.html" . }}
   {{- /* The city: shown only where html has at-city (the pre-paint script above), else the building is the page. Its
        labels sit where gen_city.py's city.json puts them; JS zooms the map into the picked district and shows its text. */}}
-  {{ $role := split $home.hero.eyebrow " · " }}
+  {{- /* The panel's first line: the current role (a duration that ends in Present, $now above), the city and the years. */}}
+  {{ $who := "" }}{{ with $now }}{{ $who = printf $city.who .title .company (index (split $home.contact.location ",") 0) (partial "career-years.html" $) }}{{ end }}
   {{ $pdf := partial "cv-href.html" }}
   {{ $go := dict }}{{ range $city.districts }}{{ $go = merge $go (dict .key (cond (hasPrefix .url "#") .url (relURL .url))) }}{{ end }}
   {{ $counts := dict "tower" (len $experience) "library" (len $posts) "workshop" (len $projects) }}
@@ -104,8 +105,9 @@
         {{- /* The city's life, drawn by city-fx.js at the art's pixels from the data beside the picture. */}}
         <canvas class="city-fx" width="{{ index $cityArt.size 0 }}" height="{{ index $cityArt.size 1 }}" aria-hidden="true"></canvas>
         {{ range $city.districts }}{{ $at := index $cityArt.labels .key }}
-        {{- /* Every district has a page of its own: its label zooms to it, then goes there (city.js). */}}
-        <a class="city-tag" href="{{ index $go .key }}" data-pick="{{ .key }}" data-goatcounter-click="district-{{ .key }}" style="--x:{{ index $at 0 }}%;--y:{{ index $at 1 }}%">{{ .name }}<span class="city-tag-in" aria-hidden="true"> →</span></a>
+        {{- /* Every district has a page of its own: its label zooms to it, then goes there (city.js). Out of the Tab order:
+             the panel's chips do the same, so a keyboard passes five stops, not ten. */}}
+        <a class="city-tag" href="{{ index $go .key }}" tabindex="-1" data-pick="{{ .key }}" data-goatcounter-click="district-{{ .key }}" style="--x:{{ index $at 0 }}%;--y:{{ index $at 1 }}%">{{ .name }}<span class="city-tag-in" aria-hidden="true"> →</span></a>
         {{ end }}
       </div>
     </div>
@@ -115,13 +117,13 @@
       {{- /* Two of the same: a phone shows this one, top right, where it is in reach after a pick; a wide screen the
            last, under the district. Each in its place in the tab order (city.css). */}}
       <button class="city-out city-out--top" type="button" data-city-out hidden>{{ $city.out }}</button>
-      <p class="city-lede">{{ index $role 0 }}: {{ index $role 1 }}. {{ $city.hint }}</p>
+      <p class="city-lede">{{ $who }} {{ $city.hint }}</p>
       <div class="city-chips" role="group" aria-label="{{ $city.chips }}">{{ range $city.districts }}<button type="button" data-pick="{{ .key }}" aria-pressed="false">{{ .name }}</button>{{ end }}</div>
       <div class="city-say" aria-live="polite">
         <div data-district>
           <h2>{{ $home.hero.title }}</h2>
           <p>{{ $home.hero.availability }}</p>
-          <p><a class="city-go" href="#floor-L" data-go="tower" data-goatcounter-click="district-tower">{{ $city.enter }} →</a></p>
+          <p><a class="city-go" href="#floor-L" data-go="tower" data-goatcounter-click="district-tower">{{ $city.enter }} →</a>{{ with $now }} <a class="city-now" href="#floor-{{ .floor }}" data-goatcounter-click="current-role">{{ $city.current }}</a>{{ end }}</p>
         </div>
         {{ range $city.districts }}{{ $title := .title }}
         <div data-district="{{ .key }}" hidden>

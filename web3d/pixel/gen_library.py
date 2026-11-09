@@ -1,23 +1,26 @@
 # /// script
 # requires-python = ">=3.11"
-# dependencies = ["pillow==12.1.0"]
+# dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """The blog's Library: the reading room painted across the head of the blog's index (layouts/blog/list.html).
 
 Run: uv run web3d/pixel/gen_library.py blockout [OUT]                  # the code blockout, for a look
      uv run web3d/pixel/gen_library.py paint [--count N] [--start S]   # Draw Things repaints the blockout (port 7860)
-     uv run web3d/pixel/gen_library.py build [OUT]                     # OUT/library.webp, library-fx.json, library-depth.png
+     uv run web3d/pixel/gen_library.py paint --time PHASE [--winter]   # ... or the window's view and the room at an hour
+     uv run web3d/pixel/gen_library.py build [OUT]                     # OUT/library[-winter][-PHASE].webp, library-fx.json,
+                                                                       # library-depth.png
 
 The city's pipeline (gen_city.py) at the city's colours: the blockout fixes where every shelf sits, the model paints
 over it, and the pick is box-reduced and quantised undithered, to half the city's width (LIB), so that a 1440 screen
-shows the whole room at 2 device px an art px rather than a crop of it (custom.css snaps the head to whole ones). One painting, at dusk: the
-room is lit by its own lamps, and the window's dusk is the city's. No shelf stands for a topic, so a new tag never
-needs new art.
+shows the whole room at 2 device px an art px rather than a crop of it (custom.css snaps the head to whole ones). Painted
+at dusk, and at the other hours and in winter as the radio and post rooms are (gen_rooms.hour(): the dusk drawing relit,
+the hour's view through the window's glass, WINDOW_GLASS; picks/library-PHASE.png and library-view[-winter][-PHASE].png).
+No shelf stands for a topic, so a new tag never needs new art.
 Paintings go to web3d/pixel/paintings/candidates/library_SEED.png (not committed); the chosen one is copied to
 web3d/pixel/paintings/picks/library.png, the build's input, and its seed noted in PICK.
 
 The room's animations (web3d/src/library-fx.js) draw from library-fx.json: the fire, the dust in the window's light,
-clouds passing only over the window's sky, which is read off the baked art, and readers browsing the shelves, who hide
+clouds passing only over the window's sky (its glass above the rooftops, so the same at every hour), and readers browsing the shelves, who hide
 behind the reading tables by picks/library-depth.png, made by depth_map.py (it needs torch); the build pushes its back
 wall back (backdrop).
 """
@@ -31,7 +34,8 @@ from random import Random
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art_common import ART_W, CANDIDATES, OUT, PH, PICKS, PW, H, bake, paint_candidate, save_lossless  # noqa: E402
+from art_common import ART_W, CANDIDATES, OUT, PH, PICKS, PW, H, bake, glass, paint_candidate, save_lossless  # noqa: E402
+from gen_rooms import PHASES, hour, paint_hour, suffix  # noqa: E402
 
 PICK = 900                       # the seed of the pick, for the record
 PICKED = PICKS / "library.png"
@@ -157,16 +161,40 @@ LAMPS = 111                                              # the armchairs' tops, 
 REACH = 32                                               # px either side: past half a reading table or an armchair, to the floor beside it
 TABLES, GROW = 135, 2                                    # the reading tables' tops, and how far up their back edges grow
 SHADOW = 2                                               # the soles' row and the one under it, which the readers' shadows reach
-WINDOW = (327, 10, 397, 87)                              # x0, y0, x1, y1: where the sky shows through the window
+WINDOW = (327, 10, 397, 58)                              # x0, y0, x1, y1: the window's sky, above every hour's rooftops
+# The window at the other hours and in winter (gen_rooms.hour()), in painting px: the crop round it the model edits, its
+# glass (but the hanging lamp before it, and the mullions), and the view to keep. The seeds of the picks, for the record,
+# as gen_rooms.py's.
+WINDOW_GLASS = {"crop": (1472, 0, 2048, 640),
+                "glass": {"panes": [(1588, 119, 1880, 450)], "arches": [(1588, 18, 1880, 220)], "lamps": [(1574, 0, 1675, 194)],
+                          "bars": True},
+                "view": "the row of pale stone town houses with grey slate mansard roofs, chimneys, dormers and rows of windows, "
+                        "and the open sky above them with a few soft clouds"}
+VIEW_PICKS = {"-dawn": 1017, "-day": 1017, "-night": 1000, "-winter": 700, "-winter-dawn": 700, "-winter-day": 700,
+              "-winter-night": 700}
+ROOM_PICKS = {"dawn": 1000, "day": 1000, "night": 1000}
+# The green banker's lamps on the reading tables, in painting px: where a bake's median cut spends their greens on the
+# snow (winter's dawn and dusk), their own colours are kept (art_common.bake's keep).
+LAMP_SHADES = [(x - 60, 590, x + 60, 640) for x in (1000, 1290, 2150, 2450)]
 
 
-def sky(im):
-    """The window's sky, as runs [y, x0, x1] per row: its bright, bluish pixels, so clouds pass behind the frames and
-    the rooftops outside."""
-    px, (x0, y0, x1, y1), runs = im.load(), WINDOW, []
+def baked(im):
+    """The room's painting baked at LIB, its lamps' greens kept where the plain cut loses them."""
+    art = bake(im, size=LIB)
+    k = LIB[0] / PW
+    green = lambda c: c[1] - c[0] > 40 and c[1] - c[2] > 20   # noqa: E731
+    lost = [box for box in LAMP_SHADES if not any(green(c) for _, c in art.crop(tuple(round(v * k) for v in box)).getcolors(4096))]
+    return bake(im, size=LIB, keep=LAMP_SHADES) if lost else art
+
+
+def sky(depth_size):
+    """The window's sky, as runs [y, x0, x1] per row: its glass (WINDOW_GLASS, at the art's size) in WINDOW, above the
+    rooftops of every hour's view, so clouds pass behind the frames and the hanging lamp."""
+    dusk = Image.open(PICKED).convert("RGB")
+    px, (x0, y0, x1, y1), runs = glass(dusk, **WINDOW_GLASS["glass"]).resize(depth_size, Image.BOX).load(), WINDOW, []
     for y in range(y0, y1):
         for x in range(x0, x1):
-            if not (sum(p := px[x, y]) > 470 and p[2] > p[1] - 10):
+            if px[x, y] < 192:
                 continue
             if runs and runs[-1][0] == y and runs[-1][2] == x - 1:
                 runs[-1][2] = x
@@ -203,12 +231,13 @@ def backdrop(depth):
 def build(out):
     if not PICKED.exists():
         sys.exit(f"no {PICKED}: paint (gen_library.py paint), copy the chosen candidate there and note its seed in PICK")
-    im = bake(PICKED, size=LIB)   # art_common.bake, which gen_rooms.py and gen_workshop.py bake with at the city's SIZE
-    save_lossless(im, out / "library.webp")
-    (out / "library-fx.json").write_text(json.dumps({**FX, "sky": sky(im)}, separators=(",", ":")))
+    for winter in (False, True):
+        for phase in PHASES:
+            save_lossless(baked(hour("library", WINDOW_GLASS, phase, winter)[0]), out / f"library{suffix(phase, winter)}.webp")
+    (out / "library-fx.json").write_text(json.dumps({**FX, "sky": sky(LIB)}, separators=(",", ":")))
     depth = Image.open(PICKED.with_name("library-depth.png")).convert("L").resize(LIB, Image.BOX)   # depth_map.py's map, at the room's size
     backdrop(depth).save(out / "library-depth.png")   # the wall pushed back
-    print("drew library.webp from seed", PICK, f"at {LIB[0]} wide")
+    print("drew library[-winter][-PHASE].webp from seed", PICK, f"the views {VIEW_PICKS} and the hours {ROOM_PICKS}, at {LIB[0]} wide")
 
 
 if __name__ == "__main__":
@@ -216,13 +245,19 @@ if __name__ == "__main__":
     ap.add_argument("cmd", choices=["blockout", "paint", "build"])
     ap.add_argument("out", nargs="?", type=Path, default=OUT)
     ap.add_argument("--count", type=int, default=3)
-    ap.add_argument("--start", type=int, default=900)
+    ap.add_argument("--start", type=int, help="the first seed (900; an hour's, 1000; winter's, 700)")
+    ap.add_argument("--time", choices=PHASES, help="paint: the window's view and the room at this hour (not dusk but in winter)")
+    ap.add_argument("--winter", action="store_true", help="paint: the window's view in winter")
     ap.add_argument("--host", default="http://127.0.0.1:7860")
     a = ap.parse_args()
     if a.cmd == "blockout":
         blockout().save(Path(a.out) / "library-blockout.png")
         print("wrote", Path(a.out) / "library-blockout.png")
+    elif a.cmd == "paint" and (a.time or a.winter):
+        if (a.time or "dusk") == "dusk" and not a.winter:
+            sys.exit("paint --time: dusk is the pick itself; paint --time dawn|day|night, or --winter [--time PHASE]")
+        paint_hour("library", WINDOW_GLASS, a.time or "dusk", a.winter, a.count, a.start or (700 if a.winter else 1000), a.host)
     elif a.cmd == "paint":
-        paint(a.count, a.start, a.host)
+        paint(a.count, a.start or 900, a.host)
     else:
         build(Path(a.out))

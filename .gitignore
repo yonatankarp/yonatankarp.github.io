@@ -59,6 +59,11 @@ web3d/pixel/paintings/picks/*
 !web3d/pixel/paintings/picks/radio.png
 !web3d/pixel/paintings/picks/post.png
 !web3d/pixel/paintings/picks/workshop*.png
+# and the Library's and the radio and post rooms' other hours: each room retimed whole (ROOM-PHASE.png, of which the bake
+# takes only the light) and its window's view at each hour and in winter (ROOM-view[-winter][-PHASE].png)
+!web3d/pixel/paintings/picks/library-*.png
+!web3d/pixel/paintings/picks/radio-*.png
+!web3d/pixel/paintings/picks/post-*.png
 # gen_walkers.py reads every frame of every walker and cat
 !web3d/pixel/paintings/picks/walkers/
 !web3d/pixel/paintings/picks/cats/

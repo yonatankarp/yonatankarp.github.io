@@ -1,19 +1,23 @@
 // The Library's life (layouts/blog/list.html, its own bundle): readers browsing the shelves, the fire flickering with a
 // breathing glow and rising embers, dust turning in the window's light, and clouds passing outside, only over the
 // window's sky, so behind its frames and the rooftops. Over the header's picture, cropped as it is (scene-fx.js); where
-// is library-fx.json, written by web3d/pixel/gen_library.py, and the readers are gen_walkers.py's readers sheet. One
-// painting, at dusk, so no hours.
+// is library-fx.json, written by web3d/pixel/gen_library.py, and the readers are gen_walkers.py's readers sheet. The
+// room follows the hour (html[data-time], head.html's time pick): at night no sun comes in for the dust to turn in, the
+// readers are dimmed as Workshop Row's walkers are, and the clouds take the sky's colour (CLOUDS).
 import { arrive } from './iris.js';
 import { readers } from './readers.js';
 import { animate, people, rnd } from './scene-fx.js';
 
+const time = document.documentElement.dataset.time ?? 'dusk', night = time === 'night';
+// The clouds passing the window, at each hour: as the hour's painted clouds are lit.
+const CLOUDS = { dawn: 'rgba(255,238,240,.24)', day: 'rgba(255,255,255,.34)', dusk: 'rgba(255,236,222,.22)', night: 'rgba(120,132,170,.16)' };
 const canvas = document.querySelector('.library-fx');
 if (canvas) {
-  const sheet = people((ext) => `${canvas.dataset.readers}.${ext}?v=${canvas.dataset.version}`, false);
+  const sheet = people((ext) => `${canvas.dataset.readers}.${ext}?v=${canvas.dataset.version}`, night);
   animate(canvas, { data: canvas.dataset.fx, depth: canvas.dataset.depth }, (ctx, fx, test) => setup(ctx, fx, test, sheet));
   // In from the city's push-in: its frame opens from the header's middle, the room and its life settling about it (the
   // picture is larger than the header, at its whole device px: custom.css).
-  const img = canvas.previousElementSibling;
+  const img = canvas.parentElement.querySelector('img');
   arrive(img, () => {
     const h = img.parentElement.getBoundingClientRect(), r = img.getBoundingClientRect(), at = [h.left + h.width / 2, h.top + h.height / 2];
     const o = [at[0] - r.left, at[1] - r.top];
@@ -46,7 +50,7 @@ function setup(ctx, fx, { dfill, sprite }, sheet) {
   const [kx0, ky0, kx1, ky1] = fx.clouds;
   const clouds = Array.from({ length: 3 }, () => ({ x: rnd(kx0 - 10, kx1 - 10), y: rnd(ky0, ky1), w: rnd(7, 15), v: rnd(0.6, 1.1) }));
   const drawClouds = (dt) => {
-    ctx.fillStyle = 'rgba(255,236,222,.22)';
+    ctx.fillStyle = CLOUDS[time] ?? CLOUDS.dusk;
     for (const c of clouds) {
       c.x += c.v * dt / 1000;
       if (c.x > kx1) Object.assign(c, { x: kx0 - c.w, y: rnd(ky0, ky1), w: rnd(7, 15) });
@@ -64,7 +68,7 @@ function setup(ctx, fx, { dfill, sprite }, sheet) {
   };
 
   const [dx0, dy0, dx1, dy1] = fx.dust;
-  const dust = Array.from({ length: 12 }, () => ({ x: rnd(dx0, dx1), y: rnd(dy0, dy1), vx: rnd(-0.3, 0.3), vy: rnd(-0.6, -0.1), ph: rnd(0, 6.3) }));
+  const dust = night ? [] : Array.from({ length: 12 }, () => ({ x: rnd(dx0, dx1), y: rnd(dy0, dy1), vx: rnd(-0.3, 0.3), vy: rnd(-0.6, -0.1), ph: rnd(0, 6.3) }));
   const drawDust = (now, dt) => {
     for (const d of dust) {
       d.x += (d.vx + Math.sin(now / 1700 + d.ph) * 0.25) * dt / 250; d.y += d.vy * dt / 250;

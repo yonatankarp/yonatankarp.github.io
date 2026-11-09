@@ -1,4 +1,6 @@
-{{- /* The blog's index is the city's Library: its reading room (web3d/pixel/gen_library.py) across the head, then every
+{{- /* The blog's index is the city's Library: its reading room (web3d/pixel/gen_library.py) across the head, at the
+     visitor's hour and season (preloaded by head.html, from the page's `art`, and set by assets/js/art-time.js right after
+     the picture; dusk without a script), then every
      listed post. The topic chips and the search box filter the list in place (assets/js/library.js); without a script
      the chips are links to the tag pages and the search box a form to /search/. */ -}}
 {{ define "main" }}
@@ -26,10 +28,12 @@
 {{ $fx = $fx | fingerprint }}
 {{ $fxData := "building/pixel/library-fx.json" }}
 {{ $fxVersion := partialCached "art-version.html" . }}{{/* the art's, on the room's and its animations' URLs */}}
+{{ $hour := resources.Get "js/art-time.js" | minify | fingerprint "sha256" }}{{/* allowed by its hash in head.html */}}
 <div class="blog-px library">
 <header class="library-hero">
   <div class="library-art">
-    <img src="{{ $img | relURL }}?v={{ $fxVersion }}" alt="{{ hugo.Data.art.library }}" width="{{ $size.Width }}" height="{{ $size.Height }}" fetchpriority="high">
+    <img src="{{ $img | relURL }}?v={{ $fxVersion }}" alt="{{ hugo.Data.art.library }}" width="{{ $size.Width }}" height="{{ $size.Height }}" loading="lazy" fetchpriority="high">
+    <script>{{ $hour.Content | safeJS }}</script>
     <canvas class="library-fx" width="{{ $size.Width }}" height="{{ $size.Height }}" aria-hidden="true" data-fx="{{ $fxData | relURL }}?v={{ $fxVersion }}" data-depth="{{ "building/pixel/library-depth.png" | relURL }}?v={{ $fxVersion }}" data-readers="{{ "building/pixel/readers" | relURL }}" data-version="{{ $fxVersion }}"></canvas>
   </div>
   <div class="library-title">

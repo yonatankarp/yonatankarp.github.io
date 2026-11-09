@@ -1,6 +1,6 @@
 """What the art scripts share, with Pillow alone at import (numpy, where a helper needs it, inside that helper): the paths,
 the panoramas' size, the palette of what is drawn in code, the Draw Things call, the magenta key and the reduce of a
-sprite, the mends pasted over a pick, and the lossless save.
+sprite, the mends pasted over a pick, a painting's glass and its relighting at another hour, and the lossless save.
 
 New keys in the JSON the pages read give a box as [x0, y0, x1, y1] in art px, as the scenes' FX do.
 """
@@ -11,7 +11,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 PIXEL = Path(__file__).resolve().parent
 ROOT = PIXEL.parents[1]                       # the repository
@@ -131,11 +131,85 @@ def patched(im, names):
     return im
 
 
-def bake(path, patches=(), size=SIZE):
-    """A panorama's painting box-reduced to `size`, on its own COLOURS colours: the city's pixel look, undithered. A few
-    k-means passes after the median cut, as plain median cut spends no colour on small lamps (the Library's green ones)."""
-    im = patched(Image.open(path).convert("RGB"), patches).crop((0, 0, PW, PH))
-    return im.resize(size, Image.BOX).quantize(COLOURS, method=Image.Quantize.MEDIANCUT, kmeans=3, dither=Image.Dither.NONE).convert("RGB")
+def bake(src, patches=(), size=SIZE, keep=(), kept=6):
+    """A panorama's painting (a path, or a picture) box-reduced to `size`, on its own COLOURS colours: the city's pixel
+    look, undithered. A few k-means passes after the median cut, as plain median cut spends no colour on small lamps (the
+    Library's green ones). `keep`, boxes in painting px whose own `kept` colours are cut first and kept, the rest of the
+    palette cut from the whole: under snow, the median cut spent the Library's lamp greens on the white."""
+    im = patched((src.copy() if isinstance(src, Image.Image) else Image.open(src)).convert("RGB"), patches).crop((0, 0, PW, PH))
+    small = im.resize(size, Image.BOX)
+    cut = {"method": Image.Quantize.MEDIANCUT, "dither": Image.Dither.NONE}
+    if not keep:
+        return small.quantize(COLOURS, kmeans=3, **cut).convert("RGB")
+    k = size[0] / PW
+    boxes = [small.crop(tuple(round(v * k) for v in box)) for box in keep]
+    strip = Image.new("RGB", (sum(b.width for b in boxes), max(b.height for b in boxes)))
+    x = 0
+    for b in boxes:
+        strip.paste(b, (x, 0))
+        x += b.width
+    colours = lambda q: [tuple(q.getpalette()[3 * i:3 * i + 3]) for _, i in sorted(q.getcolors())]
+    own = colours(strip.quantize(kept, kmeans=3, **cut))
+    rest = colours(small.quantize(COLOURS - len(own), kmeans=3, **cut))
+    pal = Image.new("P", (1, 1))
+    pal.putpalette([v for c in own + rest for v in c] + [0, 0, 0] * (256 - len(own) - len(rest)))
+    return small.quantize(palette=pal, dither=Image.Dither.NONE).convert("RGB")
+
+
+def glass(im, panes=(), arches=(), fronts=(), lamps=(), bars=False):
+    """The mask of a painting's window glass, softened a pixel: its panes (boxes) and arches (ellipses), but what stands
+    in front of them (boxes), the dark wood of its mullions and bars where it has them, grown 2 px so none of an edit's
+    frame shows, and in front of a lamp's box only the lamp (its brass, glow and chain), not the sky round it. In
+    painting px."""
+    import numpy as np
+    mask = Image.new("L", im.size)
+    d = ImageDraw.Draw(mask)
+    for box in panes:
+        d.rectangle(box, fill=255)
+    for box in arches:
+        d.ellipse(box, fill=255)
+    for box in fronts:
+        d.rectangle(box, fill=0)
+    a = np.asarray(im.convert("RGB")).astype(int)
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    m = np.asarray(mask) > 0
+    if bars:
+        wood = Image.fromarray(((r - b > 30) & (r + g + b < 290) & (r >= g)).astype(np.uint8) * 255)
+        m &= ~(np.asarray(wood.filter(ImageFilter.MaxFilter(5))) > 0)
+    lamp = (r - b > 70) | (r + g + b < 200)
+    for x0, y0, x1, y1 in lamps:
+        m[y0:y1, x0:x1] &= ~lamp[y0:y1, x0:x1]
+    return Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1))
+
+
+def blur(a, sigma):
+    """A float array (height, width, channels) blurred by about a gaussian of `sigma`: three box passes each way."""
+    import numpy as np
+    k = round((4 * sigma ** 2 + 1) ** 0.5) | 1
+    for axis in (0, 1):
+        for _ in range(3):
+            pad = np.pad(a, [(k // 2 + 1, k // 2) if ax == axis else (0, 0) for ax in range(a.ndim)], mode="edge")
+            c = np.cumsum(pad, axis=axis)
+            a = (np.take(c, range(k, c.shape[axis]), axis=axis) - np.take(c, range(c.shape[axis] - k), axis=axis)) / k
+    return a
+
+
+def relit(dusk, retimed, glass, sigma=16, gain=(0.1, 4.0)):
+    """The dusk painting in the light of `retimed`, the model's edit of it to another hour: each pixel scaled by the ratio
+    of the two blurred (sigma, painting px: the light, not the shapes), the glass (a mask) left out of both, as another
+    view goes there. The drawing stays the dusk one to the pixel, so what is drawn over it (FX, depth maps, a sheet cut from
+    it) keeps its place: the model moves shapes when it relights a room. The gain is capped as a whole, one factor for all
+    three channels, so the hour's colour holds (capped one by one, dark warm wood in daylight went orange), and the
+    lights (the lamps, a fire) keep theirs."""
+    import numpy as np
+    D, B = np.asarray(dusk.convert("RGB"), float), np.asarray(retimed.convert("RGB"), float)
+    w = 1 - np.asarray(glass, float)[..., None] / 255
+    g = (blur(B * w, sigma) + 4) / (blur(D * w, sigma) + 4)
+    g = g * np.minimum(1, gain[1] / g.max(-1, keepdims=True))
+    g = g * np.maximum(1, gain[0] / g.min(-1, keepdims=True))
+    lit = np.clip((D.max(-1, keepdims=True) - 200) / 40, 0, 1)
+    g = g + (np.maximum(g, 1) - g) * lit
+    return Image.fromarray(np.clip(D * g, 0, 255).round().astype(np.uint8))
 
 
 def save_lossless(im, path):

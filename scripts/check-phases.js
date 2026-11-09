@@ -11,7 +11,8 @@
 // - assets/css/custom.css puts each phase's backdrop (a crop of the city, gen_city.py) behind the other pages, and in
 //   winter (html[data-season]) its snowy one;
 // - and the art those name is in static/building/pixel/: the tower's baked rooms (gen_floors.py), the homepage's city and
-//   the projects' Workshop Row at each hour (gen_city.py, gen_workshop.py), each in winter too, and the open doors the
+//   the projects' Workshop Row at each hour (gen_city.py, gen_workshop.py), the Library's, the Radio Mast's and the Post
+//   Office's rooms and the studio's reels (gen_library.py, gen_rooms.py), each in winter too, and the open doors the
 //   city's push-in goes through: the city's tower door (gen_city.py) and the lobby's entrance (gen_floors.py).
 const fs = require("fs");
 const path = require("path");
@@ -71,7 +72,7 @@ for (const key of backdrops.keys()) {
 }
 
 // The art: dusk is the plain files; every other phase has its backdrop and its baked rooms; and in winter every phase,
-// dusk too, its own backdrop, rooms (phases.json's "winter" "baked"), city and Workshop Row.
+// dusk too, its own backdrop, rooms (phases.json's "winter" "baked"), city, Workshop Row and district rooms.
 for (const winter of [false, true]) {
   for (const name of names) {
     const suffix = suffixOf(name, winter), label = `${winter ? "winter at " : ""}${name}`, baked = winter ? phases[name].winter?.baked ?? "" : phases[name].baked;
@@ -88,6 +89,13 @@ for (const winter of [false, true]) {
     for (const scene of ["city", "workshop"]) {
       const file = `${scene}${suffix}.webp`;
       if (!fs.existsSync(path.join(rootDir, art(file)))) problems.push(`${label} needs ${art(file)} (a pick in web3d/pixel/gen_${scene}.py's ${winter ? "WINTER_PICKS" : "PICKS"}, then uv run web3d/pixel/gen_${scene}.py build)`);
+    }
+    // The district rooms: a pick of the room retimed (but at dusk) and of its window's view (but at plain dusk), then the bake.
+    for (const [room, how] of [["library", "gen_library.py"], ["radio", "gen_rooms.py"], ["post", "gen_rooms.py"]]) {
+      const picks = [...(name === "dusk" ? [] : [`${room}-${name}.png`]), ...(suffix ? [`${room}-view${suffix}.png`] : [])];
+      for (const file of [`${room}${suffix}.webp`, ...(room === "radio" ? [`radio-reels${suffix}.webp`] : [])]) {
+        if (!fs.existsSync(path.join(rootDir, art(file)))) problems.push(`${label} needs ${art(file)} (web3d/pixel/paintings/picks/${picks.join(" and ")}, painted by uv run web3d/pixel/${how} paint --time ${name}${winter ? " --winter" : ""}, then uv run web3d/pixel/${how} build)`);
+      }
     }
   }
 }

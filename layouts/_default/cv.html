@@ -46,6 +46,17 @@
       </ul>
     </section>
 
+    {{- /* The lobby's pull quotes (content/testimonial/), newest first: on the web CV only, as the PDF is one page. */}}
+    {{ with sort (where .Site.RegularPages "Type" "testimonial") "Date" "desc" }}
+    <section class="px-section" aria-labelledby="cv-recommendations">
+      <h2 id="cv-recommendations">{{ $cv.headings.recommendations }}</h2>
+      <ul class="cv-recs">
+        {{ range . }}<li><q>{{ strings.TrimSuffix "." .Params.pullQuote }}</q><cite><b>{{ .Params.name }}</b> · {{ .Params.position }}</cite></li>
+        {{ end }}
+      </ul>
+    </section>
+    {{ end }}
+
     {{ with $skills }}
     <section class="px-section" aria-labelledby="cv-skills">   {{- /* plain text on purpose: recruiters and ATS filters search the PDF for these */ -}}
       <h2 id="cv-skills">{{ $cv.headings.skills }}</h2>

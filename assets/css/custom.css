@@ -711,6 +711,11 @@ html[data-season="winter"][data-time="night"] .px-skin { --scene: url(../buildin
 .cv-page .copy-email:focus-visible { outline: none; box-shadow: inset 0 0 0 2px var(--text), inset 0 0 0 4px var(--ink); }
 
 .cv-focus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.cv-recs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 36px; margin: 4px 0 0; padding: 0; list-style: none; }
+.cv-recs li { display: grid; align-content: start; gap: 8px; }
+.cv-recs q { font: 400 22px/1.25 var(--display); color: var(--text); }
+.cv-recs cite { font-style: normal; font-size: 14px; color: var(--text-soft); }
+.cv-recs cite b { color: var(--amber); font-weight: 600; }
 .cv-focus li { clip-path: var(--stepped); padding: 22px 18px 18px; font-size: 15px; line-height: 1.5; background: var(--well); box-shadow: inset 0 0 0 4px var(--ink), inset 0 12px 0 0 var(--amber); }
 
 .cv-role-item { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 20px; padding: 20px 0; }
@@ -835,6 +840,7 @@ html[data-season="winter"][data-time="night"] .px-skin { --scene: url(../buildin
   .cv-page .px-kicker,
   .cv-page .px-section > p + p:not(:has(strong)),
   section:has(> #cv-focus),
+  section:has(> #cv-recommendations),
   .cv-role-item__body > p:not(.cv-sub),
   .cv-role-item:nth-last-of-type(-n+2) .cv-bullets li + li,
   .cv-teaching,
@@ -1011,7 +1017,8 @@ html[data-season="winter"][data-time="night"] .px-skin { --scene: url(../buildin
   .px-sheet { width: calc(100% - 24px); padding: 26px 20px 30px; }
   .px-skin::before { display: none; }
   .cv-page h1 { font-size: 36px; }   /* the whole name on one line at 375px */
-  .cv-focus, .cv-bullets, .cv-edu { grid-template-columns: 1fr; }
+  .cv-focus, .cv-bullets, .cv-edu, .cv-recs { grid-template-columns: 1fr; }
+  .cv-recs q { font-size: 20px; }
   .cv-role-item { grid-template-columns: 36px minmax(0, 1fr); gap: 14px; }
   .cv-floor { width: 36px; height: 36px; }
 

@@ -183,6 +183,18 @@ html:not(.building--guided) .building-hint { display: none; }
   transition: transform 80ms steps(1);
 }
 .pixel .building-floor-btn:hover { background: #3c434c; }
+/* Each floor's company under its digit (index.html), where the plate has the room: a wide screen, a phone or a portrait
+   one. Not on a tablet's plate beside the download button, nor on the plain page's row, where the aria-label still names it. */
+.pixel .lift-cap { display: none; }
+@media (min-width: 1340px) and (min-aspect-ratio: 6/5) {   /* under 1340px the wider plate would reach the name */
+  html.building--guided .pixel .building-floor-btn:has(.lift-cap) { width: 52px; height: 52px; grid-auto-flow: row; align-content: center; gap: 4px; }
+  html.building--guided .pixel .lift-cap { display: block; font: 500 10px/1 'Outfit', 'Outfit Arial', 'Outfit Roboto', system-ui, sans-serif; color: var(--text-soft); }
+}
+@media (max-width: 760px), (max-aspect-ratio: 6/5) {
+  html.building--guided .pixel .building-floor-btn:has(.lift-cap) { grid-auto-flow: row; align-content: center; gap: 3px; font-size: 22px; }
+  html.building--guided .pixel .lift-cap { display: block; font: 500 7.5px/1 'Outfit', 'Outfit Arial', 'Outfit Roboto', system-ui, sans-serif; letter-spacing: -0.03em; color: var(--text-soft); }
+}
+html.building--guided .pixel .building-floor-btn[aria-current="true"] .lift-cap { color: var(--ink); }
 .pixel .building-floor-btn:active { transform: translateY(4px); }
 .pixel .building-floor-btn[aria-current="true"] {
   background: var(--amber);

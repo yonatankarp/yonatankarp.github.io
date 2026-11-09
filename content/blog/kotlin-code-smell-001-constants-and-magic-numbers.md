@@ -8,6 +8,7 @@ noindex: true
 outputs: ["html"]
 aliases:
   - /kotlin-code-smell-001-constants-and-magic-numbers
+  - /kotlin-code-smell-1-constants-and-magic-numbers
 build:
   list: never
 ---

@@ -380,7 +380,7 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
    --panel-hi one, as shadows: a border would eat into the image), pixelated like the Library's header. Its size is the
    most whole device px an art px (--dpr: assets/js/dpr.js) that fit the width and about 72% of the screen under the bar
    (140px), never under 1, so a 1440x900 or 1744x976 2x screen shows it at 960x540 and a 1280x720 one at 480x270; a 1x
-   screen under 1010px crops its sides. A phone shows it across its width, with ink at the sides. */
+   screen under 1010px, where 1 is too wide, shrinks it to fit. A phone shows it across its width, with ink at the sides. */
 .blog-px { position: relative; }
 .blog-px .post-scene { display: flex; justify-content: center; padding: 8px clamp(16px, 3vw, 36px) 0; overflow-x: clip; }
 .blog-px .article__cover {
@@ -388,7 +388,7 @@ a.post-stamp:is(:hover, :focus-visible) { transform: translateY(-3px) rotate(-1d
   box-shadow: 0 0 0 4px var(--ink), 0 0 0 8px var(--panel-hi), 0 18px 40px rgb(0 0 0 / 0.5);
 }
 @supports (width: round(down, 1px, 1px)) {
-  .blog-px .article__cover { width: max(960px / var(--dpr, 1), round(down, min(100% - 16px, (100vh - 140px) * 0.72 * 16 / 9), 960px / var(--dpr, 1))); }
+  .blog-px .article__cover { width: min(100% - 16px, max(960px / var(--dpr, 1), round(down, min(100% - 16px, (100vh - 140px) * 0.72 * 16 / 9), 960px / var(--dpr, 1)))); }
 }
 .blog-px .post-scene + .article-shell { padding-top: 40px; }   /* 32px under the frame */
 @media screen and (max-width: 760px) {

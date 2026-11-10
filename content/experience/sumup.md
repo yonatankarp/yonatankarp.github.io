@@ -11,8 +11,8 @@ summary: "Built shared backend foundations: a service template, a money library 
 highlights:
   - "Cut new service setup from a week to 1-2 hours with a service template."
   - "Built the money library shared by SumUp's backend and Android apps, and the authorization and permissions libraries for point-of-sale services."
-  - "Migrated 6 years of historical data with minimal production impact."
+  - "Separated the payment and sales domains, migrating 6 years of historical data without merchants noticing a change."
   - "Added SLOs and on-call for critical point-of-sale services, showing how much risk we could take, how fast we responded, and what mattered."
 ---
 
-Cut new service setup from a week to 1-2 hours with a service template. Built the money library shared by SumUp's backend and Android apps, and the authorization and permissions libraries for point-of-sale services. Migrated 6 years of historical data with minimal production impact. Added SLOs and on-call for critical point-of-sale services, showing how much risk we could take, how fast we responded, and what mattered.
+Cut new service setup from a week to 1-2 hours with a service template. Built the money library shared by SumUp's backend and Android apps, and the authorization and permissions libraries for point-of-sale services. Separated the payment and sales domains, migrating 6 years of historical data without merchants noticing a change. Added SLOs and on-call for critical point-of-sale services, showing how much risk we could take, how fast we responded, and what mattered.

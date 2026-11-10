@@ -3,6 +3,7 @@
 f=$(jq -r '.tool_input.file_path // empty')
 root=${CLAUDE_PROJECT_DIR:-$PWD}
 rel=${f#"$root"/}
+[ "$rel" = "$f" ] && exit 0   # outside the project (a scratch file): no config of ours applies
 cd "$root" || exit 0
 
 case "$rel" in

@@ -4,4 +4,8 @@ Allow: /
 # A separate project on this domain: keep it out of search
 Disallow: /guillotine-archive/
 
+# ff4k's docs: only /ff4k/latest/ for search, not each version's copy or the unreleased main
+Disallow: /ff4k/v
+Disallow: /ff4k/main/
+
 Sitemap: https://yonatankarp.com/sitemap.xml

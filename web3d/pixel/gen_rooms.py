@@ -11,7 +11,7 @@ Run: uv run web3d/pixel/gen_rooms.py paint [--count N] [--start S]   # Draw Thin
                                                                      # the studio's radio-reels[-winter][-PHASE].webp
 
 Painted from text at the city's size and baked as the Library is (gen_library.py): box-reduced to ART_W wide on COLOURS
-colours, undithered, then at half that resolution in place (COARSE: art_common.coarsen), so a wide screen can show more
+colours, undithered, then at half that resolution in place (COARSE: art_common.coarsen_baked), so a wide screen can show more
 of the room at a smaller art px that still reads as pixel art (custom.css: .room-hero). Paintings go to web3d/pixel/paintings/candidates/ROOM_SEED.png (not
 committed); the chosen one is copied to web3d/pixel/paintings/picks/ROOM.png, the build's input, and its seed noted in
 PICKS.
@@ -35,7 +35,7 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art_common import (ART_W, CANDIDATES, OUT, PH, PICKS as PICKED, PW, ROOT, bake, blur, coarsen, glass,  # noqa: E402
+from art_common import (ART_W, CANDIDATES, OUT, PH, PICKS as PICKED, PW, ROOT, bake, blur, coarsen_baked, glass,  # noqa: E402
                         name, paint_candidate, patched, relit, save_lossless)
 from install_picks import night_view  # noqa: E402
 
@@ -59,7 +59,7 @@ PROMPTS = {
                      "post box on the left by the door; tall arched windows on the right with the dusk sky; green-shaded lamps; "
                      "a tiled floor."),
 }
-# The rooms are baked at half resolution (art_common.coarsen), every 2x2 block of art px one colour, so an art px can be
+# The rooms are baked at half resolution (art_common.coarsen_baked), every 2x2 block of art px one colour, so an art px can be
 # shown smaller and the head keep more of the room in view while it still reads as pixel art (custom.css: .room-hero).
 # The files stay ART_W wide, so every coordinate below is in the art's own px; rooms-fx.js draws on a store COARSE times
 # smaller, so its animations are as coarse.
@@ -274,7 +274,7 @@ def build(out):
         ref = bake(*hour(room, WINDOWS[room], "dusk", False, PATCHES.get(room, ())))   # where the reels' cutouts are, found at full resolution
         for winter in (False, True):
             for phase in PHASES:
-                art = coarsen(bake(*hour(room, WINDOWS[room], phase, winter, PATCHES.get(room, ()))), COARSE)
+                art = coarsen_baked(bake(*hour(room, WINDOWS[room], phase, winter, PATCHES.get(room, ()))), COARSE)
                 save_lossless(art, out / f"{room}{suffix(phase, winter)}.webp")
                 if "reels" in FX[room]:
                     save_lossless(reels(art, FX[room]["reels"], ref), out / f"{room}-reels{suffix(phase, winter)}.webp")

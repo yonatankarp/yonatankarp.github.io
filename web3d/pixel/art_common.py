@@ -156,7 +156,7 @@ def bake(src, patches=(), size=SIZE, keep=(), kept=6):
     return small.quantize(palette=pal, dither=Image.Dither.NONE).convert("RGB")
 
 
-def coarsen(img, k=2):
+def coarsen_baked(img, k=2):
     """A baked picture at 1/k resolution on its own grid, its size and so every coordinate kept: each k x k block (from
     0, 0) one colour, the block's mean (a part block at an odd edge, what it has) cut to COLOURS colours as bake() cuts.
     Integer means, so CI gets the same bits."""

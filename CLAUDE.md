@@ -328,7 +328,7 @@ on-air lamp's glow while the show is off air), and the Post Office's clock (the 
 `gen_rooms.py` (`reels()`) bakes `radio-reels[-winter][-PHASE].webp` from each hour's art, at the same boxes and with the
 cutouts found at dusk, each reel's bare metal over its cutouts, which rooms-fx.js (by `html[data-art]`) turns about the hub
 on the slanted disc (a reel is its hub, its flange's half-width and half-height, its turn and its plain hub's reach, in
-`FX`). The rooms are baked at half resolution (`art_common.coarsen`, `COARSE`): each 2x2 block of art px on the art's
+`FX`). The rooms are baked at half resolution (`art_common.coarsen_baked`, `COARSE`): each 2x2 block of art px on the art's
 own grid one colour, the files still 1440x347, so every FX, the reels' boxes and the depth maps keep their coordinates.
 Their animations draw on a store as coarse (720x174, `ROOM-fx.json`'s `coarse`, read by `room-hero.html`), each rect
 grown to the 2x2 grid (rooms-fx.js's `rect`), so they are as coarse as the room. Their pages and paintings are under

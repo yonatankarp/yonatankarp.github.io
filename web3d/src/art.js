@@ -85,11 +85,13 @@ export function shade(img, lv) {
   return (img.shades[16] = step.value);
 }
 
-// The 4x4 Bayer tile with lv of its 16 cells set: what of a lights-off picture is kept, from the strip's own (0, 0).
-export function bayer(lv) {
+// The 4x4 Bayer tile with lv of its 16 cells set: what of a lights-off picture is kept, from the strip's own (0, 0). A cell
+// is k x k pixels, the rooms' 2x2 blocks of art pixels (gen_floors.py), so the tile is 8 art pixels across; k = 1 for a
+// canvas drawn at half size (floor 7's capsule).
+export function bayer(lv, k = 2) {
   const tile = document.createElement('canvas').getContext('2d');
-  tile.canvas.width = tile.canvas.height = 4;
-  BAYER.forEach((row, y) => row.forEach((b, x) => { if (b < lv) tile.fillRect(x, y, 1, 1); }));
+  tile.canvas.width = tile.canvas.height = 4 * k;
+  BAYER.forEach((row, y) => row.forEach((b, x) => { if (b < lv) tile.fillRect(x * k, y * k, k, k); }));
   return tile.canvas;
 }
 

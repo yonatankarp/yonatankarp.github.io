@@ -3,14 +3,14 @@
 # dependencies = ["pillow==12.1.0", "numpy==2.3.4"]
 # ///
 """Install the picked paintings: bake each to the art standard (the city's: box-reduced, a median cut to 64 colours, no
-dither, no palette), with the one lift pasted in.
+dither, no palette), with the one lift pasted in, each 2x2 block of it one colour (coarsen: the tower reads as pixel art).
 
 Run: uv run web3d/pixel/install_picks.py [--out DIR] [NAME ...]   # DIR defaults to paintings/picks (CI: a scratch folder)
 
 PICKS names every painting's candidate (paint_rooms.py; floors 1 and 3 mended by its `wall`). A floor's painting is
 the lobby carried on into its room, so its lift is already where the lobby's is; the lobby's own lift (its frame and
 doors, and the floor display over them) is pasted over it all the same, so the doors pixel.js slides are one pair on
-every floor. Writes <name>-px.png: 928 x 308, the lobby 264 x 308. The lobby is installed first, and the roof's night
+every floor. Writes <name>-px.png: 928 x 308, the lobby 264 x 308, every 2x2 block on its grid one colour. The lobby is installed first, and the roof's night
 before its winter night, as PICKS lists them: the others read them from DIR.
 """
 import argparse
@@ -22,7 +22,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art_common import CANDIDATES, PICKS as PICKED, patched  # noqa: E402
+from art_common import CANDIDATES, PICKS as PICKED, coarsen, patched, regrid  # noqa: E402
 
 LOBBY = ("lobby_1017.png", (7, 7, 684, 761))   # the picked lobby candidate (PICKS["lobby"]) and its crop
 LOBBY_PX, FLOOR_PX, CAB_PX, COLOURS = (264, 308), (928, 308), (96, 168), 64   # the cab: gen_floors.DOOR's size
@@ -76,7 +76,7 @@ ENTRANCE_CROP = (1792, 0, 2304, 768)   # painting px: the crop round the lobby's
 DOOR = {"reception": ENTRANCE_CROP}
 # Winter's edits snowed on what is indoors too (the roof's lift housing, the lobby door's frame, bars and handles), and
 # would not keep the lobby's view: a winter pick is the hour's own picture with only what may be snowy taken from its
-# edit. The roof: all but the housing (gen_floors.HOUSING, 265 art px); the lobby: its door's glass panes, but its push
+# edit. The roof: all but the housing (gen_floors.HOUSING, 266 art px); the lobby: its door's glass panes, but its push
 # bars and handles. In painting pixels.
 SNOWED = {"roof": [(660, 0, 2304, 768)],
           "reception": [(1993, 106, 2057, 208), (2078, 96, 2232, 178), (2000, 231, 2057, 661), (2090, 221, 2130, 666),
@@ -142,13 +142,14 @@ def plaques(px, _out):
     written in code as the old cel-shaded lobby's were, at 2x: a header bar, four lines of text, a signature and its
     seal. The paper keeps its painted light."""
     d = ImageDraw.Draw(px)
+    rect = lambda a, b, c, e, col: d.rectangle((a - a % 2, b - b % 2, c | 1, e | 1), col)   # inclusive, on the 2x2 grid
     for x0, y0, x1, y1 in PLAQUES:
-        d.rectangle((x0 + 6, y0 + 6, x1 - 6, y0 + 9), HEADER)
+        rect(x0 + 6, y0 + 6, x1 - 6, y0 + 8, HEADER)
         for k in range(4):
             y = y0 + 18 + 8 * k
-            d.rectangle((x0 + 6, y, x1 - 6 - (x1 - x0) // 3 * (k == 3), y + 1), INK)
-        d.rectangle((x1 - 20, y1 - 10, x1 - 8, y1 - 9), INK)
-        d.rectangle((x1 - 7, y1 - 13, x1 - 4, y1 - 10), SEAL)
+            rect(x0 + 6, y, x1 - 6 - (x1 - x0) // 3 * (k == 3), y, INK)
+        rect(x1 - 22, y1 - 10, x1 - 10, y1 - 10, INK)
+        rect(x1 - 8, y1 - 14, x1 - 5, y1 - 11, SEAL)
     return px
 
 
@@ -291,6 +292,7 @@ def install(name, out):
         lobby = Image.open(out / "lobby-px.png").convert("RGB")
         for box in (LIFT, SIGN):
             small.paste(lobby.crop(box), box[:2])
+    small = coarsen(small)   # an art pixel 2 of the strip's across: a painting's detail, at 1.5 CSS px, read as paint
     px = small.quantize(COLOURS, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
     if room == "roof":   # its hours repainted the call panel (a display by day, a blank box at night): the lobby's, relit,
         panel, mask = relit(lobby, small, PANEL)   # after the cut and on its colours, so the rest of the room keeps its own
@@ -301,6 +303,7 @@ def install(name, out):
                  mask.point(lambda v: 255 * (v > 0)))
     for key in {room, name, name.replace("-winter", "")} & TOUCHUPS.keys():   # winter keeps its hour's touch-ups
         px = TOUCHUPS[key](px, out)
+    px = regrid(px)   # what the panel and the touch-ups drew a pixel at a time
     px.save(out / f"{name}-px.png")
     print("installed", name, src.size, "->", px.size, "colours:", len(px.getcolors(4096)))
 

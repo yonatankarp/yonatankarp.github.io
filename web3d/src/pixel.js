@@ -40,7 +40,9 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');   // read l
 const fxOff = new URLSearchParams(location.search).get('fx') === 'off';   // the visual captures, as in scene-fx.js
 const held = () => reduceMotion.matches || fxOff || !roomy.matches;     // no motion to pause: asked for none, ?fx=off, or the plain page, where the pause scrolls away
 const hashKey = () => floorKey(location.hash, ORDER);   // a floor that exists again (a new floor 8) wins over its old anchor
-const PAY = 36;                                                 // floor 7's capsule's canvas, in art pixels: it turned any way, on the 4-pixel Bayer grid
+const PAY = 48;                                                 // floor 7's capsule's box, in art pixels: it turned any way, on the 8-pixel Bayer grid
+const GRID = 8;                                                 // the Bayer tile, 4 cells of the rooms' 2x2 blocks: live sprites' canvases sit on it
+const even = (v) => Math.round(v / 2) * 2;                      // the rooms are 2x2 blocks of art pixels: what is live moves in steps of 2
 const TRIES = 3, RETRY_MS = 2000;                                // a strip that failed to load is asked for again, this often and no sooner
 
 function mountPixel({ canvas, stops, base = '/building/', version = '', through = false }) {
@@ -80,15 +82,16 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
     });
   };
   // Floor 7's payment: its painted capsule (capsule.webp) rides the room's pipe at the screen's frame rate, not in the strip's
-  // frames (capsule.js). It is turned and smoothed into a small canvas in the room's own art pixels, laid on the strip's Bayer
-  // grid, and drawn at the room's scale like the strip, darkened with it (dimmed).
-  const pay = { img: null, at: null, x: 0, y: 0, shades: {}, c: document.createElement('canvas').getContext('2d', { willReadFrequently: true }) };
-  pay.c.canvas.width = pay.c.canvas.height = PAY;
+  // frames (capsule.js). It is turned and smoothed into a small canvas at half the room's art pixels, a pixel of it a 2x2
+  // block of the room's, laid on the strip's Bayer grid, and drawn at twice the room's scale, darkened with it (dimmed).
+  const pay = { img: null, at: null, x: 0, y: 0, k: 1, shades: {}, c: document.createElement('canvas').getContext('2d', { willReadFrequently: true }) };
+  pay.c.canvas.width = pay.c.canvas.height = PAY / 2;
   const payDraw = ([x, y, a]) => {
     const g = pay.c, [len, depth] = CAPSULE.size;
-    pay.x = Math.floor((x - PAY / 2) / 4) * 4; pay.y = Math.floor((y - PAY / 2) / 4) * 4;
-    g.clearRect(0, 0, PAY, PAY);
+    pay.x = Math.floor((x - PAY / 2) / GRID) * GRID; pay.y = Math.floor((y - PAY / 2) / GRID) * GRID;
+    g.clearRect(0, 0, PAY / 2, PAY / 2);
     g.save();
+    g.scale(0.5, 0.5);
     g.beginPath();
     for (const [cx, cy, cw, ch] of CAPSULE.clip) g.rect(cx - pay.x, cy - pay.y, cw, ch);   // it slips out of view into the counter
     g.clip();
@@ -99,7 +102,7 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
     pay.shades = {};
   };
   // A live sprite's canvas (the capsule's, the receptionist's) with the room's lights off, lv of 16 Bayer cells of it kept,
-  // as shade() makes the strip's: the canvas sits on the strip's 4-pixel grid, so the dither lines up with the room's.
+  // as shade() makes the strip's: the canvas sits on the strip's 8-pixel grid, so the dither lines up with the room's.
   const dimmed = (sp, lv) => (sp.shades[lv] ??= (() => {
     const { width: W, height: H } = sp.c.canvas;
     const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
@@ -107,7 +110,7 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
     const d = sp.c.getImageData(0, 0, W, H), px = d.data;
     for (let i = 0; i < px.length; i += 4) { px[i] *= DARK[0]; px[i + 1] *= DARK[1]; px[i + 2] *= DARK[2]; }
     c.putImageData(d, 0, 0);
-    if (lv < 16) { c.globalCompositeOperation = 'destination-in'; c.fillStyle = c.createPattern(bayer(lv), 'repeat'); c.fillRect(0, 0, W, H); }
+    if (lv < 16) { c.globalCompositeOperation = 'destination-in'; c.fillStyle = c.createPattern(bayer(lv, sp.k ?? 2), 'repeat'); c.fillRect(0, 0, W, H); }
     return c.canvas;
   })());
   // The lobby's receptionist: one of the painted people (receptionists.webp, a row each, a column per pose), picked per visit,
@@ -117,11 +120,11 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
   // with the room.
   const R = RECEPTION, staff = reception(R), row = R.people.indexOf(staff.person.name) * R.h;
   const desk = { img: null, poses: '', ran: 0, shades: {}, c: document.createElement('canvas').getContext('2d', { willReadFrequently: true }),
-    x: Math.floor((R.spot - R.w / 2) / 4) * 4, y: Math.floor((R.deskY - R.desk) / 4) * 4 };
+    x: Math.floor((R.spot - R.w / 2) / GRID) * GRID, y: Math.floor((R.deskY - R.desk) / GRID) * GRID };
   desk.c.canvas.width = R.spot + R.w / 2 - desk.x; desk.c.canvas.height = R.deskY - R.desk + R.h - desk.y;
   const deskDraw = (pose) => {
     desk.c.clearRect(0, 0, desk.c.canvas.width, desk.c.canvas.height);
-    desk.c.drawImage(desk.img, R.poses.indexOf(pose) * R.w, row, R.w, R.h, Math.round(R.spot - R.w / 2) - desk.x, R.deskY - R.desk - desk.y, R.w, R.h);
+    desk.c.drawImage(desk.img, R.poses.indexOf(pose) * R.w, row, R.w, R.h, even(R.spot - R.w / 2) - desk.x, R.deskY - R.desk - desk.y, R.w, R.h);
     desk.shades = {};
   };
   // Yonatan's two cats in the lobby (cats-lobby.webp, a row each, a column per pose): on the bench, on the counter in front of
@@ -132,19 +135,19 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
   const CS = CAT_SHEET, herd = cats(CATS, CS.people);
   const kit = { img: null, ran: 0, at: [], pets: CS.people.map(() => {
     const c = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
-    c.canvas.width = Math.ceil((CS.w + 3) / 4) * 4; c.canvas.height = Math.ceil((CS.h + 3) / 4) * 4;
+    c.canvas.width = Math.ceil((CS.w + GRID - 1) / GRID) * GRID; c.canvas.height = Math.ceil((CS.h + GRID - 1) / GRID) * GRID;
     return { c, shades: {}, drawn: '', x: 0, y: 0 };
   }) };
-  // Where each cat is drawn, the farther first: [row, frame, left, top, flipped], in strip pixels.
+  // Where each cat is drawn, the farther first: [row, frame, left, top, flipped], in strip pixels, on the rooms' 2x2 grid.
   const catsAt = (held) => (held ? CATS.still.map(([pose, x, y, dir], j) => ({ j, pose, x, y, dir, dist: 0 })) : herd.all.map((c, j) => ({ ...c, j })).filter((c) => c.on !== 'away'))
     .sort((a, b) => a.y - b.y).map(({ j, pose, x, y, dir, dist }) => {
       const k = pose === 'walk' ? Math.floor(dist / CS.stride[j] * 8) % 8 : CS.poses.indexOf(pose);
-      return [j, k, Math.round(x - CS.w / 2), Math.round(y) - CS.foot[j][k], dir < 0];
+      return [j, k, even(x - CS.w / 2), even(y - CS.foot[j][k]), dir < 0];
     });
   const catsDraw = () => {
     for (const [j, k, left, top, flip] of kit.at) {
       const pet = kit.pets[j], { c } = pet;
-      pet.x = Math.floor(left / 4) * 4; pet.y = Math.floor(top / 4) * 4;
+      pet.x = Math.floor(left / GRID) * GRID; pet.y = Math.floor(top / GRID) * GRID;
       const drawn = [k, flip, left - pet.x, top - pet.y].join();
       if (drawn === pet.drawn) continue;
       pet.drawn = drawn; pet.shades = {};
@@ -208,13 +211,13 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
     way.img.decode().catch(() => { way.img = null; }).finally(() => inLobby('L'));
   }
   const ajar = (now) => (way?.img && pan ? 1 - clamp01((now - pan[1] - SHUT_AFTER) / SHUT_MS) : 0);   // how open it is
-  // The open entrance with lv of each 4x4 cell of the strip's Bayer grid kept, laid on that grid (way.x, way.y), made once
-  // a step; none once it has gone.
+  // The open entrance with lv of each 4x4 cell of the strip's Bayer grid kept (a cell a 2x2 block), laid on that grid
+  // (way.x, way.y), made once a step; none once it has gone.
   const entrance = (open) => {
     const lv = Math.round(open * 16);
     if (!lv) return null;
     if (!way.steps) {
-      way.x = ENTRANCE.x0 - ENTRANCE.x0 % 4; way.y = ENTRANCE.y0 - ENTRANCE.y0 % 4; way.steps = {};
+      way.x = ENTRANCE.x0 - ENTRANCE.x0 % GRID; way.y = ENTRANCE.y0 - ENTRANCE.y0 % GRID; way.steps = {};
     }
     return (way.steps[lv] ??= (() => {
       const c = document.createElement('canvas').getContext('2d');
@@ -398,11 +401,11 @@ function mountPixel({ canvas, stops, base = '/building/', version = '', through 
         // At night its stars too: a patch of the roof's own top rows right of the crane, plain sky and stars, each course
         // shifted so no column of them lines up.
         const [sx, sw] = STARS;
-        if (STARRY && img) for (let r = 1, gy = y - 32 * s; gy + 32 * s > 0; r++, gy -= 32 * s) for (let gx = -(r * 97 % sw) * s; gx < w; gx += sw * s) ctx.drawImage(img, sx, 0, sw, 32, gx, gy, sw * s, 32 * s);
+        if (STARRY && img) for (let r = 1, gy = y - 32 * s; gy + 32 * s > 0; r++, gy -= 32 * s) for (let gx = -(r * 98 % sw) * s; gx < w; gx += sw * s) ctx.drawImage(img, sx, 0, sw, 32, gx, gy, sw * s, 32 * s);
       }
       if (key === ORDER[0] && y + FH * s < h) {                                           // and the ground under the lobby
         ctx.fillStyle = GROUND[1]; ctx.fillRect(0, y + FH * s, w, h);
-        ctx.fillStyle = GROUND[0]; ctx.fillRect(0, y + FH * s, w, s);
+        ctx.fillStyle = GROUND[0]; ctx.fillRect(0, y + FH * s, w, 2 * s);
       }
       if (y > h || y + FH * s < 0) continue;
       ctx.fillStyle = '#1f2532';   // a plain storey until its picture arrives (or if it never does)
@@ -488,11 +491,11 @@ function release(img) {
   if (img.close) img.close(); else img.src = '';
 }
 
-// The painted door halves slide apart over the painted cab, a whole pixel at a time. They are the rest frame's: doors
-// never move in a loop.
+// The painted door halves slide apart over the painted cab, a 2x2 block of the art at a time. They are the rest frame's:
+// doors never move in a loop.
 function drawDoors(ctx, img, x0, y0, s, open) {
   if (open <= 0) return;                                        // closed: the strip already shows the doors
-  const gap = Math.round(open * (DOOR.mid - DOOR.x0 - 2));
+  const gap = even(open * (DOOR.mid - DOOR.x0 - 2));
   const top = y0 + DOOR.y0 * s, h = DOOR.y1 - DOOR.y0;
   const lw = DOOR.mid - DOOR.x0, rw = DOOR.x1 - DOOR.mid;
   const left = x0 + DOOR.x0 * s, width = (DOOR.x1 - DOOR.x0) * s;

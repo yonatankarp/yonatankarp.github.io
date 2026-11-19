@@ -74,10 +74,12 @@ Draw Things runs on Yonatan's machine, and only he runs it or approves its jobs.
 3. **Commit the candidate.** Add `!web3d/pixel/paintings/candidates/<room>_<seed>.png` (and `-wall.png`) to the
    allowlist in `.gitignore`, beside the other rooms. `picks/*-px.png` is already allowed.
 4. **The pick.** Add `"<room>": "<room>_<seed>.png",` to `PICKS` in `web3d/pixel/install_picks.py`. Then run `uv run
-   web3d/pixel/install_picks.py <room>`, which writes `paintings/picks/<room>-px.png` (928x308, with the lobby's lift
+   web3d/pixel/install_picks.py <room>`, which writes `paintings/picks/<room>-px.png` (928x308, every 2x2 block one colour, with the lobby's lift
    pasted in). No model is needed.
 5. **The animation.** In `web3d/pixel/gen_floors.py`, write `def <room>(room, f, phase)` beside `billie_payments`. Use
    `Layer`'s `put`, `rect`, `lit` and `brighten`, and `sprite` and `line`. Coordinates are the pick's own 928x308 px.
+   - The rooms are pixel art of 2x2 blocks: draw in whole blocks, from even x and y, moving in steps of 2. `frames()`
+     regrids what does not (`regrid`), which blurs it, and `build()` asserts the moving box is on that grid.
    - Paint only over what is there: lights, screens, a glint, in the room's own colours.
    - Frames 1 to 11 together must change at least one pixel. Otherwise `build()`'s `min()` raises `ValueError`.
    - Keep everything that moves within pick x 69..904 (strip x 85..920), or `build()` asserts "moves over what its runs

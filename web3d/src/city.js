@@ -154,7 +154,8 @@ if (city && root.classList.contains('at-city')) {
     radio: () => roomHead(innerWidth < 1400 ? 1 : 1.5),
     post: () => roomHead(1.5),
   };
-  const roomHead = (m) => ({ x: innerWidth / 2, y: (narrow.matches ? Math.min(480, Math.max(230, innerWidth * 347 / 1440)) : Math.max(230, Math.min(innerHeight * 0.52, 347 * Math.max(Math.ceil(2 * devicePixelRatio * innerWidth / 1440) / (2 * devicePixelRatio), m)))) / 2 });
+  // A room's art px in steps of half a device px (its blocks whole ones): the cover rounded up, the minimum down.
+  const roomHead = (m, k = 2 * devicePixelRatio) => ({ x: innerWidth / 2, y: (narrow.matches ? Math.min(480, Math.max(230, innerWidth * 347 / 1440)) : Math.max(230, Math.min(innerHeight * 0.52, 347 * Math.max(Math.ceil(k * innerWidth / 1440), Math.floor(k * m)) / k))) / 2 });
   let entering = false;
   const through = (key, href) => {
     if (still.matches || fxOff || (key === 'tower' && !roomy.matches)) return false;

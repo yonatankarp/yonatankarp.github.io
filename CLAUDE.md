@@ -362,7 +362,8 @@ Library's bake keeps its lamps' greens where the snow would take them (`LAMP_SHA
 - `content/podcast.md` and `content/contact.md` — the Radio Mast (`/podcast/`, `layouts/_default/radio.html`) and the Post
   Office (`/contact/`, `post.html`). Each opens on its room, painted across the head (`partials/room-hero.html`), its top
   at the head's, its foot cropped, and never scrolled. On a wide screen (not art.js's `narrow`) an art px is at least
-  1.5 CSS px (the Radio Mast's 1 under 1400px wide, where 1.5 would crop its tape decks), so the room reads as pixel art,
+  1.5 CSS px (the Radio Mast's 1 under 1400px wide, where 1.5 would crop its tape decks; where a screen's px is
+  fractional, the block size just under it), so the room reads as pixel art,
   the head `clamp(230px, 52vh, 347·u)`, and the room's `focus` (`FX` in `gen_rooms.py`: the Radio Mast's mixing desk at
   532, the Post Office's clock at 500) mid-head, as far as no edge shows; a phone or a portrait screen keeps the head the
   painting's 1440:347 shape at the screen's width, between 230 and 480px, and the room's middle. Either way a 2x2 block

@@ -35,7 +35,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art_common import CANDIDATES, OUT, PICKS, key, magenta, paint_candidate, reduce, save_lossless  # noqa: E402
+from art_common import CANDIDATES, OUT, PICKS, coarsen, key, magenta, paint_candidate, reduce, save_lossless  # noqa: E402
 
 PAINTED = CANDIDATES / "walkers"
 PICKED = PICKS / "walkers"
@@ -330,10 +330,12 @@ def cat_frame(pick, s, black):
     return reduce(im, (round(CW * s), round(CH * s)), 24, 140)
 
 
-def cat_sheet(out, height=CAT, stem="cats"):
+def cat_sheet(out, height=CAT, stem="cats", k=1):
     """OUT/STEM.webp, a row per cat and a column per pose (CAT_POSES), every frame on one canvas, centred across and
     standing on its bottom; and STEM.json with the frame's size, each frame's foot and each cat's stride. A cat's walk is
-    height art px tall times its size; the other poses are scaled from their own painted height by RELATIVE."""
+    height art px tall times its size; the other poses are scaled from their own painted height by RELATIVE. k: in k x k
+    blocks (coarsen), the frame whole blocks, each frame's colours cut again and a block kept where half of it shows: the
+    tower's lobby is pixel art of 2x2 blocks."""
     rows, strides = [], []
     for n, (*_, size) in CATS.items():
         walk_h = cat_keyed(f"{n}_walk_0")[2]
@@ -341,11 +343,20 @@ def cat_sheet(out, height=CAT, stem="cats"):
         rows.append([cat_frame(f"{n}_{p}", s * RELATIVE.get(p, 1) * walk_h / (cat_keyed(f"{n}_{p}")[2] if p in RELATIVE else walk_h), n == "black")
                      for p in CAT_POSES])
         strides.append(round(15 * CU * s))   # the skeleton's stride, 15 units
-    fw, fh = max(f.width for r in rows for f in r), max(f.height for r in rows for f in r)
+    fw, fh = (-(-max(getattr(f, side) for r in rows for f in r) // k) * k for side in ("width", "height"))
     im = Image.new("RGBA", (fw * len(CAT_POSES), fh * len(rows)))
     for j, row in enumerate(rows):
-        for k, f in enumerate(row):
-            im.paste(f, (k * fw + (fw - f.width) // 2, j * fh + fh - f.height))
+        for i, f in enumerate(row):
+            im.paste(f, (i * fw + (fw - f.width) // 2, j * fh + fh - f.height))
+    if k > 1:
+        im = coarsen(im, k)
+        for j in range(len(rows)):
+            for i in range(len(CAT_POSES)):
+                box = (i * fw, j * fh, (i + 1) * fw, (j + 1) * fh)
+                f = im.crop(box)
+                rgb = f.convert("RGB").quantize(24, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
+                rgb.putalpha(f.getchannel("A").point(lambda v: 255 if v > 100 else 0))
+                im.paste(rgb, box[:2])
     save_lossless(im, out / f"{stem}.webp")
     frames = [[im.crop((k * fw, j * fh, (k + 1) * fw, (j + 1) * fh)) for k in range(len(CAT_POSES))] for j in range(len(rows))]
     foot = [[f.getchannel("A").getbbox()[3] - 1 for f in row] for row in frames]
@@ -386,7 +397,7 @@ def bake(out):
     sheet(out, "walkers", list(PEOPLE), walk, PERSON)
     sheet(out, "readers", READERS, walk + [f"browse_{k}" for k in BROWSE], READER, walk=FRAMES, browse=BROWSE)
     cat_sheet(out)
-    cat_sheet(out, CAT_LOBBY, "cats-lobby")
+    cat_sheet(out, CAT_LOBBY, "cats-lobby", k=2)
 
 
 if __name__ == "__main__":

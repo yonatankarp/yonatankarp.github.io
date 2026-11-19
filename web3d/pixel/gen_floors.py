@@ -19,6 +19,10 @@ floor 7's capsule (capsule.webp), the lobby's receptionists (receptionists.webp)
 gen_walkers.py), which pixel.js draws live, and the lobby's glass entrance standing open at each hour
 (floor-L-open[-PHASE].webp), the way in from the city.
 
+Every strip is pixel art of 2x2 blocks on its own grid (art_common.coarsen, in install_picks.py's bake), at the same size
+and coordinates as before: what is drawn here keeps to that grid (regrid puts back on it what does not), the moving box
+starts at an even x and y and is whole blocks, and pixel.js moves and draws what is live in steps of 2.
+
 Every run also writes data/floor_accents.yaml from FLOORS (accents()) and checks data/phases.json (check_phases()).
 """
 import argparse
@@ -33,7 +37,7 @@ import numpy as np
 from PIL import Image, ImageChops
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art_common import BAYER, INK, OUT, PICKS, R, ROOT, key as keyed, magenta, ramp, save_lossless  # noqa: E402
+from art_common import BAYER, INK, OUT, PICKS, R, ROOT, coarsen, key as keyed, magenta, ramp, regrid, save_lossless  # noqa: E402
 from gen_walkers import CAT, CAT_LOBBY  # noqa: E402
 from install_picks import PIVOT, TWINKLE, twinkles  # noqa: E402
 from paint_rooms import DESK_POSES, DESK_SIZE, DESK_TOP, DESK_U, ENTRANCE_KEEP, FLOOR_SIZE, RECEPTIONISTS  # noqa: E402
@@ -46,8 +50,8 @@ EDGE, BLOCK = 240, 24         # each run's columns; on the roof, a BLOCK of its 
 GRAIN, SIGMA, CLIP = 60, 3, 8  # runs(): the wall's outer columns its grain is from (the lift's frame starts at ~85), its blur, its depth
 SKIRTING = 297                # the skirting's top row at every room's left edge
 DOOR = dict(x0=102, x1=198, mid=150, y0=138, y1=306)   # the lift's door panels in strip pixels; pixel.js slides them
-SCREEN = (122, 83, 146, 95)   # the floor display over the lift, in the painting's pixels (install_picks.SIGN)
-HOUSING = 265                 # on the roof, the lift housing ends here, in the painting's pixels: open sky right of it
+SCREEN = (122, 82, 146, 96)   # the floor display over the lift, in the painting's pixels (install_picks.SIGN)
+HOUSING = 266                 # on the roof, the lift housing ends here, in the painting's pixels: open sky right of it
 CAB = W + 2 * EDGE            # in a strip, where its cab is, after the runs; the moving box's frames follow it
 BOXES = CAB + DOOR["x1"] - DOOR["x0"]
 GLOW = {"amber": (255, 181, 71), "green": (124, 242, 176), "city": (255, 210, 138), "red": (255, 80, 64),
@@ -107,11 +111,12 @@ def lum(col):
     return (col[0] * 299 + col[1] * 587 + col[2] * 114) // 1000
 
 
-def line(room, x0, y0, x1, y1, col, w=1):
-    n = max(abs(x1 - x0), abs(y1 - y0), 1)
+def line(room, x0, y0, x1, y1, col):
+    """A line of the rooms' 2x2 blocks, each on their grid."""
+    n = max(round(abs(x1 - x0)), round(abs(y1 - y0)), 1)
     for i in range(n + 1):
-        x, y = round(x0 + (x1 - x0) * i / n), round(y0 + (y1 - y0) * i / n)
-        room.rect(x, y, x + w, y + w, col)
+        x, y = (round((a + (b - a) * i / n) / 2) * 2 for a, b in ((x0, x1), (y0, y1)))
+        room.rect(x, y, x + 2, y + 2, col)
 
 
 def sprite(room, x, y, rows, col, scale=2, upto=None, k=1.0):
@@ -128,11 +133,13 @@ def sprite(room, x, y, rows, col, scale=2, upto=None, k=1.0):
 
 
 # --- The rooms' animations, in the painting's pixels (928 x 308). Each one only paints over what is there: lights,
-# screens, chalk, a glint, a flag's folds. Moving a painted object would show what it hides. ------
+# screens, chalk, a glint, a flag's folds. Moving a painted object would show what it hides. The rooms are pixel art of
+# 2x2 blocks (install_picks.coarsen), so what is drawn here is too, on their grid, from even x and y, in steps of 2: what
+# is not, frames() puts on that grid (regrid), as a blur. ------
 
 # Lobby: names on the building's directory light up one after another.
-PLATES = [(566, 95, 584, 98), (598, 105, 609, 108), (612, 125, 623, 128), (638, 140, 654, 143), (587, 155, 596, 158),
-          (625, 170, 636, 173)]   # x0, y0, x1, y1
+PLATES = [(566, 94, 584, 98), (598, 104, 610, 108), (612, 124, 624, 128), (638, 140, 654, 144), (586, 154, 596, 158),
+          (624, 170, 636, 174)]   # x0, y0, x1, y1
 
 
 def reception(room, f, phase):
@@ -152,7 +159,7 @@ TREE = ["....###.###....", "..##...#...##..", ".#...........#.", "#.............
 
 def reichman(room, f, phase):
     if f:
-        sprite(room, 400, 105, TREE, (226, 214, 176), upto=min(len(TREE), f * 2, 4 * (FRAMES - f) - 1), k=0.7)
+        sprite(room, 400, 104, TREE, (226, 214, 176), upto=min(len(TREE), f * 2, 4 * (FRAMES - f) - 1), k=0.7)
 
 
 # Floor 2, Inuitive: the scope's trace runs on, a calibration line sweeps the checkerboard, the robot's lamp blinks.
@@ -165,20 +172,20 @@ def inuitive(room, f, phase):
         src = room.img.crop(SCOPE)
         for x in range(x0, x1):
             for y in range(y0, y1):
-                room.put(x, y, src.getpixel(((x - x0 + 3 * f) % (x1 - x0), y - y0)))
+                room.put(x, y, src.getpixel(((x - x0 + 3 * f // 2 * 2) % (x1 - x0), y - y0)))
         y = 94 + 6 * f
-        room.rect(579, y, 706, y + 1, GLOW["cyan"])
+        room.rect(578, y, 706, y + 2, GLOW["cyan"])
     if f % 4 < 2:
-        room.rect(699, 199, 702, 202, GLOW["red"])
+        room.rect(698, 198, 702, 202, GLOW["red"])
 
 
 # Floor 3, NICE: calls light up and drop across the world map.
 def nice(room, f, phase):
-    room.lit((476, 64, 632, 159), lambda col: col[0] > 200 and col[1] > 160 and col[2] < 150, f, every=5, on=2)
+    room.lit((476, 64, 632, 160), lambda col: col[0] > 200 and col[1] > 160 and col[2] < 150, f, every=5, on=2)
 
 
 # Floor 4, SumUp: one stall after another takes a card payment, its reader's screen going green with a tick.
-TERMINALS = [(451, 179, 462, 188), (645, 174, 655, 187), (775, 173, 786, 186)]
+TERMINALS = [(450, 178, 462, 188), (644, 174, 656, 188), (774, 172, 786, 186)]
 PAID = {0: (2, 3, 4), 1: (5, 6, 7), 2: (8, 9, 10)}
 
 
@@ -187,9 +194,9 @@ def sumup(room, f, phase):
         if f in frames:
             x0, y0, x1, y1 = TERMINALS[k]
             room.rect(x0, y0, x1, y1, GLOW["green"])
-            cx, cy = (x0 + x1) // 2, (y0 + y1) // 2
-            for dx, dy in ((-3, 0), (-2, 1), (-1, 2), (0, 1), (1, 0), (2, -1), (3, -2)):
-                room.rect(cx + dx, cy + dy, cx + dx + 1, cy + dy + 2, INK)
+            cx, cy = (x0 + x1) // 4 * 2, (y0 + y1) // 4 * 2
+            for dx, dy in ((-2, 0), (-1, 1), (0, 0), (1, -1), (2, -2)):   # a tick, in 2x2 blocks
+                room.rect(cx + 2 * dx, cy + 2 * dy, cx + 2 * dx + 2, cy + 2 * dy + 2, INK)
 
 
 # Floor 5, Billie risk: the credit gauge's needle swings toward red and settles (install_picks.unneedle took the
@@ -201,22 +208,23 @@ NEEDLE = [52, 52, 40, 22, 4, -10, -16, -12, 2, 22, 40, 52]   # its angle, degree
 def billie_risk(room, f, phase):
     cx, cy, n = GAUGE
     a = math.radians(NEEDLE[f])
-    line(room, cx, cy, round(cx + n * math.cos(a)), round(cy - n * math.sin(a)), (40, 26, 18), 2)
-    line(room, cx, cy, round(cx - 6 * math.cos(a)), round(cy + 6 * math.sin(a)), (40, 26, 18), 2)
-    room.rect(cx - 2, cy - 2, cx + 3, cy + 3, (40, 26, 18))
-    room.put(cx, cy, c("amber", 4))
+    line(room, cx, cy, cx + n * math.cos(a), cy - n * math.sin(a), (40, 26, 18))
+    line(room, cx, cy, cx - 6 * math.cos(a), cy + 6 * math.sin(a), (40, 26, 18))
+    hx, hy = cx - cx % 2, cy - cy % 2                                      # the hub: 3x3 blocks round the pivot's
+    room.rect(hx - 2, hy - 2, hx + 4, hy + 4, (40, 26, 18))
+    room.rect(hx, hy, hx + 2, hy + 2, c("amber", 4))
 
 
 # Floor 6, Billie orchestrator: the stack light gives each order its verdict; the fraud ring's nodes pulse on the graph.
-STACK = {"R": ((582, 112), GLOW["red"]), "A": ((582, 121), GLOW["amber"]), "G": ((582, 130), GLOW["green"])}
+STACK = {"R": ((582, 112), GLOW["red"]), "A": ((582, 120), GLOW["amber"]), "G": ((582, 130), GLOW["green"])}
 VERDICT = "GGGGGGAARRRG"
 
 
 def billie_orchestrator(room, f, phase):
     (x, y), col = STACK[VERDICT[f]]
-    room.rect(x - 3, y - 3, x + 4, y + 4, col)
+    room.rect(x - 4, y - 4, x + 4, y + 4, col)
     room.rect(x - 2, y - 2, x, y, GLOW["white"])
-    room.lit((730, 55, 902, 190), lambda col: col[0] > 200 and col[0] > col[2] + 60, f, every=3, on=1, seed=2)
+    room.lit((730, 54, 902, 190), lambda col: col[0] > 200 and col[0] > col[2] + 60, f, every=3, on=1, seed=2)
 
 
 # Floor 7, Billie payments: a payment rides the pipe down to the counter, and a glint goes round the vault's door. The
@@ -236,10 +244,11 @@ def billie_payments(room, f, phase):
     cx, cy, r = VAULT
     own = [col for _, col in room.img.getcolors(4096)]                     # the glint in the room's own colours
     band = -r + 2 * r * f / (FRAMES - 1)                                   # a diagonal band crossing the door
-    for y in range(cy - r, cy + r):
-        for x in range(cx - r, cx + r):
-            d = (x - cx + y - cy) / 1.4 - band
-            if f and abs(d) < 5 and (x - cx) ** 2 + (y - cy) ** 2 < r * r and lum(room.get(x, y)) > 70:
+    for y in range(cy - r - cy % 2, cy + r + 1):
+        for x in range(cx - r - cx % 2, cx + r + 1):
+            bx, by = x - x % 2 + 0.5, y - y % 2 + 0.5                        # by the 2x2 block's middle: whole blocks
+            d = (bx - cx + by - cy) / 1.4 - band
+            if f and abs(d) < 5 and (bx - cx) ** 2 + (by - cy) ** 2 < r * r and lum(room.get(x, y)) > 70:
                 room.brighten(x, y, 0.35 * (1 - abs(d) / 5), own)
 
 
@@ -297,9 +306,12 @@ def largest(alpha):
 
 def receptionists(out):
     """receptionists.webp: each pick with its magenta (and the model's lamp-lit pinks) keyed out, cut at the desk's top and
-    above the hair, scaled premultiplied (no halo) so the head is HEAD art px, on its person's 32 colours, only its largest
-    shape kept. Returns RECEPTION for floors.json, in strip pixels, with the frame's size and its row on the desk's edge."""
+    above the hair, scaled premultiplied (no halo) so the head is HEAD art px, in 2x2 blocks as the rooms are (coarsen: a
+    row on top, if need be, puts the desk's edge on a block's), on its person's 32 colours, only its largest shape kept.
+    Returns RECEPTION for floors.json, in strip pixels, with the frame's size and its row on the desk's edge."""
     (W0, H0), s = DESK_SIZE, HEAD / (7.2 * DESK_U)
+    sw, sh, desk = round(W0 * s), round(H0 * s), round(DESK_TOP * s)
+    pad = desk % 2                                   # pixel.js draws the frame from deskY - desk, an even row
     rows = []
     for name in RECEPTIONISTS:
         smalls = []
@@ -310,7 +322,9 @@ def receptionists(out):
             bg[DESK_TOP + 4:] = True   # below the desk's top: the room's own desk stands in front
             bg[:40] = True             # the model hangs a lamp over every head: cut above the hair
             im = keyed(a, bg, 5)
-            smalls.append(im.convert("RGBa").resize((round(W0 * s), round(H0 * s)), Image.BOX).convert("RGBA"))
+            small = Image.new("RGBA", (sw + sw % 2, (sh + pad + 1) // 2 * 2))
+            small.paste(im.convert("RGBa").resize((sw, sh), Image.BOX).convert("RGBA"), (0, pad))
+            smalls.append(coarsen(small))
         # one cut of 32 colours over the person's opaque pixels in every pose, so they keep their clothes' colours from
         # pose to pose (cut apart, ben's light blue shirt went cream at rest)
         opaque = [p for sm in smalls for p, al in zip(sm.convert("RGB").get_flattened_data(), sm.getchannel("A").get_flattened_data(), strict=True) if al > 140]
@@ -330,7 +344,7 @@ def receptionists(out):
         for k, f in enumerate(row):
             sheet.paste(f, (k * fw, j * fh))
     save_lossless(sheet, out / "receptionists.webp")
-    return RECEPTION | {"people": list(RECEPTIONISTS), "poses": DESK_POSES, "w": fw, "h": fh, "desk": round(DESK_TOP * s),
+    return RECEPTION | {"people": list(RECEPTIONISTS), "poses": DESK_POSES, "w": fw, "h": fh, "desk": desk + pad,
                         "deskY": DESK_Y + CEIL, "spot": RECEPTION["spot"] + LOBBY_X}
 
 
@@ -359,18 +373,19 @@ def lobby_cats():
 
 
 # Roof: the flag's folds run along it, the crane's warning light blinks, and at night the far city's windows twinkle.
-FLAG = (812, 94, 845, 127)
+FLAG = (812, 94, 846, 128)
 
 
 def roof(room, f, phase):
     x0, y0, x1, y1 = FLAG
     src = room.img.crop((x0, y0 - 2, x1, y1 + 2))
     for x in range(x0, x1):
-        dy = round(2 * math.sin((x - x0) / 5 - f * math.pi / 3) * (x - x0) / (x1 - x0))   # still at the pole
+        bx = x - x % 2                                                       # a 2x2 block's column, moved 2 px at most
+        dy = 2 * round(math.sin((bx - x0) / 5 - f * math.pi / 3) * (bx - x0) / (x1 - x0))   # still at the pole
         for y in range(y0, y1):
             room.put(x, y, src.getpixel((x - x0, y - y0 + 2 - dy)))
     if f % 4 < 2 and phase != "day":
-        room.rect(708, 4, 711, 7, GLOW["red"])
+        room.rect(708, 4, 712, 8, GLOW["red"])
     if phase == "night":
         room.lit(TWINKLE, twinkles, f, every=4, on=2)
 
@@ -392,7 +407,7 @@ FLOORS = {
 
 
 MASTS = [(280, 285), (346, 383)]   # the lightning rod and the crane's mast, where they leave the roof's painting at its top
-STAR_SHIFT = 97                     # how far along its row a star of the painting's top goes, into the sky over it
+STAR_SHIFT = 98                     # how far along its row a star of the painting's top goes, into the sky over it (whole blocks)
 
 
 def sky_band(painting, plate, night):
@@ -403,7 +418,7 @@ def sky_band(painting, plate, night):
     sky is mostly painted in, in flat bands as it is (the art standard: no dither). The masts go on up, mirrored (a
     lattice reads the same either way). At night the stars of the painting's top rows are scattered over it, each moved
     STAR_SHIFT along its row so none pairs with the one below: pixel.js tiles these rows above the roof at night. (By day
-    such specks are the cables' and the crane's glints.)"""
+    such specks are the cables' and the crane's glints.) In the rooms' 2x2 blocks: each worked out at its block's top left."""
     px, x0, x1 = painting.load(), HOUSING, painting.width
     mast = {x for a, b in MASTS for x in range(a, b)}
     sky = {}
@@ -415,9 +430,9 @@ def sky_band(painting, plate, night):
     own = sorted({col for col, n in seen.items() if n * 100 >= seen.total()} | {plate})   # 1% of that sky or more
     nearest = {}
     band = {}
-    for y in range(CEIL):
-        t = (y + 0.5) / CEIL
-        for x in range(x0, x1 + LOBBY_X):
+    for y in range(0, CEIL, 2):
+        t = (y + 1) / CEIL
+        for x in range(x0, x1 + LOBBY_X, 2):
             want = tuple(round(p + (q - p) * t) for p, q in zip(plate, sky[x], strict=True))
             if want not in nearest:
                 nearest[want] = min(own, key=lambda col: sum((a - b) ** 2 for a, b in zip(col, want, strict=True)))  # noqa: B023
@@ -425,11 +440,11 @@ def sky_band(painting, plate, night):
             if x in mast and dist(m := px[x, CEIL - 1 - y], sky[x]) > 40:
                 band[x, y] = m
     bright = lambda x, y: 0 <= y < painting.height and x0 <= x < x1 and lum(px[x, y]) > lum(sky[x]) + 24
-    for y in range(CEIL if night else 0):
-        for x in range(x0, x1):   # a star: a speck of a pixel or two, brighter than the sky, alone (not a cable's glints)
-            if x not in mast and bright(x, y) and sum(bright(x + dx, y + dy) for dx in range(-2, 3) for dy in range(-2, 3)) <= 2:
+    for y in range(0, CEIL if night else 0, 2):
+        for x in range(x0, x1, 2):   # a star: a block or two, brighter than the sky, alone (not a cable's glints)
+            if x not in mast and bright(x, y) and sum(bright(x + dx, y + dy) for dx in (-2, 0, 2) for dy in (-2, 0, 2)) <= 2:
                 band[x0 + (x - x0 + STAR_SHIFT) % (x1 - x0), y] = px[x, y]
-    return band
+    return {(x, y): band[x - x % 2, y - y % 2] for x in range(x0, x1 + LOBBY_X) for y in range(CEIL)}
 
 
 def plate(variant, path=ROOT / "data" / "phases.json"):
@@ -465,7 +480,7 @@ def frame_base(key, painting, accent, variant="dusk"):
     for y, row in enumerate(FONT[key]):
         for x, ch in enumerate(row):
             if ch == "#":
-                gx, gy = (x0 + x1) // 2 - 3 + 2 * x, y0 + 1 + 2 * y
+                gx, gy = (x0 + x1) // 2 - 4 + 2 * x, y0 + 2 + 2 * y   # on the rooms' 2x2 grid
                 cv.rect(gx, gy, gx + 2, gy + 2, GLOW["amber"])
     return img
 
@@ -515,7 +530,7 @@ def runs(rest, key):
     out = Image.fromarray(np.clip(np.rint(run), 0, 255).astype(np.uint8))
     colours = rest.crop((LOBBY_X, CEIL, W - LOBBY_X, H - SLAB)).getcolors(256)
     assert colours, (key, "has more colours than a palette holds")
-    out.paste(on_colours(out.crop((0, CEIL, 2 * EDGE, H - SLAB)), [c for _, c in colours]), (0, CEIL))
+    out.paste(on_colours(coarsen(out.crop((0, CEIL, 2 * EDGE, H - SLAB))), [c for _, c in colours]), (0, CEIL))   # in the room's 2x2 blocks
     if key == "R":   # the right run only: the left one is the lift housing's wall
         block = rest.crop((W - LOBBY_X - BLOCK, 0, W - LOBBY_X, H))
         for i in range(EDGE // BLOCK):
@@ -537,11 +552,13 @@ def scatter(run):
         row = [px[x, y] for x in range(run.width)]
         m = sorted(row, key=lum)[len(row) // 2]
         for x, col in enumerate(row):
-            if abs(lum(col) - lum(m)) > 24 and y < rows:
+            if abs(lum(col) - lum(m)) > 24 and y < rows and not x % 2 and not y % 2:   # one of each 2x2 block
                 lit.append((y, col))
             px[x, y] = m
-    for y, col in lit:
-        px[rnd.randrange(run.width), min(rows - 1, max(0, y + rnd.randrange(-6, 7)))] = col
+    for y0, col in lit:   # put back as whole blocks, on the grid
+        x, y = 2 * rnd.randrange(run.width // 2), min(rows - 2, max(0, y0 + 2 * rnd.randrange(-3, 4)))
+        for dx, dy in ((0, 0), (1, 0), (0, 1), (1, 1)):
+            px[x + dx, y + dy] = col
     for y in range(HORIZON, run.height):   # the sea and the parapet, whose slope mirrored into a zigzag: the edge's rows
         for x in range(run.width):
             px[x, y] = px[0, y]
@@ -564,14 +581,14 @@ def frames(key, variant):
     pick = PICKS / f"{name}-{variant}-px.png"
     phase = hour(variant)
     painting = Image.open(pick if pick.exists() else PICKS / f"{name}-px.png").convert("RGB")
-    base = frame_base(key, painting, accent, variant)
+    base = regrid(frame_base(key, painting, accent, variant))   # every frame in the rooms' 2x2 blocks, on their grid
     out = []
     for f in range(FRAMES):
         img = base.copy()
         room = Layer(img.crop((LOBBY_X, CEIL, W - LOBBY_X, H - SLAB)))
         animate(room, f, phase)
         img.paste(room.img, (LOBBY_X, CEIL))
-        out.append(img)
+        out.append(regrid(img))
     return out
 
 
@@ -593,7 +610,7 @@ def entrance(out, hours):
         small = crop.resize((x1 - x0, y1 - y0), Image.BOX, box=(x0 * sx - kx, y0 * sy - ky, x1 * sx - kx, y1 * sy - ky))
         pick = PICKS / f"reception{tag}-px.png"
         colours = [c for _, c in Image.open(pick if pick.exists() else PICKS / "reception-px.png").convert("RGB").getcolors(4096)]
-        save_lossless(on_colours(small, colours), out / f"floor-L-open{tag}.webp")
+        save_lossless(on_colours(coarsen(small), colours), out / f"floor-L-open{tag}.webp")
     print("drew the lobby's open entrance", *hours)
 
 
@@ -605,6 +622,7 @@ def build(key, out, hours):
     boxes = [b for b in boxes if b]
     x0, y0 = min(b[0] for b in boxes), min(b[1] for b in boxes)
     x1, y1 = max(b[2] for b in boxes), max(b[3] for b in boxes)
+    assert not (x0 % 2 or y0 % 2 or x1 % 2 or y1 % 2), (key, "moves off the rooms' 2x2 grid", (x0, y0, x1, y1))
     assert x0 >= LOBBY_X + GRAIN + 3 * SIGMA and x1 <= W - LOBBY_X - BLOCK, (key, "moves over what its runs are read from")
     for variant, fs in pictures.items():
         cab = Image.open(PICKS / "cab-px.png").convert("RGB")

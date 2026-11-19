@@ -1,6 +1,6 @@
 """What the art scripts share, with Pillow alone at import (numpy, where a helper needs it, inside that helper): the paths,
 the panoramas' size, the palette of what is drawn in code, the Draw Things call, the magenta key and the reduce of a
-sprite, the mends pasted over a pick, a painting's glass and its relighting at another hour, and the lossless save.
+sprite, the tower's coarse grid (coarsen, regrid), the mends pasted over a pick, a painting's glass and its relighting at another hour, and the lossless save.
 
 New keys in the JSON the pages read give a box as [x0, y0, x1, y1] in art px, as the scenes' FX do.
 """
@@ -119,6 +119,33 @@ def reduce(im, size, colours=32, cut=80):
     rgb = sm.convert("RGB").quantize(colours, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE).convert("RGB")
     rgb.putalpha(sm.getchannel("A").point(lambda v: 255 if v > cut else 0))
     return rgb
+
+
+def coarsen(img, k=2):
+    """img with each k x k block on its own grid (from its 0, 0) one colour, the block's mean (premultiplied where it has
+    alpha, so a clear pixel adds no colour): an art pixel k px across, at the same size, so every coordinate drawn by
+    stays as it was. Its width and height are whole blocks. The caller cuts the colours after, as its bake does: one
+    colour cuts to one, so a block stays one palette colour."""
+    assert img.width % k == 0 and img.height % k == 0, (img.size, "is not whole blocks of", k)
+    alpha = "A" in img.getbands()
+    small = img.convert("RGBa" if alpha else "RGB").resize((img.width // k, img.height // k), Image.BOX)
+    return small.resize(img.size, Image.NEAREST).convert("RGBA" if alpha else "RGB")
+
+
+def regrid(img, k=2):
+    """An RGB picture on coarsen()'s grid again after something was drawn on it a pixel at a time: each block that is not
+    one colour takes its mean, put on the nearest of the picture's own colours; whole blocks are kept as they are."""
+    import numpy as np
+    a = np.asarray(img.convert("RGB")).astype(int)
+    m = np.asarray(coarsen(img.convert("RGB"), k)).astype(int)
+    blocks = a.reshape(a.shape[0] // k, k, a.shape[1] // k, k, 3)
+    mixed = (blocks != blocks[:, :1, :, :1]).any(axis=(1, 3, 4)).repeat(k, 0).repeat(k, 1)
+    if not mixed.any():
+        return img.convert("RGB")
+    own = np.unique(a.reshape(-1, 3), axis=0)
+    want, back = np.unique(m[mixed], axis=0, return_inverse=True)
+    a[mixed] = own[((want[:, None, :] - own[None]) ** 2).sum(-1).argmin(1)][back.ravel()]
+    return Image.fromarray(a.astype("uint8"))
 
 
 def patched(im, names):

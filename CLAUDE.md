@@ -91,7 +91,7 @@ while it settles from 1.18 to 1; every other link keeps the wipe. The tower and 
 px. The tower's is the lobby's glass entrance, at the right of the lobby, where pixel.js lays it out (`lay` in
 `web3d/src/art.js`; a phone's lobby starts on it and pans to its usual focus, art x 600, as it settles). The lobby opens
 with that entrance standing open (`floor-L-open[-winter][-PHASE].webp`, in `web3d/CLAUDE.md`), which dissolves into the strip's shut doors 250 to
-650 ms into the settle, whole art pixels at a time in the iris's 4x4 Bayer order. The city's entrance opens first: `door-open[-PHASE].webp`, the same hour's painting
+650 ms into the settle, the rooms' 2x2 blocks at a time in the iris's 4x4 Bayer order. The city's entrance opens first: `door-open[-PHASE].webp`, the same hour's painting
 with the doors open, kept as its crop round the door (`picks/city-open[-PHASE].png`, from `gen_city.py door --open`),
 pasted on the pick, baked on the pick's own colours and cut at `DOOR_OPEN` (`doorOpen` in `city.json`); in winter,
 `door-open-winter[-PHASE].webp`, that crop edited to snow as the winter picks are (`gen_city.py door --winter`), of which
@@ -125,7 +125,7 @@ and the old garage's `#floor-P` and `#client-and-work-section` go to `/projects/
 front matter places it in the building; testimonials need a `pullQuote` that is an exact excerpt, shown in the lobby and under What colleagues say on /cv/ (not in its PDF, which stays one page).
 
 The tower's art is 928x308 a room (painted at 2304x768, box-reduced and median-cut to 64 colours, no dither, like the
-city), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an edit of the lobby carried across, so the
+city, then every 2x2 block one colour: `coarsen` in `web3d/pixel/art_common.py`, before the cut), in a 960x360 strip with its slabs: `paint_rooms.py` paints (every room an edit of the lobby carried across, so the
 wall, skirting and floor run on from the lift), `install_picks.py` bakes the picks (`PICKS`) and pastes the lobby's one
 lift into each (on the roof, whose hours repainted it, its call panel too: `PANEL`, relit to the hour's wall), and
 `gen_floors.py` draws the slabs, the floor number and what moves (each room's animation, which only paints over what is
@@ -137,13 +137,23 @@ box, lift doors, the lobby's entrance, dither, each room's lamps, the floors' or
 `gen_floors.py` and bundled from there, and `data/floor_accents.yaml` is written by it from `FLOORS`: change the Python,
 rerun it, never the copies.
 
+So the tower reads as pixel art, not as paintings (an art pixel at 1.5 CSS px on a 1440 laptop read as paint), it is
+drawn in those 2x2 blocks at the files' own size and coordinates, so nothing in floors.json is halved: every block on the
+grid of even x and y. What is drawn on it keeps to that grid: `gen_floors.py`'s animations, floor number, slabs, the roof's
+sky band and stars and the runs work in whole blocks from even x and y, and `regrid` puts back on the grid (as a blur) what
+does not, so every moving box is whole blocks too. The cab, the open entrance (`floor-L-open*`), the receptionists and the
+lobby's cats (`cat_sheet(..., k=2)` in `gen_walkers.py`, not Workshop Row's) are coarsened the same way. pixel.js moves the
+lift doors, the receptionist and the cats in steps of 2 (`even`), lays the live sprites' canvases on an 8 px grid
+(`GRID`), dithers the lamps and the entrance in Bayer cells of 2x2 (`bayer(lv, k)`), and draws floor 7's capsule at half
+size, blitted at 2x.
+
 `pixel.js` is the lift and the floors, `ride.js` the lift's ride (tested in `scripts/test/ride.test.js`), `art.js` what it reads; it keeps only the storeys
 round the lift's stop decoded (`KEEP`), so a phone holds about 50 MB of them at most, and loads the stop's strip
 before the storeys round it. When only the live sprites below change, it redraws just their boxes. With a floor's panel open on a wide screen it slides the
 room right, at the same scale, until the room covers the view beside the panel (`besidePanel`). One thing moves live, not in the
 strip's 12 frames: floor 7's payment, a painted pneumatic-post capsule (`picks/capsule.png`, on magenta, from
 `paint_rooms.py capsule`; `gen_floors.py` keys it into `capsule.webp` at 4x). pixel.js turns and smooths it into the room's
-own art pixels every frame, along `CAPSULE` (its path, size, ride and clip, in floors.json; the path and easing are
+2x2 blocks every frame (a canvas at half size, drawn at 2x), along `CAPSULE` (its path, size, ride and clip, in floors.json; the path and easing are
 `web3d/src/capsule.js`), from the start of each loop, darkened with the room, and not while paused or held.
 
 The lobby's

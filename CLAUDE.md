@@ -238,8 +238,10 @@ its column (the tower and the crane) is cut out of them (`fronts`).
 Every scene at rest, like the tower, shows an art pixel as a whole number of device px:
 the city, Workshop Row, the Library's head and the rooms' heads at the fewest that cover their box, rounded up, never
 under 1 (`round()` by `--dpr`, which `assets/js/dpr.js` sets on html before the first paint, in `city.css` and
-`custom.css`), so they crop a little more than the plain cover, at the foot (the Library's about its 50% 62%, though its head is as tall as its whole room shows), and the
-panning takes up the width; only a glide or a push-in passes through other scales.
+`custom.css`; the rooms' a 2x2 block of art px, as they are baked, and on a wide screen the Library's and the rooms' no
+fewer than their minimum, below), so they crop a little more than the plain cover, at the foot (the Library's 62% of the
+way down, the rooms' top kept), and the panning, or a room's focus, takes up the width; only a glide or a push-in passes
+through other scales.
 
 The city's life (`web3d/src/city-fx.js`, imported by `city.js`) is drawn on a canvas at the art's own 1440x347 pixels,
 laid over the city picture: walkers on the main street, the avenue and the plaza (fewer and dark at night), cars on the
@@ -271,7 +273,11 @@ canvas loop, its pauses and the depth test) with the city.
 The blog's index (`layouts/blog/list.html`) is the city's Library: its reading room across the head (`library[-winter][-PHASE].webp`, baked
 by `web3d/pixel/gen_library.py` from `web3d/pixel/paintings/picks/library.png`, painted at dusk and shown at the visitor's
 hour and season as the Radio Mast and the Post Office are (below), at 720x173, half the
-city's width, so a 1440 screen shows the whole room at 2 device px an art px: the head is at least that tall, to 52vh), then every listed
+city's width. On a wide screen (not art.js's `narrow`) an art px is at least 3 CSS px, so the room reads as pixel art,
+the head at least the room's height at that size, to 52vh, and the art's x `focus` (460, in `FX`, so `library-fx.json`,
+which `list.html` sets as the head's `--focus`) mid-head, the window and the fire both in, as far as no edge shows; a
+phone or a portrait screen shows its middle at the fewest px that cover. City.js's push-in lands on the head's middle by
+the same numbers, which `scripts/test/push-in.test.js` holds to `custom.css`), then every listed
 post as a card (`partials/blog-row.html`). A chip for every tag the listed posts carry filters the list, with the search
 box (`assets/js/library.js`): the curated topics and labels in `data/library.yaml` first (a tag no listed post carries is
 skipped, one with no tag page fails the build), then the rest, most posts first (ties by name), folded behind More topics (a `<details>`). Without a script the
@@ -322,7 +328,11 @@ on-air lamp's glow while the show is off air), and the Post Office's clock (the 
 `gen_rooms.py` (`reels()`) bakes `radio-reels[-winter][-PHASE].webp` from each hour's art, at the same boxes and with the
 cutouts found at dusk, each reel's bare metal over its cutouts, which rooms-fx.js (by `html[data-art]`) turns about the hub
 on the slanted disc (a reel is its hub, its flange's half-width and half-height, its turn and its plain hub's reach, in
-`FX`). Their pages and paintings are under Content Structure.
+`FX`). The rooms are baked at half resolution (`art_common.coarsen`, `COARSE`): each 2x2 block of art px on the art's
+own grid one colour, the files still 1440x347, so every FX, the reels' boxes and the depth maps keep their coordinates.
+Their animations draw on a store as coarse (720x174, `ROOM-fx.json`'s `coarse`, read by `room-hero.html`), each rect
+grown to the 2x2 grid (rooms-fx.js's `rect`), so they are as coarse as the room. Their pages and paintings are under
+Content Structure.
 
 The three rooms follow the hour and the season (`gen_rooms.hour()`, which `gen_library.py` shares). At another hour the
 dusk pick is relit in the light of the model's edit of the whole room to that hour (`art_common.relit`: the ratio of the
@@ -350,9 +360,14 @@ Library's bake keeps its lamps' greens where the snow would take them (`LAMP_SHA
 - `content/skills/_index.md` — skills page
 - `content/cv.md` — printable CV page
 - `content/podcast.md` and `content/contact.md` — the Radio Mast (`/podcast/`, `layouts/_default/radio.html`) and the Post
-  Office (`/contact/`, `post.html`). Each opens on its room, painted across the head (`partials/room-hero.html`), the
-  head as tall as the painting's 1440:347 shape at the screen's width, between 230 and 480px, the room at whole device px
-  an art px covering it, centred, its foot cropped, and never scrolled: `radio[-winter][-PHASE].webp` and `post…`, baked by `web3d/pixel/gen_rooms.py` from
+  Office (`/contact/`, `post.html`). Each opens on its room, painted across the head (`partials/room-hero.html`), its top
+  at the head's, its foot cropped, and never scrolled. On a wide screen (not art.js's `narrow`) an art px is at least
+  1.5 CSS px (the Radio Mast's 1 under 1400px wide, where 1.5 would crop its tape decks), so the room reads as pixel art,
+  the head `clamp(230px, 52vh, 347·u)`, and the room's `focus` (`FX` in `gen_rooms.py`: the Radio Mast's mixing desk at
+  532, the Post Office's clock at 500) mid-head, as far as no edge shows; a phone or a portrait screen keeps the head the
+  painting's 1440:347 shape at the screen's width, between 230 and 480px, and the room's middle. Either way a 2x2 block
+  of art px is whole device px, the fewest that cover; city.js's push-in lands on the head's middle by the same numbers
+  (`scripts/test/push-in.test.js`): `radio[-winter][-PHASE].webp` and `post…`, baked by `web3d/pixel/gen_rooms.py` from
   `web3d/pixel/paintings/picks/{radio,post}.png` (each painted at dusk, at every hour as above), with `ROOM-fx.json` for their animations
   (`web3d/src/rooms-fx.js`, its own bundle, `--mode rooms`). Their copy is `contact` in `data/home/en.yaml` and their labels
   `radio` and `post` in `data/rooms.yaml`. The Post

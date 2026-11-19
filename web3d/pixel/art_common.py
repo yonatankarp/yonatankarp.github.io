@@ -156,6 +156,19 @@ def bake(src, patches=(), size=SIZE, keep=(), kept=6):
     return small.quantize(palette=pal, dither=Image.Dither.NONE).convert("RGB")
 
 
+def coarsen(img, k=2):
+    """A baked picture at 1/k resolution on its own grid, its size and so every coordinate kept: each k x k block (from
+    0, 0) one colour, the block's mean (a part block at an odd edge, what it has) cut to COLOURS colours as bake() cuts.
+    Integer means, so CI gets the same bits."""
+    import numpy as np
+    a = np.asarray(img.convert("RGB"), np.int64)
+    h, w, _ = a.shape
+    a = np.pad(a, ((0, -h % k), (0, -w % k), (0, 0)), mode="edge")
+    m = (a.reshape(a.shape[0] // k, k, a.shape[1] // k, k, 3).sum((1, 3)) + k * k // 2) // (k * k)
+    small = Image.fromarray(m.astype(np.uint8)).quantize(COLOURS, kmeans=3, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+    return Image.fromarray(np.asarray(small.convert("RGB")).repeat(k, 0).repeat(k, 1)[:h, :w])
+
+
 def glass(im, panes=(), arches=(), fronts=(), lamps=(), bars=False):
     """The mask of a painting's window glass, softened a pixel: its panes (boxes) and arches (ellipses), but what stands
     in front of them (boxes), the dark wood of its mullions and bars where it has them, grown 2 px so none of an edit's

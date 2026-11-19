@@ -26,11 +26,11 @@
 {{ $fx := resources.Get "building/library.js" }}{{/* the room's animations, bundled by `npm run build:building` */}}
 {{ if not $fx }}{{ errorf "The Library needs its bundle in assets/building/: run `npm run build:building` first." }}{{ end }}
 {{ $fx = $fx | fingerprint }}
-{{ $fxData := "building/pixel/library-fx.json" }}
+{{ $fxData := "building/pixel/library-fx.json" }}{{ $focus := (os.ReadFile (printf "static/%s" $fxData) | transform.Unmarshal).focus }}
 {{ $fxVersion := partialCached "art-version.html" . }}{{/* the art's, on the room's and its animations' URLs */}}
 {{ $hour := resources.Get "js/art-time.js" | minify | fingerprint "sha256" }}{{/* allowed by its hash in head.html */}}
 <div class="blog-px library">
-<header class="library-hero">
+<header class="library-hero" style="--focus:{{ $focus }}">
   <div class="library-art">
     <img src="{{ $img | relURL }}?v={{ $fxVersion }}" alt="{{ hugo.Data.art.library }}" width="{{ $size.Width }}" height="{{ $size.Height }}" loading="lazy" fetchpriority="high">
     <script>{{ $hour.Content | safeJS }}</script>

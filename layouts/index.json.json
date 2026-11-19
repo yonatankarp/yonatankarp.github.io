@@ -18,7 +18,7 @@
   {{- else if eq .Path "/skills" -}}
     {{- $areas := slice -}}
     {{- range .Params.practice_areas }}{{ $areas = $areas | append .name .summary (delimit .tools ", ") }}{{ end -}}
-    {{- $content = printf hugo.Data.ui.search.skills (delimit $areas " ") (delimit .Params.working_set ", ") (delimit .Params.familiar_with ", ") -}}
+    {{- $content = printf hugo.Data.ui.search.skills (delimit $areas " ") (delimit .Params.working_set ", ") (delimit (.Params.familiar_with | append .Params.ai_tools) ", ") -}}
   {{- else if not .IsPage -}}
   {{- else if eq .Section "blog" -}}
     {{- $type = $types.post -}}

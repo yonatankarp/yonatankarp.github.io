@@ -20,6 +20,7 @@ focus:   # the web CV's boxes under "Staff+ focus"; the PDF shows the skills ins
 skills:   # the labels before the two lists, from content/skills/_index.md
   daily: "Daily:"
   also: "Also:"
+  ai: "AI:"
 floor_link: "Floor %s in the building"   # each role's tower icon, for screen readers; %s is its floor
 credential: "credential"   # the link after a degree that has one
 # Markdown, for the links. The PDF prints only the first five (custom.css, section:has(> #cv-open-source)).

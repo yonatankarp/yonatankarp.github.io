@@ -10,8 +10,9 @@ Run: uv run web3d/pixel/gen_rooms.py paint [--count N] [--start S]   # Draw Thin
      uv run web3d/pixel/gen_rooms.py build [OUT]                     # OUT/ROOM[-winter][-PHASE].webp, ROOM-fx.json and
                                                                      # the studio's radio-reels[-winter][-PHASE].webp
 
-Painted from text at the city's size and baked as the Library is (gen_library.py), so the grain matches: box-reduced
-to ART_W wide on COLOURS colours, undithered. Paintings go to web3d/pixel/paintings/candidates/ROOM_SEED.png (not
+Painted from text at the city's size and baked as the Library is (gen_library.py): box-reduced to ART_W wide on COLOURS
+colours, undithered, then at half that resolution in place (COARSE: art_common.coarsen_baked), so a wide screen can show more
+of the room at a smaller art px that still reads as pixel art (custom.css: .room-hero). Paintings go to web3d/pixel/paintings/candidates/ROOM_SEED.png (not
 committed); the chosen one is copied to web3d/pixel/paintings/picks/ROOM.png, the build's input, and its seed noted in
 PICKS.
 
@@ -34,7 +35,7 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from art_common import (ART_W, CANDIDATES, OUT, PH, PICKS as PICKED, PW, ROOT, bake, blur, glass,  # noqa: E402
+from art_common import (ART_W, CANDIDATES, OUT, PH, PICKS as PICKED, PW, ROOT, bake, blur, coarsen_baked, glass,  # noqa: E402
                         name, paint_candidate, patched, relit, save_lossless)
 from install_picks import night_view  # noqa: E402
 
@@ -58,18 +59,26 @@ PROMPTS = {
                      "post box on the left by the door; tall arched windows on the right with the dusk sky; green-shaded lamps; "
                      "a tiled floor."),
 }
-# Where each room's animations go, in art pixels (rooms-fx.js).
+# The rooms are baked at half resolution (art_common.coarsen_baked), every 2x2 block of art px one colour, so an art px can be
+# shown smaller and the head keep more of the room in view while it still reads as pixel art (custom.css: .room-hero).
+# The files stay ART_W wide, so every coordinate below is in the art's own px; rooms-fx.js draws on a store COARSE times
+# smaller, so its animations are as coarse.
+COARSE = 2
+# Where each room's animations go, in art pixels (rooms-fx.js); and its focus, the art's x kept in the middle of a wide
+# screen's head (custom.css: .room-hero), as far as no edge shows.
 FX = {
     "radio": {
+        "focus": 532,                                            # the mixing desk, both tape decks' reels either side
         "lamp": [238, 70],                                       # the on-air lamp, painted unlit (PATCHES): no glow while off air
         # The tape decks' reels, left deck then right: the hub's x, y, the painted flange's half-width and half-height (a
         # disc seen at a slant), its turn (1 clockwise), and how far out its plain painted hub goes, which need not turn: on
         # the left deck the hub's ring of holes turns. Their cutouts turn about the hub over the bare metal (reels()).
         "reels": [[97, 128, 25, 35, 1, 0], [150, 131, 20, 32, 1, 0], [912, 132, 24, 30, -1, 0.34], [976, 130, 27, 33, -1, 0.34]],
         "needles": [[491, 196], [576, 196]],                     # the VU meters' pivots
-        "beacon": [1260, 11],                                    # the mast's light, out of the window
+        "beacon": [1260, 10],                                    # the mast's light, out of the window, on the 2x2 grid
     },
     "post": {
+        "focus": 500,                                            # the clock, between both lamps
         "clock": [523, 52],                                      # the wall clock's middle: its second hand
         "lamps": [[279, 82], [729, 82]],                         # the two lamps, whose warmth breathes
         "dust": [470, 90, 580, 210],                             # x0, y0, x1, y1: the grille window's light
@@ -262,15 +271,15 @@ def paint(count, start, host):
 
 def build(out):
     for room, seed in PICKS.items():
-        ref = bake(*hour(room, WINDOWS[room], "dusk", False, PATCHES.get(room, ())))   # where the reels' cutouts are
+        ref = bake(*hour(room, WINDOWS[room], "dusk", False, PATCHES.get(room, ())))   # where the reels' cutouts are, found at full resolution
         for winter in (False, True):
             for phase in PHASES:
-                art = bake(*hour(room, WINDOWS[room], phase, winter, PATCHES.get(room, ())))
+                art = coarsen_baked(bake(*hour(room, WINDOWS[room], phase, winter, PATCHES.get(room, ()))), COARSE)
                 save_lossless(art, out / f"{room}{suffix(phase, winter)}.webp")
                 if "reels" in FX[room]:
                     save_lossless(reels(art, FX[room]["reels"], ref), out / f"{room}-reels{suffix(phase, winter)}.webp")
-        (out / f"{room}-fx.json").write_text(json.dumps(FX[room], separators=(",", ":")))
-        print(f"drew {room}[-winter][-PHASE].webp from seed {seed}, the views {VIEW_PICKS[room]} and the hours {ROOM_PICKS[room]}, at {ART_W} wide")
+        (out / f"{room}-fx.json").write_text(json.dumps({**FX[room], "coarse": COARSE}, separators=(",", ":")))
+        print(f"drew {room}[-winter][-PHASE].webp from seed {seed}, the views {VIEW_PICKS[room]} and the hours {ROOM_PICKS[room]}, at {ART_W} wide in {COARSE}x{COARSE} blocks")
 
 
 if __name__ == "__main__":

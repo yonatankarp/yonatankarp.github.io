@@ -4,7 +4,7 @@
 // the keyboard; back from one, the city opens zoomed on it (the pre-paint in layouts/index.html). Any #floor-X address enters the
 // building, which pixel.js mounts on city:enter; back at the bare address the page loads afresh on the city (guide.js).
 // Going in, the map pushes on through the district's door into the next view (iris.js).
-import { ENTRANCE, lay, strip } from './art.js';
+import { ENTRANCE, lay, narrow, strip } from './art.js';
 import { cityFx } from './city-fx.js';
 import { roomy } from './guide.js';
 import { floorShaped } from './hash.js';
@@ -148,11 +148,14 @@ if (city && root.classList.contains('at-city')) {
       return { x: x * k - left, y: y * k, w: w * k };
     },
     // The room headers' middles (custom.css: .library-hero, .room-hero), at the top of their pages: its numbers, which
-    // scripts/test/push-in.test.js holds to custom.css's.
-    library: () => ({ x: innerWidth / 2, y: (innerWidth <= 760 ? innerHeight * 0.38 : Math.min(innerHeight * 0.52, 173 * Math.ceil(devicePixelRatio * innerWidth / 720) / devicePixelRatio + 3)) / 2 }),
-    radio: () => ({ x: innerWidth / 2, y: Math.min(480, Math.max(230, innerWidth * 347 / 1440)) / 2 }),
+    // scripts/test/push-in.test.js holds to custom.css's. A wide screen's art px is at least 3 CSS px in the Library, and
+    // 1.5 in the rooms (the Radio Mast's 1 under 1400px), whose blocks of 2 are whole device px.
+    library: () => ({ x: innerWidth / 2, y: (innerWidth <= 760 ? innerHeight * 0.38 : Math.min(innerHeight * 0.52, 173 * Math.max(Math.ceil(devicePixelRatio * innerWidth / 720) / devicePixelRatio, narrow.matches ? 0 : 3) + 3)) / 2 }),
+    radio: () => roomHead(innerWidth < 1400 ? 1 : 1.5),
+    post: () => roomHead(1.5),
   };
-  next.post = next.radio;
+  // A room's art px in steps of half a device px (its blocks whole ones): the cover rounded up, the minimum down.
+  const roomHead = (m, k = 2 * devicePixelRatio) => ({ x: innerWidth / 2, y: (narrow.matches ? Math.min(480, Math.max(230, innerWidth * 347 / 1440)) : Math.max(230, Math.min(innerHeight * 0.52, 347 * Math.max(Math.ceil(k * innerWidth / 1440), Math.floor(k * m)) / k))) / 2 });
   let entering = false;
   const through = (key, href) => {
     if (still.matches || fxOff || (key === 'tower' && !roomy.matches)) return false;

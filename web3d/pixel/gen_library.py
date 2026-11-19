@@ -11,8 +11,8 @@ Run: uv run web3d/pixel/gen_library.py blockout [OUT]                  # the cod
                                                                        # library-depth.png
 
 The city's pipeline (gen_city.py) at the city's colours: the blockout fixes where every shelf sits, the model paints
-over it, and the pick is box-reduced and quantised undithered, to half the city's width (LIB), so that a 1440 screen
-shows the whole room at 2 device px an art px rather than a crop of it (custom.css snaps the head to whole ones). Painted
+over it, and the pick is box-reduced and quantised undithered, to half the city's width (LIB); a wide screen shows it at
+3 CSS px an art px or more, about FX's focus (custom.css: .library-hero, whole device px an art px). Painted
 at dusk, and at the other hours and in winter as the radio and post rooms are (gen_rooms.hour(): the dusk drawing relit,
 the hour's view through the window's glass, WINDOW_GLASS; picks/library-PHASE.png and library-view[-winter][-PHASE].png).
 No shelf stands for a topic, so a new tag never needs new art.
@@ -138,8 +138,10 @@ def paint(count, start, host):
         paint_candidate(CANDIDATES / f"library_{seed}.png", PROMPT, (PW, PH), seed, host, init)
 
 
-# Where the room's animations go, in art pixels (library-fx.js): x0, y0, x1, y1.
+# Where the room's animations go, in art pixels (library-fx.js): x0, y0, x1, y1. And its focus, the art's x kept in the
+# middle of a wide screen's head (custom.css: .library-hero), as far as no edge shows: the window and the fire both in.
 FX = {
+    "focus": 460,
     "fire": [638, 107, 655, 129],                        # the flames, above the logs
     "glow": [[620, 125, 675, 140], [627, 140, 672, 150]],   # the hearth and the floor before it
     "dust": [327, 20, 397, 150],                         # the window's shaft of light

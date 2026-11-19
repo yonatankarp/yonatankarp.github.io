@@ -212,15 +212,19 @@ h4 a,
 .library-art { position: absolute; inset: 0; }
 .library-hero :is(img, .library-fx) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 62%; image-rendering: pixelated; }
 /* An art pixel a whole number of device px (--dpr: assets/js/dpr.js), the fewest that cover the head, as on the city
-   (city.css), placed as object-position puts it. Its box is .library-art, as the head's own height is its title's. The
-   room is 720x173 (gen_library.py), and the head is at least as tall as it shows at the screen's width, to 52vh, so a
-   1440 screen shows the whole room at 2 device px an art px; a taller title, or a phone's 38vh, crops it. */
+   (city.css), and on a wide screen at least 3 CSS px (--m), so the room reads as pixel art: its focus (gen_library.py's,
+   the style's --focus) in the middle as far as no edge shows, its foot cropped as object-position puts it. Its box is
+   .library-art, as the head's own height is its title's. The room is 720x173 (gen_library.py), and the head is at least
+   as tall as it shows, to 52vh; a taller title, or a phone's 38vh, crops it. A phone or a portrait screen shows the
+   room's middle at the fewest px that cover. The head's own height, often a whole number of art px (the min-height),
+   comes back from the division a hair over, so the hair is taken off it before it is rounded up. */
 @supports (width: round(up, 1cqw, 1px)) {
-  .library-hero { min-height: min(52vh, 173 * round(up, 100vw / 720, 1px / var(--dpr, 1)) + 3px); }   /* and its border; web3d/src/city.js's push-in lands on its middle, by these numbers */
+  .library-hero { --m: 3px; --x: var(--focus, 360); min-height: min(52vh, 173 * max(round(up, 100vw / 720, 1px / var(--dpr, 1)), var(--m)) + 3px); }   /* and its border; web3d/src/city.js's push-in lands on its middle, by these numbers */
+  @media (max-width: 760px), (max-aspect-ratio: 6/5) { .library-hero { --m: 0px; --x: 360; } }
   .library-art { container-type: size; }
   .library-hero :is(img, .library-fx) {
-    --u: round(up, max(100cqw / 720, 100cqh / 173), 1px / var(--dpr, 1)); width: calc(720 * var(--u)); height: calc(173 * var(--u)); max-width: none;
-    left: round((100cqw - 720 * var(--u)) / 2, 1px / var(--dpr, 1)); top: round((100cqh - 173 * var(--u)) * 0.62, 1px / var(--dpr, 1));
+    --u: round(up, max(100cqw / 720, (100cqh - 0.01px) / 173, var(--m)), 1px / var(--dpr, 1)); width: calc(720 * var(--u)); height: calc(173 * var(--u)); max-width: none;
+    left: round(clamp(100cqw - 720 * var(--u), 50cqw - var(--x) * var(--u), 0px), 1px / var(--dpr, 1)); top: round((100cqh - 173 * var(--u)) * 0.62, 1px / var(--dpr, 1));
   }
 }
 .library-fx { pointer-events: none; }   /* the room's animations (library-fx.js), cropped as the picture is */
@@ -261,19 +265,31 @@ h4 a,
 .post-row__tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
 .post-row__tags li { padding: 4px 6px 3px; font: 15px/1 var(--display); color: var(--text-soft); box-shadow: inset 0 0 0 1px var(--panel-hi); }
 /* The Radio Mast (/podcast/, layouts/_default/radio.html) and the Post Office (/contact/, post.html): the room across the
-   head at its own 1440:347 shape (partials/room-hero.html), centred and never scrolled, then a panel lifted over its foot. */
+   head at its own 1440:347 shape (partials/room-hero.html), never scrolled, then a panel lifted over its foot. */
 .room { --cream: #f1e6cf; }
 .room-hero { position: relative; display: flex; justify-content: center; height: calc(clamp(230px, 100vw * 347 / 1440, 480px) + 3px); overflow: hidden; border-bottom: 3px solid var(--ink); }   /* the room, and its border; city.js's push-in lands on its middle */
 .room-map { position: relative; flex: none; height: 100%; aspect-ratio: 1440 / 347; min-width: 100%; }
 .room-map :is(img, canvas) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; }
-/* An art pixel a whole number of device px (--dpr: assets/js/dpr.js), the fewest that cover the head, as on the city
-   (city.css): the head keeps its height, the room's middle at its middle, and the room's foot is cropped. */
+/* The rooms are baked in 2x2 blocks (gen_rooms.py), so a block, not an art pixel, is a whole number of device px
+   (--dpr: assets/js/dpr.js): the fewest that cover the head, as on the city (city.css), and on a wide screen an art px at
+   least 1.5 CSS px (--m; the Radio Mast's 1 under 1400px, where 1.5 would crop its tape decks), or the block size under
+   it where a screen's px is fractional (rounded up, it would crop the decks; on that grid already, it is not rounded
+   again, as 1.2 / 0.4 comes back a hair over 3), so the room reads as pixel art. The head is then taller, to 52vh, and no taller than the room shows; the room's top at its top (its foot is
+   cropped), its focus (gen_rooms.py's, the style's --focus) in the middle as far as no edge shows. A phone or a portrait
+   screen keeps the head 1440:347 at the screen's width and the room's middle. The head's height less a hair, as the
+   Library's. */
 @supports (width: round(up, 1cqw, 1px)) {
-  .room-hero { display: block; container-type: size; }
-  .room-map {
-    --u: round(up, max(100cqw / 1440, 100cqh / 347), 1px / var(--dpr, 1)); width: calc(1440 * var(--u)); height: calc(347 * var(--u)); min-width: 0;
-    left: round((100cqw - 1440 * var(--u)) / 2, 1px / var(--dpr, 1));
+  .room-hero {
+    display: block; container-type: size; --m: round(down, 1.5px, 0.5px / var(--dpr, 1)); --x: var(--focus, 720);
+    height: calc(clamp(230px, 52vh, 347 * max(round(up, 100vw / 1440, 0.5px / var(--dpr, 1)), var(--m))) + 3px);   /* and its border; city.js's push-in lands on its middle, by these numbers */
   }
+  @media (max-width: 1399px) { .room-hero--radio { --m: round(down, 1px, 0.5px / var(--dpr, 1)); } }
+  @media (max-width: 760px), (max-aspect-ratio: 6/5) { .room-hero { --m: 0px; --x: 720; height: calc(clamp(230px, 100vw * 347 / 1440, 480px) + 3px); } }
+  .room-map {
+    --u: max(round(up, max(100cqw / 1440, (100cqh - 0.01px) / 347), 0.5px / var(--dpr, 1)), var(--m)); width: calc(1440 * var(--u)); height: calc(347 * var(--u)); min-width: 0;
+    left: round(clamp(100cqw - 1440 * var(--u), 50cqw - var(--x) * var(--u), 0px), 1px / var(--dpr, 1));
+  }
+  .room-map canvas { height: calc(100% * 348 / 347); }   /* its store is the room's blocks, 720x174: a row past the foot */
 }
 .room-fx { pointer-events: none; }   /* the room's animations (rooms-fx.js), over the picture */
 .room-sheet { position: relative; max-width: 1080px; margin: -64px auto 0; padding: 0 24px; }

@@ -1,22 +1,24 @@
 {{- /* A district's room across the head of its page, the Radio Mast's (radio.html) and the Post Office's (post.html): the
-     painting at its own shape, centred and never scrolled, and its animations over it (web3d/src/rooms-fx.js, from
-     ROOM-fx.json and the studio's reels from ROOM-reels[-winter][-PHASE].webp, all by web3d/pixel/gen_rooms.py). The
+     painting at its own shape, its top at the head's and never scrolled, its `focus` mid-head on a wide screen (custom.css),
+     and its animations over it (web3d/src/rooms-fx.js, from ROOM-fx.json and the studio's reels from
+     ROOM-reels[-winter][-PHASE].webp, all by web3d/pixel/gen_rooms.py), on a store as coarse as the room is baked
+     (ROOM-fx.json's `coarse`: 720x174 for the 1440x347 room, a row past its foot). The
      painting is the visitor's hour's and season's, preloaded in the head (head.html, by the page's `art`) and set by the
      script right after it (assets/js/art-time.js); dusk without a script. No labels: the links are in the panel under it.
      Takes room and alt. */ -}}
 {{ $img := printf "building/pixel/%s.webp" .room }}{{ $fx := printf "building/pixel/%s-fx.json" .room }}
 {{ $sheet := printf "building/pixel/%s-reels" .room }}{{ if not (fileExists (printf "static/%s.webp" $sheet)) }}{{ $sheet = "" }}{{ end }}
-{{ $size := imageConfig (printf "static/%s" $img) }}
+{{ $size := imageConfig (printf "static/%s" $img) }}{{ $data := os.ReadFile (printf "static/%s" $fx) | transform.Unmarshal }}
 {{ $js := resources.Get "building/rooms.js" }}
 {{ if not $js }}{{ errorf "The Radio Mast and the Post Office need their bundle in assets/building/: run `npm run build:building` first." }}{{ end }}
 {{ $js = $js | fingerprint }}
 {{ $v := partialCached "art-version.html" . }}{{/* the art's, on its URLs */}}
 {{ $hour := resources.Get "js/art-time.js" | minify | fingerprint "sha256" }}{{/* allowed by its hash in head.html */}}
-<div class="room-hero">
+<div class="room-hero room-hero--{{ .room }}" style="--focus:{{ $data.focus }}">
   <div class="room-map">
     <img src="{{ $img | relURL }}?v={{ $v }}" alt="{{ .alt }}" width="{{ $size.Width }}" height="{{ $size.Height }}" loading="lazy" fetchpriority="high">
     <script>{{ $hour.Content | safeJS }}</script>
-    <canvas class="room-fx" width="{{ $size.Width }}" height="{{ $size.Height }}" aria-hidden="true" data-room="{{ .room }}" data-fx="{{ $fx | relURL }}?v={{ $v }}"{{ with $sheet }} data-sheet="{{ . | relURL }}" data-version="{{ $v }}"{{ end }}></canvas>
+    <canvas class="room-fx" width="{{ int (div $size.Width $data.coarse) }}" height="{{ int (math.Ceil (div $size.Height $data.coarse)) }}" aria-hidden="true" data-room="{{ .room }}" data-fx="{{ $fx | relURL }}?v={{ $v }}"{{ with $sheet }} data-sheet="{{ . | relURL }}" data-version="{{ $v }}"{{ end }}></canvas>
   </div>
 </div>
 <script type="module" src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}"></script>

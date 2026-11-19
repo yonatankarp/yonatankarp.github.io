@@ -192,7 +192,8 @@ export const every = (fps, iv) => Math.floor(1000 / (fps * iv) + 0.1);
 // screen frame, as many as still keep that mover to a pixel a frame: evenly, so nothing judders, and not twice as often
 // on a 120 Hz screen.
 function loop(ctx, draw, live, still, poster) {
-  const { canvas } = ctx, clear = () => ctx.clearRect(0, 0, canvas.width, canvas.height), fps = Math.min(60, draw.fps ?? 60);
+  const { canvas } = ctx, fps = Math.min(60, draw.fps ?? 60);
+  const clear = () => { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.restore(); };   // the whole store, whatever the scene's scale (rooms-fx.js)
   const hold = () => { clear(); poster?.(ctx); };   // motion turned off: what stands still, as a still page has it
   let raf = 0, last = 0, prev = 0, seen = true, iv = 1000 / 60, skip = 0;   // iv: the screen's frame interval, smoothed
   const going = () => !document.hidden && seen && !still.matches && !paused && live();

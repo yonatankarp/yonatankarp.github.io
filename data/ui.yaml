@@ -66,6 +66,8 @@ skills:   # /skills/; its title and lead line are content/skills/_index.md's
   working_set_text: "The tools and systems I use most in my current work."
   familiar: "Also comfortable with"
   familiar_text: "Things I have worked with seriously, though less often than the list above."
+  ai: "AI tools"
+  ai_text: "The AI tools I build and work with every day."
 
 article:   # a blog post's page (layouts/blog/single.html), and its row in the lists
   kicker: "Article"

@@ -42,4 +42,5 @@ key_pages:   # path is the page's address on the site
 archived: "(archived)"   # after an archived project's name
 working_set: "Working set"
 familiar: "Familiar with"
+ai: "AI tools"
 email: "Email"

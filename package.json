@@ -24,6 +24,7 @@
     "build:building": "node scripts/build-building.js && node scripts/render-diagrams.js",
     "art": "uv run web3d/pixel/build_art.py",
     "pdf": "node scripts/generate-cv-pdf.js",
+    "pdf:private": "node scripts/generate-cv-pdf.js --private && node scripts/check-cv-print.js private/yonatan-karp-rudin-cv.pdf",
     "test": "node --test scripts/test/*.test.js",
     "lint": "eslint . && uvx ruff@0.14.3 check web3d/pixel"
   },

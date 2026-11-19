@@ -1,4 +1,6 @@
 public/
+# npm run pdf:private: the CV with the phone number, sent by hand, never committed or deployed
+private/
 resources/
 .hugo_build.lock
 node_modules/

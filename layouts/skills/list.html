@@ -37,5 +37,13 @@
       {{ range .Params.familiar_with }}<li class="px-chip">{{ . }}</li>{{ end }}
     </ul>
   </section>
+
+  <section class="px-section">
+    <h2>{{ $t.ai }}</h2>
+    <p>{{ $t.ai_text }}</p>
+    <ul class="px-skills__chips">
+      {{ range .Params.ai_tools }}<li class="px-chip">{{ . }}</li>{{ end }}
+    </ul>
+  </section>
 </div>
 {{ end }}

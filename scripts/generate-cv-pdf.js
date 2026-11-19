@@ -6,7 +6,11 @@ const { rootDir, publicDir, fail, loadPlaywright } = require("./lib");
 const { serve } = require("./serve-public");
 
 const cvPath = path.join(publicDir, "cv", "index.html");
-const pdfPath = path.join(publicDir, "yonatan-karp-rudin-cv.pdf");   // the homepage's Download CV
+// --private prints the copy to send recruiters: the same CV plus a WhatsApp link to CV_WHATSAPP (e.g. "+49 151 2345678"),
+// written outside public/ so it never deploys, and the number never enters the repo or the built site.
+const isPrivate = process.argv.includes("--private");
+const pdfPath = isPrivate ? path.join(rootDir, "private", "yonatan-karp-rudin-cv.pdf") : path.join(publicDir, "yonatan-karp-rudin-cv.pdf");   // public: the homepage's Download CV
+const whatsapp = (process.env.CV_WHATSAPP || "").trim();
 const CV_FONTS = ["Jersey 15", "Outfit Print"];   // the faces the printed CV sets its text in; compared lowercased, as the minifier writes them
 
 // Chromium only writes Title, so Author, Subject and the rest are added after printing.
@@ -26,6 +30,11 @@ async function setMetadata() {
       "Run npm run build first.",
     ]);
   }
+
+  if (isPrivate && whatsapp.replace(/\D/g, "").length < 8) {
+    fail("The private CV needs your WhatsApp number.", ['Run CV_WHATSAPP="+49 151 2345678" npm run pdf:private, with your number in international format.']);
+  }
+  if (isPrivate) fs.mkdirSync(path.dirname(pdfPath), { recursive: true });
 
   const { chromium } = loadPlaywright("CV PDF generation");
   const { server, baseUrl } = await serve();
@@ -54,6 +63,14 @@ async function setMetadata() {
       .map((family) => `${family} is not loaded`);
     if (broken.length || missing.length) {
       fail("CV PDF generation stopped: the CV's fonts did not load.", [...broken, ...missing]);
+    }
+    if (isPrivate) {
+      await page.evaluate((number) => {
+        const link = Object.assign(document.createElement("a"), { className: "px-chip", href: `https://wa.me/${number.replace(/\D/g, "")}`, textContent: `WhatsApp ${number}` });
+        const item = document.createElement("li");
+        item.append(link);
+        document.querySelector(".cv-contact").prepend(item);
+      }, whatsapp);
     }
     await page.pdf({
       path: pdfPath,

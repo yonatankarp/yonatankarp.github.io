@@ -41,10 +41,13 @@ familiar_with:
   - "Cassandra / Keyspaces"
   - "Mockito"
   - "Jenkins"
-  - "MCP"
-  - "Claude Code"
+ai_tools:
+  - "Claude Code (skills, hooks, subagents)"
+  - "OpenAI Codex"
+  - "MCP servers"
   - "Ollama"
   - "Whisper"
+  - "Draw Things"
 outputs: ["html"]
 ---
 

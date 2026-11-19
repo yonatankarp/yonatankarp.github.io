@@ -76,7 +76,7 @@ ENTRANCE_CROP = (1792, 0, 2304, 768)   # painting px: the crop round the lobby's
 DOOR = {"reception": ENTRANCE_CROP}
 # Winter's edits snowed on what is indoors too (the roof's lift housing, the lobby door's frame, bars and handles), and
 # would not keep the lobby's view: a winter pick is the hour's own picture with only what may be snowy taken from its
-# edit. The roof: all but the housing (gen_floors.HOUSING, 265 art px); the lobby: its door's glass panes, but its push
+# edit. The roof: all but the housing (gen_floors.HOUSING, 266 art px); the lobby: its door's glass panes, but its push
 # bars and handles. In painting pixels.
 SNOWED = {"roof": [(660, 0, 2304, 768)],
           "reception": [(1993, 106, 2057, 208), (2078, 96, 2232, 178), (2000, 231, 2057, 661), (2090, 221, 2130, 666),

@@ -24,6 +24,11 @@ it is not part of the build: rerun it, and commit its output, when the dusk pick
 
 ## The tower's rooms
 
+Every room is baked in 2x2 blocks at its full size (`art_common.coarsen`, in `install_picks.install` after the lift is
+pasted and before the colours are cut; `art_common.regrid` after the touch-ups and the roof's panel, which draw a pixel at
+a time, puts each broken block back on the nearest of the picture's colours). `gen_floors.py` regrids each frame too, but
+draws its animations in whole blocks so that does nothing: a new one should as well.
+
 The rooms
 that show outside have a painting at each other hour that changes only the light: the roof an edit of its dusk pick,
 whole (`paint_rooms.py retime`); the lobby only through its glass door, one street at every hour, from an edit of a crop
@@ -38,7 +43,7 @@ picture with only `SNOWED` taken from its edit (`install_picks.py`): the roof bu
 glass but its brass (`unsnow` refills the brass's rows behind the bars).
 
 The roof has open sky for its top slab (`sky_band`): the
-painting's own sky at its top blended up, in its own colours and flat bands, into `phases.json`'s sky, its masts carried
+painting's own sky at its top blended up, in its own colours and flat bands of 2x2 blocks, into `phases.json`'s sky, its masts carried
 on up (mirrored: the one shape that still is, as a lattice reads the same either way) and, at night, its stars
 scattered over it.
 
@@ -49,7 +54,7 @@ The lobby has one more picture at each hour,
 which names it); `entrance [--winter] --time PHASE --pick SEED` puts the pick back under a tight mask on the doorway and
 keeps only its crop, `picks/reception-open[-winter][-PHASE].png`, picked only where the street through the opening is the
 shut view's; and `gen_floors.py` box-reduces that crop exactly as the whole painting is (the same filter at the same
-offset) and bakes it on that hour's lobby colours (`floor-L-open[-winter][-PHASE].webp`).
+offset, then `coarsen`) and bakes it on that hour's lobby colours (`floor-L-open[-winter][-PHASE].webp`).
 
 ## The district rooms
 

@@ -11,8 +11,8 @@ summary: "Built Risk's credit limit and fraud-labelling services, and moved risk
 highlights:
   - "Built a credit limit service and a fraud-labelling service from scratch."
   - "Replaced synchronous Risk-Refinancing calls with the event-driven credit score our partner required to fund Pan-European refinancing."
-  - "Moved real-time fraud features from Data Science to Engineering."
+  - "Took over real-time fraud features from Data Science, shipping new fraud signals faster, including Flink pipelines that had stalled."
   - "Led EDA 2.0 across 12 repositories, simplifying setup so all engineers can use it, and set shared CI and code standards for Risk."
 ---
 
-Built a credit limit service and a fraud-labelling service from scratch. Replaced synchronous Risk-Refinancing calls with the event-driven credit score our partner required to fund Pan-European refinancing. Moved real-time fraud features from Data Science to Engineering. Led EDA 2.0 across 12 repositories, simplifying setup so all engineers can use it, and set shared CI and code standards for Risk.
+Built a credit limit service and a fraud-labelling service from scratch. Replaced synchronous Risk-Refinancing calls with the event-driven credit score our partner required to fund Pan-European refinancing. Took over real-time fraud features from Data Science, shipping new fraud signals faster, including Flink pipelines that had stalled. Led EDA 2.0 across 12 repositories, simplifying setup so all engineers can use it, and set shared CI and code standards for Risk.

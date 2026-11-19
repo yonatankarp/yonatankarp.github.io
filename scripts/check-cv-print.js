@@ -7,7 +7,7 @@ const path = require("path");
 const { PDFDocument, PDFDict, PDFName, PDFString, PDFHexString } = require("pdf-lib");
 const { publicDir, fail } = require("./lib");
 
-const pdfPath = path.join(publicDir, "yonatan-karp-rudin-cv.pdf");
+const pdfPath = process.argv[2] ? path.resolve(process.argv[2]) : path.join(publicDir, "yonatan-karp-rudin-cv.pdf");   // or the private copy
 const maxPages = 1;
 
 // Every URI a link annotation on the page opens.
@@ -30,7 +30,7 @@ function linkUris(page) {
 
 async function main() {
   if (!fs.existsSync(pdfPath)) {
-    fail("CV print check requires public/yonatan-karp-rudin-cv.pdf.", ["Run npm run build, then npm run pdf."]);
+    fail(`CV print check requires ${pdfPath}.`, ["Run npm run build, then npm run pdf (or npm run pdf:private)."]);
   }
 
   const pdf = await PDFDocument.load(fs.readFileSync(pdfPath), { updateMetadata: false });

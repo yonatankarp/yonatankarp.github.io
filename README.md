@@ -16,7 +16,7 @@ npm run serve                     # dev server at http://localhost:1313
 npm run build                     # production build into public/, then the CV PDF
 ```
 
-Node 22 or later (`.nvmrc`) and Hugo 0.169.0, the release pinned in `.github/hugo.env`. The npm scripts use
+Node 22 or later (`.nvmrc`) and Hugo 0.170.1, the release pinned in `.github/hugo.env`. The npm scripts use
 `.tools/hugo/hugo` when it exists (gitignored: put that release there) and otherwise `hugo` on the `PATH`, and warn when
 it is another version. `npm run lint` and the art pipeline also need [uv](https://docs.astral.sh/uv/).
 
@@ -102,7 +102,7 @@ A push to `main` runs `.github/workflows/deploy.yml`, which builds and checks th
 
 Hugo is installed from its GitHub release by `.github/actions/build-site`, so its pin is `HUGO_VERSION` and
 `HUGO_SHA256` in `.github/hugo.env`, which Dependabot cannot bump. Change both together: the checksum is the
-`hugo_extended_<version>_linux-amd64.deb` line of the release's `hugo_<version>_checksums.txt`, and the install step
+`hugo_<version>_linux-amd64.deb` line of the release's `hugo_<version>_checksums.txt`, and the install step
 fails when it does not match. The weekly `Pin staleness` workflow keeps one `toolchain-pin` issue open while the pin is
 behind or its checksum is wrong; `npm run check:hugo-pin` runs the same check locally.
 

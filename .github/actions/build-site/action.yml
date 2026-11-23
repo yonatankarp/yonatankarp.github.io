@@ -12,7 +12,7 @@ runs:
         version=$(sed -n 's/^HUGO_VERSION=//p' .github/hugo.env)
         sha256=$(sed -n 's/^HUGO_SHA256=//p' .github/hugo.env)
         deb="${RUNNER_TEMP}/hugo.deb"
-        wget -O "$deb" "https://github.com/gohugoio/hugo/releases/download/v${version}/hugo_extended_${version}_linux-amd64.deb"
+        wget -O "$deb" "https://github.com/gohugoio/hugo/releases/download/v${version}/hugo_${version}_linux-amd64.deb"
         echo "${sha256}  ${deb}" | sha256sum -c -
         sudo dpkg -i "$deb"
 

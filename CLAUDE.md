@@ -2,7 +2,7 @@
 
 ## Stack
 
-- **Hugo** static site generator (v0.169.0, pinned as `HUGO_VERSION` in `.github/hugo.env`; see Deployment)
+- **Hugo** static site generator (v0.170.1, pinned as `HUGO_VERSION` in `.github/hugo.env`; see Deployment)
 - **Custom Hugo layouts** in `layouts/`
 - **GitHub Actions** for CI/CD to GitHub Pages
 - Site styles in `assets/css/custom.css`
@@ -498,7 +498,7 @@ console errors and the site's own failed requests, and tries Whole city's focus,
 (`npm run check:cross-browser`; Firefox runs only there, as it does not launch on macOS 27).
 
 Hugo is pinned once, as `HUGO_VERSION` and `HUGO_SHA256` in `.github/hugo.env`. Bump both values together:
-`HUGO_SHA256` is the `hugo_extended_<version>_linux-amd64.deb` line of the release's `hugo_<version>_checksums.txt`,
+`HUGO_SHA256` is the `hugo_<version>_linux-amd64.deb` line of the release's `hugo_<version>_checksums.txt`,
 and the install step fails when it does not match. The weekly `Pin staleness` workflow reports a stale pin and fails
 on a wrong checksum (`npm run check:hugo-pin` runs the same check locally); nothing else watches that pin. The same
 workflow warns within 60 days of `Expires` in `static/.well-known/security.txt` and fails once it has passed

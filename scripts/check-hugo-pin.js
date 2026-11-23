@@ -28,7 +28,7 @@ const releasesPage = "https://github.com/gohugoio/hugo/releases";
 const pinPattern = /^HUGO_VERSION=(\d+\.\d+\.\d+)[ \t]*$/m;
 const shaPattern = /^HUGO_SHA256=([0-9a-f]{64})[ \t]*$/m;
 // The file the build-site action's Install Hugo CLI step downloads and checks.
-const debName = (version) => `hugo_extended_${version}_linux-amd64.deb`;
+const debName = (version) => `hugo_${version}_linux-amd64.deb`;
 
 // The pin, or null when the file or its HUGO_VERSION line is gone.
 function readPin() {

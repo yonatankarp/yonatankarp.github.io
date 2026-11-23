@@ -18,7 +18,7 @@ const ignoredSchemes = /^(?:mailto:|tel:|javascript:)/i;
 const subresourceTags = /<(?:img|source|video|audio|script|iframe|track|embed|input|link)\b[^>]*>/gi;
 const fetchingLinkRels = new Set(["stylesheet", "preload", "modulepreload", "prefetch", "icon", "apple-touch-icon", "mask-icon", "manifest"]);
 const localOrigins = new Set(["https://yonatankarp.com", "http://yonatankarp.com"]);
-const externallyManagedLocalPrefixes = ["/kotlin-design-patterns/", "/ff4k/", "/mimic/", "/lorekeeper/", "/TaleKeeper/"];
+const externallyManagedLocalPrefixes = ["/kotlin-design-patterns/", "/ff4k/", "/mimic/", "/lorekeeper/", "/TaleKeeper/", "/puzzles/", "/bead-chart-maker/", "/pixel-ramp-lab/"];
 const ignoredExternalHosts = new Set(["localhost", "127.0.0.1"]);
 const ignoredExternalPatterns = [
   /^https:\/\/news\.ycombinator\.com\/submitlink\b/i,

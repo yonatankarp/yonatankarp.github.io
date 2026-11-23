@@ -95,7 +95,10 @@ A plain project needs no tools beyond a text editor.
    Pick a free number between the two neighbours.
 3. **Archiving:** add `archived: true`. The project stays listed, with "Archived" on its card and its case study,
    and "(archived)" after its name in `llms.txt` (`data/llms.yaml` `archived`).
-4. **Nothing else to edit:** the workshop's list and count, the city's project count (`layouts/index.html`),
+4. **A `link` to a site under the domain** (`https://yonatankarp.com/<repo>/`, another repo's GitHub Pages): add its
+   `/<repo>/` to `externallyManagedLocalPrefixes` in `scripts/check-links.js`, or `check:links` fails it as a missing
+   local page.
+5. **Nothing else to edit:** the workshop's list and count, the city's project count (`layouts/index.html`),
    `llms.txt` (`layouts/index.llms.txt`, by weight), and search (`layouts/index.json.json`; a `contribution` is typed
    "Contribution") all come from the front matter.
    - `layouts/partials/project-title.html` strips ` (contributor)` everywhere the title is shown.

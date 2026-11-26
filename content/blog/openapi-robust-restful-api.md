@@ -4,6 +4,7 @@ date: 2022-12-04T00:00:00+01:00
 aliases:
   - /how-to-write-a-robust-rest-api-with-openapi
   - /how-to-write-robust-rest-api-with-openapi
+  - /blog/how-to-write-a-robust-rest-api-with-openapi
   - /he/blog/openapi-robust-restful-api/
 draft: false
 type: "blog"
